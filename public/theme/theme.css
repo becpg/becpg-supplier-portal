@@ -1,0 +1,36 @@
+body {
+
+  --becpg-blue: #004254;
+  --becpg-green: #00ffbd;
+  --becpg-grey: #e4ecee;
+  --becpg-orange: #ff642d;
+  --becpg-darkGrey: #747474;
+
+   
+  --becpg-top-bar-color : var(--becpg-grey);
+  --becpg-top-bar-border-color : var(--becpg-orange);
+  --becpg-on-top-bar-color : var(--becpg-blue);
+  
+  --becpg-on-toolbar-color : #ffffff;
+  --becpg-toolbar-color: var(--becpg-blue);
+   
+
+  --mdc-theme-primary: var(--becpg-blue);
+  --mdc-theme-secondary: var(--becpg-green);
+  --mdc-theme-on-primary: #ffffff;
+  --mdc-theme-on-secondary: #ffffff;
+  --mdc-theme-background: #e4ecee;
+
+  --mdc-theme-surface: #ffffff;
+  --mdc-theme-on-surface: #000000;
+
+  --mdc-theme-text-primary-on-light: var(--becpg-orange);
+  --mdc-theme-text-secondary-on-light: #ffffff;
+  --mdc-theme-text-hint-on-light: var(--becpg-orange);
+  --mdc-theme-text-disabled-on-light: #ffffff;
+  --mdc-theme-text-icon-on-light: #ffffff;
+}
+
+.mdc-drawer-app-content {
+  background: url("./images/shape.png") bottom right no-repeat fixed;
+}

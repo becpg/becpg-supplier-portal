@@ -1,0 +1,597 @@
+@import "tailwindcss";
+
+:root {
+  --becpg-blue: #004254;
+  --becpg-green: #00ffbd;
+  --becpg-grey: #e4ecee;
+  --becpg-orange: #ff642d;
+  --becpg-darkGrey: #747474;
+
+  --becpg-top-bar-color: var(--becpg-grey);
+  --becpg-top-bar-border-color: var(--becpg-orange);
+  --becpg-on-top-bar-color: var(--becpg-blue);
+
+  --becpg-on-toolbar-color: #ffffff;
+  --becpg-toolbar-color: var(--becpg-blue);
+
+  --background: #ffffff;
+  --foreground: var(--becpg-blue);
+
+  --becpg-blue-light: #006080;
+  --becpg-blue-lighter: #d6e8ed;
+  --becpg-green-light: #66ffdd;
+  --becpg-orange-light: #ff8a5c;
+
+  --gradient-primary: linear-gradient(135deg, var(--becpg-blue) 0%, var(--becpg-blue-light) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--becpg-orange) 0%, var(--becpg-orange-light) 100%);
+  --gradient-secondary: linear-gradient(135deg, var(--becpg-green) 0%, var(--becpg-green-light) 100%);
+  --gradient-subtle: linear-gradient(180deg, rgba(0, 66, 84, 0.02) 0%, rgba(0, 66, 84, 0) 100%);
+
+  /* --- Supplier portal additions ------------------------------------- */
+
+  /* Status semantics: approval status, document validity, task lateness.
+     Kept as tokens so a tenant theme can override them without touching markup. */
+  --status-ok: #0f7a5a;
+  --status-ok-bg: #dff7ee;
+  --status-ok-border: #a5e6cf;
+
+  --status-warn: #a35a00;
+  --status-warn-bg: #fff1de;
+  --status-warn-border: #ffd39b;
+
+  --status-danger: #b3261e;
+  --status-danger-bg: #fdecea;
+  --status-danger-border: #f5b7b1;
+
+  --status-neutral: var(--becpg-darkGrey);
+  --status-neutral-bg: var(--becpg-grey);
+  --status-neutral-border: #c9d6d9;
+
+  --status-info: var(--becpg-blue-light);
+  --status-info-bg: var(--becpg-blue-lighter);
+  --status-info-border: #a8cdd8;
+
+  /* Non-production banner */
+  --test-banner-color: #7a3d00;
+  --test-banner-stripe-a: #ffcf3d;
+  --test-banner-stripe-b: #ffb200;
+  --test-banner-height: 28px;
+
+  /* Skeleton shimmer */
+  --skeleton-base: #e8eef0;
+  --skeleton-highlight: #f6fafb;
+
+  /* Mobile-first layout rhythm */
+  --portal-header-height: 56px;
+  --portal-bottom-nav-height: 60px;
+  --portal-max-width: 1400px;
+}
+
+@theme inline {
+  --color-becpg-blue: #004254;
+  --color-becpg-green: #00ffbd;
+  --color-becpg-grey: #e4ecee;
+  --color-becpg-orange: #ff642d;
+  --color-becpg-dark-grey: #747474;
+
+  --color-becpg-blue-light: var(--becpg-blue-light);
+  --color-becpg-blue-lighter: var(--becpg-blue-lighter);
+
+  --color-status-ok: var(--status-ok);
+  --color-status-warn: var(--status-warn);
+  --color-status-danger: var(--status-danger);
+  --color-status-neutral: var(--status-neutral);
+  --color-status-info: var(--status-info);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-roboto);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.mdc-drawer-app-content {
+  background: url("/theme/default/images/shape.png") bottom right no-repeat fixed;
+  flex: auto;
+  overflow: auto;
+  position: relative;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Animations                                                             */
+/* ---------------------------------------------------------------------- */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 100, 45, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px 5px rgba(255, 100, 45, 0.2);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes test-banner-scroll {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 56px 0;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.4s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.bg-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+/*
+ * Keyboard focus baseline — the safety net, not the house style.
+ *
+ * Every interactive element must show where the keyboard is (spec §9.1). Most of
+ * the portal gets that from `Button` / `IconButton`, which carry
+ * `focus:outline-none focus-visible:ring-2 focus-visible:ring-[--becpg-orange]`.
+ * But a handful of surfaces use a raw `<button>` — the sort headers of the
+ * datalist editor, the unlock cell, the cells and expanders of the document
+ * matrix — and those were relying on the browser's default outline, which is
+ * nearly invisible on the coloured backgrounds of the matrix.
+ *
+ * So the ring is declared once here, for anything focusable that has not opted
+ * out. It is an `outline`, not a `box-shadow` ring, and that is the point: a
+ * component that sets `focus:outline-none` (i.e. every `Button`) removes this
+ * one and draws its own, so the two never stack into a double ring. Anything
+ * that forgot gets a visible ring for free.
+ *
+ * `:focus-visible` and not `:focus`: a mouse click on a button must not leave a
+ * ring behind, only keyboard (and other non-pointer) focus does.
+ */
+:focus-visible {
+  outline: 2px solid var(--becpg-orange);
+  outline-offset: 2px;
+}
+
+/* Windows high-contrast mode draws its own indicator; let the system win. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
+  }
+}
+
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-[var(--becpg-orange)] focus:ring-offset-2;
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.text-gradient-primary {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-accent {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hover-lift {
+  transition: all 0.3s ease-in-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 66, 84, 0.15);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(255, 100, 45, 0.3);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Status pills — approval status, document validity, task state          */
+/* ---------------------------------------------------------------------- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.pill::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: currentColor;
+  flex: none;
+}
+
+.pill-no-dot::before {
+  display: none;
+}
+
+.pill-ok {
+  color: var(--status-ok);
+  background: var(--status-ok-bg);
+  border-color: var(--status-ok-border);
+}
+
+.pill-warn {
+  color: var(--status-warn);
+  background: var(--status-warn-bg);
+  border-color: var(--status-warn-border);
+}
+
+.pill-danger {
+  color: var(--status-danger);
+  background: var(--status-danger-bg);
+  border-color: var(--status-danger-border);
+}
+
+.pill-neutral {
+  color: var(--status-neutral);
+  background: var(--status-neutral-bg);
+  border-color: var(--status-neutral-border);
+}
+
+.pill-info {
+  color: var(--status-info);
+  background: var(--status-info-bg);
+  border-color: var(--status-info-border);
+}
+
+/* Dense variant for datagrid cells */
+.pill-sm {
+  padding: 0 0.5rem;
+  font-size: 0.6875rem;
+  line-height: 1.125rem;
+}
+
+/* Small square marker, for calendars / effectivity columns */
+.status-dot {
+  display: inline-block;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  flex: none;
+}
+
+.status-dot-ok { background: var(--status-ok); }
+.status-dot-warn { background: var(--status-warn); }
+.status-dot-danger { background: var(--status-danger); }
+.status-dot-neutral { background: var(--status-neutral); }
+.status-dot-info { background: var(--status-info); }
+
+/* ---------------------------------------------------------------------- */
+/* TEST banner — permanent, non dismissable on non-production instances   */
+/* ---------------------------------------------------------------------- */
+
+.test-banner {
+  position: relative;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: var(--test-banner-height);
+  padding: 0.25rem 0.75rem;
+  color: var(--test-banner-color);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  background-color: var(--test-banner-stripe-b);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--test-banner-stripe-a) 0,
+    var(--test-banner-stripe-a) 14px,
+    var(--test-banner-stripe-b) 14px,
+    var(--test-banner-stripe-b) 28px
+  );
+  background-size: 56px 100%;
+  border-bottom: 2px solid rgba(122, 61, 0, 0.35);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
+  animation: test-banner-scroll 2.5s linear infinite;
+  user-select: none;
+}
+
+.test-banner-text {
+  padding: 0 0.5rem;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 0.25rem;
+}
+
+/* Compact form for a sticky corner badge on small screens */
+.test-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  color: var(--test-banner-color);
+  background: var(--test-banner-stripe-a);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .test-banner {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Skeleton loading                                                       */
+/* ---------------------------------------------------------------------- */
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  background-color: var(--skeleton-base);
+  background-image: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-highlight) 50%,
+    var(--skeleton-base) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  color: transparent;
+  user-select: none;
+  pointer-events: none;
+}
+
+.skeleton-text {
+  height: 0.75rem;
+  margin: 0.375rem 0;
+  border-radius: 9999px;
+}
+
+.skeleton-title {
+  height: 1.25rem;
+  width: 40%;
+  margin: 0.5rem 0;
+  border-radius: 9999px;
+}
+
+.skeleton-line-short { width: 45%; }
+.skeleton-line-medium { width: 70%; }
+.skeleton-line-long { width: 92%; }
+
+.skeleton-circle {
+  border-radius: 9999px;
+}
+
+.skeleton-card {
+  height: 7rem;
+  border-radius: 0.75rem;
+}
+
+.skeleton-row {
+  height: 2.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Mobile-first helpers — the wizard must be completable on a phone       */
+/* ---------------------------------------------------------------------- */
+
+/* Page shell: full-bleed on phones, centered and padded above sm */
+.page-container {
+  width: 100%;
+  max-width: var(--portal-max-width);
+  margin-inline: auto;
+  padding-inline: 1rem;
+  padding-block: 1rem;
+}
+
+@media (min-width: 640px) {
+  .page-container {
+    padding-inline: 1.5rem;
+    padding-block: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-container {
+    padding-inline: 2rem;
+  }
+}
+
+/* Reserve room for the fixed bottom nav on phones */
+.has-bottom-nav {
+  padding-bottom: calc(var(--portal-bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Sticky action bar (wizard "next step", document upload) */
+.sticky-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--becpg-grey);
+}
+
+/* Anything tappable must reach the 44px accessibility target on touch */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Horizontal filter chips / step indicators that scroll instead of wrapping */
+.scroll-x {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-x > * {
+  scroll-snap-align: start;
+  flex: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Datagrids: never break the page layout on a phone, scroll the table instead */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Single-column below sm, two columns above — the wizard's default form grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .form-grid-full {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Visible only on touch/small screens, or only on desktop */
+.mobile-only {
+  display: block;
+}
+
+.desktop-only {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none;
+  }
+
+  .desktop-only {
+    display: block;
+  }
+}
+
+/* Screen-reader only, for icon-only buttons */
+.sr-only-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Prevent iOS from zooming when focusing an input */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}

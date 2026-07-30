@@ -1,0 +1,43 @@
+# =============================================================================
+# beCPG Supplier Portal — local run
+#
+# One service only: the portal. There is no database and no Java backend
+# (spec §5.1.1) — the portal is stateless and the session lives entirely in an
+# encrypted httpOnly cookie (spec §5.5).
+#
+# Usage:
+#   cp env.example .env      # then fill OIDC_CLIENT_SECRET + SESSION_COOKIE_SECRET
+#   docker compose up --build
+# =============================================================================
+
+services:
+  portal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PORTAL_VERSION: ${PORTAL_VERSION:-dev}
+    image: becpg-supplier-portal:latest
+    container_name: becpg-supplier-portal
+    ports:
+      - "${PORTAL_PORT:-3000}:3000"
+    # Every variable documented in env.example is read at runtime from .env.
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - becpg-network
+
+networks:
+  becpg-network:
+    driver: bridge

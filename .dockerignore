@@ -1,0 +1,56 @@
+# Node / Next build output
+node_modules
+.next
+out
+build
+.turbo
+npm-debug.log*
+yarn-error.log*
+
+# Local environment — secrets never enter the image, they are injected at runtime
+.env
+.env.*
+!env.example
+
+# Archived V1 portal: read only, never imported, never shipped
+legacy
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation (spec.md alone is ~90 KB and is useless in the image)
+*.md
+!README.md
+doc
+
+# IDE / project metadata
+.vscode
+.idea
+.claude
+.settings
+.project
+*.iml
+
+# Packaging / CI files, not needed inside the build context
+Dockerfile
+.dockerignore
+docker-compose.yml
+deployment.yml
+cloudbuild.delivery.yaml
+release.sh
+
+# Logs
+*.log
+logs
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.swp
+*~
+coverage
