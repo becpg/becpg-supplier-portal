@@ -40,6 +40,15 @@ import { UNAUTHORIZED_EVENT, api, tenantPrefix } from '@/lib/client';
 
 const EMPTY_CAPABILITIES = Object.freeze({ isExternalUser: false, canMonitor: false });
 
+/** sessionStorage key holding the recent re-login attempts, so the guard survives a reload. */
+const RELOGIN_KEY = 'becpg_portal_relogin_attempts';
+
+/** Re-login attempts tolerated inside {@link RELOGIN_WINDOW_MS} before giving up. */
+const RELOGIN_MAX = 2;
+
+/** Window over which re-login attempts are counted, in ms. */
+const RELOGIN_WINDOW_MS = 30_000;
+
 const SessionContext = createContext({
     session: null,
     user: null,
@@ -96,6 +105,15 @@ export function SessionProvider({ initialSession = null, children }) {
                 setSession(payload);
                 setError(null);
                 setLoading(false);
+                // The session loaded: any earlier re-login attempt is water under the bridge.
+                // Clearing here keeps the counter about *consecutive* failures, so a legitimate
+                // expiry hours later is not refused because of an old incident.
+                try {
+                    window.sessionStorage.removeItem(RELOGIN_KEY);
+                }
+                catch {
+                    // No sessionStorage: nothing to clear.
+                }
             })
             .catch((cause) => {
                 if (!alive || cause.name === 'AbortError') {
@@ -121,6 +139,45 @@ export function SessionProvider({ initialSession = null, children }) {
             if (redirecting.current) {
                 return;
             }
+
+            // The in-memory guard only covers ONE page load, and re-login triggers a full
+            // navigation that resets it. Without a guard that survives the reload, a 401 that
+            // keeps coming back — an endpoint failing for a reason login cannot fix — spins the
+            // browser between the page and the login route forever. Observed on
+            // /tasks/<id>?step=<n> when a Share call answered 401.
+            //
+            // So: at most RELOGIN_MAX attempts inside RELOGIN_WINDOW_MS. Beyond that we stop
+            // redirecting and let the screen show its error, which is the honest outcome —
+            // logging in again would not help.
+            const now = Date.now();
+            let attempts = [];
+            try {
+                attempts = JSON.parse(window.sessionStorage.getItem(RELOGIN_KEY) || '[]');
+            }
+            catch {
+                attempts = [];
+            }
+            const recent = attempts.filter((at) => now - at < RELOGIN_WINDOW_MS);
+
+            if (recent.length >= RELOGIN_MAX) {
+                console.warn(
+                    '[session] repeated 401 after re-login — not redirecting again. '
+                    + 'The failing call is not an authentication problem.',
+                );
+                redirecting.current = true;
+                setError(new Error('unauthorized_loop'));
+                setLoading(false);
+                return;
+            }
+
+            recent.push(now);
+            try {
+                window.sessionStorage.setItem(RELOGIN_KEY, JSON.stringify(recent));
+            }
+            catch {
+                // Private browsing without sessionStorage: the in-memory guard still applies.
+            }
+
             redirecting.current = true;
             const next = `${window.location.pathname}${window.location.search}`;
             window.location.assign(

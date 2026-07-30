@@ -1,7 +1,22 @@
 'use client';
 
 /**
- * The application header.
+ * The application header — the beCPG toolbar.
+ *
+ * Chrome, and the reason it looks the way it does:
+ *
+ *   TEST strip (orange, striped, non dismissable)
+ *   ┌──────────────────────────────────────────────────────────────────┐
+ *   │ ☰  [beCPG]  │  ▣ Tenant           status  actions  🔔  ● User ▾  │  ← --becpg-blue
+ *   └──────────────────────────────────────────────────────────────────┘
+ *   ▂▂▂ green/orange hairline
+ *
+ * The bar is `--becpg-toolbar-color` with `--becpg-on-toolbar-color` content,
+ * the two variables `public/theme/default/theme.css` defines for exactly this
+ * surface. That is not decoration: a supplier who also uses beCPG Share must
+ * recognise the same blue toolbar, and a portal with a white header reads as a
+ * different product. Hover states are handled by `.toolbar-item` in globals.css
+ * (orange-light on a darkened surface — see the contrast table there).
  *
  * Two things are non-negotiable here (spec §4.3, §5.3):
  *
@@ -17,6 +32,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon, IconButton } from '@/components/ui/Button';
@@ -28,8 +44,8 @@ import { useSession } from '@/components/providers/SessionProvider';
 import { useMessages } from '@/lib/messages';
 
 const LOCAL_LABELS = {
-    fr: { menu: 'Ouvrir le menu', account: 'Mon compte' },
-    en: { menu: 'Open menu', account: 'My account' },
+    fr: { menu: 'Ouvrir le menu', account: 'Mon compte', home: 'beCPG — accueil du portail' },
+    en: { menu: 'Open menu', account: 'My account', home: 'beCPG — portal home' },
 };
 
 /** Two-letter monogram from a display name. */
@@ -98,42 +114,89 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
     const displayName = (user && (user.name || user.username)) || '';
 
     return (
-        <header className={`sticky top-0 z-50 ${className}`}>
+        /*
+            `becpg-toolbar` sits on the <header> itself, not on the bar below:
+            `safe-top` reserves the notch area, and that reserved strip has to be
+            painted `--becpg-blue` too — the manifest and `theme-color` promise a
+            blue chrome, and `apple-mobile-web-app-status-bar-style:
+            black-translucent` puts the status bar directly on top of it.
+        */
+        <header className={`becpg-toolbar safe-top sticky top-0 z-50 ${className}`}>
             <TestBanner />
-            <div className="safe-top border-b border-[var(--becpg-grey)] bg-white/95 backdrop-blur">
-                <div className="mx-auto flex h-14 max-w-[var(--portal-max-width)] items-center gap-2 px-3 sm:px-4">
+            <div className="shadow-[0_2px_10px_rgba(0,66,84,0.25)]">
+                <div className="mx-auto flex h-14 max-w-[var(--portal-max-width)] items-center gap-1.5 px-2 sm:gap-2 sm:px-4">
                     {onMenuClick ? (
                         <IconButton
                             icon="menu"
                             label={local.menu}
                             onClick={onMenuClick}
-                            className="lg:hidden"
+                            className="toolbar-item lg:hidden"
                         />
                     ) : null}
+
+                    {/*
+                        The product mark, on its white plate (see
+                        `.becpg-brand-plate`: the official logo is drawn in
+                        `--becpg-blue` and would vanish on the blue bar).
+
+                        `logo.png` is the official 200×37 wordmark; on a phone the
+                        toolbar also has to hold the tenant name, the bell and the
+                        account, so the compact `app-logo-48.png` mark takes over
+                        below `sm` — the same two assets, and the same trade-off,
+                        as the reference layout. `priority` on both: they are above
+                        the fold on every single screen, and a late-loading logo is
+                        exactly what makes a branded portal look unbranded.
+                    */}
+                    <Link
+                        href="/"
+                        aria-label={local.home}
+                        className="brand-link flex shrink-0 items-center rounded-[0.625rem] p-1"
+                    >
+                        <span className="becpg-brand-plate">
+                            <Image
+                                src="/theme/default/images/logo.png"
+                                alt="beCPG"
+                                width={200}
+                                height={37}
+                                priority
+                                className="becpg-wordmark hidden sm:block"
+                            />
+                            <Image
+                                src="/theme/images/app-logo-48.png"
+                                alt="beCPG"
+                                width={48}
+                                height={42}
+                                priority
+                                className="block h-6 w-auto sm:hidden"
+                            />
+                        </span>
+                    </Link>
+
+                    <span className="toolbar-divider hidden sm:block" aria-hidden="true" />
 
                     {/* Tenant identity — always present, spec §4.3 / §5.3. */}
                     <Link
                         href="/"
-                        className="flex min-w-0 items-center rounded-lg px-1 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                        className="toolbar-item flex min-w-0 items-center rounded-lg px-1 py-1"
                     >
-                        <TenantBadge size="md" showSuffix />
+                        <TenantBadge size="md" tone="dark" showSuffix />
                     </Link>
 
                     {title ? (
                         <>
-                            <span className="mx-1 hidden h-6 w-px bg-[var(--becpg-grey)] lg:block" aria-hidden="true" />
+                            <span className="toolbar-divider mx-1 hidden lg:block" aria-hidden="true" />
                             <h1 className="hidden min-w-0 truncate text-sm font-medium lg:block">{title}</h1>
                         </>
                     ) : null}
 
-                    <div className="ml-auto flex items-center gap-1">
+                    <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
                         {status ? <span className="hidden sm:inline-flex">{status}</span> : null}
                         {actions}
 
                         {/* The bell owns its own data and its own popover: it used to
                             be a link to `/notifications`, a route that does not
                             exist, fed by a count no page ever passed. */}
-                        <NotificationBell initialCount={notificationCount} />
+                        <NotificationBell initialCount={notificationCount} className="toolbar-slot" />
 
                         {/* ------------------------------------- user menu */}
                         <div className="relative">
@@ -144,9 +207,11 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                                 aria-haspopup="menu"
                                 aria-expanded={open}
                                 aria-label={local.account}
-                                className="flex touch-target items-center gap-2 rounded-lg p-1 pr-2 hover:bg-[var(--becpg-grey)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                                className="toolbar-item flex touch-target items-center gap-2 rounded-lg p-1 pr-1 md:pr-2"
                             >
-                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--becpg-blue)] text-xs font-medium text-white">
+                                {/* The monogram inverts on the blue bar: white
+                                    chip, blue letters (11:1 either way). */}
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-xs font-medium text-[var(--becpg-blue)]">
                                     {initials(displayName)}
                                 </span>
                                 <span className="hidden max-w-[10rem] truncate text-sm md:block">
@@ -164,7 +229,7 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -6 }}
                                         transition={{ duration: 0.14 }}
-                                        className="absolute right-0 z-50 mt-1 w-64 overflow-hidden rounded-xl border border-[var(--becpg-grey)] bg-white shadow-xl"
+                                        className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-xl border border-[var(--becpg-grey)] bg-white text-[var(--becpg-blue)] shadow-xl"
                                     >
                                         <div className="border-b border-[var(--becpg-grey)] p-3">
                                             <p className="truncate text-sm font-medium">{displayName || '—'}</p>
@@ -246,13 +311,18 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                     </div>
                 </div>
 
-                {/* Page title on phones: it does not fit next to the tenant badge. */}
+                {/* Page title on phones: it does not fit next to the tenant badge.
+                    It stays inside the blue bar rather than starting a second
+                    white strip — one block of chrome, not two. */}
                 {title ? (
-                    <div className="border-t border-[var(--becpg-grey)] px-3 py-2 lg:hidden">
+                    <div className="border-t border-[var(--becpg-toolbar-divider)] px-3 py-2 lg:hidden">
                         <h1 className="truncate text-sm font-medium">{title}</h1>
                     </div>
                 ) : null}
             </div>
+
+            {/* The range's secondary accent, 2px. Decorative only (aria-hidden). */}
+            <div className="becpg-toolbar-edge" aria-hidden="true" />
         </header>
     );
 }

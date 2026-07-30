@@ -219,8 +219,13 @@ export function DocumentList({ documents = [], total, index = 0, className = '' 
                                 </span>
 
                                 <div className="min-w-0 flex-1">
-                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                        <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                                    {/* Two lines rather than an ellipsis: in a 370px
+                                        dashboard column every certificate read
+                                        "Japan Flavor Auth…" / "Non-ionization
+                                        Att…", which is exactly the part that
+                                        distinguishes one from the next. */}
+                                    <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
+                                        <span className="min-w-0 flex-1 text-sm font-medium leading-snug line-clamp-2">
                                             {label}
                                         </span>
                                         <StatusPill status={document.status} size="sm" />

@@ -59,14 +59,16 @@ export function Toast({ id, variant = 'info', title, message, action, onDismiss 
         <div
             role={assertive ? 'alert' : 'status'}
             aria-live={assertive ? 'assertive' : 'polite'}
-            className="pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-xl border border-[var(--becpg-grey)] bg-white p-3 shadow-lg"
+            className="pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-xl border border-[var(--becpg-blue-lighter)] bg-white p-3 shadow-[var(--becpg-shadow-overlay)]"
         >
             <span className="absolute inset-y-0 left-0 w-1" style={{ background: palette.bar }} aria-hidden="true" />
             <span className={`ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${palette.chip}`}>
                 <Icon name={palette.icon} size={18} />
             </span>
             <div className="min-w-0 flex-1 py-0.5">
-                {title ? <p className="text-sm font-medium leading-tight">{title}</p> : null}
+                {title ? (
+                    <p className="text-sm font-medium leading-tight text-[var(--becpg-blue)]">{title}</p>
+                ) : null}
                 {message ? (
                     <p className="mt-0.5 break-words text-xs leading-relaxed text-[var(--becpg-dark-grey)]">
                         {message}
@@ -79,7 +81,7 @@ export function Toast({ id, variant = 'info', title, message, action, onDismiss 
                             action.onClick();
                             onDismiss(id);
                         }}
-                        className="mt-1.5 text-xs font-medium text-[var(--becpg-blue-light)] underline underline-offset-2 hover:text-[var(--becpg-orange)]"
+                        className="mt-1.5 rounded text-xs font-medium text-[var(--becpg-blue-light)] underline underline-offset-2 hover:text-[var(--becpg-orange-deep)]"
                     >
                         {action.label}
                     </button>

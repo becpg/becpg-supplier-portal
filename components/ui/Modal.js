@@ -166,8 +166,16 @@ export function Modal({
                         aria-describedby={description ? descriptionId : undefined}
                         tabIndex={-1}
                         onKeyDown={handleKeyDown}
+                        // The 3px `--becpg-top-bar-border-color` edge at the top of the
+                        // panel is the same rule that closes the application toolbar
+                        // (`.becpg-toolbar-edge`): it is what makes a bottom sheet on a
+                        // phone read as part of the product rather than as a floating
+                        // white rectangle. Elevation is the blue-tinted
+                        // `--becpg-shadow-overlay`, not Tailwind's neutral `shadow-2xl`.
                         className={[
-                            'relative flex max-h-[92vh] w-full flex-col overflow-hidden bg-white shadow-2xl',
+                            'relative flex max-h-[92vh] w-full flex-col overflow-hidden bg-white',
+                            'shadow-[var(--becpg-shadow-overlay)]',
+                            'border-t-[3px] border-t-[var(--becpg-top-bar-border-color)]',
                             'rounded-t-2xl sm:rounded-2xl',
                             SIZES[size] || SIZES.md,
                             className,
@@ -176,13 +184,16 @@ export function Modal({
                             .join(' ')}
                     >
                         {/* Drag affordance — the sheet grabber, phones only. */}
-                        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-[var(--becpg-grey)] sm:hidden" />
+                        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-[var(--becpg-blue-lighter)] sm:hidden" />
 
                         {title || !hideClose ? (
                             <header className="flex items-start gap-3 px-4 pb-3 pt-3 sm:px-6 sm:pt-5">
                                 <div className="min-w-0 flex-1">
                                     {title ? (
-                                        <h2 id={titleId} className="text-base font-medium sm:text-lg">
+                                        <h2
+                                            id={titleId}
+                                            className="text-base font-medium text-[var(--becpg-blue)] sm:text-lg"
+                                        >
                                             {title}
                                         </h2>
                                     ) : null}
@@ -206,7 +217,7 @@ export function Modal({
                         </div>
 
                         {footer ? (
-                            <footer className="safe-bottom border-t border-[var(--becpg-grey)] bg-white/95 px-4 py-3 sm:px-6">
+                            <footer className="safe-bottom border-t border-[var(--becpg-blue-lighter)] bg-[rgba(228,236,238,0.4)] px-4 py-3 sm:px-6">
                                 {footer}
                             </footer>
                         ) : null}

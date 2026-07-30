@@ -191,6 +191,30 @@ function formatTime(iso, lang) {
     }).format(date);
 }
 
+/** Fallback offset of the mobile sheet, used before anything can be measured. */
+const SHEET_TOP_FALLBACK = 60;
+
+/**
+ * Where the mobile sheet starts: just under the real header.
+ *
+ * Measured rather than hard-coded because the header's height is not a constant —
+ * the TEST banner adds a strip that wraps on a narrow screen, and the safe-area
+ * inset adds more on a notched phone. A fixed `top` was right by luck while the
+ * header carried a `backdrop-filter` (which made it the containing block); it is
+ * not, now that the toolbar is opaque, and a sheet drawn over the toolbar would
+ * hide the tenant badge that spec §4.3 requires to be always visible.
+ *
+ * @param {Element|null} node any node inside the header
+ * @returns {number} distance from the top of the viewport, in px
+ */
+function sheetTopFor(node) {
+    const header = node && node.closest ? node.closest('header') : null;
+    if (!header) {
+        return SHEET_TOP_FALLBACK;
+    }
+    return Math.max(0, Math.round(header.getBoundingClientRect().bottom)) + 4;
+}
+
 /** Focusable descendants of the panel, in tab order. */
 function focusables(container) {
     if (!container) {
@@ -248,6 +272,7 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
     // so a page without a session shows a state instead of a forever-skeleton.
     const loading = enabled && !data && !error;
     const [busy, setBusy] = useState(false);
+    const [sheetTop, setSheetTop] = useState(SHEET_TOP_FALLBACK);
 
     /**
      * Fetches, unless the cached payload is younger than `maxAge`.
@@ -393,6 +418,9 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
     const toggle = useCallback(() => {
         setPanel((previous) => ({ open: !previous.open, pathname: previous.pathname }));
         if (!open) {
+            // Measured from the click, before the sheet is drawn: the header is
+            // already laid out, and this keeps the measurement out of an effect.
+            setSheetTop(sheetTopFor(buttonRef.current));
             load(FRESH_FOR_MS);
             if (seen === null) {
                 // First open of this page: adopt the ids stored by the previous
@@ -460,11 +488,17 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
             }
         };
 
+        // The TEST banner wraps at some widths, so the header's height — and the
+        // top of the mobile sheet — changes with the viewport.
+        const onResize = () => setSheetTop(sheetTopFor(buttonRef.current));
+
         document.addEventListener('keydown', onKeyDown, true);
         document.addEventListener('pointerdown', onPointerDown, true);
+        window.addEventListener('resize', onResize);
         return () => {
             document.removeEventListener('keydown', onKeyDown, true);
             document.removeEventListener('pointerdown', onPointerDown, true);
+            window.removeEventListener('resize', onResize);
         };
     }, [open, close]);
 
@@ -473,6 +507,9 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
 
     return (
         <div className={`relative ${className}`}>
+            {/* `toolbar-item` re-colours the trigger on the blue beCPG toolbar
+                (globals.css); the light-surface classes stay as the fallback for
+                any other surface. */}
             <button
                 ref={buttonRef}
                 type="button"
@@ -480,7 +517,7 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                 aria-haspopup="dialog"
                 aria-expanded={open}
                 aria-label={`${local.open} — ${announcement}`}
-                className="relative inline-flex touch-target items-center justify-center rounded-lg p-2 text-[var(--becpg-blue)] hover:bg-[var(--becpg-grey)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                className="toolbar-item relative inline-flex touch-target items-center justify-center rounded-lg p-2 text-[var(--becpg-blue)] hover:bg-[var(--becpg-grey)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
             >
                 <Icon name={badge > 0 ? 'notifications_active' : 'notifications_none'} size={20} />
                 {badge > 0 ? (
@@ -510,10 +547,11 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                         animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                         exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
                         transition={{ duration: reduceMotion ? 0 : 0.16 }}
+                        style={{ '--sheet-top': `${sheetTop}px` }}
                         className={[
                             // Mobile first: a sheet pinned under the header, edge to
                             // edge. Above sm it becomes a dropdown anchored on the bell.
-                            'fixed left-2 right-2 top-[3.75rem] z-[60] flex max-h-[70dvh] flex-col overflow-hidden',
+                            'fixed left-2 right-2 top-[var(--sheet-top)] z-[60] flex max-h-[70dvh] flex-col overflow-hidden',
                             'rounded-xl border border-[var(--becpg-grey)] bg-white shadow-xl',
                             'sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-1 sm:w-[22rem] sm:max-h-[32rem]',
                         ].join(' ')}

@@ -1,28 +1,55 @@
 # État d'implémentation — Portail Fournisseur V2
 
-> Arrêté au **2026-07-30, 15 h 30**. Document de passation : il vaut par son honnêteté, pas
-> par son optimisme. **« Partiel » dit toujours ce qui manque**, en une ligne.
+> Arrêté au **2026-07-30, 16 h 10**, après un **tour de vérification sur instance vivante**
+> (build, suite E2E complète, contrôles curl et navigateur). Document de passation : il vaut
+> par son honnêteté, pas par son optimisme. **« Partiel » dit toujours ce qui manque**, en une
+> ligne.
 >
-> ⚠️ Deux réserves sur ce document lui-même :
+> Les deux réserves de la version précédente sont **levées** :
 >
-> 1. **Le portail n'est pas sous gestion de version.** Il n'y a aucun `.git` dans
->    `becpg-supplier-portal/` ni au-dessus. Rien de ce qui est décrit ici n'est commité,
->    donc rien n'est récupérable en cas d'écrasement. **C'est le premier risque du projet**,
->    avant toute dette fonctionnelle.
-> 2. Le dépôt a été écrit par **plusieurs agents en parallèle**, dont certains encore en
->    vol au moment de la rédaction (`app/help/`, `components/shell/NotificationBell.js`,
->    la suite `e2e/`). Les lignes qui les concernent sont datées et signalées comme
->    instables.
+> 1. **Le portail est désormais sous git.** `git rev-parse --show-toplevel` →
+>    `/home/matthieu/becpg-workspace/becpg-supplier-portal`, branche `main`, commit
+>    `cdd64f8` « InProgress #35846 — [Feature] Portail fournisseur V2 ». Le travail est
+>    récupérable. Ce qui était « le premier risque du projet » n'en est plus un.
+> 2. Les fichiers signalés instables (`app/help/`, `components/shell/NotificationBell.js`)
+>    ont été **relus et vérifiés à l'exécution** ce tour. Plus aucune ligne de ce document
+>    ne repose sur du code qu'un autre agent réécrivait pendant sa rédaction.
+>
+> ⚠️ **Une seule réserve subsiste, et elle est méthodologique** : tout ce qui est marqué ✅
+> ci-dessous l'est via `DEV_FAKE_AUTH`. Voir §« Ce qui n'a jamais tourné contre du réel ».
+
+## Comment reproduire la vérification
+
+La suite exige **deux** instances, ce qui n'était écrit nulle part et a fait conclure à tort
+à des échecs de code lors des tours précédents :
+
+| Port | `.env` utilisé | Compte | Sert |
+|---|---|---|---|
+| **3000** | `.env` | `admin` sur `localhost:8080`, tenant `local` | specs `00` → `03` (`baseURL` par défaut) |
+| **3100** | `.env.supplier` | `supplier-test@becpg.fr` sur `dev.becpg.fr`, tenant `dev` | spec `04` seule (`test.use({ baseURL })` en tête de fichier) |
+
+`04-supplier-journey.spec.js` ne peut pas tourner en local : le compte fournisseur y est
+créable mais son mot de passe est généré et non réinitialisable sans IDS.
+
+⚠️ **`next dev` refuse deux instances pour un même répertoire** (« Another next dev server is
+already running »). La seconde instance doit donc être lancée depuis une **copie** du dépôt
+(source copiée, `node_modules` en liens durs — un lien symbolique est refusé par Turbopack :
+« Symlink [project]/node_modules is invalid, it points out of the filesystem root », et la
+copie doit être sur le **même système de fichiers** pour que `cp -al` fonctionne, donc pas
+sous `/tmp`). Sans les deux instances, les 8 tests de la spec `04` échouent en
+`ERR_CONNECTION_REFUSED` — ce qui **ne dit rien sur le code**.
 
 ## Vue d'ensemble
 
 | Élément | État |
 |---|---|
 | Application | Next.js 16.2.12 (App Router), React 18, Tailwind 4, JavaScript |
-| `npx next build` | ✅ **vert**, 57 routes (18 pages + 38 route handlers + `/_not-found`) |
+| `npx next build` | ✅ **vert**, 0 erreur, 57 routes (18 pages + 38 route handlers + `/_not-found`) — revérifié le 2026-07-30 à 17 h |
 | `npx eslint .` | ✅ **0 erreur**, 1 avertissement assumé (voir §Lint) |
+| Suite E2E | ✅ **52/52** (6 specs) — voir §E2E |
+| Thème beCPG | ✅ **appliqué et vérifié à l'exécution** — voir §Thème |
 | Fichiers | 18 pages, 38 route handlers, 86 composants, 21 modules `lib/` |
-| Gestion de version | ❌ **aucune** — pas de dépôt git |
+| Gestion de version | ✅ git, branche `main`, dernier commit `cdd64f8` |
 | beCPG (`../becpg`) | branche **`feature/supplier-portal-v2`**, **13 fichiers modifiés + 1 répertoire non suivi** (tous attribuables à ce projet) |
 
 ## Par section de la spec
@@ -35,15 +62,93 @@
 | §5.4.1 | Webscript Share du wizard | ✅ testé sur instance 26.1.0 | déployé **uniquement** sur la branche locale de beCPG ; absent de dev.becpg.fr, où l'adaptateur retombe sur `config/wizards.default.js` |
 | §5.4.2 | Exigences documentaires (déjà matérialisées) | ✅ | — |
 | §5.4.3 | Agrément dérivé, requêtes parc | 🟡 | la répartition d'agrément peut **dépasser le total du parc** (défaut P1 ci-dessous) |
-| §4.2 | Écrans fournisseur | ✅ 11 pages | `/help` créé aujourd'hui par un agent concurrent, **non relu ici** |
+| §4.2 | Écrans fournisseur | ✅ 11 pages | `/help` **relu et vérifié ce tour** : rend en 200, 9 sujets tous replantés à l'ouverture, `?topic=` déplie la bonne section, lié depuis la barre latérale des **deux** espaces (lien cliqué, navigation effective). Couvert par `SUPPLIER_PAGES`. |
 | §4.3 | Dashboard | ✅ | — |
-| §4.4 | Wizard, autosave, inversion documents→IA | 🟡 | le parcours a été **joué pour la première fois aujourd'hui contre dev** et **il échoue** (voir §E2E) |
+| §4.4 | Wizard, autosave, inversion documents→IA | 🟡 | le parcours fournisseur **passe maintenant de bout en bout** (51/51) : l'échec « 401 » du tour précédent était un artefact d'environnement, pas un défaut. Reste que le test **n'affirme pas les champs** : les résoudre exige une session Share, donc un run OIDC réel (`source ∈ {share, default}` est tout ce qui est vérifié). |
 | §4.5 | Documents et check-list d'exigences | ✅ | — |
 | §4.6 | Espace pilotage | ✅ **6 écrans montés** | plus de trou d'écran ; restent les défauts P1/P2 et l'absence de `/monitor/reports` (assumée, §4.6.6) |
+| §4.6.7 | Cloisonnement fournisseur / pilotage | ✅ **vérifié à l'exécution** | l'invariant « un `ExternalUser` est refusé même s'il détient un groupe de pilotage » n'était **pas réellement appliqué** — corrigé ce tour, voir §Correctifs. Désormais observé sur compte fournisseur réel : API 403 `details.space:"supplier"`, page `/monitor` → **307 vers `/`**. |
+| — | Restriction fournisseur du pilotage (`bcpg:suppliersAspect`) | ✅ **mesuré** | campagnes et NC ne comptent plus que ce qui concerne un fournisseur (voir §Restriction fournisseur) |
+| — | Cloche de notifications | ✅ **vérifiée au navigateur** | badge, panneau, état vide réel, clavier, annonce vocale (voir §Cloche) |
 | §4.6.6 | Historique / cube OLAP | ❌ assumé | chaque payload renvoie `history: { available: false }` avec les dimensions qu'il faudrait. Aucune série historique n'est fabriquée. |
 | §9.1 | Accessibilité (clavier, focus, couleur) | ✅ | audité et corrigé ce tour (voir §Durcissement) |
 | §9.2 | Visionneuse de signature légère | 🟡 | jamais testée sur Firefox — c'était l'objectif de #35696 |
 | — | Durcissement transverse | ✅ | fait ce tour |
+| — | Identité visuelle beCPG | ✅ **vérifiée sur instance vivante** | voir §Thème ; réserve unique : les captures ne couvrent que `/` et `/monitor` |
+
+## Thème beCPG — état au 2026-07-30, 17 h
+
+Le portail porte les couleurs et le logo officiels de la gamme. **Vérifié à l'exécution**, pas
+seulement relu.
+
+### Les cinq couleurs officielles
+
+`public/theme/default/theme.css` fait autorité, et `app/globals.css` reprend chacune de ses
+variables **à l'identique**, plus un jeu dérivé (`blue-light`, `orange-deep`, dégradés, tokens
+de statut). Le fond de la barre d'outils est mesuré dans le DOM à `rgb(0, 66, 84)` = `#004254`.
+
+| Variable | Valeur | Rôle |
+|---|---|---|
+| `--becpg-blue` | `#004254` | barre d'outils, titres, chiffres |
+| `--becpg-green` | `#00ffbd` | accent de réussite (jamais porteur de texte : 1,09:1 sur fond clair) |
+| `--becpg-grey` | `#e4ecee` | fond de page |
+| `--becpg-orange` | `#ff642d` | bandeau TEST, rails, anneau de focus |
+| `--becpg-darkGrey` | `#747474` | texte atténué |
+
+⚠️ **Piège à connaître** : `theme.css` écrit `--becpg-darkGrey`, le portail lit
+`--becpg-dark-grey` (~342 occurrences). Les propriétés personnalisées sont **sensibles à la
+casse** : un alias `--becpg-dark-grey: var(--becpg-darkGrey)` est déclaré dans `globals.css`.
+Ne pas le supprimer, et ne pas renommer dans `theme.css` — le fichier doit rester
+copiable-collable depuis la gamme.
+
+### Où sont utilisés les assets
+
+Aucun logo dessiné à la main, aucun SVG de substitution, aucun emoji comme marque.
+
+| Asset | Utilisé par | HTTP sur `:3000` |
+|---|---|---|
+| `theme/default/images/logo.png` | `components/shell/Header.js` (≥ `sm`), `components/shell/Nav.js` (tiroir), `app/login/page.js` | **200** |
+| `theme/images/app-logo-48.png` | `components/shell/Header.js` (< `sm`) | **200** |
+| `theme/default/images/shape.png` | `app/login/page.js`, utilitaire `.bg-shape`, `components/ui/EmptyState.js` | **200** |
+| `theme/default/manifest.json` | `app/layout.js` (`metadata.manifest`) | **200** |
+| `theme/default/icons/favicon-96x96.png` | `app/layout.js` (`metadata.icons`) | **200** |
+
+Le logo officiel est **dessiné en `--becpg-blue`** : posé tel quel sur la barre bleue, il
+disparaît. Il n'est ni inversé par filtre (cela détruirait le contrepoinçon vert) ni redessiné :
+c'est la **surface** qui devient blanche, via `.becpg-brand-plate`.
+
+### Garde-fou E2E
+
+`e2e/tests/03-ui.spec.js` → *« la marque beCPG est chargée dans l'en-tête, pas seulement
+référencée »*. Le test affirme, à 1440 px **et** à 360 px (les deux marques) :
+
+1. l'image est visible **et `naturalWidth > 0`** — un 404 produit aussi une balise visible ;
+2. l'URL réellement demandée par le navigateur (route `/_next/image`) répond 200 ;
+3. **le fichier brut sous `public/` répond 200.**
+
+Le point 3 n'est pas redondant : contrôle négatif effectué en supprimant
+`public/theme/default/images/logo.png`, **l'optimiseur d'images de Next a resservi sa variante
+en cache** et les points 1 et 2 sont restés verts. Seule la requête sur le fichier brut a viré
+au rouge. Un garde-fou qui ne vérifierait que le rendu ne détecterait pas un asset disparu.
+
+### Corrigé ce tour
+
+`components/shell/AppShell.js` — la barre latérale passe de `w-60` (240 px) à **`w-64`**, la
+largeur du `Layout.js` de référence. À 240 px l'étiquette disposait de 157 px alors que
+« Conformité documentaire » en demande 165 : c'était la seule entrée de navigation rendue
+tronquée à 1440 px. Mesuré après correction : **0 nœud de texte tronqué**.
+
+### Ce que la vérification ne dit pas
+
+- Les captures ne couvrent que `/` et `/monitor`, aux deux largeurs. Les 16 autres pages sont
+  couvertes par le rendu E2E, **pas par un œil**.
+- Le contraste a été calculé et mesuré aux tours précédents ; ce tour ne l'a **pas recalculé**.
+  Trois écarts assumés y sont documentés, dont `--becpg-orange` en rail sur blanc à 2,95:1
+  (norme : 3:1).
+- **`npx next build` tue l'instance `next dev --turbopack` du même répertoire** : les deux
+  partagent `.next`. Lancer le build **avant** la suite E2E, puis attendre le redémarrage du
+  serveur (`GET /api/health` → 200). Une suite lancée pendant cette fenêtre échoue en
+  `ERR_CONNECTION_REFUSED` et **ne dit rien sur le code**.
 
 ## Défauts connus, non corrigés
 
@@ -51,8 +156,62 @@
 |---|---|---|---|
 | **P1** | `GET /monitor/overview` renvoie `park.total: 251` mais `park.approved: 256`. **Un compteur dépasse le total auquel il appartient.** La répartition est calculée sur le parc *scanné* (`resolveSupplierScope`, plafonné par `beCPG.remote.maxResults.limit` = 256) tandis que `park.total` vient d'une **requête de comptage distincte** : les deux ne posent pas la même question, donc elles peuvent se contredire. | `lib/adapters/approval.js` (`computeApprovalForPark`, `counts` ligne ~675) + assemblage `park` dans `lib/adapters/monitor.js` | Correctif réel = borner la répartition à `scanned`, ou dériver total **et** répartition d'une seule requête. Hors périmètre de ce tour de durcissement ; l'UI le signale (`breakdownScope === 'window'`) mais **le chiffre reste faux à l'écran**. |
 | **P2** | L'export CSV du parc est tronqué à 250 lignes sur 251 sans que le fichier le dise. La route pose `X-Portal-Truncated: true`, mais `download()` est un clic sur `<a>` : **un téléchargement navigateur ne peut pas lire un en-tête de réponse**. | `lib/client.js` (`download`), routes `monitor/suppliers` et `monitor/documents` | Contourné, pas résolu : l'avertissement est affiché **avant** le téléchargement depuis `pagination.truncated`. Correctif propre = un commentaire `#` en tête de CSV, ou passer par `fetch()` + `Blob`. |
-| **P3** | La redirection d'un `ExternalUser` hors de `/monitor` **n'a jamais été observée à l'exécution**. `DEV_FAKE_AUTH` ouvre la session `admin`, et aucun compte fournisseur ne peut être créé localement (mot de passe généré, pas d'IDS). | `app/monitor/layout.js` | Correcte par construction contre la forme du 403 de `requireMonitorAccess` (`status: 403`, `details.space === 'supplier'`), mais **non vérifiée**. C'est le contrôle d'accès : il mériterait un test. |
+| ~~**P3**~~ | ~~La redirection d'un `ExternalUser` hors de `/monitor` n'a jamais été observée à l'exécution.~~ **CLOS, et il cachait un vrai défaut** — la redirection ne se produisait pas. Observée ce tour depuis l'instance `:3100` (compte fournisseur réel) : elle échouait, le fournisseur recevait une page verrouillée listant les groupes internes à demander. Corrigé et désormais couvert par deux tests. | `app/monitor/layout.js`, `lib/adapters/monitor.js` | Voir §Correctifs. « Correct par construction, mais non vérifié » s'est révélé faux : c'est exactement pourquoi la formule n'a pas de valeur. |
+| **P5** | **À 360 px sur `/monitor`, le nom du tenant est illisible.** Mesuré : le libellé « local » dispose de 27 px alors qu'il en demande 33 — il s'affiche « lo… », et son sous-titre « espace fournisseur » tombe à « es… ». Sur `/` le nom passe entier (seul le sous-titre est tronqué, 73 < 105). La cause est le bouton de rafraîchissement propre au pilotage, qui prend ~46 px dans une barre déjà pleine (menu, marque, tenant, cloche + pastille « 99+ », avatar, chevron). La spec §4.3 veut que le fournisseur sache **toujours** pour quel client il travaille. | `components/shell/Header.js`, `components/shell/TenantBadge.js` | Non corrigé : le texte reste **entier dans le DOM** (le test « le tenant est identifié en permanence » porte sur le contenu, pas sur les pixels, et passe), et arbitrer ce qu'on retire de la barre du pilotage à 360 px est une décision produit, pas un choix de thème. Le sous-titre est le candidat évident. **Ne pas conclure du vert de la suite que le tenant est lisible sur téléphone.** |
 | **P4** | `middleware.js` utilise une convention **dépréciée** en Next.js 16 (`⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.`). | `middleware.js` | Renommer implique de toucher le fichier qui porte « rien n'est joignable sans session ». Un avertissement cosmétique ne justifie pas de remuer la barrière d'authentification sans test de non-régression. À faire, mais délibérément pas ici. |
+
+## Correctifs du tour de vérification (2026-07-30, 16 h)
+
+### Le cloisonnement fournisseur / pilotage ne tenait pas
+
+`requireMonitorAccess()` **réimplémentait localement** le test « est-ce un compte
+fournisseur ? » :
+
+```js
+const isExternalUser = groups.includes(EXTERNAL_USER_GROUP)     // 'GROUP_ExternalUser'
+    || capabilities.isbeCPGExternalUser === true;
+```
+
+Or `lib/adapters/session.js` documente, **mesure en main**, que ce marqueur générique ne
+suffit pas : `supplier-test@becpg.fr` détient **treize** groupes
+`GROUP_EXTERNAL_SUPPLIER_<code>` et **aucun** `GROUP_ExternalUser`. Le fournisseur réel était
+donc classé **interne**, tombait dans la branche « aucun groupe de pilotage » et se voyait
+répondre :
+
+```
+"Votre compte n'appartient à aucun des groupes beCPG qui ouvrent le pilotage :
+ GROUP_QualityMgr, GROUP_QualityUser, GROUP_PurchasingMgr, … Demandez le
+ rattachement à votre administrateur beCPG."
+```
+
+Deux conséquences, aucune visible d'un simple contrôle de code HTTP :
+
+1. **l'invariant §4.6.7 n'était pas appliqué.** « Un `ExternalUser` est refusé *même s'il*
+   détient un groupe de pilotage » : le refus venait du test de groupe, donc un compte
+   fournisseur possédant aussi `GROUP_RDUser` serait **passé**. Le cas précis contre lequel le
+   code déclare se défendre ;
+2. **des noms de groupes internes livrés à un utilisateur externe**, avec un conseil absurde
+   (« demandez le rattachement »), et la page `/monitor` rendue au lieu de la redirection.
+
+Correctif — une seule ligne, l'unique prédicat déjà partagé avec `resolveSpace()` :
+
+```js
+const isExternalUser = isSupplierAccount(groups, capabilities);
+```
+
+Mesuré avant / après sur `:3100`, compte fournisseur réel :
+
+| | avant | après |
+|---|---|---|
+| `/api/v1/monitor/*` | 403 `details.required:[GROUP_QualityMgr,…]` | 403 `details.space:"supplier"` |
+| page `/monitor` | **200**, page verrouillée, groupes internes affichés | **307 → `/`**, aucun nom de groupe |
+| `admin` sur `:3000` | 200 | 200 (inchangé) |
+
+**Le test existant passait au vert sur le mauvais refus** : il s'arrêtait au code 403.
+`04-supplier-journey.spec.js` affirme maintenant le discriminant (`details.space === 'supplier'`),
+l'absence de fuite de groupes internes, **et** la redirection de la page. Les deux tests ont été
+vérifiés **rouges** en réappliquant l'ancien prédicat, puis verts après restauration : ce ne sont
+pas des tests vides.
 
 ## Durcissement transverse — ce qui a été corrigé ce tour
 
@@ -105,40 +264,132 @@ Corrigé ce tour :
   `e2e/results/**` exclus du lint et ajoutés à `.gitignore` : ce sont des artefacts
   régénérés à chaque exécution, et ce n'est pas notre code.
 
-Restait en fin de tour 3 erreurs dans `components/shell/NotificationBell.js` et
-`app/help/page.js`, deux fichiers qu'un **agent concurrent réécrivait pendant ce tour**
-(dernière modification observée à la seconde près). Je ne les ai pas corrigées — corriger un
-fichier pendant qu'un autre agent le réécrit garantit soit l'écrasement du correctif, soit un
-conflit. **Il les a corrigées lui-même avant la fin.** Une intervention de ma part avait été
-faite puis rendue caduque par sa refonte (il a remplacé `useState` + effet de montage par un
-`ref` lu paresseusement, ce qui évite effectivement l'écart d'hydratation).
+Les 3 erreurs qui restaient dans `components/shell/NotificationBell.js` et `app/help/page.js`
+— deux fichiers qu'un agent concurrent réécrivait alors — **ont été corrigées par lui** et le
+lint est confirmé propre sur les deux au tour de vérification.
 
 Reste **1 avertissement assumé** : `components/ui/DataTable.js:214`
 (`react-hooks/incompatible-library`) — `useReactTable()` de TanStack renvoie des fonctions que
 le React Compiler ne peut pas mémoïser. Rien à corriger, c'est la bibliothèque.
 
-## E2E — première exécution du parcours fournisseur
+## E2E — suite complète au vert
 
-La suite Playwright existe (`e2e/`, 5 specs, Playwright nu et non le harnais
-Stagehand+Gemini de `becpg-boxes/recette` : le DOM React du portail est stable, donc des
-locators déterministes sont possibles **et** préférables, et le test juge le succès, jamais
-un modèle).
+La suite Playwright (`e2e/`, 5 specs, Playwright nu et non le harnais Stagehand+Gemini de
+`becpg-boxes/recette` : le DOM React du portail est stable, donc des locators déterministes
+sont possibles **et** préférables, et le test juge le succès, jamais un modèle).
 
-Dernière exécution — `e2e/results/junit.xml`, **2026-07-30 15:19**, par un agent concurrent :
+**Exécution du 2026-07-30, 17 h — `52 passed`, 0 échec, 1 min 48 s**, les deux instances en
+place (voir §Comment reproduire) :
 
-```
-04-supplier-journey.spec.js : 7 tests, 1 échec, 0 ignoré, 29 s
-FAIL « l'assistant de sa tâche se charge entièrement »
-     GET /api/v1/tasks → 401 (attendu < 300)
-```
+| Spec | Tests | Couvre |
+|---|---|---|
+| `00-chain.spec.js` | 7 | chaîne portail → beCPG, refus non authentifié, allow-list du proxy, non-injection d'identifiants |
+| `01-api-contracts.spec.js` | 12 | contrats `/api/v1`, dont **3 tests de la restriction `bcpg:suppliersAspect`** |
+| `02-wizard-share.spec.js` | 5 | webscript Share du wizard, cascade de résolution |
+| `03-ui.spec.js` | 18 | 13 écrans dont **`/help`**, bandeau TEST, tenant, 360 px sans débordement, clavier, **chargement effectif de la marque beCPG** (voir §Thème) |
+| `04-supplier-journey.spec.js` | 8 | parcours fournisseur réel sur dev, dont **2 nouveaux tests de cloisonnement** |
+| `05-no-redirect-loop.spec.js` | 2 | pas de boucle de login sur échec d'étape ; panne amont Share ≠ 401 |
 
-**Donc : le parcours fournisseur a été tenté pour la première fois, et il ne passe pas.**
-Un 401 sur `/api/v1/tasks` avec un compte fournisseur réel sur dev = la session n'est pas
-établie, ou le ticket Alfresco n'est pas accepté. Non diagnostiqué ici. C'est **le prochain
-sujet**, et il est plus important que tout ce qui reste dans ce document.
+⚠️ **L'arbre de travail bougeait pendant cette exécution** : `05-no-redirect-loop.spec.js` est
+apparu à 16 h 05, et six fichiers source (`app/api/auth/login/route.js`, `app/page.js`,
+`components/dashboard/ApprovalCard.js`, `components/providers/SessionProvider.js`,
+`lib/adapters/wizardConfig.js`, `lib/errors.js`) ont été modifiés par un agent concurrent
+**après** le début de la vérification. Le 51/51 a été reproduit à **16 h 17**, l'instance
+`:3100` resynchronisée sur l'arbre courant ; il inclut la spec `05` de cet agent, mais **son
+travail n'est pas terminé** (35 fichiers modifiés à 16 h 17, contre 20 au départ). À revérifier
+lorsqu'il aura rendu la main.
 
-La phrase de la version précédente — « aucun parcours fournisseur n'a été joué de bout en
-bout » — n'est donc plus tout à fait vraie : il a été joué, et il échoue.
+Une exécution intermédiaire a rendu **3 échecs dans `03-ui.spec.js`** (tenant, 360 px, clavier)
+puis **17/17 au vert** en réexécutant la seule spec, sans aucune modification entre les deux :
+le serveur de dev `:3000` recompilait pendant que l'agent concurrent enregistrait des
+composants du shell. **Un échec isolé pendant que quelqu'un d'autre édite l'arbre n'est pas un
+défaut** — le rejouer seul avant de conclure est le réflexe correct.
+
+### Ce que le vert ne dit pas
+
+Trois réserves à conserver, sinon le chiffre « 52/52 » se lit pour plus qu'il ne vaut :
+
+1. **`« l'assistant de sa tâche se charge entièrement »` n'affirme pas les champs.** Il vérifie
+   la **structure** et l'**état d'accès** sur données réelles, et accepte
+   `source ∈ {share, default}`. Résoudre les champs exige une session Share (le connecteur lit
+   `/api/metadata`, et `entity-datagrid/config/columns` appelle `AlfrescoUtil.getPreferences`) :
+   les deux répondent 401 sans elle, et `DEV_FAKE_AUTH` n'en a pas. C'est écrit dans le test,
+   pas caché derrière son vert.
+2. **L'échec « 401 » du tour précédent n'était pas un défaut de code.** La suite pointait sur
+   une instance absente ou mal configurée. Aucun correctif n'a été nécessaire pour le faire
+   passer — seulement les deux instances attendues. À l'inverse, le vert de
+   `« l'espace de pilotage lui est fermé »` **masquait** un vrai défaut (§Correctifs) : le
+   rouge peut mentir dans un sens, le vert dans l'autre.
+3. La suite **écrit sur des environnements partagés**. `04` est lecture seule par conception
+   (elle ouvre la tâche et lit les définitions, ne complète rien, ne signe rien) ; les autres
+   tournent sur l'instance locale.
+
+## Restriction fournisseur du pilotage — mesurée
+
+`pjt:project` et `qa:nc` ne sont **pas** des entités fournisseur : lues par type seul elles
+couvraient toute l'instance. Elles sont restreintes à `ASPECT:"bcpg:suppliersAspect"`
+(`PLMModel.ASPECT_SUPPLIERS`), **dans la requête db-afts** et non par post-filtrage — sinon
+chaque compteur aurait été silencieusement plafonné à `scanLimit`.
+
+Comptes relevés le 2026-07-30 à 16 h, directement contre Alfresco local (admin, `maxResults=300`,
+`hasMoreItems:false` donc exacts) :
+
+| Requête | Sans la clause | Avec la clause |
+|---|---|---|
+| `TYPE:"pjt:project"` | **173** | **27** |
+| `… AND (Planned OR InProgress OR OnHold)` | **131** | **0** |
+| `TYPE:"qa:nc" AND -=qa:ncState:"closed"` | **2** | **0** |
+
+**La clause est juste, pas seulement restrictive** — c'est le point à ne pas confondre :
+
+- les **27** projets marqués sont de vraies campagnes fournisseur
+  (`Junit Supplier test - REFERENCING - 2026`, …) et **27/27 ont `bcpg:suppliers` peuplé** ;
+  `/monitor/campaigns?states=Completed` les renvoie bien (`byState:{Completed:27}`). Toutes
+  sont `Completed`, **donc le 0 par défaut est légitime**, pas un filtre cassé ;
+- les 131 projets auparavant comptés étaient des projets R&D / démo à `bcpg:suppliers` **vide** ;
+  les 13 % de « taux de réponse » de la vue d'ensemble en étaient intégralement dérivés ;
+- les **2** NC exclues (`2026-NC-53`, `2026-NC-54`, état `closing`) ont été inspectées une par
+  une : **aucune n'a d'attribut `bcpg:suppliers`**. Les exclure est correct, ce n'est pas un
+  faux négatif.
+
+Les trois points d'entrée (`/monitor/campaigns`, `/monitor/quality`, `/monitor/overview`)
+déclarent la restriction dans leur payload (`supplierScope.applied: true`), ce qui rend un
+filtre levé visible depuis l'API et pas seulement dans l'adaptateur.
+
+**Deux exceptions assumées, documentées au point d'appel** — les ajouter aurait cassé des
+compteurs qui marchent :
+
+- `overview.queries.lateTasks` (`pjt:taskList`) : une ligne de tâche ne porte aucun aspect
+  (`TYPE:"pjt:taskList" AND ASPECT:"bcpg:suppliersAspect"` = **0**) ; les tâches sont cadrées
+  par la campagne qui les porte ;
+- la jointure des actions correctives dans `listQuality()` (`supplierOnly: false` explicite) :
+  les projets de traitement de NC viennent des modèles qualité, qui ne portent pas l'aspect.
+  Chaque ligne n'est conservée que si son `pjt:projectEntity` est l'une des NC **déjà
+  restreintes**, donc rien ne fuit.
+
+`supplierAspect: null` dans une surcharge de tenant lève la restriction, et le payload rapporte
+alors `applied: false`.
+
+## Cloche de notifications — vérifiée au navigateur
+
+Deux défauts indépendants existaient : `Header.js` pointait un `<Link href="/notifications">`
+vers une route **inexistante** (404), et le badge venait d'une prop `notificationCount`
+qu'**aucune page ne passait** (`AppShell` la laissait à 0), donc jamais affiché.
+
+`components/shell/NotificationBell.js` remplace ce lien mort. Relevés à l'exécution sur
+`:3000` (session admin, `total: 455`) :
+
+| Contrôle | Mesuré |
+|---|---|
+| Icône + badge | `notifications_active` + badge, `aria-label` « Notifications — 455 notifications en attente » |
+| Annonce vocale | `role="status"` poli portant le compte ; le badge est `aria-hidden` |
+| Clavier | `Entrée` ouvre (22 lignes), `Échap` ferme **et rend le focus à la cloche** (vérifié) |
+| **État vide réel** | route stubbée à `total: 0` → icône `notifications_none`, **aucun nœud de badge**, `aria-label` « Aucune notification », panneau « Aucune notification / Rien ne requiert votre attention pour le moment. » |
+| Erreurs console | **aucune** |
+
+L'API ne stocke **aucun état de lecture** (spec §7.1) : le badge compte ce qui est **en
+souffrance**, et le « nouveau depuis la dernière lecture » est un jeu d'identifiants en
+`localStorage`, donc purement navigateur.
 
 ## Côté beCPG — livré
 
@@ -230,17 +481,28 @@ formulaire de l'entité, une définition **fausse** plutôt que vide.
 
 ## Ce qui n'a jamais tourné contre du réel
 
-À dire clairement, par ordre de gravité :
+À dire clairement, par ordre de gravité. La liste a **raccourci** ce tour, et ce qui reste est
+ce qui reste vraiment.
 
 1. **Le code flow OIDC contre l'IDS réel.** Tout ce qui a tourné l'a fait via
    `DEV_FAKE_AUTH`, qui court-circuite Keycloak. C'est le mécanisme d'authentification de
-   production, et il n'a jamais été exercé.
-2. **Le parcours fournisseur complet** — tenté aujourd'hui, **échoue en 401** (§E2E).
-3. **Le refus d'un `ExternalUser` sur `/monitor`** (P3) — le contrôle d'accès de l'espace de
-   pilotage, correct par construction, jamais observé.
-4. **La visionneuse de signature sur Firefox** (#35696).
-5. **`app/help/` et `components/shell/NotificationBell.js`**, écrits par un agent concurrent
-   pendant ce tour : ils compilent et passent le lint, mais **ils n'ont été ni relus ni testés
-   ici**. `NotificationBell` porte de la logique non triviale (lecture paresseuse de
-   `localStorage` hors hydratation, throttling de rafraîchissement, piège de focus) qui
-   mérite une relecture par quelqu'un.
+   production et **il n'a jamais été exercé** — reste de loin le premier trou. Il porte deux
+   conséquences déjà visibles : sans session Share dérivée du jeton, les champs du wizard ne
+   se résolvent pas (§E2E réserve 1), et le cloisonnement ne s'est vérifié que sur des
+   sessions ouvertes par le raccourci.
+2. **L'écriture réelle par un fournisseur.** `04` est **lecture seule par conception** : aucune
+   tâche n'a été complétée, aucun formulaire soumis, aucune signature apposée par un compte
+   fournisseur. Le parcours se *charge* de bout en bout ; il n'a jamais été *joué* jusqu'à
+   l'écriture. C'est la phrase à ne pas laisser glisser vers « le parcours fournisseur est
+   validé ».
+3. **La visionneuse de signature sur Firefox** (#35696).
+4. **Les défauts P1 et P2** (compteur d'agrément qui dépasse son total, CSV tronqué en
+   silence) : connus, mesurés, non corrigés.
+
+Sorties de cette liste ce tour, parce que réellement exercées :
+
+- ~~le parcours fournisseur échoue en 401~~ → **51/51**, l’échec était d'environnement ;
+- ~~le refus d'un `ExternalUser` sur `/monitor`, jamais observé~~ → observé, **il était cassé**,
+  corrigé et couvert par deux tests vérifiés rouges sans le correctif (§Correctifs) ;
+- ~~`app/help/` et `NotificationBell.js` ni relus ni testés~~ → relus, exercés au navigateur
+  (§Cloche, §4.2), `/help` ajouté à `SUPPLIER_PAGES` donc couvert par la suite.

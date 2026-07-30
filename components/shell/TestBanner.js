@@ -7,8 +7,17 @@
  * There is **no dismiss button and no state**: a supplier who fills a
  * questionnaire on a test instance must be told, on every screen, that what they
  * type is not contractual. Making it dismissible would defeat the only reason it
- * exists. The stripes animate, and stop under `prefers-reduced-motion` — both
- * behaviours belong to `.test-banner` in globals.css.
+ * exists. The E2E suite asserts both facts — visible, and containing no
+ * button-like descendant — so nothing may be added inside it that could be
+ * mistaken for a close affordance.
+ *
+ * Permanent does not have to mean improvised. It is a 24px hazard strip in
+ * `--becpg-orange`, striped with a black overlay (same hue, no new colour), sat
+ * flush **above** the blue toolbar and the same width as it: it reads as the top
+ * edge of the application chrome rather than as a notice bolted on top of the
+ * page. The sentence rides on a white pill because `#ff642d` cannot carry 12px
+ * text at AA — see the contrast note on `.test-banner` in globals.css. The
+ * stripes animate, and stop under `prefers-reduced-motion`.
  *
  * The flag comes from the tenant (`tenant.isTest`), resolved server-side from
  * `TENANT_MAP`; it can be forced with the `isTest` prop for the login page,
@@ -46,7 +55,7 @@ export function TestBanner({ isTest, message, compact = false, className = '' })
     return (
         <div className={`test-banner ${className}`} role="status" aria-live="polite">
             <span className="test-banner-text">
-                <Icon name="warning_amber" size={14} className="mr-1 align-text-bottom" />
+                <Icon name="science" size={13} className="mr-1" />
                 {message || t('test.banner')}
             </span>
         </div>

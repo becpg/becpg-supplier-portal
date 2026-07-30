@@ -56,22 +56,33 @@ import { useMessages } from '@/lib/messages';
 
 const LABELS = {
     fr: {
+        /*
+         * Tile labels are **short on purpose**.
+         *
+         * `StatCard` renders its label on one line and clips the overflow. In the
+         * 4-up row the label box is 140px, and measured in the browser four of the
+         * eight used to end in an ellipsis ("CONFORMITÉ DOCUM…", "NC FOURNISSEUR
+         * OU…", "FOURNISSEURS AGRÉ…", "DOCUMENTS EXPIRA…") — a dashboard where the
+         * caption of the figure is unreadable. The qualifier moved to the `hint`
+         * line under the figure, which wraps: "Agréés / sur 251 fournisseurs" says
+         * strictly more than a clipped "FOURNISSEURS AGRÉ…" did.
+         */
         tiles: {
-            approved: 'Fournisseurs agréés',
+            approved: 'Agréés',
             toRenew: 'À renouveler',
             suspended: 'Suspendus',
-            compliance: 'Conformité documentaire',
-            expiring30: 'Documents expirant < 30 j',
-            campaigns: 'Campagnes en cours',
+            compliance: 'Conformité doc.',
+            expiring30: 'Expirent < 30 j',
+            campaigns: 'Campagnes',
             lateTasks: 'Tâches en retard',
-            nc: 'NC fournisseur ouvertes',
+            nc: 'NC ouvertes',
         },
         hints: {
             ofPark: 'sur {total} fournisseurs',
             complianceDetail: '{missing} manquants · {expired} expirés · {refused} refusés',
             complianceMandatory: '{compliant} / {total} documents obligatoires',
-            expiring: '{d60} à 60 j · {d90} à 90 j',
-            campaigns: '{rate} % de réponse · {late} en retard',
+            expiring: 'documents · {d60} à 60 j, {d90} à 90 j',
+            campaigns: 'en cours · {rate} % de réponse, {late} en retard',
             lateTasks: 'échéance dépassée',
             nc: 'dont {blocking} bloquantes',
             inProgress: '{count} en cours de référencement',
@@ -92,6 +103,7 @@ const LABELS = {
             bucket: '< {days} j',
             empty: 'Aucun document n’expire dans les 90 jours',
             unit: 'documents',
+            seeAll: 'Voir la conformité documentaire',
         },
         approx: 'Compteur approché : beCPG a plafonné le comptage.',
         approxShort: 'approché',
@@ -102,22 +114,23 @@ const LABELS = {
         generatedAt: 'Données au {time}',
     },
     en: {
+        /* See the note on the French labels: one line, never clipped. */
         tiles: {
-            approved: 'Approved suppliers',
+            approved: 'Approved',
             toRenew: 'To renew',
             suspended: 'Suspended',
-            compliance: 'Document compliance',
-            expiring30: 'Documents expiring < 30 d',
-            campaigns: 'Open campaigns',
+            compliance: 'Doc. compliance',
+            expiring30: 'Expiring < 30 d',
+            campaigns: 'Campaigns',
             lateTasks: 'Late tasks',
-            nc: 'Open supplier NCs',
+            nc: 'Open NCs',
         },
         hints: {
             ofPark: 'of {total} suppliers',
             complianceDetail: '{missing} missing · {expired} expired · {refused} rejected',
             complianceMandatory: '{compliant} / {total} mandatory documents',
-            expiring: '{d60} at 60 d · {d90} at 90 d',
-            campaigns: '{rate} % answered · {late} late',
+            expiring: 'documents · {d60} at 60 d, {d90} at 90 d',
+            campaigns: 'open · {rate} % answered, {late} late',
             lateTasks: 'past due',
             nc: 'including {blocking} blocking',
             inProgress: '{count} being referenced',
@@ -138,6 +151,7 @@ const LABELS = {
             bucket: '< {days} d',
             empty: 'No document expires within 90 days',
             unit: 'documents',
+            seeAll: 'See document compliance',
         },
         approx: 'Approximate counter: beCPG capped the count.',
         approxShort: 'approximate',
@@ -327,7 +341,9 @@ function ParkComposition({ park, local, query }) {
 
     return (
         <>
-            <ul className="flex flex-col gap-2.5">
+            {/* Same treatment as the expiry panel: the shorter of the two spreads
+                its bars instead of leaving a hole under them. */}
+            <ul className="flex flex-1 flex-col justify-between gap-2.5">
                 {['suspended', 'toRenew', 'inProgress', 'approved'].map((status, index) => {
                     const count = park[status] || 0;
                     const share = percent(count, total);
@@ -341,11 +357,16 @@ function ParkComposition({ park, local, query }) {
                             >
                                 <div className="flex items-baseline justify-between gap-2">
                                     <StatusPill status={status} size="sm" />
+                                    {/* The separator is not optional: "254 99 %"
+                                        read as one mangled number. */}
                                     <span className="shrink-0 text-xs text-[var(--becpg-dark-grey)]">
                                         <span className="text-sm font-medium tabular-nums text-[var(--becpg-blue)]">
                                             {count}
-                                        </span>{' '}
-                                        {interpolate(local.park.share, { share })}
+                                        </span>
+                                        {' · '}
+                                        <span className="tabular-nums">
+                                            {interpolate(local.park.share, { share })}
+                                        </span>
                                     </span>
                                 </div>
                                 <div
@@ -374,7 +395,7 @@ function ParkComposition({ park, local, query }) {
                 })}
             </ul>
             {park.breakdownScope === 'window' ? (
-                <p className="mt-3 flex items-start gap-1.5 text-xs text-[var(--status-warn)]">
+                <p className="mt-auto flex items-start gap-1.5 pt-4 text-xs text-[var(--status-warn)]">
                     <Icon name="info" size={14} className="mt-0.5 shrink-0" />
                     <span>
                         {interpolate(local.park.windowScope, {
@@ -410,7 +431,11 @@ function ExpiryHorizon({ expiring, local, query }) {
 
     return (
         <>
-            <ul className="flex flex-col gap-3">
+            {/* `flex-1 justify-between`: side by side with the park panel this one
+                is the shorter of the two, and three bars huddled at the top over
+                100px of white read as a panel that failed to load. Spread, they
+                read as a chart. */}
+            <ul className="flex flex-1 flex-col justify-between gap-3.5">
                 {days.map((day, index) => {
                     const count = buckets[day] || 0;
                     const width = percent(count, scale);
@@ -446,14 +471,19 @@ function ExpiryHorizon({ expiring, local, query }) {
                     );
                 })}
             </ul>
-            <p className="mt-3 text-xs text-[var(--becpg-dark-grey)]">{local.expiry.cumulative}</p>
+            {/* `mt-auto` pins the caption to the bottom of the panel: side by side
+                in a stretched grid row, the two panels then end on the same line
+                instead of leaving 140px of white in whichever one is shorter. */}
+            <p className="pt-4 text-xs text-[var(--becpg-dark-grey)]">{local.expiry.cumulative}</p>
             <div className="mt-2">
+                {/* Same link treatment as every "tout voir" of the portal:
+                    blue-light, underlined on hover only. */}
                 <Link
                     href={`/monitor/documents${query ? `?${query}` : ''}`}
-                    className="inline-flex items-center gap-1 text-xs text-[var(--becpg-blue-light)] underline underline-offset-2 hover:text-[var(--becpg-orange)]"
+                    className="inline-flex items-center gap-1 text-xs font-medium text-[var(--becpg-blue-light)] hover:underline"
                 >
                     <Icon name="fact_check" size={14} />
-                    {local.expiry.title}
+                    {local.expiry.seeAll}
                 </Link>
             </div>
         </>
@@ -480,6 +510,11 @@ export function ParkStats({ overview, query = '', className = '' }) {
     const assocFilters = (filters.applied || []).filter((entry) => entry.mode === 'assoc');
     const panels = Array.isArray(profile.panels) ? profile.panels : ['park', 'expiry'];
 
+    // `flex flex-col` on the card and `flex-1` on its body is what lets the
+    // panels' trailing captions sit on the bottom edge (see `mt-auto` above).
+    const panelCard = 'flex flex-col';
+    const panelBody = 'flex flex-1 flex-col';
+
     const parkPanel = (
         <Card
             key="park"
@@ -487,6 +522,8 @@ export function ParkStats({ overview, query = '', className = '' }) {
             subtitle={local.park.subtitle}
             icon="donut_small"
             index={0}
+            className={panelCard}
+            bodyClassName={panelBody}
         >
             <ParkComposition park={overview.park || {}} local={local} query={query} />
         </Card>
@@ -498,6 +535,8 @@ export function ParkStats({ overview, query = '', className = '' }) {
             subtitle={local.expiry.subtitle}
             icon="event_busy"
             index={1}
+            className={panelCard}
+            bodyClassName={panelBody}
         >
             <ExpiryHorizon expiring={overview.expiring || {}} local={local} query={query} />
         </Card>
@@ -532,10 +571,13 @@ export function ParkStats({ overview, query = '', className = '' }) {
                 ))}
             </StatGrid>
 
-            <div className="mt-3 grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">{panelNodes}</div>
+            {/* Same rhythm as the page that hosts this block (`mt-3 sm:mt-4`). */}
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:mt-4 sm:gap-4 lg:grid-cols-2">
+                {panelNodes}
+            </div>
 
             {unsupported.length > 0 || assocFilters.length > 0 ? (
-                <div className="mt-3 flex flex-col gap-1">
+                <div className="mt-3 flex flex-col gap-1 sm:mt-4">
                     {unsupported.length > 0 ? (
                         <p className="flex items-start gap-1.5 text-xs text-[var(--becpg-dark-grey)]">
                             <Icon name="info" size={14} className="mt-0.5 shrink-0" />

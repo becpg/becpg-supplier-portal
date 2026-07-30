@@ -1,6 +1,21 @@
 @import "tailwindcss";
 
+/*
+ * ---------------------------------------------------------------------------
+ * beCPG design tokens.
+ *
+ * The block below is a *mirror* of `public/theme/default/theme.css`, which is
+ * the authority shared by the whole product range (Share, the regulatory app,
+ * this portal). Every variable that file declares is declared here with the
+ * exact same value, so the portal cannot drift from the range: when the theme
+ * ships a new colour, the diff is a one-to-one copy, not a redesign.
+ *
+ * Anything the portal needs on top (status pills, skeletons, chrome states) is
+ * *derived* from those five colours — no sixth hue is invented anywhere below.
+ * ---------------------------------------------------------------------------
+ */
 :root {
+  /* --- theme.css, verbatim ------------------------------------------- */
   --becpg-blue: #004254;
   --becpg-green: #00ffbd;
   --becpg-grey: #e4ecee;
@@ -14,6 +29,37 @@
   --becpg-on-toolbar-color: #ffffff;
   --becpg-toolbar-color: var(--becpg-blue);
 
+  /* Material Components tokens — same file, same values. beCPG Share and the
+     regulatory app style their MDC widgets through these; the portal has no MDC
+     widget, but a shared component (or an embedded Share fragment in an iframe
+     fallback) must find them, and a missing token here would be a silent drift. */
+  --mdc-theme-primary: var(--becpg-blue);
+  --mdc-theme-secondary: var(--becpg-green);
+  --mdc-theme-on-primary: #ffffff;
+  --mdc-theme-on-secondary: #ffffff;
+  --mdc-theme-background: #e4ecee;
+
+  --mdc-theme-surface: #ffffff;
+  --mdc-theme-on-surface: #000000;
+
+  --mdc-theme-text-primary-on-light: var(--becpg-orange);
+  --mdc-theme-text-secondary-on-light: #ffffff;
+  --mdc-theme-text-hint-on-light: var(--becpg-orange);
+  --mdc-theme-text-disabled-on-light: #ffffff;
+  --mdc-theme-text-icon-on-light: #ffffff;
+
+  /*
+   * Kebab-case alias of `--becpg-darkGrey`.
+   *
+   * theme.css spells it camelCase, but CSS custom properties are
+   * case-sensitive and the whole portal (342 call sites) writes
+   * `var(--becpg-dark-grey)`. Without this alias every one of those
+   * declarations is invalid at computed-value time, so every "muted" label in
+   * the portal silently inherited the blue body colour instead of being grey.
+   * The alias — not a rename — keeps theme.css copy-pasteable.
+   */
+  --becpg-dark-grey: var(--becpg-darkGrey);
+
   --background: #ffffff;
   --foreground: var(--becpg-blue);
 
@@ -22,6 +68,50 @@
   --becpg-green-light: #66ffdd;
   --becpg-orange-light: #ff8a5c;
 
+  /*
+   * Darker shades of the brand orange — the counterpart of `--becpg-orange-light`,
+   * derived the same way (one hue, one axis): `--becpg-orange` composited with
+   * black at 24% and 34%.
+   *
+   *   #ff642d  on white ... 2.95:1  ✗ text · ✗ even the 3:1 non-text floor
+   *   #c24c22  on white ... 4.83:1  ✓ AA text, both directions
+   *   #a84220  on white ... 5.92:1  ✓ (hover/active of the accent button)
+   *
+   * They exist because the accent *call to action* has to be orange (this is the
+   * brand's action colour) and a solid `--becpg-orange` button cannot hold a
+   * readable label in either direction: white on it is 2.95:1 and
+   * `--becpg-blue` on it is 3.73:1. `--becpg-orange` keeps everything where
+   * 3:1 is the bar — focus ring, rails, borders, hover washes — and these two
+   * carry orange *text* and orange *surfaces under text*.
+   */
+  --becpg-orange-deep: #c24c22;
+  --becpg-orange-deep-active: #a84220;
+
+  /*
+   * `--becpg-darkGrey` (#747474) reaches 4.67:1 on white — it clears AA by 4%,
+   * so it fails the moment it sits on anything tinted: 3.90:1 on
+   * `--becpg-grey`, 4.25:1 on a zebra stripe, 4.10:1 on an orange hover wash.
+   * This is the same grey pushed down the neutral axis until it survives those
+   * surfaces (4.79:1 on `--becpg-grey`, 5.74:1 on white). It is what muted text
+   * uses inside a datagrid, a chip or a disabled control.
+   */
+  --becpg-dark-grey-deep: #666666;
+
+  /*
+   * Chrome states, derived — see the contrast notes in `.becpg-toolbar` below.
+   *
+   * `--becpg-orange` is the brand accent but it only reaches 3.73:1 on
+   * `--becpg-blue`: enough for a border, a rail or a focus ring (WCAG 1.4.11
+   * asks 3:1 for non-text), never enough for a 12–14px label (1.4.3 asks 4.5).
+   * So text that turns orange on the blue toolbar turns `--becpg-orange-light`
+   * (#ff8a5c → 4.74:1), and the surface underneath *darkens* instead of
+   * lightening, which pushes the pair to 5.46:1.
+   */
+  --becpg-on-toolbar-hover: var(--becpg-orange-light);
+  --becpg-toolbar-hover-surface: rgba(0, 0, 0, 0.15);
+  --becpg-toolbar-active-surface: rgba(0, 0, 0, 0.25);
+  --becpg-toolbar-divider: rgba(255, 255, 255, 0.24);
+
   --gradient-primary: linear-gradient(135deg, var(--becpg-blue) 0%, var(--becpg-blue-light) 100%);
   --gradient-accent: linear-gradient(135deg, var(--becpg-orange) 0%, var(--becpg-orange-light) 100%);
   --gradient-secondary: linear-gradient(135deg, var(--becpg-green) 0%, var(--becpg-green-light) 100%);
@@ -29,33 +119,83 @@
 
   /* --- Supplier portal additions ------------------------------------- */
 
-  /* Status semantics: approval status, document validity, task lateness.
-     Kept as tokens so a tenant theme can override them without touching markup. */
+  /*
+   * Status semantics: approval status, document validity, task lateness.
+   * Kept as tokens so a tenant theme can override them without touching markup.
+   *
+   * The *tints* (`-bg`, `-border`) are not free-standing pastels any more — each
+   * one is its own foreground, or a brand colour, composited over white at a
+   * fixed alpha. That is what makes a status pill look like it belongs to the
+   * same system as the toolbar instead of to a generic UI kit:
+   *
+   *   ok      `--becpg-green`   at 12% / `--status-ok`     at 30%
+   *   warn    `--becpg-orange`  at  8% / `--becpg-orange`  at 42%
+   *   danger  `--status-danger` at  8% / `--status-danger` at 30%
+   *   neutral `--becpg-grey`         / `--becpg-blue`      at 22% over the grey
+   *   info    `--becpg-blue-lighter` / `--becpg-blue-light` at 40%
+   *
+   * Measured label contrast on its own tint: ok 5.02:1 · warn 4.79:1 ·
+   * danger 5.74:1 · neutral 4.79:1 · info 8.72:1 — all ✓ AA at 12px.
+   *
+   * `--status-neutral` moved from `--becpg-darkGrey` to `--becpg-dark-grey-deep`:
+   * the old pair (#747474 on #e4ecee) measured 3.90:1, i.e. every "planned",
+   * "cancelled", "archived" and "no score" pill in the portal was below AA.
+   */
   --status-ok: #0f7a5a;
-  --status-ok-bg: #dff7ee;
-  --status-ok-border: #a5e6cf;
+  --status-ok-bg: #e0fff7;
+  --status-ok-border: #b6d7ce;
 
   --status-warn: #a35a00;
-  --status-warn-bg: #fff1de;
-  --status-warn-border: #ffd39b;
+  --status-warn-bg: #fff3ee;
+  --status-warn-border: #ffbfa7;
 
   --status-danger: #b3261e;
-  --status-danger-bg: #fdecea;
-  --status-danger-border: #f5b7b1;
+  --status-danger-bg: #f9eeed;
+  --status-danger-border: #e8bebc;
 
-  --status-neutral: var(--becpg-darkGrey);
+  --status-neutral: var(--becpg-dark-grey-deep);
   --status-neutral-bg: var(--becpg-grey);
-  --status-neutral-border: #c9d6d9;
+  --status-neutral-border: #b2c7cc;
 
   --status-info: var(--becpg-blue-light);
   --status-info-bg: var(--becpg-blue-lighter);
-  --status-info-border: #a8cdd8;
+  --status-info-border: #99bfcc;
 
-  /* Non-production banner */
-  --test-banner-color: #7a3d00;
-  --test-banner-stripe-a: #ffcf3d;
-  --test-banner-stripe-b: #ffb200;
-  --test-banner-height: 28px;
+  /*
+   * Elevation — one blue-tinted family, so a white card on the grey page reads
+   * as beCPG rather than as a generic material card. A neutral black shadow on
+   * `--becpg-grey` goes muddy; the same shadow in `--becpg-blue` keeps the page
+   * cool. `-raised` is the resting state of a card, `-lifted` is what
+   * `.hover-lift` lands on, `-overlay` is for a popover / toast / dialog.
+   */
+  --becpg-shadow-raised: 0 1px 2px rgba(0, 66, 84, 0.06), 0 2px 10px rgba(0, 66, 84, 0.04);
+  --becpg-shadow-lifted: 0 10px 24px rgba(0, 66, 84, 0.14);
+  --becpg-shadow-overlay: 0 12px 32px rgba(0, 66, 84, 0.18);
+
+  /*
+   * Datagrid surfaces. The zebra and the hover wash are the palette at a low
+   * alpha, chosen as the *strongest* tint that still lets muted text
+   * (`--becpg-dark-grey-deep`) clear 4.5:1 — measured 5.30:1 on the stripe and
+   * 5.02:1 on the hover wash, and 4.94:1 on a hovered stripe (the worst case).
+   */
+  --becpg-row-zebra: rgba(228, 236, 238, 0.55);
+  --becpg-row-hover: rgba(255, 100, 45, 0.1);
+  --becpg-row-selected: rgba(214, 232, 237, 0.7);
+
+  /*
+   * Non-production banner.
+   *
+   * It used to be amber (#ffb200 / #ffcf3d) — two hues that exist nowhere in
+   * the beCPG palette, which is exactly what made it look bolted on. It is now
+   * the brand orange, striped with a plain black overlay (same hue, darker) so
+   * no new colour enters the system, and the sentence sits on a white chip
+   * because #ff642d cannot carry 12px text at AA.
+   */
+  --test-banner-surface: var(--becpg-orange);
+  --test-banner-stripe: rgba(0, 0, 0, 0.16);
+  --test-banner-chip: #ffffff;
+  --test-banner-color: var(--becpg-blue);
+  --test-banner-height: 24px;
 
   /* Skeleton shimmer */
   --skeleton-base: #e8eef0;
@@ -76,6 +216,8 @@
 
   --color-becpg-blue-light: var(--becpg-blue-light);
   --color-becpg-blue-lighter: var(--becpg-blue-lighter);
+  --color-becpg-green-light: var(--becpg-green-light);
+  --color-becpg-orange-light: var(--becpg-orange-light);
 
   --color-status-ok: var(--status-ok);
   --color-status-warn: var(--status-warn);
@@ -152,12 +294,13 @@ body {
   }
 }
 
+/* One full stripe period (`background-size: 40px`), so the loop is seamless. */
 @keyframes test-banner-scroll {
   from {
     background-position: 0 0;
   }
   to {
-    background-position: 56px 0;
+    background-position: 40px 0;
   }
 }
 
@@ -247,6 +390,250 @@ body {
 }
 
 /* ---------------------------------------------------------------------- */
+/* Application chrome — the toolbar the whole range shares                 */
+/* ---------------------------------------------------------------------- */
+
+/*
+ * The beCPG toolbar: `--becpg-toolbar-color` (blue) with
+ * `--becpg-on-toolbar-color` (white) content, exactly as theme.css names them.
+ *
+ * Measured contrast on #004254:
+ *   #ffffff  white text/icons ................ 11.0:1  ✓ AA & AAA
+ *   #ff8a5c  hover text (--becpg-orange-light)  4.74:1  ✓ AA
+ *   #ff642d  brand orange ..................... 3.73:1  ✗ text · ✓ 3:1 non-text
+ *            → used only for the focus ring, the accent rail and borders
+ *   rgba(255,255,255,.7) muted caption ........ 6.22:1  ✓ AA
+ *
+ * `.toolbar-item` re-colours the shared `Button` / `IconButton`, which ship
+ * light-surface classes. Two class selectors (0,2,0) outrank the single-class
+ * Tailwind utility they replace, and `:hover` (0,3,0) outranks Tailwind's
+ * `hover:` variant — so no `!important` and no stacking-order luck involved.
+ */
+.becpg-toolbar {
+  background-color: var(--becpg-toolbar-color);
+  color: var(--becpg-on-toolbar-color);
+  /* Tailwind's ring-offset defaults to white, which would draw a halo on the
+     blue bar; the offset must be the bar itself. */
+  --tw-ring-offset-color: var(--becpg-toolbar-color);
+}
+
+.becpg-toolbar .toolbar-item {
+  color: var(--becpg-on-toolbar-color);
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.becpg-toolbar .toolbar-item:hover {
+  /* Darkens rather than lightens: a white veil would raise the surface
+     luminance and drop the orange pair to 3.6:1. Black 15% takes it to 5.46:1. */
+  background-color: var(--becpg-toolbar-hover-surface);
+  color: var(--becpg-on-toolbar-hover);
+}
+
+.becpg-toolbar .toolbar-item:active {
+  background-color: var(--becpg-toolbar-active-surface);
+}
+
+/* Keyboard focus keeps the white label (11:1) and shows the orange ring; the
+   hover orange would otherwise fight the ring for the eye. */
+.becpg-toolbar .toolbar-item:focus-visible {
+  color: var(--becpg-on-toolbar-color);
+  background-color: var(--becpg-toolbar-hover-surface);
+}
+
+/*
+ * Same treatment for a component the toolbar hosts but does not style — the
+ * notification bell owns its own trigger markup. `>` keeps the rule on the
+ * trigger only: the bell's popover is a *sibling* of that button inside the same
+ * wrapper, and it is a white surface that must keep its own dark text.
+ */
+.becpg-toolbar .toolbar-slot > :is(button, a) {
+  color: var(--becpg-on-toolbar-color);
+  background-color: transparent;
+}
+
+.becpg-toolbar .toolbar-slot > :is(button, a):hover {
+  background-color: var(--becpg-toolbar-hover-surface);
+  color: var(--becpg-on-toolbar-hover);
+}
+
+/*
+ * The bell's count bubble (the only non-icon child of that button).
+ *
+ * It ships as white-on-`--becpg-orange`, i.e. 2.95:1 — fine as decoration
+ * (it is `aria-hidden` and the count is spoken through a live region) but
+ * unreadable in practice. On the toolbar it becomes blue on white inside an
+ * orange ring: 11:1 for the digits, and the ring is what stays brand-orange.
+ */
+.becpg-toolbar .toolbar-slot > button > span:not(.material-icons) {
+  background-color: #ffffff;
+  color: var(--becpg-blue);
+  box-shadow: 0 0 0 1.5px var(--becpg-orange);
+}
+
+.becpg-toolbar .toolbar-divider {
+  width: 1px;
+  align-self: stretch;
+  margin-block: 0.5rem;
+  background-color: var(--becpg-toolbar-divider);
+}
+
+/*
+ * The rule that closes the toolbar, in `--becpg-top-bar-border-color` — the
+ * variable theme.css declares for exactly this line, and the same accent the
+ * reference layout puts on the edge of its header.
+ *
+ * It is deliberately one flat colour: a first attempt segmented it into green
+ * then orange then transparent, and a partially-coloured 2px line pinned under a
+ * toolbar reads as a progress bar, which is the last thing a header should say.
+ * The green stays where it can be itself — the login hero and the success pills.
+ */
+.becpg-toolbar-edge {
+  height: 2px;
+  background-color: var(--becpg-top-bar-border-color);
+}
+
+/*
+ * The brand plate.
+ *
+ * `logo.png` (200×37) and `app-logo-48.png` are the official assets and both are
+ * drawn in `--becpg-blue` with a green counter — they are made for a light
+ * surface and are literally invisible on the blue toolbar. Recolouring them
+ * (`filter: invert()`) would destroy the green and would no longer be the
+ * product's logo, and drawing a white substitute is out of the question. So the
+ * asset is left untouched and the *surface* under it turns white: a small plate
+ * at the left of the bar, which is also what anchors the toolbar's left edge.
+ */
+.becpg-brand-plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1875rem 0.4375rem;
+  border-radius: 0.5rem;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
+}
+
+/* Hover/focus lands on the plate's edge — the plate itself must stay white,
+   it is the logo's background. */
+.becpg-toolbar .brand-link:hover .becpg-brand-plate {
+  box-shadow: 0 0 0 2px var(--becpg-orange);
+}
+
+/* A stable box, so the toolbar does not jump while the PNG decodes. */
+.becpg-wordmark {
+  height: 20px;
+  width: auto;
+}
+
+@media (min-width: 640px) {
+  .becpg-wordmark {
+    height: 24px;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Navigation items — sidebar and drawer                                  */
+/* ---------------------------------------------------------------------- */
+
+/*
+ * Active state, contrast-checked on the white rail:
+ *   surface `--becpg-blue`, label #ffffff ..... 11.0:1 ✓
+ *   icon `--becpg-orange-light` on blue ....... 4.74:1 ✓
+ *   3px `--becpg-orange` rail on blue ......... 3.73:1 ✓ (non-text, 3:1)
+ * The state is also carried by `aria-current="page"`, the surface change and
+ * the heavier label — never by the orange alone.
+ */
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.75rem 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--becpg-blue);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-item:hover {
+  background-color: var(--becpg-grey);
+}
+
+.nav-item-active,
+.nav-item-active:hover {
+  background-color: var(--becpg-blue);
+  color: var(--becpg-on-toolbar-color);
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0, 66, 84, 0.18);
+}
+
+.nav-item-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.375rem;
+  bottom: 0.375rem;
+  width: 3px;
+  border-radius: 9999px;
+  background-color: var(--becpg-orange);
+}
+
+.nav-item-active .nav-item-icon {
+  color: var(--becpg-orange-light);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Brand surfaces — login, empty states                                   */
+/* ---------------------------------------------------------------------- */
+
+/*
+ * `shape.png` is the range's background mark. theme.css pins it to
+ * `bottom right no-repeat fixed` on the content area; on a phone `fixed`
+ * costs a repaint per scroll frame, so it is sized and anchored instead.
+ */
+.bg-shape {
+  background-image: url("/theme/default/images/shape.png");
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  background-size: min(70%, 340px) auto;
+}
+
+/*
+ * The login hero. The gradient runs blue → blue-light and only reaches the
+ * green in the last stop, in the bottom-right corner where `shape.png` sits and
+ * where no text is ever placed: white on #004254 is 11:1, on #006080 7.0:1,
+ * but on #00ffbd it would be 1.4:1.
+ */
+.brand-hero {
+  background-color: var(--becpg-blue);
+  background-image:
+    radial-gradient(120% 110% at 100% 100%, rgba(0, 255, 189, 0.28) 0%, rgba(0, 255, 189, 0) 55%),
+    linear-gradient(150deg, var(--becpg-blue) 0%, var(--becpg-blue) 45%, var(--becpg-blue-light) 100%);
+}
+
+/*
+ * `shape.png` on a dark hero.
+ *
+ * It is a near-white mark drawn for light content areas, so it needs to be held
+ * back — and a CSS `background-blend-mode` cannot do it: `soft-light` and
+ * `overlay` both *brighten* a light source over a dark backdrop (checked in the
+ * browser: the mark came out as a bright cyan slab), and `multiply` with a 0.9
+ * source is invisible. Opacity is the only honest control, so the mark is an
+ * element, not a background layer — the same asset, untouched, at 13%.
+ */
+.brand-hero-shape {
+  position: absolute;
+  right: -2.5rem;
+  bottom: -2.5rem;
+  width: min(62%, 440px);
+  height: auto;
+  opacity: 0.13;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------------- */
 /* Status pills — approval status, document validity, task state          */
 /* ---------------------------------------------------------------------- */
 
@@ -333,6 +720,15 @@ body {
 /* TEST banner — permanent, non dismissable on non-production instances   */
 /* ---------------------------------------------------------------------- */
 
+/*
+ * A thin orange hazard strip, *above* the toolbar and part of it — same width,
+ * no rounded corner, no margin, no shadow of its own. It reads as the top edge
+ * of the application chrome rather than as a notice someone forgot to remove.
+ *
+ * Contrast: the sentence is `--becpg-blue` on the white chip → 11.0:1. The
+ * stripes are decoration; the information is the word "TEST" itself, so the
+ * banner never conveys anything by colour alone.
+ */
 .test-banner {
   position: relative;
   z-index: 60;
@@ -341,32 +737,33 @@ body {
   justify-content: center;
   gap: 0.5rem;
   min-height: var(--test-banner-height);
-  padding: 0.25rem 0.75rem;
+  padding: 0.1875rem 0.75rem;
   color: var(--test-banner-color);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-align: center;
-  background-color: var(--test-banner-stripe-b);
+  background-color: var(--test-banner-surface);
   background-image: repeating-linear-gradient(
     -45deg,
-    var(--test-banner-stripe-a) 0,
-    var(--test-banner-stripe-a) 14px,
-    var(--test-banner-stripe-b) 14px,
-    var(--test-banner-stripe-b) 28px
+    var(--test-banner-stripe) 0,
+    var(--test-banner-stripe) 10px,
+    transparent 10px,
+    transparent 20px
   );
-  background-size: 56px 100%;
-  border-bottom: 2px solid rgba(122, 61, 0, 0.35);
-  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
-  animation: test-banner-scroll 2.5s linear infinite;
+  background-size: 40px 100%;
+  animation: test-banner-scroll 3s linear infinite;
   user-select: none;
 }
 
 .test-banner-text {
-  padding: 0 0.5rem;
-  background: rgba(255, 255, 255, 0.75);
-  border-radius: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.0625rem 0.5rem;
+  background: var(--test-banner-chip);
+  border-radius: 9999px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
 /* Compact form for a sticky corner badge on small screens */
@@ -374,9 +771,10 @@ body {
   display: inline-flex;
   align-items: center;
   padding: 0.125rem 0.5rem;
-  border-radius: 0.25rem;
+  border-radius: 9999px;
   color: var(--test-banner-color);
-  background: var(--test-banner-stripe-a);
+  background: var(--test-banner-chip);
+  box-shadow: inset 0 0 0 1.5px var(--becpg-orange);
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.08em;

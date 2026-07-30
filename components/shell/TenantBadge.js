@@ -26,6 +26,18 @@ const SIZES = {
 };
 
 /**
+ * What `lib/tenant.js` falls back to when a tenant declares no logo of its own:
+ * the beCPG wordmark. The header already shows that wordmark at full size, and a
+ * 200×37 wordmark squeezed into a 32px square is unreadable anyway — so a tenant
+ * still on the fallback shows the neutral "customer" mark instead of a second,
+ * crushed copy of the product logo.
+ */
+const BECPG_FALLBACK_LOGOS = [
+    '/theme/default/images/logo.png',
+    '/theme/images/logo.png',
+];
+
+/**
  * @param {Object} props
  * @param {{id: string, label: string, logoUrl: string, isTest: boolean}} [props.tenant]
  *        explicit tenant; falls back to the session's (needed on /login, which has none)
@@ -49,7 +61,8 @@ export function TenantBadge({
     const metrics = SIZES[size] || SIZES.md;
 
     const label = (resolved && (resolved.label || resolved.id)) || t('app.title');
-    const logoUrl = resolved && resolved.logoUrl;
+    const rawLogoUrl = resolved && resolved.logoUrl;
+    const logoUrl = BECPG_FALLBACK_LOGOS.includes(rawLogoUrl) ? null : rawLogoUrl;
 
     return (
         <span className={`flex min-w-0 items-center gap-2 ${className}`}>
@@ -57,7 +70,11 @@ export function TenantBadge({
                 className={[
                     'flex shrink-0 items-center justify-center overflow-hidden rounded-lg',
                     metrics.box,
-                    tone === 'dark' ? 'bg-white/15' : 'bg-white ring-1 ring-[var(--becpg-grey)]',
+                    // On the blue toolbar: a translucent chip (white icon on it is
+                    // 7.2:1) outlined so it does not melt into the bar.
+                    tone === 'dark'
+                        ? 'bg-white/15 ring-1 ring-white/25'
+                        : 'bg-white ring-1 ring-[var(--becpg-grey)]',
                 ].join(' ')}
             >
                 {logoUrl && !logoFailed ? (

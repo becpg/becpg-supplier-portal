@@ -20,6 +20,7 @@
  * unauthenticated, and `/api/auth/login` owns the whole OIDC dance.
  */
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { cookies, headers } from 'next/headers';
 import {
@@ -49,6 +50,12 @@ const PAGE_TEXT = {
         testNotice: 'Instance de TEST — les données saisies ici ne sont pas contractuelles.',
         help: 'Besoin d’aide ?',
         errorTitle: 'La connexion a échoué',
+        pitch: 'Le portail fournisseur beCPG',
+        sellingPoints: [
+            { icon: 'assignment_turned_in', text: 'Vos demandes de référencement et vos tâches, au même endroit' },
+            { icon: 'folder_shared', text: 'Vos documents et certificats, avec leurs dates de validité' },
+            { icon: 'verified', text: 'Votre statut d’agrément, tenu à jour par votre client' },
+        ],
     },
     en: {
         welcome: 'Welcome',
@@ -59,6 +66,12 @@ const PAGE_TEXT = {
         testNotice: 'TEST instance — data entered here is not contractual.',
         help: 'Need help?',
         errorTitle: 'Sign-in failed',
+        pitch: 'The beCPG supplier portal',
+        sellingPoints: [
+            { icon: 'assignment_turned_in', text: 'Your referencing requests and your tasks, in one place' },
+            { icon: 'folder_shared', text: 'Your documents and certificates, with their expiry dates' },
+            { icon: 'verified', text: 'Your approval status, kept up to date by your customer' },
+        ],
     },
 };
 
@@ -145,33 +158,115 @@ export default async function LoginPage({ searchParams }) {
     const errorCode = typeof params.error === 'string' ? params.error : null;
     const errorMessage = errorCode ? errors[errorCode] || t(lang, 'error.generic') : null;
 
+    // A tenant that never declared a logo falls back to the beCPG wordmark
+    // (lib/tenant.js). The card already shows that wordmark full size, so the
+    // customer chip only appears when the customer really has its own mark.
+    const tenantLogo =
+        selected && selected.logoUrl && !selected.logoUrl.endsWith('/theme/default/images/logo.png')
+            ? selected.logoUrl
+            : null;
+
     return (
-        <main className="relative flex min-h-dvh flex-col bg-[var(--becpg-grey)]/40">
+        /*
+         * The first screen a supplier ever sees, so it is the product's own
+         * surface: `--becpg-blue` → `--becpg-blue-light` gradient with the green
+         * reaching only the bottom-right corner, where `shape.png` — the range's
+         * background mark — sits (`.brand-hero` in globals.css, which also
+         * carries the contrast measurements). The sign-in card is white, which is
+         * what lets the official logo appear at its real colours instead of being
+         * inverted or reduced to a silhouette.
+         */
+        <main className="brand-hero relative flex min-h-dvh flex-col overflow-hidden">
             {selected && selected.isTest ? (
                 <div className="test-banner" role="status">
                     <span className="test-banner-text">{text.testNotice}</span>
                 </div>
             ) : null}
 
-            <div className="flex flex-1 items-center justify-center px-4 py-8">
-                <div className="animate-fade-in w-full max-w-md">
-                    {/* ------------------------------------------ brand block */}
-                    <div className="mb-6 flex flex-col items-center text-center">
-                        <span className="mb-3 flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-[0_6px_18px_rgba(0,66,84,0.12)] ring-1 ring-[var(--becpg-grey)]">
-                            {selected && selected.logoUrl ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img
-                                    src={selected.logoUrl}
-                                    alt=""
-                                    className="h-full w-full object-contain p-1.5"
-                                />
-                            ) : (
-                                <span className="material-icons text-[var(--becpg-blue)]" style={{ fontSize: 30 }}>
-                                    apartment
+            {/* The range's background mark, bottom-right as theme.css places it.
+                Decorative: empty alt, no tab stop, and `z-10` on the content
+                below so it can never sit over a label. */}
+            <Image
+                src="/theme/default/images/shape.png"
+                alt=""
+                aria-hidden="true"
+                width={500}
+                height={500}
+                className="brand-hero-shape"
+            />
+
+            <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-8 px-4 py-8 lg:flex-row lg:items-center lg:gap-16 lg:px-10">
+                {/* ------------------------------------------------ brand side.
+                    White on the gradient: 11.0:1 over #004254, 7.0:1 over
+                    #006080 — AA everywhere the text can land. Hidden below `lg`
+                    only in its long form; the card keeps the logo and the tenant
+                    name, so the branding never disappears on a phone. */}
+                <section className="hidden max-w-lg text-white lg:block">
+                    <p className="text-sm font-medium uppercase tracking-[0.18em] text-[var(--becpg-green)]">
+                        {text.pitch}
+                    </p>
+                    <h2 className="mt-3 text-4xl font-light leading-tight">
+                        {text.welcome}
+                        {selected ? (
+                            <>
+                                <br />
+                                <span className="font-medium">{selected.label}</span>
+                            </>
+                        ) : null}
+                    </h2>
+                    <ul className="mt-8 space-y-4">
+                        {text.sellingPoints.map((point) => (
+                            <li key={point.icon} className="flex items-start gap-3">
+                                <span
+                                    className="material-icons mt-0.5 shrink-0 text-[var(--becpg-green)]"
+                                    style={{ fontSize: 22 }}
+                                    aria-hidden="true"
+                                >
+                                    {point.icon}
                                 </span>
-                            )}
-                        </span>
-                        <h1 className="text-xl font-light text-[var(--becpg-blue)] sm:text-2xl">
+                                <span className="text-[0.9375rem] leading-relaxed text-white/90">
+                                    {point.text}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+
+                <div className="animate-fade-in w-full max-w-md">
+                    {/* ------------------------------------------------- card */}
+                    <div className="rounded-2xl border border-white/20 bg-white p-5 shadow-[0_18px_50px_rgba(0,20,28,0.35)] sm:p-6">
+                        {/* The official 200×37 wordmark, at native colours on the
+                            white card — no filter, no substitute. `priority`: it
+                            is the only image above the fold on this page. */}
+                        <div className="mb-4 flex items-center gap-3 border-b border-[var(--becpg-grey)] pb-4">
+                            <Image
+                                src="/theme/default/images/logo.png"
+                                alt="beCPG"
+                                width={200}
+                                height={37}
+                                priority
+                                className="h-7 w-auto sm:h-8"
+                            />
+                            {tenantLogo ? (
+                                <>
+                                    <span
+                                        className="h-8 w-px bg-[var(--becpg-grey)]"
+                                        aria-hidden="true"
+                                    />
+                                    {/* Per-tenant URL from TENANT_MAP: an arbitrary
+                                        host, so a plain <img> — next/image would
+                                        require it in next.config.mjs up front. */}
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={tenantLogo}
+                                        alt=""
+                                        className="h-8 w-auto max-w-[7rem] object-contain"
+                                    />
+                                </>
+                            ) : null}
+                        </div>
+
+                        <h1 className="text-lg font-medium text-[var(--becpg-blue)]">
                             {text.welcome}
                         </h1>
                         <p className="mt-0.5 text-sm font-medium text-[var(--becpg-blue)]">
@@ -181,11 +276,7 @@ export default async function LoginPage({ searchParams }) {
                                 {t(lang, 'app.tenantSuffix')}
                             </span>
                         </p>
-                    </div>
-
-                    {/* ------------------------------------------------- card */}
-                    <div className="rounded-2xl border border-[var(--becpg-grey)] bg-white p-5 shadow-[0_8px_28px_rgba(0,66,84,0.08)] sm:p-6">
-                        <p className="text-sm leading-relaxed text-[var(--becpg-dark-grey)]">
+                        <p className="mt-3 text-sm leading-relaxed text-[var(--becpg-dark-grey)]">
                             {text.intro}
                         </p>
 
@@ -221,7 +312,7 @@ export default async function LoginPage({ searchParams }) {
                                             id="tenant"
                                             name="tenant"
                                             defaultValue={selected ? selected.id : ''}
-                                            className="min-h-[44px] w-full appearance-none rounded-lg border border-[var(--becpg-grey)] bg-white px-3 py-2 pr-9 text-sm text-[var(--becpg-blue)] focus:border-[var(--becpg-blue-light)] focus:outline-none focus:ring-2 focus:ring-[var(--becpg-blue-light)]"
+                                            className="min-h-[44px] w-full appearance-none rounded-lg border border-[var(--becpg-grey)] bg-white px-3 py-2 pr-9 text-sm text-[var(--becpg-blue)] focus:border-[var(--becpg-blue-light)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-1"
                                         >
                                             {tenants.map((tenant) => (
                                                 <option key={tenant.id} value={tenant.id}>
@@ -246,6 +337,13 @@ export default async function LoginPage({ searchParams }) {
                                 <input type="hidden" name="tenant" value={selected ? selected.id : ''} />
                             )}
 
+                            {/* The call to action stays `--becpg-blue`, not the
+                                orange the palette reserves for accents: white on
+                                #ff642d is 2.95:1 and blue on it 3.73:1, so a solid
+                                orange button cannot carry a readable 16px label.
+                                The orange is on the focus ring instead — 3.73:1
+                                against the button, above the 3:1 asked of a
+                                non-text indicator. */}
                             <button
                                 type="submit"
                                 className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-lg bg-[var(--becpg-blue)] px-5 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-[var(--becpg-blue-light)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2"
@@ -262,11 +360,18 @@ export default async function LoginPage({ searchParams }) {
                         </form>
                     </div>
 
-                    <p className="mt-5 text-center text-xs text-[var(--becpg-dark-grey)]">
-                        <Link href="/help" className="underline underline-offset-2 hover:text-[var(--becpg-blue)]">
+                    {/* On the gradient, so white/85 (≥ 8:1) and not
+                        `--becpg-dark-grey`, which would sit at 2.4:1 there. */}
+                    <p className="mt-5 text-center text-xs text-white/85">
+                        <Link
+                            href="/help"
+                            className="rounded underline underline-offset-2 hover:text-[var(--becpg-green)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2"
+                        >
                             {text.help}
                         </Link>
-                        <span className="mx-2">·</span>
+                        <span className="mx-2" aria-hidden="true">
+                            ·
+                        </span>
                         <span>beCPG</span>
                     </p>
                 </div>

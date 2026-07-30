@@ -66,7 +66,7 @@ export function SkeletonText({ lines = 3, lastLineWidth = '45%', className = '' 
 export function SkeletonCard({ lines = 2, withTitle = true, className = '' }) {
     return (
         <div
-            className={`rounded-xl border border-[var(--becpg-grey)] bg-white p-4 ${className}`}
+            className={`rounded-xl border border-[var(--becpg-blue-lighter)] bg-white p-4 shadow-[var(--becpg-shadow-raised)] ${className}`}
             aria-hidden="true"
         >
             {withTitle ? <span className="skeleton skeleton-title block" /> : null}
@@ -78,30 +78,43 @@ export function SkeletonCard({ lines = 2, withTitle = true, className = '' }) {
 /**
  * Placeholder for a DataTable — a grid above md, stacked cards below.
  *
+ * It draws the datagrid's *chrome* for real (the white card, the
+ * `--becpg-blue-lighter` outline, the blue header row closed by the orange rule,
+ * the zebra) and only shimmers the cells. The previous version was a bare grid of
+ * grey bars, so the table visibly "arrived" and re-laid the page out on load;
+ * now the frame is already in place and only the content fades in.
+ *
  * @param {Object} props
  * @param {number} [props.rows=5]
  * @param {number} [props.columns=4]
  */
 export function SkeletonTable({ rows = 5, columns = 4, className = '' }) {
+    const template = { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` };
     return (
         <div className={className} aria-hidden="true">
-            <div className="hidden md:block">
+            <div className="hidden overflow-hidden rounded-xl border border-[var(--becpg-blue-lighter)] bg-white shadow-[var(--becpg-shadow-raised)] md:block">
                 <div
-                    className="mb-2 grid gap-3"
-                    style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+                    className="grid gap-3 border-b-2 border-[var(--becpg-top-bar-border-color)] bg-[var(--becpg-blue)] px-3 py-3"
+                    style={template}
                 >
                     {Array.from({ length: columns }, (_, index) => (
-                        <span key={index} className="skeleton skeleton-text block" style={{ width: '60%' }} />
+                        <span
+                            key={index}
+                            className="block h-3 rounded-full bg-white/25"
+                            style={{ width: '60%' }}
+                        />
                     ))}
                 </div>
                 {Array.from({ length: rows }, (_, rowIndex) => (
                     <div
                         key={rowIndex}
-                        className="mb-2 grid gap-3"
-                        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+                        className={`grid items-center gap-3 px-3 py-2 ${
+                            rowIndex % 2 === 1 ? 'bg-[var(--becpg-row-zebra)]' : ''
+                        }`}
+                        style={template}
                     >
                         {Array.from({ length: columns }, (_, colIndex) => (
-                            <span key={colIndex} className="skeleton skeleton-row block" />
+                            <span key={colIndex} className="skeleton skeleton-text block" />
                         ))}
                     </div>
                 ))}
@@ -128,7 +141,7 @@ export function SkeletonList({ rows = 4, withAvatar = false, className = '' }) {
             {Array.from({ length: rows }, (_, index) => (
                 <div
                     key={index}
-                    className="mb-2 flex items-center gap-3 rounded-lg border border-[var(--becpg-grey)] bg-white p-3"
+                    className="mb-2 flex items-center gap-3 rounded-lg border border-[var(--becpg-blue-lighter)] bg-white p-3"
                 >
                     {withAvatar ? <Skeleton circle width={36} height={36} /> : null}
                     <div className="min-w-0 flex-1">

@@ -23,9 +23,19 @@
  * Every item carries a `badgeKey`; the shell feeds counts in through `badges`
  * (`{ tasks: 3 }`), which is how "Mes tâches" shows the number of open actions
  * without this file knowing anything about the API.
+ *
+ * ## Visual language
+ *
+ * The rail speaks the range's language, not its own: Material Icons (the single
+ * icon set the root layout links, exactly as `becpg-regulatory-ui` does) and an
+ * active state built from `--becpg-blue` + `--becpg-orange`. The item classes
+ * live in globals.css (`.nav-item`, `.nav-item-active`) so the sidebar and the
+ * drawer cannot drift apart, and so the contrast reasoning sits next to the
+ * colours it is about.
  */
 
 import { useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -111,17 +121,35 @@ function appPath(pathname) {
     return (pathname || '/').replace(/^\/t\/[^/]+/, '') || '/';
 }
 
+/**
+ * The counter chip.
+ *
+ * Contrast, measured — the digits *are* the payload, so they carry the burden:
+ *   `accent`  #ffffff on `--becpg-blue`, ringed `--becpg-orange` .. 11.0:1 ✓
+ *   `onBlue`  `--becpg-blue` on #ffffff, ringed `--becpg-orange` .. 11.0:1 ✓
+ *
+ * The chip used to be white on `--becpg-orange`: 2.95:1, i.e. a number nobody
+ * with low vision can read at 11px. The orange moved to the ring — a non-text
+ * element, where 3:1 is the bar and where it still reads as the alert accent.
+ *
+ * @param {Object} props
+ * @param {number} [props.count]
+ * @param {'accent'|'onBlue'|'muted'} [props.tone='accent'] `onBlue` for a blue surface
+ */
 function Badge({ count, tone = 'accent' }) {
     if (!count) {
         return null;
     }
+    const TONES = {
+        accent: 'bg-[var(--becpg-blue)] text-white ring-1 ring-[var(--becpg-orange)]',
+        onBlue: 'bg-white text-[var(--becpg-blue)] ring-1 ring-[var(--becpg-orange)]',
+        muted: 'bg-[var(--becpg-grey)] text-[var(--becpg-blue)]',
+    };
     return (
         <span
             className={[
-                'ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[11px] font-medium',
-                tone === 'accent'
-                    ? 'bg-[var(--becpg-orange)] text-white'
-                    : 'bg-[var(--becpg-grey)] text-[var(--becpg-blue)]',
+                'ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[11px] font-semibold',
+                TONES[tone] || TONES.accent,
             ].join(' ')}
         >
             {count > 99 ? '99+' : count}
@@ -188,20 +216,11 @@ export function Nav({
                             key={item.id}
                             href={item.href}
                             aria-current={active ? 'page' : undefined}
-                            className={[
-                                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
-                                active
-                                    ? 'bg-[var(--becpg-blue-lighter)] font-medium text-[var(--becpg-blue)]'
-                                    : 'text-[var(--becpg-blue)]/80 hover:bg-[var(--becpg-grey)]',
-                            ].join(' ')}
+                            className={`nav-item ${active ? 'nav-item-active' : ''}`}
                         >
-                            <Icon
-                                name={item.icon}
-                                size={20}
-                                className={active ? 'text-[var(--becpg-orange)]' : ''}
-                            />
+                            <Icon name={item.icon} size={20} className="nav-item-icon" />
                             <span className="truncate">{t(item.labelKey)}</span>
-                            <Badge count={badges[item.badgeKey]} />
+                            <Badge count={badges[item.badgeKey]} tone={active ? 'onBlue' : 'accent'} />
                         </Link>
                     );
                 })}
@@ -225,46 +244,55 @@ export function Nav({
                     {primary.map((item) => {
                         const active = isActive(pathname, item);
                         return (
-                            <li key={item.id} className="flex-1">
+                            <li key={item.id} className="min-w-0 flex-1">
                                 <Link
                                     href={item.href}
                                     aria-current={active ? 'page' : undefined}
                                     className={[
-                                        'relative flex h-full min-h-[56px] flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[11px]',
+                                        // `min-w-0` on both the item and the label:
+                                        // without it "Mes documents" pushes "Plus"
+                                        // past the right edge on a 360px screen
+                                        // instead of ellipsing.
+                                        'relative flex h-full min-h-[56px] min-w-0 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[11px]',
                                         active
                                             ? 'font-medium text-[var(--becpg-blue)]'
                                             : 'text-[var(--becpg-dark-grey)]',
                                     ].join(' ')}
                                 >
                                     <span className="relative">
-                                        <Icon
-                                            name={item.icon}
-                                            size={22}
-                                            className={active ? 'text-[var(--becpg-orange)]' : ''}
-                                        />
+                                        <Icon name={item.icon} size={22} />
                                         {badges[item.badgeKey] ? (
-                                            <span className="absolute -right-2 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--becpg-orange)] px-1 text-[10px] font-medium text-white">
+                                            <span className="absolute -right-2 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--becpg-blue)] px-1 text-[10px] font-semibold text-white ring-1 ring-[var(--becpg-orange)]">
                                                 {badges[item.badgeKey] > 99 ? '99+' : badges[item.badgeKey]}
                                             </span>
                                         ) : null}
                                     </span>
-                                    <span className="max-w-full truncate">{t(item.labelKey)}</span>
+                                    <span className="w-full truncate text-center">{t(item.labelKey)}</span>
+                                    {/* The active marker: a 3px orange rail on the
+                                        top edge. Decoration only — the state is
+                                        already carried by `aria-current`, by the
+                                        heavier label and by its colour going from
+                                        `--becpg-dark-grey` (4.6:1) to
+                                        `--becpg-blue` (11:1). */}
                                     {active ? (
-                                        <span className="absolute inset-x-3 top-0 h-0.5 rounded-full bg-[var(--becpg-orange)]" />
+                                        <span
+                                            className="absolute inset-x-4 top-0 h-[3px] rounded-b-full bg-[var(--becpg-orange)]"
+                                            aria-hidden="true"
+                                        />
                                     ) : null}
                                 </Link>
                             </li>
                         );
                     })}
                     {hasMore ? (
-                        <li className="flex-1">
+                        <li className="min-w-0 flex-1">
                             <button
                                 type="button"
                                 onClick={onOpenMore}
-                                className="flex h-full min-h-[56px] w-full flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[11px] text-[var(--becpg-dark-grey)]"
+                                className="flex h-full min-h-[56px] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[11px] text-[var(--becpg-dark-grey)]"
                             >
                                 <Icon name="more_horiz" size={22} />
-                                <span>{local.more}</span>
+                                <span className="w-full truncate text-center">{local.more}</span>
                             </button>
                         </li>
                     ) : null}
@@ -293,16 +321,34 @@ export function Nav({
                         animate={reduceMotion ? { opacity: 1 } : { x: 0 }}
                         exit={reduceMotion ? { opacity: 0 } : { x: '-100%' }}
                         transition={{ duration: 0.22, ease: 'easeOut' }}
-                        className="safe-top absolute inset-y-0 left-0 flex w-[84%] max-w-xs flex-col bg-white shadow-2xl"
+                        className="absolute inset-y-0 left-0 flex w-[84%] max-w-xs flex-col bg-white shadow-2xl"
                     >
-                        <div className="flex items-center gap-2 border-b border-[var(--becpg-grey)] p-3">
-                            <TenantBadge size="sm" showSuffix />
+                        {/* The drawer opens with the same blue toolbar and the same
+                            wordmark as the header it came from, so a phone user
+                            never loses the product identity while navigating. */}
+                        {/* `safe-top` lives on this block and not on the panel:
+                            the notch strip must be blue, like the header's. */}
+                        <div className="becpg-toolbar safe-top flex items-center gap-2 px-3 py-2">
+                            {/* White plate, as in the header: the official logo is
+                                drawn in `--becpg-blue`. */}
+                            <span className="becpg-brand-plate">
+                                <Image
+                                    src="/theme/default/images/logo.png"
+                                    alt="beCPG"
+                                    width={200}
+                                    height={37}
+                                    className="becpg-wordmark"
+                                />
+                            </span>
                             <IconButton
                                 icon="close"
                                 label={local.close}
                                 onClick={onClose}
-                                className="ml-auto"
+                                className="toolbar-item ml-auto"
                             />
+                        </div>
+                        <div className="flex items-center gap-2 border-b border-[var(--becpg-grey)] p-3">
+                            <TenantBadge size="sm" showSuffix />
                         </div>
                         <div className="flex-1 overflow-y-auto p-2">
                             {list.map((item) => {
@@ -313,20 +359,14 @@ export function Nav({
                                         href={item.href}
                                         onClick={onClose}
                                         aria-current={active ? 'page' : undefined}
-                                        className={[
-                                            'flex touch-target items-center gap-3 rounded-lg px-3 py-3 text-sm',
-                                            active
-                                                ? 'bg-[var(--becpg-blue-lighter)] font-medium text-[var(--becpg-blue)]'
-                                                : 'text-[var(--becpg-blue)]/85 active:bg-[var(--becpg-grey)]',
-                                        ].join(' ')}
+                                        className={`nav-item touch-target py-3 ${active ? 'nav-item-active' : ''}`}
                                     >
-                                        <Icon
-                                            name={item.icon}
-                                            size={22}
-                                            className={active ? 'text-[var(--becpg-orange)]' : ''}
-                                        />
+                                        <Icon name={item.icon} size={22} className="nav-item-icon" />
                                         <span className="truncate">{t(item.labelKey)}</span>
-                                        <Badge count={badges[item.badgeKey]} />
+                                        <Badge
+                                            count={badges[item.badgeKey]}
+                                            tone={active ? 'onBlue' : 'accent'}
+                                        />
                                     </Link>
                                 );
                             })}
@@ -351,12 +391,8 @@ function SpaceSwitch({ space, local, onNavigate, className = '' }) {
     const label = space === 'monitor' ? local.supplierSpace : local.monitorSpace;
     return (
         <div className={`border-t border-[var(--becpg-grey)] p-2 ${className}`}>
-            <Link
-                href={target}
-                onClick={onNavigate}
-                className="flex touch-target items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-[var(--becpg-blue)]/80 hover:bg-[var(--becpg-grey)]"
-            >
-                <Icon name="swap_horiz" size={20} />
+            <Link href={target} onClick={onNavigate} className="nav-item touch-target">
+                <Icon name="swap_horiz" size={20} className="nav-item-icon" />
                 <span className="truncate">{label}</span>
             </Link>
         </div>

@@ -17,32 +17,56 @@ import { Skeleton } from '@/components/ui/Skeleton';
 /** `next/link` made animatable — see the note in components/ui/Card.js. */
 const MotionLink = motion.create(Link);
 
+/*
+ * Tone → rail + icon chip. The **figure itself is always `--becpg-blue`**
+ * (11.0:1 on white): a KPI row where every number is a different colour reads
+ * as five unrelated widgets, and the blue is what makes the row look like beCPG.
+ *
+ * The tone is therefore carried by the 4px rail and by the icon chip — two
+ * redundant cues on top of the icon's own shape and the tile's label, so no
+ * status is ever conveyed by colour alone.
+ *
+ * Measured: rails on white 5.31 / 5.22 / 6.54 / 7.04:1 (≥3:1, non-text);
+ * chips 4.73 / 4.70 / 5.72 / 5.57 / 4.79:1 (≥4.5:1, they hold an icon and are
+ * the fallback when the rail is off-screen on a narrow tile).
+ */
 const TONES = {
     ok: {
         rail: 'var(--status-ok)',
         chip: 'bg-[var(--status-ok-bg)] text-[var(--status-ok)]',
-        value: 'text-[var(--status-ok)]',
     },
     warn: {
         rail: 'var(--status-warn)',
         chip: 'bg-[var(--status-warn-bg)] text-[var(--status-warn)]',
-        value: 'text-[var(--status-warn)]',
     },
     danger: {
         rail: 'var(--status-danger)',
         chip: 'bg-[var(--status-danger-bg)] text-[var(--status-danger)]',
-        value: 'text-[var(--status-danger)]',
     },
     info: {
         rail: 'var(--status-info)',
         chip: 'bg-[var(--status-info-bg)] text-[var(--status-info)]',
-        value: 'text-[var(--becpg-blue)]',
     },
     neutral: {
         rail: 'var(--becpg-blue-light)',
         chip: 'bg-[var(--becpg-grey)] text-[var(--becpg-blue)]',
-        value: 'text-[var(--becpg-blue)]',
     },
+};
+
+/*
+ * Trend → colour + icon. Green when the figure went up, orange when it went
+ * down, grey when it did not move — and the arrow says it too, so the direction
+ * survives greyscale and colour blindness.
+ *
+ * `--becpg-green` (#00ffbd) on white is 1.40:1, unreadable, so the *up* label is
+ * `--status-ok` — the same green pushed down to 5.31:1 (hue 162° vs the brand's
+ * 164°: the brand green, dark enough to be read). Same reasoning for the *down*
+ * label: `--becpg-orange` is 2.95:1, `--becpg-orange-deep` is 4.83:1.
+ */
+const TRENDS = {
+    up: { icon: 'trending_up', className: 'text-[var(--status-ok)]' },
+    down: { icon: 'trending_down', className: 'text-[var(--becpg-orange-deep)]' },
+    flat: { icon: 'trending_flat', className: 'text-[var(--becpg-dark-grey)]' },
 };
 
 /**
@@ -128,57 +152,63 @@ export function StatCard({
                     {loading ? (
                         <Skeleton width="55%" height={30} className="mt-1.5" />
                     ) : (
-                        <div className={`mt-0.5 flex items-baseline gap-1 ${palette.value}`}>
-                            <span className="text-2xl font-light leading-tight sm:text-3xl">
+                        <div className="mt-0.5 flex items-baseline gap-1 text-[var(--becpg-blue)]">
+                            <span className="text-2xl font-light leading-tight tabular-nums sm:text-3xl">
                                 <AnimatedNumber value={value ?? '—'} reduceMotion={reduceMotion} />
                             </span>
-                            {unit ? <span className="text-sm font-normal">{unit}</span> : null}
+                            {unit ? (
+                                <span className="text-sm font-normal text-[var(--becpg-dark-grey)]">{unit}</span>
+                            ) : null}
                         </div>
                     )}
                     {hint ? (
                         <p className="mt-1 text-xs text-[var(--becpg-dark-grey)]">{hint}</p>
                     ) : null}
                     {trend ? (
-                        <p className="mt-1 flex items-center gap-1 text-xs text-[var(--becpg-dark-grey)]">
-                            <Icon
-                                name={
-                                    trend.direction === 'up'
-                                        ? 'trending_up'
-                                        : trend.direction === 'down'
-                                          ? 'trending_down'
-                                          : 'trending_flat'
-                                }
-                                size={14}
-                            />
+                        <p
+                            className={`mt-1 flex items-center gap-1 text-xs font-medium ${
+                                (TRENDS[trend.direction] || TRENDS.flat).className
+                            }`}
+                        >
+                            <Icon name={(TRENDS[trend.direction] || TRENDS.flat).icon} size={14} />
                             {trend.label}
                         </p>
                     ) : null}
                     {children ? <div className="mt-2">{children}</div> : null}
                 </div>
                 {clickable ? (
-                    <Icon name="chevron_right" size={20} className="mt-1 text-[var(--becpg-dark-grey)]" />
+                    <Icon name="chevron_right" size={20} className="mt-1 text-[var(--becpg-orange-deep)]" />
                 ) : null}
             </div>
         </>
     );
 
     const classes = [
-        'relative w-full overflow-hidden rounded-xl border border-[var(--becpg-grey)] bg-white p-4 text-left',
+        'relative w-full overflow-hidden rounded-xl border border-[var(--becpg-blue-lighter)] bg-white p-4 text-left',
+        'shadow-[var(--becpg-shadow-raised)]',
         clickable
-            ? 'cursor-pointer transition-shadow hover:shadow-[0_8px_20px_rgba(0,66,84,0.10)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2'
-            : 'shadow-[0_1px_2px_rgba(0,66,84,0.06)]',
+            ? 'hover-lift cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2'
+            : 'transition-shadow',
         className,
     ]
         .filter(Boolean)
         .join(' ');
 
-    const motionProps = reduceMotion
-        ? {}
-        : {
-              initial: { opacity: 0, y: 10 },
-              animate: { opacity: 1, y: 0 },
-              transition: { duration: 0.28, delay: Math.min(index, 8) * 0.05, ease: 'easeOut' },
-          };
+    /* See the note in components/ui/Card.js: `.hover-lift` owns the shadow, but
+       the transform has to come from `whileHover` because framer-motion's inline
+       `transform` outranks any class. */
+    // `initial: false` rather than dropping the motion props — see the long note
+    // in `components/ui/Card.js`: dropping them stranded every server-rendered
+    // tile at the `opacity: 0` the SSR pass had inlined, so a user who asks for
+    // reduced motion got a blank KPI row instead of a still one.
+    const motionProps = {
+        initial: reduceMotion ? false : { opacity: 0, y: 10 },
+        animate: { opacity: 1, y: 0 },
+        transition: reduceMotion
+            ? { duration: 0 }
+            : { duration: 0.28, delay: Math.min(index, 8) * 0.05, ease: 'easeOut' },
+        ...(clickable && !reduceMotion ? { whileHover: { y: -4 }, whileTap: { y: -1 } } : {}),
+    };
 
     if (href) {
         return (

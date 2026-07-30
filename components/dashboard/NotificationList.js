@@ -38,6 +38,9 @@ import { formatDate } from '@/components/dashboard/ApprovalCard';
 export const NOTIFICATION_LABELS = {
     fr: {
         title: 'Mes notifications',
+        // The API ranks by severity then by oldest date — see `sortNewestFirst`
+        // below, which is the *bell's* order, not the card's.
+        subtitle: 'Les plus urgentes d’abord',
         empty: 'Aucune notification',
         emptyHint: 'Rien ne requiert votre attention pour le moment.',
         overdue: 'En retard de {days} j',
@@ -55,6 +58,7 @@ export const NOTIFICATION_LABELS = {
     },
     en: {
         title: 'My notifications',
+        subtitle: 'Most urgent first',
         empty: 'No notification',
         emptyHint: 'Nothing needs your attention right now.',
         overdue: '{days} d late',
@@ -196,7 +200,9 @@ export function NotificationRow({ item, lang, local, unseen = false, onNavigate,
                             <span className="sr-only-text">{words.isNew}</span>
                         </>
                     ) : null}
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                    {/* Same rule as the document rows it sits next to: wrap to a
+                        second line, never cut the discriminating half off. */}
+                    <span className="min-w-0 flex-1 text-sm font-medium leading-snug line-clamp-2">
                         {item.title || (item.target && item.target.name) || '—'}
                     </span>
                 </span>
@@ -244,13 +250,19 @@ export function NotificationList({ limit = 6, index = 0, className = '' }) {
     return (
         <Card
             title={local.title}
+            subtitle={items.length > 0 ? local.subtitle : undefined}
             icon="notifications"
             index={index}
             bodyClassName="pt-1"
             className={className}
             actions={
                 counts.total ? (
-                    <span className={`pill pill-sm pill-no-dot ${counts.danger ? 'pill-danger' : 'pill-warn'}`}>
+                    <span
+                        className={`pill pill-sm pill-no-dot tabular-nums ${
+                            counts.danger ? 'pill-danger' : 'pill-warn'
+                        }`}
+                    >
+                        <Icon name={counts.danger ? 'priority_high' : 'schedule'} size={13} />
                         {counts.total}
                     </span>
                 ) : null

@@ -260,7 +260,11 @@ export function Tooltip({
                         maxWidth,
                         zIndex: 90,
                     }}
-                    className="rounded-lg bg-[var(--becpg-blue)] px-3 py-2 text-xs leading-relaxed text-white shadow-lg"
+                    /* The bubble is the toolbar's own pairing — white on
+                       `--becpg-blue`, 11.0:1 — closed by a 2px
+                       `--becpg-top-bar-border-color` rule so it is recognisably
+                       beCPG and so its edge is visible on a dark screenshot. */
+                    className="rounded-lg border-b-2 border-b-[var(--becpg-top-bar-border-color)] bg-[var(--becpg-blue)] px-3 py-2 text-xs leading-relaxed text-white shadow-[var(--becpg-shadow-overlay)]"
                 >
                     {content}
                 </motion.div>

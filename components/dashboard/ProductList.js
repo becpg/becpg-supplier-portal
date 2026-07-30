@@ -52,6 +52,7 @@ const LOCAL = {
         submit: 'Envoyer la demande',
         sent: 'Demande envoyée. Votre client va la traiter.',
         noCompletion: 'Non évalué',
+        completion: 'Complétude',
     },
     en: {
         title: 'My products',
@@ -71,6 +72,7 @@ const LOCAL = {
         submit: 'Send the request',
         sent: 'Request sent. Your customer will process it.',
         noCompletion: 'Not scored',
+        completion: 'Completeness',
     },
 };
 
@@ -259,49 +261,74 @@ export function ProductList({ products = [], total, index = 0, className = '' })
                                     href={product.href || `/products/${product.uuid}`}
                                     className="min-w-0 flex-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
                                 >
-                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                    {/*
+                                     * The name owns the first line.
+                                     *
+                                     * It used to share it with the code chip and the
+                                     * state pill, which on a 360px screen left it
+                                     * about 50px — every product read "Raw m…". The
+                                     * state pill drops under the name below `sm`,
+                                     * exactly as the task type badge does in
+                                     * `TaskList`, so the two lists behave alike.
+                                     */}
+                                    <div className="flex items-start gap-2">
+                                        <span className="min-w-0 flex-1 text-sm font-medium leading-snug line-clamp-2">
+                                            {product.name}
+                                        </span>
+                                        {product.state ? (
+                                            <span className="hidden shrink-0 sm:block">
+                                                <StatusPill
+                                                    status={product.state}
+                                                    label={stateLabels[product.state] || product.state}
+                                                    size="sm"
+                                                />
+                                            </span>
+                                        ) : null}
+                                    </div>
+
+                                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
                                         {product.code ? (
                                             <span className="rounded bg-[var(--becpg-grey)] px-1.5 py-px font-mono text-[0.6875rem] text-[var(--becpg-blue)]">
                                                 {product.code}
                                             </span>
                                         ) : null}
-                                        <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                                            {product.name}
-                                        </span>
                                         {product.state ? (
-                                            <StatusPill
-                                                status={product.state}
-                                                label={stateLabels[product.state] || product.state}
-                                                size="sm"
-                                            />
-                                        ) : null}
-                                    </div>
-
-                                    <div className="mt-1.5 flex items-center gap-3">
-                                        <div className="min-w-0 flex-1">
-                                            {product.completion
-                                            && typeof product.completion.score === 'number' ? (
-                                                <GaugeBar
-                                                    value={product.completion.score}
+                                            <span className="sm:hidden">
+                                                <StatusPill
+                                                    status={product.state}
+                                                    label={stateLabels[product.state] || product.state}
                                                     size="sm"
-                                                    showValue
-                                                    delay={0.1 + position * 0.05}
-                                                    ariaLabel={product.name}
                                                 />
-                                            ) : (
-                                                <span className="text-xs text-[var(--becpg-dark-grey)]">
-                                                    {local.noCompletion}
-                                                </span>
-                                            )}
-                                        </div>
+                                            </span>
+                                        ) : null}
                                         {product.modified ? (
-                                            <span className="shrink-0 text-xs text-[var(--becpg-dark-grey)]">
+                                            <span className="text-xs text-[var(--becpg-dark-grey)]">
                                                 {local.updatedOn.replace(
                                                     '{date}',
                                                     formatDate(product.modified, lang),
                                                 )}
                                             </span>
                                         ) : null}
+                                    </div>
+
+                                    {/* Capped width: a full-bleed bar under every row
+                                        reads as a separator, not as a gauge. */}
+                                    <div className="mt-1.5 max-w-[14rem]">
+                                        {product.completion
+                                        && typeof product.completion.score === 'number' ? (
+                                            <GaugeBar
+                                                value={product.completion.score}
+                                                label={local.completion}
+                                                size="sm"
+                                                showValue
+                                                delay={0.1 + position * 0.05}
+                                                ariaLabel={`${local.completion} — ${product.name}`}
+                                            />
+                                        ) : (
+                                            <span className="text-xs text-[var(--becpg-dark-grey)]">
+                                                {local.noCompletion}
+                                            </span>
+                                        )}
                                     </div>
                                 </Link>
 

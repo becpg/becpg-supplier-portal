@@ -52,6 +52,7 @@ const LABELS = {
     fr: {
         title: 'Aide',
         subtitle: 'Comment fonctionne le portail, étape par étape',
+        scope: 'Portail fournisseur beCPG',
         search: 'Rechercher dans l’aide',
         expandAll: 'Tout déplier',
         collapseAll: 'Tout replier',
@@ -65,6 +66,7 @@ const LABELS = {
     en: {
         title: 'Help',
         subtitle: 'How the portal works, step by step',
+        scope: 'beCPG supplier portal',
         search: 'Search the help',
         expandAll: 'Expand all',
         collapseAll: 'Collapse all',
@@ -763,7 +765,12 @@ function Topic({ topic, lang, open, onToggle, local, registerRef }) {
         <section
             id={topic.id}
             ref={registerRef}
-            className="scroll-mt-24 overflow-hidden rounded-xl border border-[var(--becpg-grey)] bg-white"
+            /* Same surface as every `Card` in the portal — border, radius *and*
+               `--becpg-shadow-raised`, the shared elevation token rather than a
+               hand-copied shadow. Without the lift the topics read as wireframes
+               next to the dashboard, which is the whole "it looks unfinished"
+               impression this page used to give. */
+            className="scroll-mt-24 overflow-hidden rounded-xl border border-[var(--becpg-grey)] bg-white shadow-[var(--becpg-shadow-raised)]"
         >
             <h2>
                 <button
@@ -906,9 +913,11 @@ export default function HelpPage() {
         [searchable],
     );
 
-    const subtitle = session.tenant && session.tenant.label
-        ? `${local.subtitle} · ${session.tenant.label}`
-        : local.subtitle;
+    // Which portal this documents. `local.scope` names the space; the tenant is
+    // appended when the session carries one, never invented.
+    const scope = session.tenant && session.tenant.label
+        ? `${local.scope} · ${session.tenant.label}`
+        : local.scope;
 
     return (
         <AppShell
@@ -916,27 +925,68 @@ export default function HelpPage() {
             aside={
                 <nav
                     aria-label={local.topics}
-                    className="hidden rounded-xl border border-[var(--becpg-grey)] bg-white p-2 lg:block"
+                    className="hidden rounded-xl border border-[var(--becpg-grey)] bg-white p-2 shadow-[var(--becpg-shadow-raised)] lg:block"
                 >
-                    <p className="px-2 pb-1 pt-1 text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">
+                    <p className="px-2 pb-1 pt-1 text-[11px] font-medium uppercase tracking-wide text-[var(--becpg-dark-grey)]">
                         {local.topics}
                     </p>
                     {topics.map((topic) => (
                         <a
                             key={topic.id}
                             href={`#${topic.id}`}
-                            className="flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-[var(--becpg-blue)]/85 hover:bg-[var(--becpg-grey)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                            className="flex items-start gap-2 rounded-lg px-2 py-2 text-sm text-[var(--becpg-blue)]/85 hover:bg-[var(--becpg-grey)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
                         >
-                            <Icon name={topic.icon} size={18} className="shrink-0 text-[var(--becpg-dark-grey)]" />
-                            <span className="min-w-0 truncate">{topic.title}</span>
+                            <Icon
+                                name={topic.icon}
+                                size={18}
+                                className="mt-px shrink-0 text-[var(--becpg-dark-grey)]"
+                            />
+                            {/* Wraps rather than truncates: five of the nine titles
+                                ended in an ellipsis in a 20rem rail, and a table of
+                                contents whose entries are cut off is not one. */}
+                            <span className="min-w-0 leading-snug">{topic.title}</span>
                         </a>
                     ))}
                 </nav>
             }
         >
-            <p className="mb-3 text-sm text-[var(--becpg-dark-grey)]">{subtitle}</p>
+            {/*
+             * The masthead.
+             *
+             * Documentation still has to look like the product: the page used to
+             * open on a grey sentence, which read as a page whose header had not
+             * been written yet. It now opens on the same blue → blue-light
+             * gradient as the sign-in hero, and names the tenant, because help
+             * that does not say *whose* portal it documents is half an answer.
+             *
+             * `shape.png` is deliberately **not** on it: the mark is 440px wide
+             * and this block is ~100px tall, so `.brand-hero-shape` cropped it
+             * into a bright hard-edged band across the right half — checked in
+             * the browser. The asset needs a tall surface (the sign-in hero); on
+             * a strip, the gradient carries the brand on its own.
+             */}
+            <div className="brand-hero mb-4 rounded-xl p-4 text-white sm:p-5">
+                <div className="flex items-start gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/15">
+                        <Icon name="help_outline" size={22} />
+                    </span>
+                    {/*
+                     * A lead paragraph, deliberately *not* a heading: the page
+                     * title ("Aide") is already the `<h1>` the app header
+                     * renders, and repeating it here would add a second h1 and
+                     * say nothing new. The big line is the sentence that is
+                     * actually useful, the small one names the tenant.
+                     */}
+                    <div className="min-w-0">
+                        <p className="text-lg font-light leading-tight sm:text-2xl">
+                            {local.subtitle}
+                        </p>
+                        <p className="mt-1.5 text-xs text-white/85 sm:text-sm">{scope}</p>
+                    </div>
+                </div>
+            </div>
 
-            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <div className="min-w-0 flex-1">
                     <SearchInput value={query} onChange={onQueryChange} placeholder={local.search} />
                 </div>
@@ -951,24 +1001,34 @@ export default function HelpPage() {
                 </Button>
             </div>
 
-            {/* Phone shortcut to a topic: the aside is desktop only. */}
-            <div className="scroll-x no-scrollbar mb-3 lg:hidden" aria-label={local.topics}>
-                {topics.map((topic) => (
-                    <a
-                        key={topic.id}
-                        href={`#${topic.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-[var(--becpg-grey)] bg-white px-3 py-1.5 text-xs text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
-                    >
-                        <Icon name={topic.icon} size={14} />
-                        {topic.title}
-                    </a>
-                ))}
+            {/*
+             * Phone shortcut to a topic; the aside covers `lg` and up.
+             *
+             * `lg:hidden` has to sit on this wrapper and not on the rail itself:
+             * `.scroll-x` is a plain `display: flex` rule in globals.css, and
+             * unlayered CSS beats Tailwind's utility layer — so `lg:hidden` on the
+             * rail lost, and the rail was rendering (clipped, mid-page) on every
+             * desktop screen. Checked in the browser at 1440px: gone.
+             */}
+            <div className="mb-3 lg:hidden">
+                <div className="scroll-x no-scrollbar pb-1" aria-label={local.topics}>
+                    {topics.map((topic) => (
+                        <a
+                            key={topic.id}
+                            href={`#${topic.id}`}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--becpg-grey)] bg-white px-3 py-1.5 text-xs text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                        >
+                            <Icon name={topic.icon} size={14} />
+                            {topic.title}
+                        </a>
+                    ))}
+                </div>
             </div>
 
             {visible.length === 0 ? (
                 <EmptyState variant="search" title={local.noResult} message={local.noResultHint} />
             ) : (
-                <div className="flex flex-col gap-2.5">
+                <div className="flex flex-col gap-3 sm:gap-4">
                     {visible.map((topic) => (
                         <Topic
                             key={topic.id}

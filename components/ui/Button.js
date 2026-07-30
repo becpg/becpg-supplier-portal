@@ -37,23 +37,45 @@ export function Icon({ name, size = 20, className = '', ...rest }) {
     );
 }
 
-/** Visual variants. `primary` is the single call to action of a screen. */
+/**
+ * Visual variants, in the beCPG action hierarchy.
+ *
+ *   primary    `--becpg-blue`        the safe main action (white on blue, 11.0:1)
+ *   accent     `--becpg-orange-deep` the *call to action* — the brand's action colour
+ *   secondary  outline blue          the alternative, same weight as primary
+ *   outline    soft outline          a tertiary action in a dense toolbar
+ *   ghost / subtle / link            no surface at all
+ *   danger     `--status-danger`     destructive
+ *
+ * Measured, on white:
+ *   white on `--becpg-blue` ................... 11.01:1 ✓ (hover blue-light 7.04:1)
+ *   white on `--becpg-orange` ................. 2.95:1  ✗ — why `accent` is not #ff642d
+ *   white on `--becpg-orange-deep` ............ 4.83:1  ✓ (active 5.92:1)
+ *   `--becpg-blue` on white / blue-lighter .... 11.01 / 8.72:1 ✓
+ *   white on `--status-danger` ................. 6.54:1 ✓
+ *   `--becpg-dark-grey` on white .............. 4.67:1 ✓
+ *   `--becpg-blue-light` on white ............. 7.04:1 ✓ (link hover, deep orange 4.83:1)
+ *
+ * Every hover *darkens*: `brightness-110` used to lighten the accent and the
+ * danger surfaces, which lowered their contrast with the white label exactly
+ * when the pointer was on them.
+ */
 const VARIANTS = {
     primary:
-        'bg-[var(--becpg-blue)] text-white border border-transparent hover:bg-[var(--becpg-blue-light)] active:bg-[var(--becpg-blue)] shadow-sm',
+        'bg-[var(--becpg-blue)] text-white border border-transparent hover:bg-[var(--becpg-blue-light)] active:bg-[var(--becpg-blue)] shadow-[0_1px_2px_rgba(0,66,84,0.25)]',
     accent:
-        'bg-[var(--becpg-orange)] text-white border border-transparent hover:brightness-110 active:brightness-95 shadow-sm',
+        'bg-[var(--becpg-orange-deep)] text-white border border-transparent hover:bg-[var(--becpg-orange-deep-active)] active:bg-[var(--becpg-orange-deep-active)] shadow-[0_1px_2px_rgba(0,66,84,0.25)]',
     secondary:
-        'bg-[var(--becpg-grey)] text-[var(--becpg-blue)] border border-transparent hover:bg-[var(--becpg-blue-lighter)]',
+        'bg-white text-[var(--becpg-blue)] border border-[var(--becpg-blue)] hover:bg-[var(--becpg-blue-lighter)]',
     outline:
-        'bg-white text-[var(--becpg-blue)] border border-[var(--becpg-blue-lighter)] hover:border-[var(--becpg-blue-light)] hover:bg-[var(--becpg-blue-lighter)]/40',
+        'bg-white text-[var(--becpg-blue)] border border-[var(--becpg-blue-lighter)] hover:border-[var(--becpg-blue-light)] hover:bg-[rgba(214,232,237,0.4)]',
     ghost:
         'bg-transparent text-[var(--becpg-blue)] border border-transparent hover:bg-[var(--becpg-grey)]',
     danger:
-        'bg-[var(--status-danger)] text-white border border-transparent hover:brightness-110 shadow-sm',
+        'bg-[var(--status-danger)] text-white border border-transparent hover:brightness-90 shadow-[0_1px_2px_rgba(0,66,84,0.25)]',
     subtle:
         'bg-transparent text-[var(--becpg-dark-grey)] border border-transparent hover:bg-[var(--becpg-grey)] hover:text-[var(--becpg-blue)]',
-    link: 'bg-transparent text-[var(--becpg-blue-light)] border border-transparent underline underline-offset-2 hover:text-[var(--becpg-orange)] p-0',
+    link: 'bg-transparent text-[var(--becpg-blue-light)] border border-transparent underline underline-offset-2 hover:text-[var(--becpg-orange-deep)] p-0',
 };
 
 const SIZES = {
@@ -65,10 +87,60 @@ const SIZES = {
 
 const ICON_SIZES = { sm: 16, md: 18, lg: 20, icon: 20 };
 
+/*
+ * Focus ring: 2px `--becpg-orange` on a 2px offset — the range's indicator, the
+ * same one theme.css names `--becpg-top-bar-border-color`. The offset colour is
+ * left to Tailwind's `--tw-ring-offset-color` on purpose: `.becpg-toolbar` in
+ * globals.css sets it to the bar's blue so a focused header button does not get
+ * a white halo.
+ *
+ * Disabled: `disabled:opacity-50` used to fade the whole button, which took the
+ * white-on-blue label from 11.0:1 down to ~2.7:1 — a disabled "Envoyer" was a
+ * pale smudge. A disabled button now *changes surface* instead of fading:
+ * `--becpg-grey` with a `--becpg-dark-grey-deep` label (4.79:1) and no shadow.
+ * It reads as inert because it is flat and grey, not because it is invisible.
+ * (WCAG 1.4.3 exempts inactive controls; this clears AA anyway.)
+ */
 const BASE =
     'inline-flex items-center justify-center font-medium transition-colors duration-150 ' +
     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2 ' +
-    'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none';
+    'disabled:cursor-not-allowed disabled:pointer-events-none disabled:shadow-none disabled:filter-none';
+
+/**
+ * The disabled surface, per variant.
+ *
+ * It is resolved in JS rather than by stacking a second set of `disabled:`
+ * utilities on top of the variant, because two `disabled:` classes for the same
+ * property have identical specificity and the winner would depend on Tailwind's
+ * emission order — the one thing this codebase refuses to rely on.
+ */
+const DISABLED = {
+    /* Filled variants: the surface goes flat `--becpg-grey`. */
+    filled:
+        'disabled:bg-[var(--becpg-grey)] disabled:text-[var(--becpg-dark-grey-deep)] disabled:border-[var(--becpg-blue-lighter)]',
+    /*
+     * Outlined variants keep their **white** surface and only lose the blue.
+     * They must not fill with grey: a grey-filled disabled button ends up
+     * *heavier* than the same button enabled (white on white), which reads as
+     * "selected" instead of "unavailable" — visible on the datagrid's pager,
+     * where the greyed "previous" arrow looked like the current page.
+     */
+    outlined:
+        'disabled:bg-white disabled:text-[var(--becpg-dark-grey-deep)] disabled:border-[var(--becpg-blue-lighter)]',
+    /* Variants that own no surface: only the label greys out, nothing appears. */
+    text: 'disabled:bg-transparent disabled:text-[var(--becpg-dark-grey-deep)] disabled:border-transparent disabled:no-underline',
+};
+
+const DISABLED_BY_VARIANT = {
+    primary: DISABLED.filled,
+    accent: DISABLED.filled,
+    danger: DISABLED.filled,
+    secondary: DISABLED.outlined,
+    outline: DISABLED.outlined,
+    ghost: DISABLED.text,
+    subtle: DISABLED.text,
+    link: DISABLED.text,
+};
 
 /**
  * The portal button. Renders a `<button>`, or a `next/link` when `href` is set.
@@ -108,6 +180,7 @@ export const Button = forwardRef(function Button(
     const classes = [
         BASE,
         VARIANTS[variant] || VARIANTS.primary,
+        DISABLED_BY_VARIANT[variant] || DISABLED.filled,
         SIZES[size] || SIZES.md,
         fullWidth ? 'w-full' : '',
         'touch-target',

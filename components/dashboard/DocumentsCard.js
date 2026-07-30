@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useMessages } from '@/lib/messages';
+import { STATE_CARD_CLASS, STATE_RAIL } from '@/components/dashboard/ApprovalCard';
 
 const LOCAL = {
     fr: {
@@ -26,6 +27,7 @@ const LOCAL = {
         none: 'Aucun document suivi',
         unavailable: 'Suivi documentaire indisponible sur cette instance.',
         all: 'Voir mes documents',
+        toHandle: 'à traiter',
     },
     en: {
         title: 'Documents',
@@ -38,6 +40,7 @@ const LOCAL = {
         none: 'No tracked document',
         unavailable: 'Document tracking is unavailable on this instance.',
         all: 'See my documents',
+        toHandle: 'to deal with',
     },
 };
 
@@ -88,12 +91,27 @@ export function DocumentsCard({ documents, index = 0, className = '' }) {
     const total = (documents && documents.total) || 0;
     const refused = (documents && documents.refused) || 0;
 
+    // The one figure that is an instruction rather than an inventory: the same
+    // sum the nav badge shows (`app/page.js` → `badges.documents`), so the card
+    // and the bell can never contradict each other.
+    const toHandle = (documents && documents.expired ? documents.expired : 0)
+        + (documents && documents.missing ? documents.missing : 0)
+        + refused;
+    const tone = !available
+        ? 'neutral'
+        : toHandle > 0
+            ? 'danger'
+            : (documents && documents.expiringSoon) > 0
+                ? 'warn'
+                : 'ok';
+
     return (
         <Card
             title={local.title}
             icon="folder_shared"
             index={index}
-            className={className}
+            className={`${STATE_CARD_CLASS} ${className}`.trim()}
+            style={{ borderLeftColor: STATE_RAIL[tone] }}
             actions={
                 <Link
                     href="/documents"
@@ -109,6 +127,23 @@ export function DocumentsCard({ documents, index = 0, className = '' }) {
                 <p className="text-xs text-[var(--becpg-dark-grey)]">{local.unavailable}</p>
             ) : (
                 <>
+                    {/*
+                     * The headline, so this card scans like its three siblings:
+                     * they all answer "how bad is it?" with one large figure on
+                     * the same baseline. Without it the card was a 2×2 grid of
+                     * four equal numbers, and the eye had nowhere to land.
+                     */}
+                    <div className="mb-2.5 flex items-baseline gap-2">
+                        {/* Blue, like every other headline figure of the row; the
+                            rail and the four counters carry the tone. */}
+                        <span className="text-3xl font-light leading-none tabular-nums text-[var(--becpg-blue)]">
+                            {toHandle}
+                        </span>
+                        <span className="min-w-0 truncate text-xs text-[var(--becpg-dark-grey)]">
+                            {local.toHandle}
+                        </span>
+                    </div>
+
                     {/* Two columns at every width: in the 4-up header row the card
                         is ~300px wide, where four tiles would truncate their label. */}
                     <div className="grid grid-cols-2 gap-1.5">

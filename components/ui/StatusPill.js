@@ -10,7 +10,21 @@
  * greyscale, for a colour-blind user and for a screen reader.
  *
  * Tones map onto the `.pill-{ok,warn,danger,neutral,info}` classes of globals.css,
- * which a tenant theme can restyle without touching a single component.
+ * which a tenant theme can restyle without touching a single component. Those
+ * classes read the `--status-*` tokens, and the tokens are what carry the beCPG
+ * palette: each tint is now its own foreground — or a brand colour — composited
+ * over white at a fixed alpha (`--becpg-green` 12%, `--becpg-orange` 8%,
+ * `--status-danger` 8%, `--becpg-grey`, `--becpg-blue-lighter`) instead of a
+ * free-standing pastel. The vocabulary, the icons and the labels below are
+ * untouched; only the colours moved.
+ *
+ * Measured label contrast, each tone on its own tint: ok 5.02:1 · warn 4.79:1 ·
+ * danger 5.74:1 · neutral 4.79:1 · info 8.72:1 — all ✓ AA at the pill's 12px,
+ * and 11px in the `sm` variant, which is why none of them is allowed near 4.5.
+ * `neutral` is the one that changed behaviour: it used to be `--becpg-darkGrey`
+ * on `--becpg-grey`, i.e. **3.90:1**, so every "planned" / "cancelled" /
+ * "archived" pill in the portal was below AA. `--status-neutral` now points at
+ * `--becpg-dark-grey-deep`.
  *
  * Labels come from `config/messages.js` (portal chrome). An upstream value that
  * is not in the vocabulary is displayed verbatim with a neutral tone — a beCPG

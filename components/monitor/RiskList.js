@@ -48,7 +48,6 @@ import { ButtonGroup } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Field, Select, Textarea } from '@/components/ui/Field';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi } from '@/lib/client';
@@ -539,7 +538,7 @@ function RiskRow({ item, rank, local, lang, onDone }) {
             initial={reduceMotion ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, delay: Math.min(rank, 8) * 0.03 }}
-            className="border-b border-[var(--becpg-grey)] px-3 py-3 last:border-0 sm:px-4"
+            className="border-b border-[var(--becpg-grey)] py-3 first:pt-1 last:border-0 last:pb-0"
         >
             <div className="flex flex-wrap items-start gap-3">
                 <span
@@ -643,17 +642,32 @@ export function RiskList({ items = [], onRefresh, className = '' }) {
     return (
         <Card
             title={local.title}
-            subtitle={local.subtitle}
+            subtitle={items.length > 0 ? local.subtitle : undefined}
             icon="crisis_alert"
-            padding="none"
             className={className}
         >
             {items.length === 0 ? (
-                <div className="p-4">
-                    <EmptyState variant="success" title={local.empty} message={local.emptyHint} compact />
-                </div>
+                /*
+                 * An empty top-10 is *good news*, and good news does not deserve
+                 * 200px of white with a large icon in the middle of it — that is
+                 * the shape of a failure. One calm line, in the success tone,
+                 * ~56px tall instead of ~230.
+                 */
+                <p className="flex items-start gap-2.5 rounded-lg border border-[var(--status-ok-border)] bg-[var(--status-ok-bg)] px-3 py-2.5">
+                    <Icon
+                        name="task_alt"
+                        size={18}
+                        className="mt-px shrink-0 text-[var(--status-ok)]"
+                    />
+                    <span className="min-w-0 text-sm text-[var(--becpg-blue)]">
+                        <span className="font-medium">{local.empty}</span>
+                        <span className="mt-0.5 block text-xs text-[var(--becpg-dark-grey)]">
+                            {local.emptyHint}
+                        </span>
+                    </span>
+                </p>
             ) : (
-                <ul className="border-t border-[var(--becpg-grey)]">
+                <ul className="border-t border-[var(--becpg-grey)] pt-1">
                     {items.map((item, index) => (
                         <RiskRow
                             key={item.nodeRef}

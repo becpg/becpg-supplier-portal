@@ -69,9 +69,12 @@ export function Field({
         .join(' ');
 
     const control = readOnly ? (
-        <div className="min-h-[40px] whitespace-pre-wrap break-words rounded-lg bg-[var(--becpg-grey)]/60 px-3 py-2 text-sm">
+        /* A frozen / delegated value. It is a *read* surface, so it says so with a
+           `--becpg-blue` rail on the left — the same 3px signal the nav and the
+           section headers use — rather than by looking like a broken input. */
+        <div className="min-h-[40px] whitespace-pre-wrap break-words rounded-lg border-l-[3px] border-l-[var(--becpg-blue-light)] bg-[var(--becpg-grey)] px-3 py-2 text-sm text-[var(--becpg-blue)]">
             {value === null || value === undefined || value === '' ? (
-                <span className="text-[var(--becpg-dark-grey)]">—</span>
+                <span className="text-[var(--becpg-dark-grey-deep)]">—</span>
             ) : (
                 value
             )}
@@ -160,7 +163,23 @@ export function Field({
     );
 }
 
-/** Shared control chrome. `invalid` is consumed here and never reaches the DOM. */
+/**
+ * Shared control chrome. `invalid` is consumed here and never reaches the DOM.
+ *
+ * The resting border is `--becpg-blue-lighter`, not the neutral `--becpg-grey`:
+ * a form sits on a white card which sits on a grey page, and a grey outline
+ * around a white input on a card was the same value as the page behind it.
+ *
+ * Focus is the **orange ring** — the range's indicator, the same one every
+ * `Button`, the header and the sidebar use. It used to be blue-light here, which
+ * meant the portal had two different focus colours depending on whether you had
+ * tabbed onto a button or into a field. The border darkens to
+ * `--becpg-blue-light` at the same time, so focus is never colour-only.
+ *
+ * Disabled is a *surface* change, not `opacity`: `--becpg-grey` with a
+ * `--becpg-dark-grey-deep` value (4.79:1) — a frozen field still has to be
+ * readable, and on a phone it also has to stay selectable.
+ */
 function controlClasses(invalid, extra = '') {
     return [
         'w-full rounded-lg border bg-white px-3 py-2 text-sm text-[var(--becpg-blue)]',
@@ -168,8 +187,8 @@ function controlClasses(invalid, extra = '') {
         'focus:outline-none focus:ring-2 focus:ring-offset-0',
         invalid
             ? 'border-[var(--status-danger)] focus:ring-[var(--status-danger)]'
-            : 'border-[var(--becpg-grey)] focus:border-[var(--becpg-blue-light)] focus:ring-[var(--becpg-blue-light)]',
-        'disabled:cursor-not-allowed disabled:bg-[var(--becpg-grey)]/60 disabled:text-[var(--becpg-dark-grey)]',
+            : 'border-[var(--becpg-blue-lighter)] focus:border-[var(--becpg-blue-light)] focus:ring-[var(--becpg-orange)]',
+        'disabled:cursor-not-allowed disabled:border-[var(--becpg-blue-lighter)] disabled:bg-[var(--becpg-grey)] disabled:text-[var(--becpg-dark-grey-deep)]',
         'min-h-[40px]',
         extra,
     ]
@@ -296,10 +315,13 @@ export const Checkbox = forwardRef(function Checkbox(
                 ref={ref}
                 id={id}
                 type="checkbox"
-                className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-[var(--becpg-grey)] accent-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-[var(--becpg-blue-lighter)] accent-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2"
                 {...rest}
             />
-            <label htmlFor={id} className="cursor-pointer select-none text-sm leading-5">
+            <label
+                htmlFor={id}
+                className="cursor-pointer select-none text-sm leading-5 text-[var(--becpg-blue)]"
+            >
                 {label}
                 {description ? (
                     <span className="block text-xs text-[var(--becpg-dark-grey)]">{description}</span>

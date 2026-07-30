@@ -30,6 +30,7 @@
 
 import { redirect } from 'next/navigation';
 import { AppShell } from '@/components/shell/AppShell';
+import { SectionHeader } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { ApprovalCard } from '@/components/dashboard/ApprovalCard';
 import { CompletionCard } from '@/components/dashboard/CompletionCard';
@@ -51,8 +52,38 @@ import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
-/** How many rows each centre-zone card shows before "tout voir". */
-const PREVIEW = { tasks: 6, products: 5, documents: 5, notifications: 6, discussions: 4 };
+/**
+ * How many rows each centre-zone card shows before "tout voir".
+ *
+ * Four everywhere except the tasks, which are the point of the screen. It used to
+ * be five and six, and the difference is visible: the zone was ~1900px tall at
+ * 1440px, i.e. two full screens of *preview*, and the cards were so unequal that
+ * no column layout could balance them. Four rows is a preview; the rest is one
+ * click away behind "tout voir".
+ */
+const PREVIEW = { tasks: 6, products: 4, documents: 4, notifications: 4, discussions: 3 };
+
+/**
+ * The two zone headings.
+ *
+ * They live here, not in `config/messages.js`: that file is the *chrome*
+ * vocabulary with a stated ~60-key budget, and these two sentences belong to one
+ * screen. Same convention as every dashboard card's own `LOCAL`.
+ */
+const LOCAL = {
+    fr: {
+        state: 'État de mon dossier',
+        stateHint: 'Agrément, complétude, actions et documents — recalculés à chaque affichage.',
+        detail: 'Le détail',
+        detailHint: 'Ce qui vous attend, produit par produit et document par document.',
+    },
+    en: {
+        state: 'My file at a glance',
+        stateHint: 'Approval, completeness, actions and documents — recomputed on every render.',
+        detail: 'The detail',
+        detailHint: 'What is waiting for you, product by product and document by document.',
+    },
+};
 
 /** Same window the `pjt:taskList` scan uses; 50 open tasks is already a lot. */
 const TASK_SCAN = 50;
@@ -346,6 +377,8 @@ export default async function DashboardPage() {
         messages: threads.length,
     };
 
+    const local = LOCAL[lang] || LOCAL.fr;
+
     return (
         <AppShell
             title={t('nav.dashboard')}
@@ -355,7 +388,8 @@ export default async function DashboardPage() {
             }
         >
             {/* ---------------------------------------- état de mon dossier */}
-            <section aria-label={t('nav.dashboard')}>
+            <section aria-label={local.state}>
+                <SectionHeader title={local.state} subtitle={local.stateHint} />
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
                     <ApprovalCard
                         approval={approval}
@@ -370,21 +404,35 @@ export default async function DashboardPage() {
             </section>
 
             {/* --------------------------------------------- zone centrale */}
-            <section className="mt-6" aria-label={t('nav.tasks')}>
-                <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
-                    <div className="flex min-w-0 flex-col gap-3 sm:gap-4">
-                        <TaskList tasks={tasks} total={taskResult.counters.open} index={0} />
-                        <ProductList
-                            products={products}
-                            total={entityResult.pagination.totalItems}
-                            index={1}
-                        />
-                    </div>
-                    <div className="flex min-w-0 flex-col gap-3 sm:gap-4">
-                        <DocumentList documents={documents} total={documentTotal} index={2} />
-                        <NotificationList limit={PREVIEW.notifications} index={3} />
-                        <DiscussionList threads={threads} index={4} />
-                    </div>
+            <section className="mt-6 sm:mt-8" aria-label={local.detail}>
+                <SectionHeader title={local.detail} subtitle={local.detailHint} />
+                {/*
+                 * A **multi-column flow**, not a two-column grid.
+                 *
+                 * With a grid, each column is an independent stack, so the column
+                 * that happens to hold the long lists runs hundreds of pixels past
+                 * the other one and the page ends on a half-empty white area — and
+                 * which column that is depends entirely on the supplier's data
+                 * (one open task and five documents, or the reverse). `columns-2`
+                 * lets the browser balance the two flows by height, so the zone
+                 * ends level whatever the mix is. `break-inside-avoid` keeps a card
+                 * whole; the DOM order — and so the tab order — is unchanged.
+                 *
+                 * Three columns above `xl`: the content column is ~1180px there, so
+                 * a third column is ~380px — wider than the state cards above it —
+                 * and the finer granularity is what actually lets the flows end
+                 * level instead of one running 500px past the other.
+                 */}
+                <div className="lg:columns-2 lg:gap-4 xl:columns-3 [&>*]:mb-3 [&>*]:break-inside-avoid sm:[&>*]:mb-4 lg:[&>*:last-child]:mb-0">
+                    <TaskList tasks={tasks} total={taskResult.counters.open} index={0} />
+                    <ProductList
+                        products={products}
+                        total={entityResult.pagination.totalItems}
+                        index={1}
+                    />
+                    <DocumentList documents={documents} total={documentTotal} index={2} />
+                    <NotificationList limit={PREVIEW.notifications} index={3} />
+                    <DiscussionList threads={threads} index={4} />
                 </div>
             </section>
         </AppShell>

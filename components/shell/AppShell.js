@@ -99,7 +99,10 @@ export function AppShell({
                     scrolls away with the page, which is fine — it is part of the
                     header, which is itself sticky. */}
                 {hideNav ? null : (
-                    <aside className="hidden w-60 shrink-0 border-r border-[var(--becpg-grey)] bg-white lg:block lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)]">
+                    /* `w-64`, the reference `Layout.js` rail width. It was `w-60`,
+                       which leaves the label 157px: "Conformité documentaire" needs
+                       165 and was the one nav entry rendering ellipsised at 1440. */
+                    <aside className="hidden w-64 shrink-0 border-r border-[var(--becpg-grey)] bg-white lg:block lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)]">
                         {session.loading ? (
                             <div className="flex flex-col gap-2 p-3">
                                 {Array.from({ length: 6 }, (_, index) => (

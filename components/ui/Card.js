@@ -27,12 +27,24 @@ const STAGGER = 0.05;
  */
 const MotionLink = motion.create(Link);
 
+/*
+ * A card is a **white surface on the grey page**, outlined in
+ * `--becpg-blue-lighter` rather than in the neutral `--becpg-grey`: the page
+ * itself is `--becpg-grey`, so a grey border on a white card disappeared into
+ * the background at the very corners where the card's shape has to be read. The
+ * elevation is `--becpg-shadow-raised`, i.e. blue-tinted — a neutral black
+ * shadow over `--becpg-grey` goes muddy.
+ *
+ * `accent` marks the one card that carries an action or a warning: an
+ * `--becpg-orange` rail, the same 3px signal `.nav-item-active` uses.
+ * `primary` is the inverse card (white on `--becpg-blue`, 11.0:1).
+ */
 const VARIANTS = {
-    default: 'bg-white border-[var(--becpg-grey)]',
+    default: 'bg-white border-[var(--becpg-blue-lighter)]',
     flat: 'bg-transparent border-transparent',
-    muted: 'bg-[var(--becpg-grey)]/50 border-[var(--becpg-grey)]',
-    accent: 'bg-white border-[var(--becpg-orange)]/40 border-l-4 border-l-[var(--becpg-orange)]',
-    primary: 'bg-[var(--becpg-blue)] text-white border-transparent',
+    muted: 'bg-[rgba(228,236,238,0.5)] border-[var(--becpg-blue-lighter)]',
+    accent: 'bg-white border-[var(--becpg-blue-lighter)] border-l-4 border-l-[var(--becpg-orange)]',
+    primary: 'bg-[var(--becpg-blue)] text-white border-[var(--becpg-blue-light)]',
 };
 
 const PADDINGS = {
@@ -80,11 +92,11 @@ export function Card({
     const clickable = Boolean(href || onClick || interactive);
 
     const classes = [
-        'relative rounded-xl border transition-shadow duration-200',
+        'relative rounded-xl border shadow-[var(--becpg-shadow-raised)]',
         VARIANTS[variant] || VARIANTS.default,
         clickable
-            ? 'cursor-pointer hover:shadow-[0_8px_20px_rgba(0,66,84,0.10)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2'
-            : 'shadow-[0_1px_2px_rgba(0,66,84,0.06)]',
+            ? 'hover-lift cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2'
+            : 'transition-shadow duration-200',
         'w-full text-left',
         className,
     ]
@@ -99,7 +111,14 @@ export function Card({
                         className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
                             variant === 'primary'
                                 ? 'bg-white/15 text-white'
-                                : 'bg-[var(--becpg-blue-lighter)] text-[var(--becpg-blue)]'
+                                : variant === 'accent'
+                                  /* `--becpg-orange` at 8%, not 12%: at 12% the
+                                     deep-orange glyph on its own wash measured
+                                     4.23:1. 8% takes it to 4.44:1 — an icon only
+                                     owes 3:1, but this one is the accent card's
+                                     single signal and it should not be borderline. */
+                                  ? 'bg-[rgba(255,100,45,0.08)] text-[var(--becpg-orange-deep)]'
+                                  : 'bg-[var(--becpg-blue-lighter)] text-[var(--becpg-blue)]'
                         }`}
                     >
                         <Icon name={icon} size={18} />
@@ -107,7 +126,13 @@ export function Card({
                 ) : null}
                 <div className="min-w-0 flex-1">
                     {title ? (
-                        <h3 className="truncate text-sm font-medium sm:text-base">{title}</h3>
+                        <h3
+                            className={`truncate text-sm font-medium sm:text-base ${
+                                variant === 'primary' ? '' : 'text-[var(--becpg-blue)]'
+                            }`}
+                        >
+                            {title}
+                        </h3>
                     ) : null}
                     {subtitle ? (
                         <p
@@ -130,19 +155,60 @@ export function Card({
                 {children}
             </div>
             {footer ? (
-                <div className="border-t border-[var(--becpg-grey)] px-4 py-3 text-sm">{footer}</div>
+                <div
+                    className={`border-t px-4 py-3 text-sm ${
+                        variant === 'primary'
+                            ? 'border-white/25'
+                            : 'border-[var(--becpg-blue-lighter)] bg-[rgba(228,236,238,0.35)] rounded-b-xl'
+                    }`}
+                >
+                    {footer}
+                </div>
             ) : null}
         </>
     );
 
-    const motionProps =
-        animate && !reduceMotion
+    /*
+     * `.hover-lift` (globals.css) is the range's hover vocabulary and it carries
+     * the *shadow* here — but not the transform. It cannot: framer-motion writes
+     * `transform` as an inline style for the mount animation and leaves it there,
+     * and an inline declaration beats any class, so `.hover-lift:hover`'s
+     * `translateY(-4px)` would never apply on an animated card. The lift is
+     * therefore driven by `whileHover`, with the exact same -4px and the same
+     * easing window, so a card behaves identically whether it animates or not.
+     */
+    const motionProps = {
+        /*
+         * `initial: false` and **not** "no motion props at all" under reduced
+         * motion — that variant left every server-rendered card permanently
+         * invisible.
+         *
+         * `useReducedMotion()` cannot know the media query while rendering on the
+         * server, so it returns `false` there and the HTML ships with the entrance
+         * state inlined: `opacity: 0; transform: translateY(10px)`. On a machine
+         * that asks for reduced motion the hook flips to `true` right after
+         * hydration, motion props disappeared, framer stopped driving the element
+         * — and nothing ever cleared that inlined `opacity: 0`. Measured in the
+         * browser with `prefers-reduced-motion: reduce`: 9 blocks stuck at opacity
+         * 0 on the dashboard (the whole "état de mon dossier" row), 3 on /tasks,
+         * 4 on /products, 4 on /documents. /monitor was spared only because its
+         * cards mount after a client fetch, i.e. after the hook is already right.
+         *
+         * `initial: false` tells framer "you are already at `animate`", so it
+         * writes the final values on the first client frame. No transition, no
+         * flash, and the element is visible.
+         */
+        ...(animate
             ? {
-                  initial: { opacity: 0, y: 10 },
+                  initial: reduceMotion ? false : { opacity: 0, y: 10 },
                   animate: { opacity: 1, y: 0 },
-                  transition: { duration: 0.28, delay: Math.min(index, 12) * STAGGER, ease: 'easeOut' },
+                  transition: reduceMotion
+                      ? { duration: 0 }
+                      : { duration: 0.28, delay: Math.min(index, 12) * STAGGER, ease: 'easeOut' },
               }
-            : {};
+            : {}),
+        ...(clickable && !reduceMotion ? { whileHover: { y: -4 }, whileTap: { y: -1 } } : {}),
+    };
 
     if (href) {
         return (
@@ -194,8 +260,12 @@ export function CardGrid({ columns = 3, className = '', children }) {
 export function SectionHeader({ title, subtitle, actions, className = '' }) {
     return (
         <div className={`mb-3 flex flex-wrap items-end justify-between gap-2 ${className}`}>
-            <div className="min-w-0">
-                <h2 className="text-base font-medium sm:text-lg">{title}</h2>
+            {/* The 3px `--becpg-orange` rail is the range's section marker — the
+                same signal `.nav-item-active` and `.becpg-toolbar-edge` use, so a
+                heading reads as beCPG on every screen without a single new colour.
+                3.73:1 on white: a rule, not text, so 1.4.11's 3:1 is the bar. */}
+            <div className="min-w-0 border-l-[3px] border-l-[var(--becpg-orange)] pl-2.5">
+                <h2 className="text-base font-medium text-[var(--becpg-blue)] sm:text-lg">{title}</h2>
                 {subtitle ? (
                     <p className="text-xs text-[var(--becpg-dark-grey)] sm:text-sm">{subtitle}</p>
                 ) : null}
