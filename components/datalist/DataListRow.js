@@ -51,6 +51,7 @@
 
 import { createElement, useCallback, useRef, useState } from 'react';
 import { getControl } from '@/components/form/controls';
+import { renderDataListCell } from '@/components/datalist/renderers';
 import { useMessages } from '@/lib/messages';
 import { Icon, IconButton, Spinner } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -82,8 +83,10 @@ const INSTANT_COMMIT = new Set([
  * @param {Object} props.list the `useDataList` instance
  * @param {Object} [props.context] `{ entityNodeRef, itemType, formId }`
  * @param {boolean} [props.autoFocus]
+ * @param {'table'|'card'} [props.layout='table'] which layout is rendering this
+ *   cell — the renderers use it to size an indent for a 360 px screen
  */
-export function DataListCell({ row, column, list, context, autoFocus = false }) {
+export function DataListCell({ row, column, list, context, autoFocus = false, layout = 'table' }) {
     const label = useDataListLabels();
     const { lang } = useMessages();
     const editable = list.isCellEditable(row, column);
@@ -112,6 +115,33 @@ export function DataListCell({ row, column, list, context, autoFocus = false }) 
     }
 
     if (!editable) {
+        /*
+         * The column-renderer registry, and the only place a read cell is
+         * produced — the table and the card both land here, so a phone shows
+         * the same formatted value as a desktop from the same code.
+         *
+         * beCPG does not put display logic in the data: Share ships 65
+         * renderers over 156 property keys and consults them for every cell.
+         * Printing `displayValue` verbatim is right for most columns and wrong
+         * for the few that carry structured data — « Valeur étiquetée »
+         * (`bcpg:nutListRoundedValue`) is a JSON envelope of per-country
+         * labelled values, and the supplier was reading it raw.
+         *
+         * `null` means the registry declined, and then nothing changes: the
+         * cell renders exactly as it always has. That is what lets a renderer
+         * improve one case without owning every case.
+         */
+        const rendered = renderDataListCell({
+            value,
+            displayValue: display,
+            row,
+            column,
+            lang,
+            layout,
+        });
+        if (rendered !== null) {
+            return <span className="block min-w-0 break-words text-sm">{rendered}</span>;
+        }
         return (
             <span className="block min-w-0 break-words text-sm" title={display || undefined}>
                 {display || <span className="text-[var(--becpg-dark-grey)]">—</span>}
@@ -129,7 +159,31 @@ export function DataListCell({ row, column, list, context, autoFocus = false }) 
 
     const missing = column.mandatory && (value === null || value === undefined || value === '');
 
-    const instant = INSTANT_COMMIT.has(controlName);
+    /*
+     * A picker commits as soon as it is used — but **never while the row is still
+     * a draft**, and that exception is not a nicety.
+     *
+     * Measured on `bcpg:physicoChemList`, whose first column is the mandatory
+     * association: adding a row, choosing the characteristic, then typing the
+     * value — the obvious order, left to right — produced
+     *
+     *     200 PUT   ← the pick instant-committed the draft: the row is created
+     *                 with the association alone
+     *     502 PUT   ← the value, typed a second later, was committed against a
+     *                 draft whose `nodeRef` is still null, so the portal asked
+     *                 beCPG to CREATE A SECOND ROW carrying only that value.
+     *                 beCPG refused it (mandatory association missing).
+     *
+     * The value was lost and the supplier was told « Connexion impossible au
+     * serveur ». The draft only learns its nodeRef through the silent refresh
+     * that follows the create, and everything typed in that window falls into the
+     * hole.
+     *
+     * So a draft is committed the way this file documents for every other cell:
+     * by the row's own blur / Enter, the row being the unit beCPG persists.
+     * A persisted row keeps the instant commit — there is no draft to lose.
+     */
+    const instant = INSTANT_COMMIT.has(controlName) && !row.draft;
 
     // `createElement` rather than JSX on purpose: `getControl` *looks up* an
     // existing component in the registry, it never creates one, and writing it
@@ -270,6 +324,7 @@ export function RowStatus({ row, list, compact = false }) {
  */
 export function NestedSection({ row, column, list }) {
     const label = useDataListLabels();
+    const { lang } = useMessages();
     const children = column.columns || [];
     const entries = list.nestedRowsOf(row, column);
 
@@ -301,9 +356,24 @@ export function NestedSection({ row, column, list }) {
                                 <tr key={index} className="border-t border-[var(--becpg-grey)]">
                                     {children.map((child) => (
                                         <td key={child.formsName} className="px-2 py-1 align-top">
-                                            {entry.displayValues?.[child.formsName]
-                                                ?? entry.values?.[child.formsName]
-                                                ?? '—'}
+                                            {/*
+                                              * Nested rows go through the same registry as the
+                                              * outer grid — a sub-list of nutrients would otherwise
+                                              * show the raw JSON envelope here while the column
+                                              * beside it shows `1 020`. `null` keeps the previous
+                                              * rendering untouched.
+                                              */}
+                                            {renderDataListCell({
+                                                value: entry.values?.[child.formsName] ?? null,
+                                                displayValue: entry.displayValues?.[child.formsName] ?? null,
+                                                row: entry,
+                                                column: child,
+                                                lang,
+                                            }) ?? (
+                                                entry.displayValues?.[child.formsName]
+                                                    ?? entry.values?.[child.formsName]
+                                                    ?? '—'
+                                            )}
                                         </td>
                                     ))}
                                 </tr>
@@ -368,7 +438,13 @@ export function DataListRow({
 
     const handleKeyDown = useCallback(
         (event) => {
-            if (event.key === 'Enter' && event.target.tagName !== 'TEXTAREA') {
+            // Enter is also how a picker validates its highlighted option — the
+            // event bubbles here from the combobox. On a **draft** that meant the
+            // row was created from the association alone, while the local row kept
+            // `nodeRef: null`; whatever the user typed next was then committed as a
+            // *second* create and refused. See the comment on `instant` above: a
+            // draft is committed by leaving the row, once, with everything in it.
+            if (event.key === 'Enter' && event.target.tagName !== 'TEXTAREA' && !row.draft) {
                 event.preventDefault();
                 list.commitRow(row);
             }

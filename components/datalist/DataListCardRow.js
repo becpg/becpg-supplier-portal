@@ -24,7 +24,9 @@ import {
     NestedSection,
     RowStatus,
 } from '@/components/datalist/DataListRow';
+import { renderDataListCell } from '@/components/datalist/renderers';
 import { ROW_STATUS, useDataListLabels } from '@/components/datalist/useDataList';
+import { useMessages } from '@/lib/messages';
 
 /**
  * @param {Object} props
@@ -50,6 +52,7 @@ export function DataListCardRow({
     autoFocus = false,
 }) {
     const label = useDataListLabels();
+    const { lang } = useMessages();
     const [expanded, setExpanded] = useState(false);
     const containerRef = useRef(null);
     const status = list.statusOf(row.key);
@@ -73,6 +76,20 @@ export function DataListCardRow({
     const [headColumn, ...restColumns] = columns;
     const headline = headColumn ? list.displayOf(row, headColumn) : '';
     const headEditable = headColumn ? list.isCellEditable(row, headColumn) : false;
+    // The headline is a cell like any other — it goes through the column-renderer
+    // registry too, so the card's title reads the same as the table's first
+    // column (the ingredient's indent, a state's pill) instead of being the one
+    // place that still prints the raw value.
+    const headlineNode = headColumn && !headEditable
+        ? renderDataListCell({
+            value: list.valueOf(row, headColumn),
+            displayValue: headline,
+            row,
+            column: headColumn,
+            lang,
+            layout: 'card',
+        })
+        : null;
 
     const tone = status.state === ROW_STATUS.ERROR
         ? 'border-[var(--status-danger,#c0392b)]'
@@ -99,7 +116,7 @@ export function DataListCardRow({
                         </p>
                         {headColumn && !headEditable ? (
                             <p className="truncate text-sm font-medium">
-                                {headline || '—'}
+                                {headlineNode ?? (headline || '—')}
                             </p>
                         ) : null}
                     </div>
@@ -165,6 +182,7 @@ export function DataListCardRow({
                                         list={list}
                                         context={context}
                                         autoFocus={autoFocus && position === 0}
+                                        layout="card"
                                     />
                                 </dd>
                                 {column.help ? (
