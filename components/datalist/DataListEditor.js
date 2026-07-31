@@ -136,8 +136,24 @@ export function DataListEditor({
 
     const showOrder = list.canReorder;
     const rows = list.rows;
+    /*
+     * The rows beCPG computed rather than the ones the supplier owns — today,
+     * the ingList total. They are handed out apart by `useDataList` and are
+     * never in `rows`, so nothing that counts, numbers, filters or paginates
+     * the list can accidentally count them.
+     */
+    const summaryRows = list.summaryRows || [];
     const from = (list.page - 1) * list.pageSize + 1;
     const to = Math.min(list.page * list.pageSize, list.total);
+
+    // One object, not one per row: `DataListCell` passes it straight to the
+    // control registry, and a new identity on every row would defeat any
+    // memoisation a control might grow.
+    const rowContext = {
+        entityNodeRef: entityId,
+        itemType: list.itemType,
+        formId: list.step?.formId || null,
+    };
 
     if (list.error && rows.length === 0) {
         return <ErrorState error={list.error} onRetry={() => list.refresh()} />;
@@ -188,17 +204,17 @@ export function DataListEditor({
                 <>
                     {/* ------------------------------------------ desktop table */}
                     <div className="table-scroll hidden rounded-xl border border-[var(--becpg-grey)] bg-white md:block">
-                        <table className="w-full border-collapse text-sm">
+                        <table className="becpg-grid">
                             <caption className="sr-only-text">{title || list.title}</caption>
                             <thead>
-                                <tr className="border-b border-[var(--becpg-grey)]">
+                                <tr>
                                     {showOrder ? (
-                                        <th scope="col" className="w-10 px-1 py-2">
+                                        <th scope="col" className="w-10">
                                             <span className="sr-only-text">{label('order')}</span>
                                         </th>
                                     ) : null}
                                     {nestedColumns.length > 0 ? (
-                                        <th scope="col" className="w-10 px-1 py-2">
+                                        <th scope="col" className="w-10">
                                             <span className="sr-only-text">{label('detail')}</span>
                                         </th>
                                     ) : null}
@@ -207,22 +223,19 @@ export function DataListEditor({
                                             ? (list.sort.asc ? 'ascending' : 'descending')
                                             : undefined;
                                         return (
-                                            <th
-                                                key={column.formsName}
-                                                scope="col"
-                                                aria-sort={sorted}
-                                                className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wide text-[var(--becpg-dark-grey)]"
-                                            >
+                                            <th key={column.formsName} scope="col" aria-sort={sorted}>
                                                 <button
                                                     type="button"
                                                     onClick={() => list.toggleSort(column)}
-                                                    className="inline-flex items-center gap-1 text-left hover:text-[var(--becpg-blue)]"
+                                                    title={label('sortBy', { column: column.label })}
+                                                    className="becpg-grid-sort"
                                                 >
                                                     <span>{column.label}</span>
                                                     {column.mandatory ? (
                                                         <span
                                                             aria-label={label('mandatory')}
-                                                            className="text-[var(--becpg-orange)]"
+                                                            title={label('mandatory')}
+                                                            className="text-[var(--becpg-orange-deep)]"
                                                         >
                                                             *
                                                         </span>
@@ -230,22 +243,30 @@ export function DataListEditor({
                                                     {column.protectedField ? (
                                                         <Icon name="lock" size={12} className="opacity-60" />
                                                     ) : null}
-                                                    <Icon
-                                                        name={
+                                                    {/*
+                                                      * Drawn in CSS, not typed as a Material ligature:
+                                                      * this indicator sits on every column of every
+                                                      * grid, and a ligature renders as its own name
+                                                      * (`unfold_more`) until the icon webfont has
+                                                      * loaded. `aria-sort` on the `<th>` is what a
+                                                      * screen reader reads; the triangle is for eyes.
+                                                      */}
+                                                    <span
+                                                        aria-hidden="true"
+                                                        className="becpg-grid-sort-arrow"
+                                                        data-dir={
                                                             sorted === 'ascending'
-                                                                ? 'arrow_upward'
+                                                                ? 'asc'
                                                                 : sorted === 'descending'
-                                                                  ? 'arrow_downward'
-                                                                  : 'unfold_more'
+                                                                  ? 'desc'
+                                                                  : 'none'
                                                         }
-                                                        size={13}
-                                                        className={sorted ? 'text-[var(--becpg-orange)]' : 'opacity-40'}
                                                     />
                                                 </button>
                                             </th>
                                         );
                                     })}
-                                    <th scope="col" className="w-24 px-2 py-2 text-right">
+                                    <th scope="col" className="w-24 text-right">
                                         <span className="sr-only-text">{label('actions')}</span>
                                     </th>
                                 </tr>
@@ -259,18 +280,43 @@ export function DataListEditor({
                                         columns={flatColumns}
                                         nestedColumns={nestedColumns}
                                         list={list}
-                                        context={{
-                                            entityNodeRef: entityId,
-                                            itemType: list.itemType,
-                                            formId: list.step?.formId || null,
-                                        }}
+                                        context={rowContext}
                                         onDelete={setPendingDelete}
                                         showOrder={showOrder}
                                         dense={dense}
+                                        zebra={index % 2 === 1}
                                         autoFocus={row.key === focusKey}
                                     />
                                 ))}
                             </tbody>
+                            {/*
+                              * The total row lives in `<tfoot>`.
+                              *
+                              * Share pins it with a special case inside its sort
+                              * comparator (`entity-columnRenderer.js:852`, which
+                              * returns it last in both directions). A `<tfoot>` is
+                              * the same guarantee expressed once, in the document
+                              * rather than in a comparator: it renders after the
+                              * body whatever `<tbody>` holds and in whatever order,
+                              * so no sort, filter, reorder or future client-side
+                              * ordering can float it into the middle of the data.
+                              */}
+                            {summaryRows.length > 0 ? (
+                                <tfoot>
+                                    {summaryRows.map((row) => (
+                                        <DataListRow
+                                            key={row.key}
+                                            row={row}
+                                            index={0}
+                                            columns={flatColumns}
+                                            nestedColumns={nestedColumns}
+                                            list={list}
+                                            context={rowContext}
+                                            showOrder={showOrder}
+                                        />
+                                    ))}
+                                </tfoot>
+                            ) : null}
                         </table>
                     </div>
 
@@ -284,14 +330,23 @@ export function DataListEditor({
                                 columns={flatColumns}
                                 nestedColumns={nestedColumns}
                                 list={list}
-                                context={{
-                                    entityNodeRef: entityId,
-                                    itemType: list.itemType,
-                                    formId: list.step?.formId || null,
-                                }}
+                                context={rowContext}
                                 onDelete={setPendingDelete}
                                 showOrder={showOrder}
                                 autoFocus={row.key === focusKey}
+                            />
+                        ))}
+                        {/* Last here too, and for the same reason — the card layout
+                            reads the same list, in the same order. */}
+                        {summaryRows.map((row) => (
+                            <DataListCardRow
+                                key={row.key}
+                                row={row}
+                                index={0}
+                                columns={flatColumns}
+                                nestedColumns={nestedColumns}
+                                list={list}
+                                context={rowContext}
                             />
                         ))}
                     </div>

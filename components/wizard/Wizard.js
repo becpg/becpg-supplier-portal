@@ -714,6 +714,7 @@ export function Wizard({
             step={currentStep}
             params={params}
             autoSave={autoSave}
+            readOnlyReason={stepReadOnlyReason}
             onComment={commentsEnabled ? openComments : undefined}
         />
     ) : currentStep.kind === 'compliance' ? (

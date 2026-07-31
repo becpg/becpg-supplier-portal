@@ -98,6 +98,9 @@ export const DATALIST_LABELS = {
         order: 'Ordre',
         row: 'Ligne {index}',
         newRow: 'Nouvelle ligne',
+        totalRow: 'Ligne de total, calculée par beCPG',
+        incomplete: 'Complétez les champs obligatoires pour enregistrer cette ligne',
+        sortBy: 'Trier par {column}',
         saving: 'Enregistrement…',
         saved: 'Enregistré',
         unsaved: 'Modifications non enregistrées',
@@ -141,6 +144,9 @@ export const DATALIST_LABELS = {
         order: 'Order',
         row: 'Row {index}',
         newRow: 'New row',
+        totalRow: 'Total row, computed by beCPG',
+        incomplete: 'Fill in the required fields to save this row',
+        sortBy: 'Sort by {column}',
         saving: 'Saving…',
         saved: 'Saved',
         unsaved: 'Unsaved changes',
@@ -223,6 +229,41 @@ export const NESTED_TYPES = ['dataList', 'entity'];
  */
 export function isNestedColumn(column) {
     return NESTED_TYPES.includes(column?.type) || Array.isArray(column?.columns);
+}
+
+/**
+ * `itemType` of the synthetic summary row beCPG appends to a list.
+ *
+ * It is **not** a row of the list. `IngListExtractor.extract()` builds it after
+ * the page has been extracted (`ret.addItem(totalRow)`), gives it
+ * `itemType: "total"`, **no `nodeRef`**, and a `userAccess` map in which
+ * `edit`, `delete`, `sort`, `select` and `create` are all `false`. It sums
+ * `ingListQtyPerc` and its two yield variants over the depth-1 ingredients,
+ * skipping the ones declared `Omit`.
+ *
+ * Two consequences the grid has to honour, and neither can be read off the
+ * payload alone:
+ *
+ *  - it has no `nodeRef`, so it cannot be the subject of a PUT or a DELETE, and
+ *    it cannot key a React list either — `key: row.nodeRef` produced `null`,
+ *    which React treats as *no key at all*, and every per-row map in this hook
+ *    (`dirty`, `status`, `unlocked`) collapsed onto the same `"null"` entry;
+ *  - `addItem` does not touch `fullListSize` (`PaginatedExtractedItems:40,66`),
+ *    so the `total` the server reports **already excludes it**. Nothing here may
+ *    subtract it a second time — the row counter is right as it stands, and it
+ *    stays right because the summary rows are handed out separately from the
+ *    data rows rather than filtered out of them at each call site.
+ */
+export const TOTAL_ITEM_TYPE = 'total';
+
+/**
+ * True for a row the repository computed rather than a row the supplier owns.
+ *
+ * @param {Object} row
+ * @returns {boolean}
+ */
+export function isTotalRow(row) {
+    return row?.itemType === TOTAL_ITEM_TYPE;
 }
 
 /**
@@ -501,9 +542,12 @@ export function useDataList(options = {}) {
     /* ------------------------------------------------------------------- rows */
 
     const rows = useMemo(() => {
-        const persisted = (payload.rows || []).map((row) => ({
+        const persisted = (payload.rows || []).map((row, index) => ({
             ...row,
-            key: row.nodeRef,
+            // A summary row carries no nodeRef (see {@link isTotalRow}); its key
+            // is derived from its position so React, and the four per-row maps
+            // of this hook, still see one entry per row.
+            key: row.nodeRef || `computed-${row.itemType || 'row'}-${index}`,
             draft: false,
         }));
         return [...persisted, ...drafts];
@@ -559,19 +603,41 @@ export function useDataList(options = {}) {
         }));
     }, []);
 
+    /*
+     * Data rows and computed rows are two different things and are handed out
+     * as two different lists.
+     *
+     * Filtering, numbering, counting, sorting, adding, deleting and committing
+     * all mean "the rows the supplier owns"; the summary row belongs to none of
+     * them. Splitting once, here, is what makes "the total is always last" true
+     * of the card layout and of every consumer of the hook, and not only of the
+     * one table that happens to render a `<tfoot>`.
+     */
+    const dataRows = useMemo(() => rows.filter((row) => !isTotalRow(row)), [rows]);
+
+    /**
+     * The rows beCPG computed, always last. There is exactly one today (the
+     * ingList total), but nothing here assumes that.
+     *
+     * They are deliberately **not** filtered: the total is the total of the
+     * list, not of what a text filter left on screen, and hiding it while
+     * filtering would make it look as though the list had no total at all.
+     */
+    const summaryRows = useMemo(() => rows.filter(isTotalRow), [rows]);
+
     /** Client-side text filter, applied to the loaded page (see the hook doc). */
     const visibleRows = useMemo(() => {
         const needle = filter.trim().toLowerCase();
         if (!needle) {
-            return rows;
+            return dataRows;
         }
-        return rows.filter((row) => {
+        return dataRows.filter((row) => {
             if (row.draft) {
                 return true;
             }
             return columns.some((column) => displayOf(row, column).toLowerCase().includes(needle));
         });
-    }, [rows, columns, filter, displayOf]);
+    }, [dataRows, columns, filter, displayOf]);
 
     /* -------------------------------------------------------------- permissions */
 
@@ -596,14 +662,24 @@ export function useDataList(options = {}) {
      */
     const canReorder = !readOnly && !sort && (
         payload.permissions?.sort === true
-        || rows.some((row) => !row.draft && row.permissions?.sort === true)
+        || dataRows.some((row) => !row.draft && row.permissions?.sort === true)
     );
+    /*
+     * `isTotalRow` first, and not only `permissions.edit !== false`.
+     *
+     * The repository does send `edit: false` on the summary row, so the payload
+     * alone would be enough *today*, for `bcpg:ingList`. It is not enough as a
+     * rule: the permission map is written by each extractor, and a list that
+     * grows a computed row without filling one in would hand the supplier an
+     * editable, deletable line that no PUT can ever reach (it has no nodeRef).
+     * A computed row is not editable because of what it *is*.
+     */
     const canEditRow = useCallback(
-        (row) => !readOnly && (row.draft || row.permissions?.edit !== false),
+        (row) => !readOnly && !isTotalRow(row) && (row.draft || row.permissions?.edit !== false),
         [readOnly],
     );
     const canDeleteRow = useCallback(
-        (row) => !readOnly && (row.draft || row.permissions?.delete !== false),
+        (row) => !readOnly && !isTotalRow(row) && (row.draft || row.permissions?.delete !== false),
         [readOnly],
     );
 
@@ -726,7 +802,7 @@ export function useDataList(options = {}) {
             if (!changes || Object.keys(changes).length === 0) {
                 return null;
             }
-            if (readOnly || !path) {
+            if (readOnly || !path || isTotalRow(row)) {
                 return null;
             }
 
@@ -892,7 +968,7 @@ export function useDataList(options = {}) {
                 discardRow(row);
                 return true;
             }
-            if (readOnly || !row.nodeRef) {
+            if (readOnly || !row.nodeRef || isTotalRow(row)) {
                 return false;
             }
 
@@ -953,7 +1029,7 @@ export function useDataList(options = {}) {
      */
     const moveRow = useCallback(
         async (row, direction) => {
-            if (!canReorder || row.draft || !payload.listNodeRef) {
+            if (!canReorder || row.draft || isTotalRow(row) || !payload.listNodeRef) {
                 return false;
             }
             const index = payload.rows.findIndex((entry) => entry.nodeRef === row.nodeRef);
@@ -1012,7 +1088,11 @@ export function useDataList(options = {}) {
     return {
         /* data */
         columns,
+        // `rows` is what a supplier owns: the summary rows are never in it, so
+        // a completion gauge, a comment target list or an empty-state test can
+        // keep counting `rows` and be right.
         rows: visibleRows,
+        summaryRows,
         allRows: rows,
         total,
         listNodeRef: payload.listNodeRef,

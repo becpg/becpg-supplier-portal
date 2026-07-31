@@ -25,7 +25,7 @@ import {
     RowStatus,
 } from '@/components/datalist/DataListRow';
 import { renderDataListCell } from '@/components/datalist/renderers';
-import { ROW_STATUS, useDataListLabels } from '@/components/datalist/useDataList';
+import { isTotalRow, ROW_STATUS, useDataListLabels } from '@/components/datalist/useDataList';
 import { useMessages } from '@/lib/messages';
 
 /**
@@ -57,6 +57,14 @@ export function DataListCardRow({
     const containerRef = useRef(null);
     const status = list.statusOf(row.key);
     const dirty = list.isRowDirty(row.key);
+
+    /*
+     * The computed total row. It is not a row of the list (see `isTotalRow`),
+     * so on a phone it is not a card of the list either: no row number, no
+     * reorder, no delete, and the surface and weight that say "this line was
+     * calculated, not typed". `DataListEditor` renders it after every data card.
+     */
+    const summary = isTotalRow(row);
 
     const handleBlur = useCallback(
         (event) => {
@@ -105,14 +113,19 @@ export function DataListCardRow({
         >
             <section
                 ref={containerRef}
-                onBlur={handleBlur}
-                aria-label={row.draft ? label('newRow') : label('row', { index })}
-                className={`rounded-xl border bg-white p-3 ${tone}`}
+                onBlur={summary ? undefined : handleBlur}
+                aria-label={summary ? label('totalRow') : row.draft ? label('newRow') : label('row', { index })}
+                data-total={summary ? 'true' : undefined}
+                className={
+                    summary
+                        ? 'rounded-xl border border-[var(--status-neutral-border)] bg-[var(--becpg-grid-total-surface)] p-3 font-semibold text-[var(--becpg-blue)]'
+                        : `rounded-xl border bg-white p-3 ${tone}`
+                }
             >
                 <header className="mb-2 flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                         <p className="text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">
-                            {row.draft ? label('newRow') : label('row', { index })}
+                            {summary ? label('totalRow') : row.draft ? label('newRow') : label('row', { index })}
                         </p>
                         {headColumn && !headEditable ? (
                             <p className="truncate text-sm font-medium">
@@ -121,7 +134,7 @@ export function DataListCardRow({
                         ) : null}
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
-                        {showOrder ? (
+                        {showOrder && !summary ? (
                             <>
                                 <IconButton
                                     icon="keyboard_arrow_up"

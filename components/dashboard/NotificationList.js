@@ -29,7 +29,7 @@ import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonList } from '@/components/ui/Skeleton';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatTotal } from '@/lib/format';
 
 /**
  * Item-level notification wording, shared by the card and the bell.
@@ -55,6 +55,9 @@ export const NOTIFICATION_LABELS = {
         assigned: 'Qui m’est assignée',
         mandatory: 'Obligatoire',
         isNew: 'Nouveau',
+        // The pill counts the whole set; the card lists its most urgent rows. Said
+        // out loud, because a "12" over four lines otherwise reads as a bug.
+        countTitle: '{total} en attente · les {shown} plus urgentes ci-dessous',
     },
     en: {
         title: 'My notifications',
@@ -73,6 +76,7 @@ export const NOTIFICATION_LABELS = {
         assigned: 'Assigned to me',
         mandatory: 'Mandatory',
         isNew: 'New',
+        countTitle: '{total} pending · the {shown} most urgent below',
     },
 };
 
@@ -274,13 +278,23 @@ export function NotificationList({ limit = 6, index = 0, className = '' }) {
             className={className}
             actions={
                 counts.total ? (
+                    /*
+                     * The pill is the size of the **set** `/api/v1/notifications`
+                     * enumerated; the card lists its head. `formatTotal` renders a
+                     * capped count as "50+" rather than as a fact (`counts.exact`),
+                     * and the title names the window — the number and the rows under
+                     * it must never look like a contradiction.
+                     */
                     <span
+                        title={local.countTitle
+                            .replace('{total}', counts.total)
+                            .replace('{shown}', items.length)}
                         className={`pill pill-sm pill-no-dot tabular-nums ${
                             counts.danger ? 'pill-danger' : 'pill-warn'
                         }`}
                     >
                         <Icon name={counts.danger ? 'priority_high' : 'schedule'} size={13} />
-                        {counts.total}
+                        {formatTotal({ total: counts.total, exact: counts.exact !== false }, lang).text}
                     </span>
                 ) : null
             }

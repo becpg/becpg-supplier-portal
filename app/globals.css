@@ -244,6 +244,46 @@
   --becpg-row-selected: rgba(214, 232, 237, 0.7);
 
   /*
+   * The datalist grid, measured on Share (`div.grid.yui-dt > table`) and
+   * reproduced here as tokens so the numbers live in one place:
+   *
+   *   row pitch ......... 33.23px  (32.23 content + 1px rule)
+   *   cell padding ...... 8px all round, on `.yui-dt-liner` (the td itself is 0)
+   *   font / line ....... 13px / 16px
+   *   header ............ 34px, 13px, weight 400, #5F6368, NOT uppercase
+   *   header rule ....... 1px #CBCBCB   row rule 1px #EEEEEE   no vertical rules
+   *   zebra ............. even #FFFFFF / odd #F8F8F8
+   *
+   * 16px line + 2×8px padding + 1px rule = 33px, which is the pitch above. An
+   * *editable* row cannot hold that pitch with the same padding — Share edits in
+   * a popover, the portal edits in the cell — so an editable row keeps the pitch
+   * by trading padding for control height: 26px control + 2×3px + 1px = 33px.
+   *
+   * The two rule colours are Share's pair "header one step darker than the
+   * rows". The portal's equivalent pair already exists in this file, so no new
+   * hue enters the system: the row rule is the grey border token, the header
+   * rule the neutral border it darkens to.
+   */
+  --becpg-grid-font-size: 13px;
+  --becpg-grid-line-height: 16px;
+  --becpg-grid-cell-padding: 8px;
+  --becpg-grid-control-height: 26px;
+  --becpg-grid-row-border: var(--becpg-grey);
+  --becpg-grid-header-border: var(--status-neutral-border);
+  --becpg-grid-header-color: var(--becpg-dark-grey-deep);
+
+  /*
+   * The synthetic total row (`itemType: "total"`, appended by the repository's
+   * extractor). `--becpg-grey` at 90% over white — one step stronger than the
+   * zebra stripe it has to be told apart from, flattened for the `color-mix`
+   * reason documented on `--becpg-page-surface`.
+   *
+   * `--becpg-blue` on it measures 9.38:1 and `--becpg-dark-grey-deep` 4.89:1,
+   * so a total row carries body text and muted text alike.
+   */
+  --becpg-grid-total-surface: #e7eef0;
+
+  /*
    * Non-production banner.
    *
    * It used to be amber (#ffb200 / #ffcf3d) — two hues that exist nowhere in
@@ -1205,6 +1245,395 @@ body {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* ---------------------------------------------------------------------- */
+/* The datalist grid — Share's density (components/datalist/*)             */
+/*                                                                        */
+/* Written here, unlayered, rather than as Tailwind utilities on each      */
+/* element, for two reasons:                                              */
+/*                                                                        */
+/*  1. the density has to reach *inside* the controls, and those come from */
+/*     the control registry (`components/form/controls`), which the grid   */
+/*     may not rewrite — a grid cell and a form field are the same widget; */
+/*  2. unlayered CSS beats Tailwind's utility layer, which is what lets    */
+/*     `min-h-[40px]` / `px-3 py-2` / `text-sm` — right for a form, three  */
+/*     times too tall for a grid — be overridden without touching them.    */
+/*                                                                        */
+/* Everything that shrinks a control is inside `@media (min-width: 768px)` */
+/* because the table only renders from `md` up: below it the row is a card */
+/* (`DataListCardRow`), and the card must keep its 44px touch targets and  */
+/* its 16px inputs at 360px. That is a guarantee of the media query, not a */
+/* convention.                                                            */
+/* ---------------------------------------------------------------------- */
+
+.becpg-grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--becpg-grid-font-size);
+  line-height: var(--becpg-grid-line-height);
+}
+
+/* Share draws no vertical rules at all (`border-right: 0` on every cell). */
+.becpg-grid th,
+.becpg-grid td {
+  border-inline: 0;
+}
+
+.becpg-grid thead th {
+  height: 34px;
+  padding: var(--becpg-grid-cell-padding);
+  font-size: var(--becpg-grid-font-size);
+  font-weight: 400;
+  line-height: var(--becpg-grid-line-height);
+  /* Share's header is sentence case, not the uppercase micro-label the
+     portal used: at 13px, uppercase costs ~15% width per column and is what
+     forced the labels to wrap on a 12-column list. */
+  text-transform: none;
+  letter-spacing: normal;
+  text-align: start;
+  /* Deliberately allowed to wrap, as Share's does — its header measures 34px on
+     one line and 81px when the labels wrap. Forcing one line would widen a
+     twelve-column list past any screen and trade a wrapped word for a
+     horizontal scrollbar. */
+  color: var(--becpg-grid-header-color);
+  background-color: var(--background);
+  border-bottom: 1px solid var(--becpg-grid-header-border);
+}
+
+.becpg-grid tbody td,
+.becpg-grid tfoot td {
+  padding: var(--becpg-grid-cell-padding);
+  vertical-align: top;
+  border-bottom: 1px solid var(--becpg-grid-row-border);
+}
+
+.becpg-grid tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/*
+ * Zebra, hover and row state paint the **cells**, not the row: a `<tr>`
+ * background is painted under the `<td>` backgrounds, so a single rule on the
+ * cells is the only one that cannot be silently covered. Parity is handed down
+ * as `data-zebra` rather than read with `:nth-child`, because an expanded row
+ * inserts a second `<tr>` and would flip every stripe below it.
+ *
+ * Order matters and is deliberate: stripe, then hover, then the row's own
+ * state — a row that failed to save keeps saying so under the pointer.
+ */
+.becpg-grid tbody tr[data-zebra='true'] td {
+  background-color: var(--becpg-row-zebra);
+}
+
+.becpg-grid tbody tr:hover td {
+  background-color: var(--becpg-row-hover);
+}
+
+.becpg-grid tbody tr[data-state='draft'] td {
+  background-color: var(--becpg-blue-lighter);
+}
+
+.becpg-grid tbody tr[data-state='error'] td {
+  background-color: var(--status-danger-bg);
+}
+
+/*
+ * The synthetic total row. Share styles only the label span (`font-weight:
+ * bold`) and leaves the `<tr>` bare; the portal adds the surface and the rule
+ * the defect asked for, and puts the row in `<tfoot>` so "last whatever the
+ * sort" is a property of the document, not of a comparator.
+ */
+.becpg-grid tfoot td {
+  border-top: 2px solid var(--becpg-grid-header-border);
+  border-bottom: 0;
+  background-color: var(--becpg-grid-total-surface);
+  font-weight: 600;
+  color: var(--becpg-blue);
+}
+
+/* The sort indicator is drawn, not typed. A Material ligature (`unfold_more`)
+   renders as its own literal name until the icon webfont has loaded, and this
+   one sits on every column of every grid — it was legible as the word
+   "unfold_more" in the reference capture. A CSS triangle cannot do that, and
+   it is what Share uses too (a background image, never a glyph). */
+.becpg-grid-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  text-align: start;
+  color: inherit;
+}
+
+.becpg-grid-sort:hover {
+  color: var(--becpg-blue);
+}
+
+.becpg-grid-sort-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  /* Always 8px wide, transparent at rest: the arrow appearing never moves the
+     header label. */
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 0 solid transparent;
+  border-bottom: 0 solid transparent;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.becpg-grid-sort-arrow[data-dir='asc'] {
+  border-bottom: 5px solid var(--becpg-orange-deep);
+  opacity: 1;
+}
+
+.becpg-grid-sort-arrow[data-dir='desc'] {
+  border-top: 5px solid var(--becpg-orange-deep);
+  opacity: 1;
+}
+
+.becpg-grid-sort:hover .becpg-grid-sort-arrow[data-dir='none'],
+.becpg-grid-sort:focus-visible .becpg-grid-sort-arrow[data-dir='none'] {
+  border-bottom: 5px solid var(--becpg-dark-grey);
+  opacity: 0.55;
+}
+
+/* The mandatory marker and the invalid flag: colour is never alone — the
+   marker is a character, the flag is a glyph, and both carry a `title`. */
+.becpg-grid-field {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.becpg-grid-field-flag {
+  position: absolute;
+  inset-inline-end: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--status-danger);
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  /* An editable row trades cell padding for control height and keeps the pitch:
+     26 + 2×3 + 1 = 33px, the same as 16 + 2×8 + 1 for a read row. */
+  .becpg-grid tbody tr[data-editable='true'] td {
+    padding-block: 3px;
+    vertical-align: middle;
+  }
+
+  /* `dense` is the caller's explicit opt-in to tighter-than-Share rows; it wins
+     over the pitch above, which is why it is declared after it. */
+  .becpg-grid tbody tr[data-dense='true'] td {
+    padding-block: 4px;
+  }
+
+  .becpg-grid :is(input:not([type='checkbox']):not([type='radio']), select, textarea) {
+    min-height: var(--becpg-grid-control-height);
+    padding-block: 4px;
+    padding-inline: var(--becpg-grid-cell-padding);
+    font-size: var(--becpg-grid-font-size);
+    line-height: var(--becpg-grid-line-height);
+    border-radius: 3px;
+    /*
+     * What says "this cell can be typed into" before anyone clicks it.
+     *
+     * A grid of boxed inputs is what made the portal read as heavy where Share
+     * reads as a table, so at rest only the bottom edge is drawn — the
+     * underline idiom, on the field colour the rest of the portal already uses.
+     * The other three borders exist and are transparent, so hover and focus
+     * colour them in without moving anything by a pixel.
+     */
+    border: 1px solid transparent;
+    border-bottom-color: var(--becpg-blue-lighter);
+    background-color: transparent;
+  }
+
+  .becpg-grid :is(input:not([type='checkbox']):not([type='radio']), select, textarea):hover:not(:disabled):not([readonly]) {
+    border-color: var(--becpg-blue-lighter);
+    background-color: var(--background);
+  }
+
+  .becpg-grid :is(input:not([type='checkbox']):not([type='radio']), select, textarea):focus {
+    border-color: var(--becpg-blue-light);
+    background-color: var(--background);
+  }
+
+  .becpg-grid :is(input, select, textarea)[aria-invalid='true'] {
+    border-color: var(--status-danger);
+  }
+
+  .becpg-grid :is(input, select, textarea):disabled {
+    background-color: var(--becpg-grey);
+    border-bottom-color: transparent;
+  }
+
+  /*
+   * `Field.Input` and `Field.Select` position their icon, their unit suffix and
+   * their chevron absolutely over the control, and the horizontal room those
+   * need is exactly the padding the rule above just replaced. `data-affix-*`
+   * is set by `components/ui/Field.js` when one is present — an attribute
+   * rather than a class name, so this does not depend on which Tailwind
+   * padding utility that file happens to use.
+   */
+  .becpg-grid input[data-affix-start] {
+    padding-inline-start: 28px;
+  }
+
+  .becpg-grid input[data-affix-end] {
+    padding-inline-end: 40px;
+  }
+
+  .becpg-grid select[data-affix-end] {
+    padding-inline-end: 30px;
+  }
+
+  /* A three-row textarea is 60px tall and breaks the pitch for the whole
+     grid; it opens to a readable height only while it has the focus. */
+  .becpg-grid textarea {
+    height: var(--becpg-grid-control-height);
+    resize: none;
+  }
+
+  .becpg-grid textarea:focus {
+    height: auto;
+    min-height: 66px;
+    resize: vertical;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Autocomplete panel (components/form/controls/AutocompleteControl.js)    */
+/*                                                                        */
+/* Share: white, 1px #CCC, ~390px, z-index 9050; a row is 20px tall with   */
+/* 2px 5px padding at 13px; the header is always shown, bold grey with a   */
+/* bottom rule; the highlighted row is #426FD9 with white text.            */
+/*                                                                        */
+/* The panel is rendered into `document.body` and positioned `fixed`,      */
+/* because inside the grid it is a child of `.table-scroll`, whose         */
+/* `overflow-x: auto` computes `overflow-y: auto` and clips any suggestion */
+/* list that reaches past the last row — i.e. exactly the row a supplier   */
+/* is typing into.                                                        */
+/* ---------------------------------------------------------------------- */
+
+.becpg-ac-panel {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--becpg-overlay-border);
+  border-radius: 6px;
+  background-color: var(--background);
+  box-shadow: var(--becpg-shadow-overlay);
+}
+
+.becpg-ac-header {
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--becpg-dark-grey-deep);
+  border-bottom: 1px solid var(--becpg-grid-row-border);
+}
+
+.becpg-ac-list {
+  margin: 0;
+  padding: 2px 0;
+  /* `min-height: 0` is what lets the list actually shrink inside the panel's
+     `max-height` instead of overflowing it — the flex-item default is
+     `min-height: auto`, i.e. "never smaller than my content". */
+  min-height: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+/* The clear cross and Share's `.ac-toogle` caret. They sit beside the field
+   rather than over it, which is where Share puts its toggle too, and which is
+   what keeps them from colliding with the compact padding the grid gives the
+   control. */
+.becpg-ac-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  color: var(--becpg-dark-grey-deep);
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.becpg-ac-button:hover {
+  background-color: var(--becpg-grey);
+  color: var(--becpg-blue);
+}
+
+/* A finger needs the portal's 44px target; a pointer does not, and 44px in a
+   33px grid row would undo the density this whole file just bought. */
+@media (pointer: coarse) {
+  .becpg-ac-button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+.becpg-ac-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 2px 8px;
+  font-size: var(--becpg-grid-font-size);
+  line-height: var(--becpg-grid-line-height);
+  color: var(--becpg-blue);
+  cursor: pointer;
+}
+
+.becpg-ac-option[data-selected='true'] {
+  background-color: var(--becpg-blue-lighter);
+}
+
+/* Share highlights with #426FD9 (white text, 4.66:1). `--becpg-blue-light`
+   is the portal's equivalent mid blue and carries white at 7.04:1. */
+.becpg-ac-option[data-active='true'] {
+  background-color: var(--becpg-blue-light);
+  color: #ffffff;
+}
+
+.becpg-ac-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.becpg-ac-swatch {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 2px;
+  border: 1px solid var(--becpg-overlay-border);
+}
+
+.becpg-ac-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--becpg-dark-grey-deep);
+}
+
+.becpg-ac-footer {
+  padding: 4px 8px;
+  font-size: 11px;
+  text-align: center;
+  color: var(--becpg-dark-grey-deep);
+  border-top: 1px solid var(--becpg-grid-row-border);
 }
 
 /* Single-column below sm, two columns above — the wizard's default form grid */

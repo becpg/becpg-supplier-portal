@@ -211,6 +211,17 @@ export const Input = forwardRef(function Input(
     const input = (
         <input
             ref={ref}
+            /*
+             * The icon and the suffix are positioned *over* the control, so the
+             * room they occupy is padding. `pl-9` / `pr-12` are how that room is
+             * expressed here — but a caller that restyles the control (the
+             * datalist grid replaces the padding wholesale, `app/globals.css`)
+             * cannot know from the outside that the room is needed. These two
+             * attributes say it, and they say it whatever the utilities are
+             * called next month.
+             */
+            data-affix-start={icon ? '' : undefined}
+            data-affix-end={suffix ? '' : undefined}
             className={controlClasses(invalid, [icon ? 'pl-9' : '', suffix ? 'pr-12' : '', className].join(' '))}
             {...rest}
         />
@@ -275,6 +286,8 @@ export const Select = forwardRef(function Select(
         <div className="relative">
             <select
                 ref={ref}
+                /* The chevron always sits over the control — see `Input`. */
+                data-affix-end=""
                 className={controlClasses(invalid, `appearance-none pr-9 ${className}`)}
                 {...rest}
             >

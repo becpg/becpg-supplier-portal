@@ -64,8 +64,8 @@ import { CatalogPanel } from '@/components/products/CatalogPanel';
 import { SpecPanel } from '@/components/specs/SpecPanel';
 import { RequirementChecklist } from '@/components/documents/RequirementChecklist';
 import { DataListEditor } from '@/components/datalist/DataListEditor';
-import { DataListCardRow } from '@/components/datalist/DataListCardRow';
-import { isNestedColumn, useDataList } from '@/components/datalist/useDataList';
+import { useDataList } from '@/components/datalist/useDataList';
+import { DecisionTree } from '@/components/survey/DecisionTree';
 import { formatDate, formatDateTime, isIsoTimestamp } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
@@ -122,9 +122,6 @@ const LABELS = {
         no: 'No',
     },
 };
-
-/** A questionnaire is read top to bottom, in one page: no pager on a survey. */
-const SURVEY_PAGE_SIZE = 200;
 
 /**
  * The URL segment identifying a step in `?tab=`.
@@ -541,42 +538,32 @@ function StepHeader({ step, labels }) {
 }
 
 /**
- * An `entityDataList` or `survey` step, read only.
+ * An `entityDataList` step, read only.
  *
- * The grid is `DataListEditor` and the questionnaire is the same rows rendered
- * as cards (`DataListCardRow`) — a nine-column questionnaire is unanswerable and
- * unreadable alike. Both read the *same* `useDataList` instance, created here so
- * this component can tell an empty list from an unresolved configuration; the
- * editor is handed that instance and, deliberately, **no `stepId`**, so it does
- * not fire a second request for the page it has already been given.
+ * The grid is `DataListEditor`, which reads the *same* `useDataList` instance
+ * created here so this component can tell an empty list from an unresolved
+ * configuration; the editor is handed that instance and, deliberately, **no
+ * `stepId`**, so it does not fire a second request for the page it has already
+ * been given.
  *
  * @param {Object} props
  */
-function ListPanel({ entityId, step, params, variant, labels }) {
+function ListPanel({ entityId, step, params, labels }) {
     const list = useDataList({
         entityId,
         stepId: step.id,
         params,
-        pageSize: variant === 'cards' ? SURVEY_PAGE_SIZE : 25,
+        pageSize: 25,
         // Explicit, and never relaxed: this sheet is consultation only. The
         // server verdict may well be "writable" (the supplier holds the task) —
         // editing happens in the wizard, not here.
         readOnly: true,
     });
 
-    const [flatColumns, nestedColumns] = useMemo(() => {
-        const flat = [];
-        const nested = [];
-        for (const column of list.columns || []) {
-            (isNestedColumn(column) ? nested : flat).push(column);
-        }
-        return [flat, nested];
-    }, [list.columns]);
-
     const rows = list.rows || [];
 
     if (list.loading && rows.length === 0) {
-        return <PanelSkeleton variant={variant} />;
+        return <PanelSkeleton variant="grid" />;
     }
 
     if (list.error && rows.length === 0) {
@@ -605,37 +592,11 @@ function ListPanel({ entityId, step, params, variant, labels }) {
                 <StepHeader step={step} labels={labels} />
                 <EmptyState
                     variant="empty"
-                    icon={variant === 'cards' ? 'quiz' : 'table_rows'}
+                    icon="table_rows"
                     title={labels.noData}
                     message={labels.noDataHint}
                 />
             </>
-        );
-    }
-
-    if (variant === 'cards') {
-        return (
-            <div className="min-w-0">
-                <StepHeader step={step} labels={labels} />
-                <div className="flex flex-col gap-2">
-                    {rows.map((row, index) => (
-                        <DataListCardRow
-                            key={row.key}
-                            row={row}
-                            index={index + 1}
-                            columns={flatColumns}
-                            nestedColumns={nestedColumns}
-                            list={list}
-                            context={{
-                                entityNodeRef: entityId,
-                                itemType: list.itemType,
-                                formId: list.step?.formId || null,
-                            }}
-                            showOrder={false}
-                        />
-                    ))}
-                </div>
-            </div>
         );
     }
 
@@ -655,6 +616,82 @@ function ListPanel({ entityId, step, params, variant, labels }) {
             }
             description={step.title && step.title !== step.label ? step.title : undefined}
         />
+    );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Questionnaire                                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A `survey` step, read only — **the same decision tree as the wizard**.
+ *
+ * Not a grid, and not a stripped-down variant either: the tab shows the
+ * questions in the customer's own order, with the branches the supplier's
+ * answers actually opened, and the answer under each one. A questionnaire read
+ * as a nine-column table is unreadable; a questionnaire read as the tree it is
+ * answers the only question this tab exists for — "what did we tell them?".
+ *
+ * `readOnly` is passed explicitly and never relaxed, exactly like every other
+ * panel here: the server verdict may well be "writable" (the supplier holds the
+ * task), and the editing path is the wizard.
+ *
+ * @param {Object} props
+ */
+function SurveyPanel({ entityId, step, params, labels }) {
+    const call = useApi(`wizard/${entityId}/step/${step.id}`, { params });
+    const data = call.data;
+    const questions = (data && data.questions) || [];
+
+    if (call.loading && !data) {
+        return <PanelSkeleton variant="cards" />;
+    }
+
+    if (call.error && !data) {
+        return (
+            <>
+                <StepHeader step={step} labels={labels} />
+                {isConfigUnavailable(call.error) ? (
+                    <EmptyState
+                        variant="error"
+                        icon="settings"
+                        title={labels.configTitle}
+                        message={labels.configHint}
+                        actionLabel={labels.retryLabel}
+                        onAction={call.refresh}
+                    />
+                ) : (
+                    <ErrorState error={call.error} onRetry={call.refresh} />
+                )}
+            </>
+        );
+    }
+
+    return (
+        <div className="min-w-0">
+            <StepHeader step={step} labels={labels} />
+            {questions.length === 0 ? (
+                <EmptyState variant="empty" icon="quiz" title={labels.noData} message={labels.noDataHint} />
+            ) : (
+                <DecisionTree
+                    idPrefix={`sheet-survey-${step.id}`}
+                    questions={questions}
+                    answers={(data && data.answers) || []}
+                    readOnly
+                    // A questionnaire nobody has answered reveals no question —
+                    // Share's view mode does the same. Say so rather than paint
+                    // an empty rectangle.
+                    emptyState={
+                        <EmptyState
+                            variant="empty"
+                            icon="quiz"
+                            title={labels.noData}
+                            message={labels.noDataHint}
+                        />
+                    }
+                />
+            )}
+        </div>
     );
 }
 
@@ -722,16 +759,11 @@ function SectionPanel({ tab, entity, entityId, params, lang, labels }) {
             />
         );
     }
-    if (tab.kind === 'survey' || tab.kind === 'entityDataList') {
-        return (
-            <ListPanel
-                entityId={entityId}
-                step={step}
-                params={params}
-                variant={tab.kind === 'survey' ? 'cards' : 'grid'}
-                labels={labels}
-            />
-        );
+    if (tab.kind === 'survey') {
+        return <SurveyPanel entityId={entityId} step={step} params={params} labels={labels} />;
+    }
+    if (tab.kind === 'entityDataList') {
+        return <ListPanel entityId={entityId} step={step} params={params} labels={labels} />;
     }
     if (tab.kind === 'documents') {
         return <DocumentsPanel nodeRef={entity ? entity.nodeRef : null} step={step} labels={labels} />;

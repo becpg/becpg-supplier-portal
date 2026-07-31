@@ -55,7 +55,7 @@ import { renderDataListCell } from '@/components/datalist/renderers';
 import { useMessages } from '@/lib/messages';
 import { Icon, IconButton, Spinner } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { ROW_STATUS, useDataListLabels } from '@/components/datalist/useDataList';
+import { isTotalRow, ROW_STATUS, useDataListLabels } from '@/components/datalist/useDataList';
 
 /**
  * Controls whose value is final as soon as it changes: there is nothing to
@@ -73,6 +73,19 @@ const INSTANT_COMMIT = new Set([
     'association',
     'file',
 ]);
+
+/**
+ * Nothing at all: `null`, `undefined`, the empty string, an empty association.
+ *
+ * @param {*} value
+ * @returns {boolean}
+ */
+function isBlank(value) {
+    if (value === null || value === undefined || value === '') {
+        return true;
+    }
+    return Array.isArray(value) && value.length === 0;
+}
 
 /**
  * Renders one cell — read mode, edit mode, or locked-protected mode.
@@ -115,6 +128,17 @@ export function DataListCell({ row, column, list, context, autoFocus = false, la
     }
 
     if (!editable) {
+        /*
+         * A computed row has nothing to say in most of its columns, and an em
+         * dash there would claim it has: « — » means *this value is missing*,
+         * and a total has no ingredient name, no unit and no threshold to be
+         * missing. Share leaves those cells blank, and so does this. Only the
+         * cells the extractor actually filled — the label and the sums — are
+         * rendered, through the same registry as any other cell.
+         */
+        if (isTotalRow(row) && isBlank(value) && isBlank(display)) {
+            return null;
+        }
         /*
          * The column-renderer registry, and the only place a read cell is
          * produced — the table and the card both land here, so a phone shows
@@ -222,8 +246,36 @@ export function DataListCell({ row, column, list, context, autoFocus = false, la
         },
     });
 
-    // Free-text controls are committed by the row's own `onBlur` / `onKeyDown`.
-    return element;
+    /*
+     * Validation that costs no layout.
+     *
+     * The only rule the grid can check without asking the server is the one it
+     * already enforces before creating a row — a mandatory column left empty —
+     * and it used to be silent: the control turned red, the row refused to
+     * save, and nothing said which cell was the reason. A message under the
+     * cell would push every row below it down by a line on each keystroke, in a
+     * grid whose whole point is that a row is 33px tall.
+     *
+     * So the flag is absolutely positioned inside the cell: it cannot move
+     * anything, it is a glyph and a colour rather than a colour alone, and the
+     * sentence lives in its `title` and on the row's status.
+     *
+     * Free-text controls are still committed by the row's own `onBlur` /
+     * `onKeyDown`; nothing here commits.
+     */
+    return (
+        <span className="becpg-grid-field" data-invalid={missing ? 'true' : undefined}>
+            {element}
+            {missing ? (
+                <Icon
+                    name="error"
+                    size={14}
+                    className="becpg-grid-field-flag"
+                    title={label('incomplete')}
+                />
+            ) : null}
+        </span>
+    );
 }
 
 /**
@@ -288,6 +340,20 @@ export function RowStatus({ row, list, compact = false }) {
     if (dirty) {
         return (
             <span className="inline-flex items-center gap-1">
+                {/*
+                  * A draft that is still missing a mandatory column is held back
+                  * by `commitRow` on purpose (a half-empty create earns a 400).
+                  * That verdict used to be invisible: the row simply never
+                  * saved. It now says so, once, next to the save button.
+                  */}
+                {status.incomplete ? (
+                    <Tooltip content={label('incomplete')} placement="left">
+                        <span className="inline-flex items-center text-[var(--status-warn)]">
+                            <Icon name="edit_note" size={16} />
+                            <span className="sr-only-text">{label('incomplete')}</span>
+                        </span>
+                    </Tooltip>
+                ) : null}
                 <IconButton
                     icon="save"
                     label={label('saveRow')}
@@ -386,8 +452,86 @@ export function NestedSection({ row, column, list }) {
     );
 }
 
+/** What a supplier can put the focus into, inside a cell. */
+const FOCUSABLE = [
+    'input:not([type="hidden"]):not([disabled])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    'button:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])',
+].join(',');
+
+/**
+ * Controls for which the up/down arrows belong to the control, not to the grid:
+ * a number spins, a date steps, a range slides, a list opens. Stealing those
+ * would trade one working key for another.
+ */
+const ARROWS_OWNED_BY_CONTROL = new Set([
+    'number', 'date', 'datetime-local', 'month', 'week', 'time', 'range',
+]);
+
+/**
+ * The `<tr>` above or below, skipping the detail rows an expanded row inserts.
+ *
+ * `nextElementSibling` never crosses a section boundary, so this cannot walk
+ * out of `<tbody>` into the `<tfoot>` that holds the computed total.
+ *
+ * @param {Element} rowEl
+ * @param {number} direction -1 or 1
+ * @returns {Element|null}
+ */
+function siblingRow(rowEl, direction) {
+    let node = direction > 0 ? rowEl.nextElementSibling : rowEl.previousElementSibling;
+    while (node && node.getAttribute('data-detail') === 'true') {
+        node = direction > 0 ? node.nextElementSibling : node.previousElementSibling;
+    }
+    return node;
+}
+
+/**
+ * Moves the focus to the same column of the row above / below.
+ *
+ * Falls back to the first focusable cell **to the right** of that column, so
+ * arrowing down a grid whose first column is read-only (a computed
+ * characteristic, a locked field) still lands somewhere rather than nowhere.
+ *
+ * @param {Element} rowEl the current `<tr>`
+ * @param {number} cellIndex index of the current `<td>` within it
+ * @param {number} direction -1 (up) or 1 (down)
+ * @returns {boolean} true when the focus actually moved
+ */
+function moveFocusVertically(rowEl, cellIndex, direction) {
+    const next = siblingRow(rowEl, direction);
+    if (!next) {
+        return false;
+    }
+    for (let index = cellIndex; index < next.children.length; index += 1) {
+        const target = next.children[index].querySelector(FOCUSABLE);
+        if (target) {
+            target.focus();
+            return true;
+        }
+    }
+    return false;
+}
+
 /**
  * A table row.
+ *
+ * ## Moving around with the keyboard
+ *
+ * Typing a nutrient list is typing forty rows, and the grid has to be usable
+ * without the mouse leaving the keyboard:
+ *
+ *  - **Tab / Shift+Tab** move from cell to cell. They already did, and — this is
+ *    the part that matters — moving *within* the row does not commit anything:
+ *    `handleBlur` ignores a focus that is still inside the `<tr>`, so a row is
+ *    saved once, when it is left, not once per column.
+ *  - **↑ / ↓** move to the same column of the row above or below, which is what
+ *    commits the row being left. They are handed back to the control whenever
+ *    the control owns them: an open suggestion list (which calls
+ *    `preventDefault`), a `<select>`, a `<textarea>`, a number or a date.
+ *  - **Enter** commits, **Escape** discards. Unchanged.
  *
  * @param {Object} props
  * @param {Object} props.row
@@ -400,6 +544,8 @@ export function NestedSection({ row, column, list }) {
  * @param {boolean} [props.showOrder] renders the reorder column
  * @param {boolean} [props.showActions] renders the actions column
  * @param {boolean} [props.dense]
+ * @param {boolean} [props.zebra] paints the row as a stripe (parity is computed
+ *   by the caller, not by `:nth-child`: an expanded row inserts a second `<tr>`)
  * @param {boolean} [props.autoFocus] focus the first editable cell (a new row)
  */
 export function DataListRow({
@@ -413,6 +559,7 @@ export function DataListRow({
     showOrder = false,
     showActions = true,
     dense = false,
+    zebra = false,
     autoFocus = false,
 }) {
     const label = useDataListLabels();
@@ -421,6 +568,18 @@ export function DataListRow({
     const status = list.statusOf(row.key);
     const hasNested = nestedColumns.length > 0;
     const columnCount = columns.length + (showOrder ? 1 : 0) + (hasNested ? 1 : 0) + (showActions ? 1 : 0);
+
+    /*
+     * The computed total row (`itemType: "total"`).
+     *
+     * It is a *summary of* the rows, not one of them: it has no nodeRef, nothing
+     * in it can be edited, deleted or reordered, and it carries none of the row
+     * chrome. `DataListEditor` renders it inside `<tfoot>`, which is what pins
+     * it under the data whatever the active sort — the cells below are only its
+     * appearance.
+     */
+    const summary = isTotalRow(row);
+    const editable = !summary && list.canEditRow(row);
 
     /** Leaving the row is what turns pending edits into a request. */
     const handleBlur = useCallback(
@@ -447,72 +606,119 @@ export function DataListRow({
             if (event.key === 'Enter' && event.target.tagName !== 'TEXTAREA' && !row.draft) {
                 event.preventDefault();
                 list.commitRow(row);
+                return;
             }
             if (event.key === 'Escape' && list.isRowDirty(row.key)) {
                 list.discardRow(row);
+                return;
+            }
+            if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
+                return;
+            }
+            // `defaultPrevented` is how an open suggestion list says "these two
+            // keys are mine" (`AutocompleteControl.onKeyDown`), and it is the
+            // only signal that survives bubbling.
+            if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+                return;
+            }
+            const target = event.target;
+            if (!target || typeof target.closest !== 'function') {
+                return;
+            }
+            const tag = target.tagName;
+            if (tag === 'TEXTAREA' || tag === 'SELECT') {
+                return;
+            }
+            if (tag === 'INPUT' && ARROWS_OWNED_BY_CONTROL.has(target.type)) {
+                return;
+            }
+            const cell = target.closest('td');
+            const rowEl = containerRef.current;
+            if (!cell || !rowEl || cell.parentElement !== rowEl) {
+                return;
+            }
+            const cellIndex = Array.prototype.indexOf.call(rowEl.children, cell);
+            if (cellIndex < 0) {
+                return;
+            }
+            if (moveFocusVertically(rowEl, cellIndex, event.key === 'ArrowDown' ? 1 : -1)) {
+                // Only once the move succeeded: at the top and at the bottom of
+                // the grid the key keeps its usual meaning.
+                event.preventDefault();
             }
         },
         [list, row],
     );
 
-    const cellPadding = dense ? 'py-1' : 'py-1.5';
-    const rowTone = status.state === ROW_STATUS.ERROR
-        ? 'bg-[var(--status-danger-bg,#fdecea)]'
+    const rowState = status.state === ROW_STATUS.ERROR
+        ? 'error'
         : row.draft
-          ? 'bg-[var(--becpg-blue-lighter)]/40'
-          : '';
+          ? 'draft'
+          : undefined;
 
     return (
         <>
             <tr
                 ref={containerRef}
-                onBlur={handleBlur}
-                onKeyDown={handleKeyDown}
-                aria-label={row.draft ? label('newRow') : label('row', { index })}
-                className={`border-b border-[var(--becpg-grey)] last:border-0 ${rowTone}`}
+                onBlur={summary ? undefined : handleBlur}
+                onKeyDown={summary ? undefined : handleKeyDown}
+                aria-label={summary ? label('totalRow') : row.draft ? label('newRow') : label('row', { index })}
+                data-total={summary ? 'true' : undefined}
+                data-zebra={zebra && !summary ? 'true' : undefined}
+                data-state={rowState}
+                data-editable={editable ? 'true' : undefined}
+                data-dense={dense ? 'true' : undefined}
             >
                 {showOrder ? (
-                    <td className={`px-1 ${cellPadding} align-middle`}>
-                        <div className="flex flex-col">
-                            <IconButton
-                                icon="keyboard_arrow_up"
-                                label={label('moveUp')}
-                                variant="ghost"
-                                size="icon"
-                                disabled={!list.canReorder || row.draft}
-                                onClick={() => list.moveRow(row, 'up')}
-                            />
-                            <IconButton
-                                icon="keyboard_arrow_down"
-                                label={label('moveDown')}
-                                variant="ghost"
-                                size="icon"
-                                disabled={!list.canReorder || row.draft}
-                                onClick={() => list.moveRow(row, 'down')}
-                            />
-                        </div>
+                    <td className="w-10 px-1">
+                        {summary ? null : (
+                            <div className="flex flex-col">
+                                <IconButton
+                                    icon="keyboard_arrow_up"
+                                    label={label('moveUp')}
+                                    variant="ghost"
+                                    size="icon"
+                                    disabled={!list.canReorder || row.draft}
+                                    onClick={() => list.moveRow(row, 'up')}
+                                />
+                                <IconButton
+                                    icon="keyboard_arrow_down"
+                                    label={label('moveDown')}
+                                    variant="ghost"
+                                    size="icon"
+                                    disabled={!list.canReorder || row.draft}
+                                    onClick={() => list.moveRow(row, 'down')}
+                                />
+                            </div>
+                        )}
                     </td>
                 ) : null}
 
                 {hasNested ? (
-                    <td className={`px-1 ${cellPadding} align-middle`}>
-                        <IconButton
-                            icon={expanded ? 'expand_less' : 'expand_more'}
-                            label={expanded ? label('collapse') : label('expand')}
-                            variant="ghost"
-                            size="icon"
-                            aria-expanded={expanded}
-                            onClick={() => setExpanded((value) => !value)}
-                        />
+                    <td className="w-10 px-1">
+                        {summary ? null : (
+                            <IconButton
+                                icon={expanded ? 'expand_less' : 'expand_more'}
+                                label={expanded ? label('collapse') : label('expand')}
+                                variant="ghost"
+                                size="icon"
+                                aria-expanded={expanded}
+                                onClick={() => setExpanded((value) => !value)}
+                            />
+                        )}
                     </td>
                 ) : null}
 
                 {columns.map((column, position) => (
-                    <td
-                        key={column.formsName}
-                        className={`px-2 ${cellPadding} align-middle`}
-                        style={{ minWidth: '8rem' }}
-                    >
+                    /*
+                     * A floor, not a width: the table keeps `table-layout: auto`,
+                     * so a characteristic name still takes the room it needs
+                     * while a `Mini` column stops at this. It used to be 8rem,
+                     * which on the twelve-column product sheet reserved 1536px
+                     * of minimum width and put the last three columns behind a
+                     * horizontal scrollbar on every laptop.
+                     */
+                    <td key={column.formsName} style={{ minWidth: '6rem' }}>
                         <DataListCell
                             row={row}
                             column={column}
@@ -524,26 +730,28 @@ export function DataListRow({
                 ))}
 
                 {showActions ? (
-                    <td className={`px-2 ${cellPadding} align-middle text-right whitespace-nowrap`}>
-                        <div className="inline-flex items-center gap-1">
-                            <RowStatus row={row} list={list} compact />
-                            {list.canDeleteRow(row) && onDelete ? (
-                                <IconButton
-                                    icon="delete_outline"
-                                    label={label('deleteRow')}
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => onDelete(row)}
-                                />
-                            ) : null}
-                        </div>
+                    <td className="text-right whitespace-nowrap">
+                        {summary ? null : (
+                            <div className="inline-flex items-center gap-1">
+                                <RowStatus row={row} list={list} compact />
+                                {list.canDeleteRow(row) && onDelete ? (
+                                    <IconButton
+                                        icon="delete_outline"
+                                        label={label('deleteRow')}
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => onDelete(row)}
+                                    />
+                                ) : null}
+                            </div>
+                        )}
                     </td>
                 ) : null}
             </tr>
 
             {hasNested && expanded ? (
-                <tr className="border-b border-[var(--becpg-grey)]">
-                    <td colSpan={columnCount} className="bg-white px-2 pb-2">
+                <tr data-detail="true">
+                    <td colSpan={columnCount} className="bg-white pb-2">
                         <div className="flex flex-col gap-2">
                             {nestedColumns.map((column) => (
                                 <NestedSection key={column.formsName} row={row} column={column} list={list} />

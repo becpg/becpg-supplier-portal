@@ -45,6 +45,13 @@
  * row per question, with one `slComment` and one `slChoices`.
  */
 
+/**
+ * Sentinel marking the lines that came out of a `<li>`, so {@link richTextLines}
+ * can hand them back as bullets. A private-use code point: authored text cannot
+ * contain it, and it never survives into what is rendered.
+ */
+const BULLET_MARK = '';
+
 /** Comment control types beCPG can ask for, mapped to an `<input type>`. */
 export const COMMENT_INPUT_TYPES = Object.freeze({
     text: 'text',
@@ -124,6 +131,28 @@ export function commentChoiceOf(question, state) {
         (choice) => choice.label === 'hidden' || Array.isArray(choice.list) || isChoiceSelected(question, choice, state),
     );
     return selected || null;
+}
+
+/**
+ * Is this choice a **container** rather than a real answer node?
+ *
+ * beCPG generates one for every question that has a response type or a comment
+ * and no radio answers: `label: "hidden"`, id `"sub-" + <uuid minus 4 chars>`.
+ * It exists to hold the list or the comment box, and it is not a
+ * `survey:surveyQuestion` — which matters when serialising, because
+ * `saveSurveyData` falls back to `cid` as a choice **nodeRef** whenever
+ * `listOptions` is absent.
+ *
+ * @param {Object} choice
+ * @returns {boolean}
+ */
+export function isChoiceContainer(choice) {
+    if (!choice) {
+        return false;
+    }
+    return Array.isArray(choice.list)
+        || choice.label === 'hidden'
+        || String(choice.id || '').startsWith('sub-');
 }
 
 /**
@@ -328,8 +357,10 @@ export function serialiseAnswers(questions, answerState, visible) {
 
             const options = Array.isArray(choice.list) ? selectedOptions(choice, state).join(',') : '';
             const comment = choice.comment ? String(state.comment || '') : '';
-            const synthetic = String(choice.id || '').startsWith('sub-');
-            const keepCid = choice.id && (!synthetic || options !== '');
+            // A container id is only ever sent alongside the options it holds:
+            // on its own, beCPG would resolve it as a choice nodeRef and store a
+            // dangling `survey:slChoices`. A real answer node is always sent.
+            const keepCid = Boolean(choice.id) && (!isChoiceContainer(choice) || options !== '');
 
             if (!keepCid && options === '' && comment === '') {
                 continue;
@@ -426,9 +457,22 @@ export function surveyProgress(questions, answerState, visible) {
  * @returns {string}
  */
 export function questionLegend(question) {
-    const label = question?.label || '';
+    const label = plainText(question?.label || '');
     const id = String(question?.id || '');
     return id && id.length < 10 ? `${id.toUpperCase()} - ${label}` : label;
+}
+
+/**
+ * The same markup handling as {@link richTextLines}, flattened to one string.
+ * Used wherever HTML would be invalid — a `<label>`, a `<legend>`, a `title`.
+ *
+ * @param {string|null} value
+ * @returns {string}
+ */
+export function plainText(value) {
+    return richTextLines(value)
+        .map((line) => line.text)
+        .join(' ');
 }
 
 /**
@@ -462,11 +506,12 @@ export function richTextLines(value) {
     const marked = raw
         // Every block-level end is a line break…
         .replace(/<\s*br\s*\/?\s*>/gi, '\n')
-        .replace(/<\s*\/\s*(p|div|tr|h[1-6])\s*>/gi, '\n')
+        .replace(/<\s*\/\s*(?:p|div|tr|h[1-6])\s*>/gi, '\n')
         // …and a list item is a line that gets a bullet.
-        .replace(/<\s*li[^>]*>/gi, '\n')
+        .replace(/<\s*li[^>]*>/gi, `\n${BULLET_MARK}`)
         .replace(/<\s*\/\s*li\s*>/gi, '\n')
-        // Everything else goes, tags and entities alike.
+        // Everything else goes, tags and entities alike. Nothing here is ever
+        // handed to React as markup: these end up as plain text nodes.
         .replace(/<[^>]*>/g, '')
         .replace(/&nbsp;/gi, ' ')
         .replace(/&amp;/gi, '&')
@@ -477,6 +522,9 @@ export function richTextLines(value) {
 
     return marked
         .split('\n')
-        .map((line) => ({ bullet: line.startsWith(''), text: line.replace(//g, '').trim() }))
+        .map((line) => ({
+            bullet: line.startsWith(BULLET_MARK),
+            text: line.split(BULLET_MARK).join('').trim(),
+        }))
         .filter((line) => line.text !== '');
 }

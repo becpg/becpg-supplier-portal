@@ -1,31 +1,69 @@
 'use client';
 
 /**
- * A `survey` step — the customer's questionnaire.
+ * A `survey` step — **the customer's questionnaire, answered as a decision tree**.
  *
- * A survey **is** a datalist (`survey:surveyList`, contracts §8): same endpoint,
- * same columns, same rows, same autosave. Only the *presentation* differs, and
- * it differs for a good reason: a questionnaire read as a nine-column grid is
- * unanswerable, on a phone and on a laptop alike. So this step reuses the exact
- * same state (`useDataList`) and the exact same cells (`DataListCardRow`) as the
- * grid, and simply renders every row as a card, at every width — the card layout
- * the editor keeps for phones is the right one for a questionnaire everywhere.
+ * ## What changed, and why it is not cosmetic
  *
- * Nothing about any particular questionnaire is written here. Which questions
- * exist, in which order, with which controls, comes from the columns Share
- * resolved; Aryzta's several instances of the same list (`surveyList@1`,
- * spec §2ter.1) are just different `listId`s and need no code.
+ * This step used to render `survey:surveyList` as a datalist: the same rows, the
+ * same columns, the same "add row" button as `ingList`. Three things were wrong
+ * with that, and only the first one was visible:
+ *
+ *  1. **a supplier could add a question.** A row of `survey:surveyList` is an
+ *     *answer*; the question is a `survey:surveyQuestion` its customer authored.
+ *     "Ajouter une ligne" on a questionnaire means "invent a question", which is
+ *     meaningless — and was offered because the grid honours
+ *     `permissions.create`, as it should for a real list.
+ *  2. **half the answer types had no control.** The datagrid form for
+ *     `survey:surveyList` declares three fields, so `slNumberComment` and
+ *     `slDateComment` had no column: a question whose answer is a number or a
+ *     date was answered in a text box, and an answer already recorded in Share
+ *     was not displayed at all.
+ *  3. **`survey:responseType` never reached the browser.** One control — a
+ *     multi-valued association picker listing every question of the repository —
+ *     answered single-choice, multi-choice and checkbox questions alike, so a
+ *     single-choice question happily collected two contradictory answers.
+ *
+ * None of that is fixable inside a datalist, because the missing information is
+ * not in the datalist: it is in `survey:surveyQuestion`. beCPG serves both, plus
+ * the `survey:nextQuestion` links, in one call — `GET /becpg/survey` — and that
+ * is what this step now consumes (`lib/adapters/survey.js`), through the same
+ * `GET /api/v1/wizard/{entityId}/step/{stepId}` as every other step, so the
+ * read-only and frozen verdicts still come from the single security call.
+ *
+ * ## Answering
+ *
+ * The tree itself is `components/survey/DecisionTree.js`. This file owns what
+ * surrounds it: progress, autosave, and what "submit" means.
+ *
+ * - **Autosave.** Every change schedules a write of the *whole* visible answer
+ *   set (`PUT …/step/{id}` with `{ answers }`), debounced by `useAutoSave`.
+ *   `saveSurveyData` resets the rows and re-applies what it receives, so posting
+ *   everything is both correct and idempotent — and it is what makes a reload
+ *   mid-questionnaire lose nothing.
+ * - **Submit.** There is no "send" button, on purpose: the answers are already
+ *   saved. What the button does is **check**, because a questionnaire with a
+ *   blank mandatory question is not finished. It names the questions, focuses
+ *   the first one and refuses to say "complete" — it never blocks the save, and
+ *   it never silently accepts either.
+ *
+ * ## Several instances
+ *
+ * Aryzta has four (`surveyList`, `surveyList@1`, `@2`, `@3`). Nothing here knows
+ * that: each is a step with its own `listId`, its own request, its own autosave
+ * key and its own DOM id prefix, so two on screen never share a radio group.
  */
 
-import { useMemo, useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { Button, Icon } from '@/components/ui/Button';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
-import { ConfirmModal } from '@/components/ui/Modal';
+import { GaugeBar } from '@/components/ui/Gauge';
 import { SkeletonCard } from '@/components/ui/Skeleton';
-import { DataListCardRow } from '@/components/datalist/DataListCardRow';
-import { DataListToolbar, ReadOnlyNotice } from '@/components/datalist/DataListToolbar';
-import { isNestedColumn, useDataList, useDataListLabels } from '@/components/datalist/useDataList';
+import { StatusPill } from '@/components/ui/StatusPill';
+import { ReadOnlyNotice } from '@/components/datalist/DataListToolbar';
+import { DecisionTree, questionDomId } from '@/components/survey/DecisionTree';
 import { useToast } from '@/components/providers/ToastProvider';
+import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
 const LABELS = {
@@ -34,22 +72,32 @@ const LABELS = {
         answered: '{answered} réponse(s) sur {total}',
         empty: 'Aucune question',
         emptyHint: 'Votre client n’a pas encore publié de questionnaire pour cette fiche.',
+        check: 'Vérifier mes réponses',
+        complete: 'Questionnaire complet',
+        missingTitle: '{count} question(s) obligatoire(s) sans réponse',
+        missingHint: 'Sélectionnez une question pour vous y rendre. Vos autres réponses sont déjà enregistrées.',
+        readOnly: 'Consultation seule',
+        noneAnswered: 'Aucune réponse enregistrée',
+        noneAnsweredHint: 'Le questionnaire s’affichera au fur et à mesure de vos réponses.',
     },
     en: {
         discuss: 'Discussion',
         answered: '{answered} of {total} answered',
         empty: 'No question',
         emptyHint: 'Your customer has not published a questionnaire for this sheet yet.',
+        check: 'Check my answers',
+        complete: 'Questionnaire complete',
+        missingTitle: '{count} mandatory question(s) still blank',
+        missingHint: 'Pick one to jump to it. Your other answers are already saved.',
+        readOnly: 'View only',
+        noneAnswered: 'No answer recorded',
+        noneAnsweredHint: 'The questionnaire unfolds as you answer it.',
     },
 };
 
-/** Surveys are short and read top to bottom: one page, no pager. */
-const SURVEY_PAGE_SIZE = 200;
-
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
-        (vars[name] === undefined || vars[name] === null ? match : String(vars[name])),
-    );
+        (vars[name] === undefined || vars[name] === null ? match : String(vars[name])));
 }
 
 /**
@@ -57,78 +105,113 @@ function fill(template, vars) {
  * @param {string} props.entityId entity nodeRef
  * @param {Object} props.step the computed step (`readOnly` / `frozen` included)
  * @param {Object} [props.params] `wizardId`, `siteId`, `locale`
- * @param {Object} props.autoSave the wizard's `useAutoSave` instance
+ * @param {Object} [props.autoSave] the wizard's `useAutoSave` instance. **Absent
+ *        ⇒ the tree is read-only**: `ReviewStep` embeds the steps with no
+ *        autosave, and a control that accepts input it then discards is worse
+ *        than no control.
+ * @param {string} [props.readOnlyReason] `frozen` | `readAccess` | `noAssignedTask` | `wizardReadOnly`
  * @param {Function} [props.onComment] `({ nodeRef, label }) => void`
  * @param {string} [props.className]
  */
-export function SurveyStep({ entityId, step, params, autoSave, onComment, className = '' }) {
+export function SurveyStep({
+    entityId,
+    step,
+    params,
+    autoSave,
+    readOnlyReason,
+    onComment,
+    className = '',
+}) {
     const { lang } = useMessages();
     const labels = LABELS[lang] || LABELS.fr;
-    const gridLabel = useDataListLabels();
     const toast = useToast();
-    const [pendingDelete, setPendingDelete] = useState(null);
 
-    const list = useDataList({
-        entityId,
-        stepId: step.id,
-        params,
-        pageSize: SURVEY_PAGE_SIZE,
-        readOnly: Boolean(step.readOnly),
-        onSaved: (result) => {
-            if (autoSave) {
-                autoSave.markSaved(result && result.savedAt ? result.savedAt : undefined);
+    const call = useApi(entityId && step ? `wizard/${entityId}/step/${step.id}` : null, { params });
+    const data = call.data;
+
+    // Three independent verdicts, and the strictest wins: the wizard's own
+    // (`step.readOnly`, computed once from the single security call), beCPG's
+    // (`disabled`, from the entity ACL and the list state), and "there is nobody
+    // to save this".
+    const readOnly = Boolean(step.readOnly) || Boolean(data && data.disabled) || !autoSave;
+    const questions = useMemo(() => (data && data.questions) || [], [data]);
+    const answers = useMemo(() => (data && data.answers) || [], [data]);
+
+    const [progress, setProgress] = useState(null);
+    const [invalidIds, setInvalidIds] = useState([]);
+    const [checked, setChecked] = useState(false);
+
+    // The answers to send are read at send time, never captured in the closure:
+    // a failed write must re-read whatever has been answered since (§4.4 F2).
+    const pending = useRef(null);
+
+    const save = useCallback(
+        (serialised) => {
+            pending.current = serialised;
+            // A check is only meaningful on the answers it was run against.
+            setChecked(false);
+            setInvalidIds([]);
+
+            if (!autoSave) {
+                return;
+            }
+            autoSave.schedule(
+                async () => {
+                    const payload = pending.current;
+                    if (!payload) {
+                        return null;
+                    }
+                    try {
+                        return await api.put(`wizard/${entityId}/step/${step.id}`, {
+                            answers: payload,
+                            // A questionnaire answer changes no formulated value:
+                            // reformulating on every click would cost a round trip
+                            // per radio button. The step's `nextStepWebScript` still
+                            // runs when the user leaves the step.
+                            formulate: false,
+                        }, { params });
+                    }
+                    catch (error) {
+                        toast.error(error);
+                        throw error;
+                    }
+                },
+                { key: `survey:${step.id}` },
+            );
+        },
+        [autoSave, entityId, step.id, params, toast],
+    );
+
+    const check = useCallback(() => {
+        const missing = (progress && progress.missing) || [];
+        setInvalidIds(missing.map((question) => question.id));
+        setChecked(true);
+        if (missing.length > 0) {
+            const target = document.getElementById(questionDomId(`survey-${step.id}`, missing[0].id));
+            if (target) {
+                target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                target.focus({ preventScroll: true });
+            }
+        }
+    }, [progress, step.id]);
+
+    const goTo = useCallback(
+        (questionId) => {
+            const target = document.getElementById(questionDomId(`survey-${step.id}`, questionId));
+            if (target) {
+                target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                target.focus({ preventScroll: true });
             }
         },
-        onError: (error) => {
-            if (autoSave) {
-                autoSave.markError(error);
-            }
-            toast.error(error);
-        },
-    });
+        [step.id],
+    );
 
-    const [flatColumns, nestedColumns] = useMemo(() => {
-        const flat = [];
-        const nested = [];
-        for (const column of list.columns || []) {
-            (isNestedColumn(column) ? nested : flat).push(column);
-        }
-        return [flat, nested];
-    }, [list.columns]);
+    /* ------------------------------------------------------------- states */
 
-    // "12 réponses sur 18" — a questionnaire without a progress count is a
-    // questionnaire nobody knows how far they are into.
-    //
-    // Two things this must NOT count, both measured on 26.1.0 as reading
-    // "12 réponse(s) sur 12" on a questionnaire where nothing had been answered:
-    //
-    //  1. **the first column.** In every beCPG datalist the first column carries
-    //     the row's identity — here the question — and `DataListCardRow` already
-    //     treats it as such (it is the card's headline). A question is always
-    //     filled: counting it makes every row answered by construction.
-    //  2. **an empty association.** `survey:slChoices` with nothing selected
-    //     arrives as `[]`, which is neither null nor `''` and passed the test.
-    const answered = useMemo(() => {
-        const [, ...answerColumns] = flatColumns;
-        const editable = answerColumns.filter((column) => !column.readOnly);
-        if (editable.length === 0) {
-            return null;
-        }
-        return (list.rows || []).filter((row) =>
-            editable.some((column) => {
-                const value = list.valueOf(row, column);
-                if (Array.isArray(value)) {
-                    return value.length > 0;
-                }
-                return value !== null && value !== undefined && value !== '';
-            }),
-        ).length;
-    }, [list, flatColumns]);
-
-    if (list.error && (list.rows || []).length === 0) {
-        return <ErrorState error={list.error} onRetry={() => list.refresh()} />;
+    if (call.error && !data) {
+        return <ErrorState error={call.error} onRetry={call.refresh} />;
     }
-    if (list.loading && (list.rows || []).length === 0) {
+    if (call.loading && !data) {
         return (
             <div className={`flex flex-col gap-3 ${className}`}>
                 <SkeletonCard lines={3} />
@@ -138,85 +221,116 @@ export function SurveyStep({ entityId, step, params, autoSave, onComment, classN
         );
     }
 
-    const rows = list.rows || [];
+    const missing = (progress && progress.missing) || [];
+    const title = step.title || step.label;
 
     return (
         <div className={`min-w-0 ${className}`}>
-            <DataListToolbar
-                list={list}
-                title={step.title || step.label}
-                description={
-                    answered === null || rows.length === 0
-                        ? undefined
-                        : fill(labels.answered, { answered, total: rows.length })
-                }
-                onAdd={list.canCreate ? () => list.addRow() : undefined}
-                actions={
-                    onComment ? (
+            <div className="mb-3 flex flex-col gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                    {title ? (
+                        <h3 className="text-base font-medium text-[var(--becpg-blue)]">{title}</h3>
+                    ) : null}
+                    {readOnly ? (
+                        <StatusPill status="readonly" tone="neutral" icon="lock" size="sm" label={labels.readOnly} />
+                    ) : null}
+                    {onComment ? (
                         <Button
                             variant="outline"
                             size="sm"
                             icon="forum"
-                            onClick={() => onComment({ nodeRef: list.listNodeRef || entityId, label: step.label })}
+                            className="ml-auto"
+                            onClick={() =>
+                                onComment({ nodeRef: (data && data.listNodeRef) || entityId, label: step.label })}
                         >
                             {labels.discuss}
                         </Button>
-                    ) : null
-                }
-            />
-
-            {list.readOnly ? <ReadOnlyNotice reason={list.readOnlyReason} /> : null}
-
-            {rows.length === 0 ? (
-                <EmptyState
-                    variant="empty"
-                    icon="quiz"
-                    title={labels.empty}
-                    message={list.canCreate ? gridLabel('emptyHint') : labels.emptyHint}
-                    action={
-                        list.canCreate ? (
-                            <Button variant="primary" icon="add" onClick={() => list.addRow()}>
-                                {gridLabel('addRow')}
-                            </Button>
-                        ) : null
-                    }
-                />
-            ) : (
-                <div className="flex flex-col gap-2">
-                    {rows.map((row, index) => (
-                        <DataListCardRow
-                            key={row.key}
-                            row={row}
-                            index={index + 1}
-                            columns={flatColumns}
-                            nestedColumns={nestedColumns}
-                            list={list}
-                            context={{
-                                entityNodeRef: entityId,
-                                itemType: list.itemType,
-                                formId: list.step?.formId || null,
-                            }}
-                            onDelete={setPendingDelete}
-                            showOrder={false}
-                        />
-                    ))}
+                    ) : null}
                 </div>
-            )}
 
-            <ConfirmModal
-                open={Boolean(pendingDelete)}
-                onClose={() => setPendingDelete(null)}
-                onConfirm={async () => {
-                    const row = pendingDelete;
-                    setPendingDelete(null);
-                    if (row) {
-                        await list.deleteRow(row);
-                    }
-                }}
-                title={gridLabel('deleteTitle')}
-                message={gridLabel('deleteText')}
-                tone="danger"
-            />
+                {progress && progress.total > 0 ? (
+                    <GaugeBar
+                        value={progress.percent}
+                        label={fill(labels.answered, { answered: progress.answered, total: progress.total })}
+                    />
+                ) : null}
+            </div>
+
+            {step.readOnly ? (
+                <ReadOnlyNotice reason={step.frozen ? 'frozen' : readOnlyReason || 'wizardReadOnly'} />
+            ) : null}
+
+            {questions.length === 0 ? (
+                <EmptyState variant="empty" icon="quiz" title={labels.empty} message={labels.emptyHint} />
+            ) : (
+                <>
+                    <DecisionTree
+                        // One prefix per step: two questionnaires on the same
+                        // screen must not share a radio group nor a DOM id.
+                        idPrefix={`survey-${step.id}`}
+                        questions={questions}
+                        answers={answers}
+                        readOnly={readOnly}
+                        invalidIds={invalidIds}
+                        onChange={readOnly ? undefined : save}
+                        onProgress={setProgress}
+                        emptyState={
+                            <EmptyState
+                                variant="empty"
+                                icon="quiz"
+                                title={labels.noneAnswered}
+                                message={labels.noneAnsweredHint}
+                                compact
+                            />
+                        }
+                    />
+
+                    {readOnly ? null : (
+                        <div className="mt-4 flex flex-col gap-2">
+                            {checked && missing.length > 0 ? (
+                                <div
+                                    role="alert"
+                                    className="rounded-xl border border-[var(--status-danger)] bg-[var(--status-danger-bg)] p-3"
+                                >
+                                    <p className="flex items-start gap-1.5 text-sm font-medium text-[var(--status-danger)]">
+                                        <Icon name="error_outline" size={18} className="mt-px shrink-0" />
+                                        {fill(labels.missingTitle, { count: missing.length })}
+                                    </p>
+                                    <p className="mt-1 text-xs text-[var(--becpg-dark-grey-deep)]">
+                                        {labels.missingHint}
+                                    </p>
+                                    <ul className="mt-2 flex flex-col gap-1">
+                                        {missing.map((question) => (
+                                            <li key={question.id}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => goTo(question.id)}
+                                                    className="touch-target text-left text-sm text-[var(--becpg-blue)] underline underline-offset-2 hover:text-[var(--becpg-blue-light)]"
+                                                >
+                                                    {question.label}
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ) : null}
+
+                            {checked && missing.length === 0 ? (
+                                <p className="flex items-center gap-1.5 text-sm text-[var(--status-ok)]">
+                                    <Icon name="task_alt" size={18} />
+                                    {labels.complete}
+                                </p>
+                            ) : null}
+
+                            <div>
+                                <Button variant="outline" size="sm" icon="fact_check" onClick={check}>
+                                    {labels.check}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
         </div>
     );
 }

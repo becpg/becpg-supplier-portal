@@ -37,6 +37,7 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 import { TabScroller } from '@/components/ui/TabScroller';
 import { RequirementChecklist } from '@/components/documents/RequirementChecklist';
 import { SpecPanel } from '@/components/specs/SpecPanel';
+import { DecisionTree } from '@/components/survey/DecisionTree';
 import { formatDate } from '@/lib/format';
 import { useSession } from '@/components/providers/SessionProvider';
 import { useApi } from '@/lib/client';
@@ -268,42 +269,79 @@ function DataListSection({ data, loading, error, onRetry, labels, frozen }) {
     );
 }
 
-/** The questionnaire: the same rows, read as a completion ratio. */
-function SurveySection({ data, loading, error, onRetry, labels, frozen }) {
-    const progress = useMemo(() => {
-        const rows = (data && data.rows) || [];
-        const columns = (data && data.columns) || [];
-        const answerColumns = columns.filter((column) =>
-            /slResponse|slChoices|slComment/i.test(String(column.name || column.formsName || '')),
-        );
-        if (rows.length === 0) {
-            return null;
-        }
-        const done = rows.filter((row) =>
-            answerColumns.some((column) => cellText(row, column) !== ''),
-        ).length;
-        return { done, total: rows.length, percent: Math.round((done / rows.length) * 100) };
-    }, [data]);
+/**
+ * The questionnaire — **the decision tree, read only**.
+ *
+ * The step endpoint serves a `survey` step as `{ questions, answers }` from
+ * `becpg/survey`, not as columns and rows: the structure
+ * (`survey:surveyQuestion`, with its response types and its `nextQuestion`
+ * links) and the answers (`survey:surveyList`) are two different types, and a
+ * table can only show the second. So this section renders the same component
+ * the wizard does, in its read-only mode — questions in the customer's order,
+ * only the branches the answers actually opened, and the answer under each one.
+ *
+ * The completion ratio is computed by the tree itself, on the questions that are
+ * *asked*: a branch nobody took was never a question.
+ */
+function SurveySection({ data, loading, error, onRetry, labels, frozen, stepId }) {
+    const [progress, setProgress] = useState(null);
+    const questions = (data && data.questions) || [];
+
+    if (error) {
+        return <ErrorState error={error} onRetry={onRetry} />;
+    }
+    if (loading && !data) {
+        return <SkeletonCard lines={5} />;
+    }
 
     return (
         <div className="flex flex-col gap-3">
-            {progress ? (
+            {progress && progress.total > 0 ? (
                 <Card padding="md">
                     <GaugeBar
                         value={progress.percent}
-                        label={fill(labels.questionnaire, { done: progress.done, total: progress.total })}
+                        label={fill(labels.questionnaire, {
+                            done: progress.answered,
+                            total: progress.total,
+                        })}
                         size="lg"
                     />
                 </Card>
             ) : null}
-            <DataListSection
-                data={data}
-                loading={loading}
-                error={error}
-                onRetry={onRetry}
-                labels={labels}
-                frozen={frozen}
-            />
+
+            {frozen ? (
+                <p className="flex items-center gap-1.5 text-xs text-[var(--becpg-dark-grey)]">
+                    <Icon name="lock_outline" size={14} />
+                    {labels.frozen}
+                </p>
+            ) : null}
+
+            {questions.length === 0 ? (
+                <EmptyState
+                    variant="empty"
+                    icon="quiz"
+                    title={labels.emptyList}
+                    message={labels.emptyListHint}
+                    compact
+                />
+            ) : (
+                <DecisionTree
+                    idPrefix={`company-survey-${stepId}`}
+                    questions={questions}
+                    answers={(data && data.answers) || []}
+                    readOnly
+                    onProgress={setProgress}
+                    emptyState={
+                        <EmptyState
+                            variant="empty"
+                            icon="quiz"
+                            title={labels.emptyList}
+                            message={labels.emptyListHint}
+                            compact
+                        />
+                    }
+                />
+            )}
         </div>
     );
 }
@@ -634,9 +672,12 @@ export default function CompanyPage() {
                         />
                     ) : active && activeStep && activeStep.type === 'survey' ? (
                         <SurveySection
-                            // Keyed on the step: switching list must rebuild the
-                            // table, whose column visibility is initial-state only.
+                            // Keyed on the step: several questionnaires
+                            // (`surveyList`, `surveyList@1`…) are independent, and
+                            // switching between them must rebuild the tree rather
+                            // than re-seed it.
                             key={activeStep.id}
+                            stepId={activeStep.id}
                             data={stepData.data}
                             loading={stepData.loading}
                             error={stepData.error}
