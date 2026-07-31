@@ -60,6 +60,7 @@ import { ProfileSwitcher, useMonitorProfile } from '@/components/monitor/Profile
 import { SupplierTable } from '@/components/monitor/SupplierTable';
 import { HistoryUnavailable } from '@/components/monitor/SupplierScorecard';
 import { download, useApi } from '@/lib/client';
+import { formatTotal } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 
 /** Rows fetched per call. The API caps `pageSize` at 100. */
@@ -256,7 +257,10 @@ function MonitorSuppliersScreen() {
     const pagination = (data && data.pagination) || {
         page: 1,
         pageSize: WINDOW_SIZE,
+        count: 0,
         totalItems: 0,
+        totalAtLeast: 0,
+        totalExact: true,
         hasMoreItems: false,
         scanned: 0,
         truncated: false,
@@ -393,7 +397,7 @@ function MonitorSuppliersScreen() {
                     <Icon name="info" size={16} className="mt-0.5 shrink-0" />
                     {fill(local.truncated, {
                         scanned: pagination.scanned,
-                        total: pagination.totalItems,
+                        total: total.label,
                     })}
                 </p>
             ) : null}
@@ -418,7 +422,7 @@ function MonitorSuppliersScreen() {
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--becpg-dark-grey)]">
                 <div className="flex flex-col gap-0.5">
                     <span className="tabular-nums">
-                        {fill(local.windowOf, { from, to, total: pagination.totalItems || 0 })}
+                        {fill(local.windowOf, { from, to, total: total.text })}
                     </span>
                     <span>
                         {fill(local.sortedBy, {
@@ -458,7 +462,7 @@ function MonitorSuppliersScreen() {
                 onConfirm={exportCsv}
                 title={fill(local.exportCutTitle, {
                     scanned: pagination.scanned,
-                    total: pagination.totalItems,
+                    total: total.label,
                 })}
                 message={local.exportCutMessage}
                 confirmLabel={local.exportCutConfirm}

@@ -12,7 +12,9 @@
  *   - `type`      repeatable, e.g. `type=bcpg:rawMaterial&type=bcpg:finishedProduct`
  *   - `state`     repeatable, `bcpg:productState` value
  *   - `q`         free text on name / code / legal name / ERP code
- *   - `supplier`  nodeRef or uuid — delegated entry, post-filtered
+ *   - `supplier`  nodeRef or uuid — delegated entry, scoped with `ANCESTOR:` on the
+ *                 supplier's own space; **404** when this session cannot read that
+ *                 supplier, never an empty list
  *   - `withProjects` `1` to attach the referencing project of each product
  *
  * `withProjects` costs one extra pass over my tasks: `pjt:projectEntity` is a

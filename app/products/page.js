@@ -24,7 +24,7 @@ import { StatCard, StatGrid } from '@/components/ui/StatCard';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { entityTypeLabel } from '@/components/products/ProductHeader';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatTotal } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
@@ -122,7 +122,14 @@ export default function ProductsPage() {
             (item) => item.completion && typeof item.completion.score === 'number',
         );
         return {
-            total: (products.data && products.data.pagination && products.data.pagination.totalItems) || items.length,
+            // `pagination.totalItems` is `null` when beCPG could not count the result
+            // set (see `formatTotal`), and `|| items.length` would then print the page
+            // size as a park size. `formatTotal` prints "100+" instead — the honest
+            // reading of "at least one more page exists".
+            total: formatTotal(
+                (products.data && products.data.pagination) || { totalItems: items.length },
+                lang,
+            ),
             valid: items.filter((item) => item.state === 'Valid').length,
             pending: items.filter((item) => item.state === 'Simulation' || item.state === 'ToValidate').length,
             completion:
@@ -132,7 +139,7 @@ export default function ProductsPage() {
                       )
                     : null,
         };
-    }, [items, products.data]);
+    }, [items, products.data, lang]);
 
     const columns = useMemo(
         () => [
@@ -220,7 +227,8 @@ export default function ProductsPage() {
             <StatGrid columns={4} className="mb-4">
                 <StatCard
                     label={labels.stats.total}
-                    value={stats.total}
+                    value={stats.total.text}
+                    hint={stats.total.exact ? undefined : stats.total.label}
                     icon="inventory_2"
                     tone="info"
                     loading={products.loading}

@@ -30,7 +30,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi, useMutation } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatTotal } from '@/lib/format';
 
 const LOCAL = {
     fr: {
@@ -223,10 +223,12 @@ function RequestUpdateModal({ product, onClose, onDone }) {
 /**
  * @param {Object} props
  * @param {Array<Object>} props.products entities as returned by `/api/v1/entities`
- * @param {number} [props.total]
+ * @param {number|null} [props.total] exact number of products, `null` when beCPG
+ *        could not count them — never rendered as 0, see `formatTotal`
+ * @param {number} [props.totalAtLeast] proven floor that goes with a `null` total
  * @param {number} [props.index]
  */
-export function ProductList({ products = [], total, index = 0, className = '' }) {
+export function ProductList({ products = [], total, totalAtLeast, index = 0, className = '' }) {
     const { lang } = useMessages();
     const local = LOCAL[lang] || LOCAL.fr;
     const stateLabels = STATE_LABELS[lang] || STATE_LABELS.fr;
@@ -234,7 +236,16 @@ export function ProductList({ products = [], total, index = 0, className = '' })
     const router = useRouter();
     const [requested, setRequested] = useState(null);
 
-    const count = typeof total === 'number' ? total : products.length;
+    // "Tout voir (12)" — and "(100+)" when the count is only a floor. Falling back on
+    // `products.length` would label the link with the size of the preview.
+    const count = formatTotal(
+        {
+            totalItems: typeof total === 'number' ? total : null,
+            totalAtLeast: typeof totalAtLeast === 'number' ? totalAtLeast : products.length,
+            totalExact: typeof total === 'number',
+        },
+        lang,
+    );
 
     return (
         <>
@@ -251,8 +262,10 @@ export function ProductList({ products = [], total, index = 0, className = '' })
                             className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-[var(--becpg-blue-light)] hover:bg-[var(--becpg-grey)]"
                         >
                             {local.all}
-                            {count > products.length ? (
-                                <span className="tabular-nums">({count})</span>
+                            {count.value > products.length ? (
+                                <span className="tabular-nums" title={count.label}>
+                                    ({count.text})
+                                </span>
                             ) : null}
                             <Icon name="arrow_forward" size={14} />
                         </Link>

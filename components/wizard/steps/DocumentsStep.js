@@ -25,6 +25,7 @@
 import { useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
+import { ListIcon } from '@/components/ui/ListIcon';
 import { DocumentUpload } from '@/components/documents/DocumentUpload';
 import { RequirementChecklist } from '@/components/documents/RequirementChecklist';
 import { StepReadOnlyNotice } from '@/components/wizard/steps/FormStep';
@@ -117,7 +118,13 @@ export function DocumentsStep({
             ) : null}
 
             <div className="mb-3 flex flex-wrap items-center gap-2">
-                <h3 className="text-base font-medium text-[var(--becpg-blue)]">
+                {/* Same glyph as the stepper entry that opened this step and as
+                    the sheet's Documents tab. beCPG ships no PNG for documents
+                    — it is not a characteristic list — so `ListIcon` resolves it
+                    to the portal's own Material symbol; the point is that one
+                    step is not the only heading in the wizard without a picture. */}
+                <h3 className="flex items-center gap-2 text-base font-medium text-[var(--becpg-blue)]">
+                    <ListIcon type="documents" size={18} />
                     {step.title || step.label || labels.title}
                 </h3>
                 {summary ? (

@@ -31,6 +31,7 @@ import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
 import { SearchInput, Select, Checkbox } from '@/components/ui/Field';
+import { formatTotal } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { download, useApi } from '@/lib/client';
 import {
@@ -192,7 +193,14 @@ export default function MonitorDocumentsPage() {
     }, []);
 
     const totals = (data && data.totals) || {};
-    const pagination = (data && data.pagination) || { page: 1, pageSize, totalItems: 0 };
+    const pagination = (data && data.pagination) || {
+        page: 1,
+        pageSize,
+        count: 0,
+        totalItems: 0,
+        totalAtLeast: 0,
+        totalExact: true,
+    };
     const filters = (data && data.filters) || {};
 
     const targets = useMemo(() => selectionTargets(selection), [selection]);
@@ -211,8 +219,23 @@ export default function MonitorDocumentsPage() {
         });
     }, [query, documentType, mandatoryOnly]);
 
-    const from = (pagination.page - 1) * pagination.pageSize + 1;
-    const to = Math.min(pagination.page * pagination.pageSize, pagination.totalItems || 0);
+    // Counted from the rows in hand: the matrix is built in memory, but the park
+    // behind it may only be known as a floor (`parkTotal: null`), and no number on
+    // this screen may be inferred from a total the payload refused to state.
+    const rowsOnPage = Number.isFinite(pagination.count)
+        ? pagination.count
+        : (data && data.rows ? data.rows.length : 0);
+    const from = rowsOnPage === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
+    const to = (pagination.page - 1) * pagination.pageSize + rowsOnPage;
+    const total = formatTotal(pagination, lang);
+    const parkTotal = formatTotal(
+        {
+            total: pagination.parkTotal,
+            atLeast: pagination.parkAtLeast ?? pagination.scanned,
+            exact: pagination.parkTotal !== null && pagination.parkTotal !== undefined,
+        },
+        lang,
+    );
 
     return (
         <AppShell
@@ -240,14 +263,14 @@ export default function MonitorDocumentsPage() {
             <StatGrid columns={4} className="mb-4">
                 <StatCard
                     label={labels.stats.suppliers}
-                    value={pagination.totalItems || 0}
+                    value={total.text}
                     icon="groups"
                     tone="info"
                     loading={matrix.loading}
                     index={0}
                     hint={
-                        pagination.parkTotal && pagination.parkTotal !== pagination.totalItems
-                            ? `/ ${pagination.parkTotal}`
+                        parkTotal.value && parkTotal.value !== total.value
+                            ? `/ ${parkTotal.text}`
                             : undefined
                     }
                 />
@@ -336,7 +359,7 @@ export default function MonitorDocumentsPage() {
                         <span>
                             {fill(labels.truncated, {
                                 scanned: pagination.scanned,
-                                total: pagination.parkTotal ?? pagination.scanned,
+                                total: parkTotal.label,
                             })}
                         </span>
                     </p>
@@ -366,11 +389,7 @@ export default function MonitorDocumentsPage() {
                 <MatrixLegend />
                 <div className="flex items-center gap-2">
                     <span className="tabular-nums">
-                        {fill(labels.pageOf, {
-                            from: pagination.totalItems ? from : 0,
-                            to,
-                            total: pagination.totalItems || 0,
-                        })}
+                        {fill(labels.pageOf, { from, to, total: total.text })}
                     </span>
                     <select
                         aria-label={labels.rows}

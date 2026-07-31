@@ -35,6 +35,7 @@ import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
 import { SearchInput, Select } from '@/components/ui/Field';
+import { formatTotal } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { useApi } from '@/lib/client';
 import {
@@ -177,7 +178,14 @@ export default function MonitorCampaignsPage() {
     // selection memo below would recompute on every render.
     const items = useMemo(() => (data && data.items) || [], [data]);
     const summary = (data && data.summary) || {};
-    const pagination = (data && data.pagination) || { page: 1, pageSize, totalItems: 0 };
+    const pagination = (data && data.pagination) || {
+        page: 1,
+        pageSize,
+        count: 0,
+        totalItems: 0,
+        totalAtLeast: 0,
+        totalExact: true,
+    };
     const filters = (data && data.filters) || {};
 
     // Any change of what is displayed drops the selection: escalating rows the
@@ -195,8 +203,13 @@ export default function MonitorCampaignsPage() {
 
     const targets = useMemo(() => campaignTargets(items, rowSelection), [items, rowSelection]);
 
-    const from = (pagination.page - 1) * pagination.pageSize + 1;
-    const to = Math.min(pagination.page * pagination.pageSize, pagination.totalItems || 0);
+    // From the rows in hand, never from a total: `summary.open` is a *floor* when
+    // `openExact` is false (beCPG could not count the campaigns — see `formatTotal`).
+    const rowsOnPage = Number.isFinite(pagination.count) ? pagination.count : items.length;
+    const from = rowsOnPage === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
+    const to = (pagination.page - 1) * pagination.pageSize + rowsOnPage;
+    const total = formatTotal(pagination, lang);
+    const open = formatTotal({ total: summary.open, exact: summary.openExact !== false }, lang);
 
     const stateOptions = useMemo(
         () => [
@@ -236,13 +249,13 @@ export default function MonitorCampaignsPage() {
                               })
                             : labels.stats.open
                     }
-                    value={summary.open || 0}
+                    value={open.text}
                     icon="campaign"
                     tone="info"
                     loading={campaigns.loading}
                     index={0}
                     hint={
-                        summary.scanned && summary.scanned !== summary.open
+                        summary.scanned && summary.scanned !== open.value
                             ? fill(labels.hints.scanned, { count: summary.scanned })
                             : undefined
                     }
@@ -306,8 +319,8 @@ export default function MonitorCampaignsPage() {
                         <Icon name="warning" size={16} className="mt-0.5 text-[var(--becpg-orange)]" />
                         <span>
                             {fill(labels.truncated, {
-                                scanned: summary.scanned ?? pagination.totalItems ?? 0,
-                                total: summary.open ?? pagination.totalItems ?? 0,
+                                scanned: summary.scanned ?? total.value,
+                                total: open.label,
                             })}
                         </span>
                     </p>
@@ -373,11 +386,7 @@ export default function MonitorCampaignsPage() {
                 <p className="max-w-xl">{labels.noteReminder}</p>
                 <div className="flex items-center gap-2">
                     <span className="tabular-nums">
-                        {fill(labels.pageOf, {
-                            from: pagination.totalItems ? from : 0,
-                            to,
-                            total: pagination.totalItems || 0,
-                        })}
+                        {fill(labels.pageOf, { from, to, total: total.text })}
                     </span>
                     <select
                         aria-label={labels.rows}

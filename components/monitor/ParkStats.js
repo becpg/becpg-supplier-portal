@@ -52,6 +52,7 @@ import { GaugeBar } from '@/components/ui/Gauge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { applyProfileOrder, useMonitorProfile } from '@/components/monitor/ProfileSwitcher';
+import { formatTotal } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 
 const LABELS = {
@@ -206,8 +207,12 @@ function percent(part, total) {
  * @param {string} query current filter query string, propagated to the links
  * @returns {Array<Object>} `{ id, ...StatCard props }`
  */
-function buildTiles(overview, local, query) {
+function buildTiles(overview, local, query, lang) {
     const park = overview.park || {};
+    // The park size is a *floor* when `park.exact` is false — beCPG's db-afts path
+    // cannot count past the scan window, it only says "there is at least one more".
+    // "sur 250+" is the truth; "sur 250" would not be.
+    const parkTotal = formatTotal({ total: park.total, exact: park.exact !== false }, lang).text;
     const compliance = overview.compliance || {};
     const expiring = overview.expiring || {};
     const buckets = expiring.buckets || {};
@@ -224,7 +229,7 @@ function buildTiles(overview, local, query) {
             value: park.approved || 0,
             icon: 'verified',
             tone: 'ok',
-            hint: interpolate(local.hints.ofPark, { total: park.total || 0 }),
+            hint: interpolate(local.hints.ofPark, { total: parkTotal }),
             href: withStatus('approved'),
         },
         {
@@ -242,7 +247,7 @@ function buildTiles(overview, local, query) {
             value: park.suspended || 0,
             icon: 'block',
             tone: (park.suspended || 0) > 0 ? 'danger' : 'ok',
-            hint: interpolate(local.hints.ofPark, { total: park.total || 0 }),
+            hint: interpolate(local.hints.ofPark, { total: parkTotal }),
             href: withStatus('suspended'),
         },
         {
@@ -330,7 +335,7 @@ function buildTiles(overview, local, query) {
  * and must therefore never share an edge. One row each, every row carrying its
  * icon, its word, its count and its share.
  */
-function ParkComposition({ park, local, query }) {
+function ParkComposition({ park, local, query, lang }) {
     const reduceMotion = useReducedMotion();
     const total = ['approved', 'inProgress', 'toRenew', 'suspended']
         .reduce((sum, status) => sum + (park[status] || 0), 0);
@@ -400,7 +405,7 @@ function ParkComposition({ park, local, query }) {
                     <span>
                         {interpolate(local.park.windowScope, {
                             scanned: park.scanned || 0,
-                            total: park.total || 0,
+                            total: formatTotal({ total: park.total, exact: park.exact !== false }, lang).label,
                         })}
                     </span>
                 </p>
@@ -504,7 +509,7 @@ export function ParkStats({ overview, query = '', className = '' }) {
         return null;
     }
 
-    const { ordered } = applyProfileOrder(buildTiles(overview, local, query), profile.tiles);
+    const { ordered } = applyProfileOrder(buildTiles(overview, local, query, lang), profile.tiles);
     const filters = overview.filters || {};
     const unsupported = filters.unsupported || [];
     const assocFilters = (filters.applied || []).filter((entry) => entry.mode === 'assoc');
@@ -525,7 +530,7 @@ export function ParkStats({ overview, query = '', className = '' }) {
             className={panelCard}
             bodyClassName={panelBody}
         >
-            <ParkComposition park={overview.park || {}} local={local} query={query} />
+            <ParkComposition park={overview.park || {}} local={local} query={query} lang={lang} />
         </Card>
     );
     const expiryPanel = (

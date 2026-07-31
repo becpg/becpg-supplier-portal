@@ -39,6 +39,7 @@ import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
 import { Checkbox, SearchInput, Select } from '@/components/ui/Field';
+import { formatTotal } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { useApi } from '@/lib/client';
 import {
@@ -178,7 +179,14 @@ export default function MonitorQualityPage() {
     // selection and type-option memos below would recompute on every render.
     const items = useMemo(() => (data && data.items) || [], [data]);
     const summary = (data && data.summary) || {};
-    const pagination = (data && data.pagination) || { page: 1, pageSize, totalItems: 0 };
+    const pagination = (data && data.pagination) || {
+        page: 1,
+        pageSize,
+        count: 0,
+        totalItems: 0,
+        totalAtLeast: 0,
+        totalExact: true,
+    };
     const filters = (data && data.filters) || {};
     const correctiveActions = summary.correctiveActions || {};
     // `null` is a real answer here (no open NC at all), so the tile shows a dash
@@ -201,8 +209,16 @@ export default function MonitorQualityPage() {
 
     const targets = useMemo(() => ncTargets(items, rowSelection), [items, rowSelection]);
 
-    const from = (pagination.page - 1) * pagination.pageSize + 1;
-    const to = Math.min(pagination.page * pagination.pageSize, pagination.totalItems || 0);
+    // From the rows in hand. The three counters below come from `countNodes()`,
+    // which answers with a floor when beCPG only offered its `count + 1` sentinel:
+    // `summary.exact` says which, and the tiles read "N+" rather than claim a total.
+    const rowsOnPage = Number.isFinite(pagination.count) ? pagination.count : items.length;
+    const from = rowsOnPage === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
+    const to = (pagination.page - 1) * pagination.pageSize + rowsOnPage;
+    const total = formatTotal(pagination, lang);
+    const countOf = (value) => formatTotal({ total: value, exact: summary.exact !== false }, lang);
+    const openCount = countOf(summary.open);
+    const blockingCount = countOf(summary.blocking);
 
     const stateOptions = useMemo(
         () => [
@@ -252,20 +268,20 @@ export default function MonitorQualityPage() {
             <StatGrid columns={4} className="mb-4">
                 <StatCard
                     label={labels.stats.open}
-                    value={summary.open || 0}
+                    value={openCount.text}
                     icon="report_problem"
                     tone={summary.open ? 'warn' : 'ok'}
                     loading={quality.loading}
                     index={0}
                     hint={
                         summary.total
-                            ? fill(labels.hints.total, { count: summary.total })
+                            ? fill(labels.hints.total, { count: countOf(summary.total).text })
                             : undefined
                     }
                 />
                 <StatCard
                     label={labels.stats.blocking}
-                    value={summary.blocking || 0}
+                    value={blockingCount.text}
                     icon="block"
                     tone={summary.blocking ? 'danger' : 'ok'}
                     loading={quality.loading}
@@ -388,11 +404,7 @@ export default function MonitorQualityPage() {
                 <p className="max-w-xl">{labels.note}</p>
                 <div className="flex items-center gap-2">
                     <span className="tabular-nums">
-                        {fill(labels.pageOf, {
-                            from: pagination.totalItems ? from : 0,
-                            to,
-                            total: pagination.totalItems || 0,
-                        })}
+                        {fill(labels.pageOf, { from, to, total: total.text })}
                     </span>
                     <select
                         aria-label={labels.rows}

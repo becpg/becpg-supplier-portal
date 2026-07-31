@@ -194,6 +194,27 @@ Alimente le panneau de conformité du wizard et la jauge de complétude du dashb
   > Et `page` est ici **1-based**, avec `page=0` qui **est un alias de `page=1`** — itérer
   > à partir de 0 relit la première fenêtre (mesuré : 100 doublons sur 400 lignes).
   >
+  > ⚠ **`pagination.totalItems` n'est pas un total.** `JsonEntityVisitor` y écrit
+  > `pagingResult.getTotalResultCount().getFirst()`, que `BeCPGQueryBuilder.search()`
+  > remplit avec `ResultSet.getNumberFound()`. Deux sens selon le chemin pris par
+  > `inDBIfPossible()` :
+  >
+  > | chemin | `hasMoreItems` | `totalItems` |
+  > |---|---|---|
+  > | db-afts (prédicat que la base sait traiter : `TYPE:`, égalité de propriété) | `true` | **`count + 1`** — sentinelle « il en reste au moins un », jamais un compte |
+  > | db-afts | `false` | le vrai total (la fenêtre tenait tout) |
+  > | index / SOLR (`ANCESTOR:`, plein texte…) | `true` ou `false` | `numFound`, le vrai total, constant d'une page à l'autre |
+  >
+  > Mesuré, un fournisseur, disjonction `TYPE:` : `maxResults=2 → count 2, totalItems 3` ;
+  > `maxResults=5 → count 5, totalItems 6` ; `maxResults=200 → count 173, totalItems 173,
+  > hasMoreItems false`. Et sur le chemin index, 79 matières premières sous un fournisseur :
+  > `totalItems 79` sur les pages 1…4 pendant que `count` valait 25/25/25/4.
+  >
+  > Un lecteur ne sait pas quel chemin a servi : le portail tranche donc sur les nombres
+  > eux-mêmes (`readListTotal()`, `lib/adapters/tasks.js`) et publie **un total exact ou
+  > pas de total** — `totalItems: null` + `totalAtLeast` (plancher prouvé). Lire
+  > `totalItems` comme un compte plafonne tout écran à `maxResults + 1`.
+  >
   > Conséquence si on l'ignore : tout filtre appliqué *en mémoire* après la requête
   > (`?entity=`, `?status=`) porte sur une fenêtre arbitraire. Sur ce dépôt, un produit
   > neuf portant huit exigences obligatoires non satisfaites répondait

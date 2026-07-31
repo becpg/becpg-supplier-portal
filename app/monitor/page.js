@@ -53,7 +53,7 @@ import {
     readMonitorFilters,
     useDebouncedValue,
 } from '@/components/monitor/MonitorFilters';
-import { formatDateTime } from '@/lib/format';
+import { formatDateTime, formatTotal } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
@@ -69,7 +69,7 @@ const LABELS = {
         openCampaigns: 'Campagnes',
         openQuality: 'Non-conformités',
         truncated:
-            'Parc plus large que la fenêtre d’analyse : {scanned} fournisseurs lus sur {total}. Les compteurs restent exacts, la répartition et le top 10 portent sur la fenêtre.',
+            'Parc plus large que la fenêtre d’analyse : {scanned} fournisseurs lus sur {total}. Les compteurs marqués « ≈ » sont plafonnés ; la répartition et le top 10 portent sur la fenêtre.',
     },
     en: {
         title: 'Supplier park monitoring',
@@ -82,7 +82,7 @@ const LABELS = {
         openCampaigns: 'Campaigns',
         openQuality: 'Non-conformities',
         truncated:
-            'Park larger than the scan window: {scanned} suppliers read out of {total}. Counters stay exact; the breakdown and the top 10 cover the window.',
+            'Park larger than the scan window: {scanned} suppliers read out of {total}. Counters marked “≈” are capped; the breakdown and the top 10 cover the window.',
     },
 };
 
@@ -199,7 +199,11 @@ function MonitorOverviewScreen() {
                     <Icon name="info" size={16} className="mt-0.5 shrink-0" />
                     {fill(local.truncated, {
                         scanned: data.park.scanned,
-                        total: data.park.total,
+                        // A floor when the counter could not reach the end of the park.
+                        total: formatTotal(
+                            { total: data.park.total, exact: data.park.exact !== false },
+                            lang,
+                        ).label,
                     })}
                 </p>
             ) : null}
