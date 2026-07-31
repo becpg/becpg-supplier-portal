@@ -43,7 +43,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Icon } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { formatDate } from '@/components/documents/ExpiryPill';
+import { formatDate, formatNumber } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 
 /**
@@ -491,9 +491,7 @@ export function NonConformityList({
                 meta: { label: labels.columns.cost, align: 'right', width: '8rem' },
                 cell: ({ row }) => (
                     <span className="tabular-nums text-xs">
-                        {row.original.cost === null || row.original.cost === undefined
-                            ? '—'
-                            : new Intl.NumberFormat(lang).format(row.original.cost)}
+                        {formatNumber(row.original.cost, lang)}
                     </span>
                 ),
             },

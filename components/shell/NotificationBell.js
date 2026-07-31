@@ -60,6 +60,7 @@ import {
 import { useSession } from '@/components/providers/SessionProvider';
 import { api } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { formatTime } from '@/lib/format';
 
 /** How often the endpoint is polled while the tab is visible. */
 export const POLL_INTERVAL_MS = 120000;
@@ -175,20 +176,6 @@ function writeSeen(ids) {
     catch {
         // ignored on purpose — see readSeen()
     }
-}
-
-function formatTime(iso, lang) {
-    if (!iso) {
-        return '';
-    }
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) {
-        return '';
-    }
-    return new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'fr-FR', {
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(date);
 }
 
 /** Fallback offset of the mobile sheet, used before anything can be measured. */
@@ -521,9 +508,24 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
             >
                 <Icon name={badge > 0 ? 'notifications_active' : 'notifications_none'} size={20} />
                 {badge > 0 ? (
+                    /*
+                     * `--becpg-orange-deep`, not `--becpg-orange`: this chip
+                     * carries a 10px *number*, so 1.4.3 asks 4.5:1, and white on
+                     * the brand orange measures **2.95:1** — the count was below
+                     * AA. The deep shade is the same hue on the same axis and
+                     * measures **4.83:1**. `Button` made exactly this swap for
+                     * its `accent` variant, for exactly this reason.
+                     *
+                     * The white ring is the chip's own boundary: the badge is
+                     * drawn on the blue toolbar, where orange-deep against
+                     * `--becpg-blue` is only 2.28:1. White is 11.01:1 on the
+                     * toolbar and 4.83:1 on the chip, so the outline separates
+                     * it from both. On the light fallback surface the ring
+                     * disappears and the chip's own 4.83:1 carries it.
+                     */
                     <span
                         aria-hidden="true"
-                        className="absolute right-0.5 top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--becpg-orange)] px-1 text-[10px] font-medium text-white"
+                        className="absolute right-0.5 top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--becpg-orange-deep)] px-1 text-[10px] font-medium text-white ring-2 ring-white"
                     >
                         {badge > 99 ? '99+' : badge}
                     </span>
@@ -552,18 +554,26 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                             // Mobile first: a sheet pinned under the header, edge to
                             // edge. Above sm it becomes a dropdown anchored on the bell.
                             'fixed left-2 right-2 top-[var(--sheet-top)] z-[60] flex max-h-[70dvh] flex-col overflow-hidden',
-                            'rounded-xl border border-[var(--becpg-grey)] bg-white shadow-xl',
+                            // `.becpg-popover` (globals.css) is what makes this a
+                            // surface instead of a white rectangle on a white page:
+                            // its own dark foreground — the panel is a DOM child of
+                            // `.becpg-toolbar` and inherited its WHITE text, so the
+                            // title and every notification title were 1.00:1 — a
+                            // 4.67:1 border, and the theme's overlay shadow.
+                            'becpg-popover rounded-xl',
                             'sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-1 sm:w-[22rem] sm:max-h-[32rem]',
                         ].join(' ')}
                     >
-                        <div className="flex items-center gap-2 border-b border-[var(--becpg-grey)] px-3 py-2">
+                        <div className="becpg-popover-band flex items-center gap-2 border-b border-[var(--becpg-overlay-border)] px-3 py-2">
                             <Icon name="notifications" size={18} className="text-[var(--becpg-blue)]" />
-                            <h2 className="min-w-0 flex-1 truncate text-sm font-medium">{local.panel}</h2>
+                            <h2 className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--becpg-blue)]">
+                                {local.panel}
+                            </h2>
                             {newCount > 0 ? (
                                 <button
                                     type="button"
                                     onClick={markSeen}
-                                    className="rounded-lg px-2 py-1 text-xs text-[var(--becpg-blue)] hover:bg-[var(--becpg-grey)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                                    className="rounded-lg border border-[var(--becpg-overlay-border)] bg-[var(--background)] px-2 py-1 text-xs text-[var(--becpg-blue)] hover:bg-[var(--becpg-blue-lighter)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
                                 >
                                     {local.markRead}
                                 </button>
@@ -574,7 +584,7 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                                 aria-label={local.refresh}
                                 title={local.refresh}
                                 disabled={busy}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] disabled:opacity-50"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--becpg-dark-grey-deep)] hover:bg-[var(--background)] hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] disabled:opacity-50"
                             >
                                 <Icon name="refresh" size={18} className={busy ? 'animate-spin' : ''} />
                             </button>
@@ -582,7 +592,7 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                                 type="button"
                                 onClick={() => close()}
                                 aria-label={local.close}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] sm:hidden"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--becpg-dark-grey-deep)] hover:bg-[var(--background)] hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] sm:hidden"
                             >
                                 <Icon name="close" size={18} />
                             </button>
@@ -602,7 +612,13 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                                     message={words.emptyHint}
                                 />
                             ) : (
-                                <ul className="flex flex-col">
+                                /* `.becpg-popover-list` draws the hairline between
+                                   rows — without it twenty notifications are one
+                                   undifferentiated white block inside a white
+                                   panel, which is the second half of "blanc sur
+                                   blanc". Share separates datagrid rows the same
+                                   way, and with nothing else. */
+                                <ul className="becpg-popover-list flex flex-col">
                                     {items.map((item) => (
                                         <li key={item.id}>
                                             <NotificationRow
@@ -621,7 +637,7 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                             )}
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[var(--becpg-grey)] px-3 py-2 text-xs text-[var(--becpg-dark-grey)]">
+                        <div className="becpg-popover-band flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[var(--becpg-overlay-border)] px-3 py-2 text-xs text-[var(--becpg-dark-grey-deep)]">
                             {hidden > 0 ? (
                                 <span className="basis-full">{fill(local.more, { count: hidden })}</span>
                             ) : null}

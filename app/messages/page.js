@@ -21,7 +21,8 @@
  * to a task (spec §4.4). It is shown as a chip on the message.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { AppShell } from '@/components/shell/AppShell';
 import { Button, Icon, Spinner } from '@/components/ui/Button';
@@ -31,7 +32,7 @@ import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonList } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useSession } from '@/components/providers/SessionProvider';
-import { formatDateTime } from '@/components/documents/ExpiryPill';
+import { formatDateTime } from '@/lib/format';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
@@ -57,7 +58,14 @@ const LABELS = {
         edited: 'modifié',
         you: 'Vous',
         openSubject: 'Ouvrir la fiche',
+        thread: 'Discussion',
         tooLong: 'Message trop long (20 000 caractères maximum).',
+        denyReasons: {
+            noAssignedTask:
+                'Le référencement est clos : cette discussion est en lecture seule.',
+            readAccess: 'Vous n’avez qu’un accès en lecture sur cette fiche.',
+            noPermission: 'Vous n’avez pas les droits pour écrire dans cette discussion.',
+        },
     },
     en: {
         title: 'Discussions',
@@ -80,20 +88,18 @@ const LABELS = {
         edited: 'edited',
         you: 'You',
         openSubject: 'Open the sheet',
+        thread: 'Discussion',
         tooLong: 'Message too long (20,000 characters maximum).',
+        denyReasons: {
+            noAssignedTask: 'The referencing is closed: this discussion is read-only.',
+            readAccess: 'You only have read access on this sheet.',
+            noPermission: 'You are not allowed to write in this discussion.',
+        },
     },
 };
 
 /** Same ceiling as the route handler, checked here so the user is told before sending. */
 const MAX_LENGTH = 20000;
-
-/** Reads `?nodeRef=` once, on the client. Avoids `useSearchParams` and its Suspense boundary. */
-function initialNodeRef() {
-    if (typeof window === 'undefined') {
-        return null;
-    }
-    return new URLSearchParams(window.location.search).get('nodeRef');
-}
 
 /** Initials of a display name, for the message avatar. */
 function initials(name) {
@@ -162,13 +168,48 @@ function Message({ message, mine, labels, lang, index }) {
     );
 }
 
-export default function MessagesPage() {
+/**
+ * The screen itself. Split out of the default export so `useSearchParams` sits
+ * under a `<Suspense>` boundary — the convention every other query-reading
+ * screen of this portal follows (`/tasks`, `/monitor/suppliers`, `/products/[id]`).
+ *
+ * @returns {JSX.Element}
+ */
+function MessagesScreen() {
     const { lang } = useMessages();
     const labels = LABELS[lang] || LABELS.fr;
     const session = useSession();
     const toast = useToast();
+    const searchParams = useSearchParams();
 
-    const [selected, setSelected] = useState(initialNodeRef);
+    /*
+     * `?nodeRef=` is the deep link — the dashboard's "Mes discussions" rows and
+     * the notification mails both point here — and it is read through
+     * `useSearchParams()` **because that is the only reader the App Router keeps
+     * in sync**.
+     *
+     * It used to be read once, from `window.location.search`, in the `useState`
+     * initialiser. That failed in exactly the way defect F5 describes: arriving
+     * from the dashboard is a client-side transition, the component mounts
+     * before the new query string is on `window.location`, the initialiser
+     * therefore reads `null` — and nothing ever reads it again. The URL showed
+     * the discussion and the panel showed "choose a subject". (Reloading that
+     * same URL worked, which is what made the bug look like nothing at all.)
+     * It also branched on `typeof window` during render, so every hard load of a
+     * deep link logged a hydration mismatch.
+     *
+     * The URL is re-read during render when it changes, the same "adjust state
+     * on prop change" shape `useApi` and `/tasks` use, rather than in an effect
+     * that would paint the wrong pane first.
+     */
+    const urlNodeRef = searchParams.get('nodeRef') || null;
+    const [selected, setSelected] = useState(urlNodeRef);
+    const [urlKey, setUrlKey] = useState(urlNodeRef);
+    if (urlKey !== urlNodeRef) {
+        setUrlKey(urlNodeRef);
+        setSelected(urlNodeRef);
+    }
+
     const [query, setQuery] = useState('');
     const [draft, setDraft] = useState('');
     const [sending, setSending] = useState(false);
@@ -252,6 +293,19 @@ export default function MessagesPage() {
         window.history.replaceState(null, '', url.toString());
     }, []);
 
+    /**
+     * May the signed-in user write on the selected thread?
+     *
+     * Answered by the API (`canPost`), never guessed here: the right to comment on an entity
+     * is beCPG's, and it lasts exactly as long as the supplier holds an assigned task on it
+     * (`SupplierSecurityPlugin`). Unknown until the thread has loaded, so the composer
+     * appears once — it is never shown and then taken back (defect F6).
+     */
+    const canPost = Boolean(thread.data && thread.data.canPost !== false);
+    const denyReason = thread.data && thread.data.canPost === false
+        ? (thread.data.postDenyReason || 'noPermission')
+        : null;
+
     const send = useCallback(async () => {
         const content = draft.trim();
         if (!content || !selected) {
@@ -269,13 +323,19 @@ export default function MessagesPage() {
         }
         catch (error) {
             toast.error(error);
+            // Refused after all — the referencing closed while the message was being typed.
+            // Re-read the thread so the composer goes away with an explanation, instead of
+            // leaving a Send button that will keep failing.
+            if (error && error.status === 403) {
+                thread.refresh();
+            }
         }
         finally {
             setSending(false);
         }
     }, [draft, selected, thread, toast, labels.tooLong]);
 
-    const canSend = Boolean(selected) && draft.trim().length > 0 && !sending;
+    const canSend = canPost && Boolean(selected) && draft.trim().length > 0 && !sending;
 
     /* ------------------------------------------------------------- subjects */
     const subjectList = (
@@ -351,7 +411,12 @@ export default function MessagesPage() {
                     {labels.back}
                 </Button>
                 <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{activeSubject ? activeSubject.name : '—'}</p>
+                    {/* The subject list is capped, and a deep link may name a node that is
+                        not in it (an older product, a discussion opened from a mail). The
+                        thread is still readable, so name it rather than showing a dash. */}
+                    <p className="truncate text-sm font-medium">
+                        {activeSubject ? activeSubject.name : labels.thread}
+                    </p>
                     {activeSubject && activeSubject.code ? (
                         <p className="truncate text-xs text-[var(--becpg-dark-grey)]">{activeSubject.code}</p>
                     ) : null}
@@ -378,7 +443,9 @@ export default function MessagesPage() {
                         variant="empty"
                         icon="chat_bubble_outline"
                         title={labels.empty}
-                        message={labels.emptyHint}
+                        // "Start the discussion" is an invitation; do not extend it to a
+                        // thread the user cannot write on — the reason is shown below instead.
+                        message={canPost ? labels.emptyHint : undefined}
                         compact
                     />
                 ) : (
@@ -400,6 +467,17 @@ export default function MessagesPage() {
                 )}
             </div>
 
+            {/* No right to write ⇒ no composer and no Send button at all, plus the reason.
+                A disabled Send would still promise an action beCPG will refuse, and hiding
+                it silently would leave the supplier wondering where it went. */}
+            {!canPost ? (
+                denyReason ? (
+                    <p className="mt-2 flex items-start gap-1.5 border-t border-[var(--becpg-grey)] pt-2 text-xs text-[var(--becpg-dark-grey)]">
+                        <Icon name="lock" size={14} className="mt-px shrink-0" />
+                        <span>{labels.denyReasons[denyReason] || labels.denyReasons.noPermission}</span>
+                    </p>
+                ) : null
+            ) : (
             <div className="mt-2 border-t border-[var(--becpg-grey)] pt-2">
                 <Textarea
                     rows={2}
@@ -440,6 +518,7 @@ export default function MessagesPage() {
                     </Button>
                 </div>
             </div>
+            )}
         </Card>
     );
 
@@ -467,5 +546,22 @@ export default function MessagesPage() {
                 </div>
             </div>
         </AppShell>
+    );
+}
+
+/**
+ * @returns {JSX.Element}
+ */
+export default function MessagesPage() {
+    return (
+        <Suspense
+            fallback={
+                <AppShell>
+                    <SkeletonList rows={6} />
+                </AppShell>
+            }
+        >
+            <MessagesScreen />
+        </Suspense>
     );
 }

@@ -31,7 +31,7 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { Select, Textarea } from '@/components/ui/Field';
 import { SkeletonList } from '@/components/ui/Skeleton';
-import { formatDateTime } from '@/components/documents/ExpiryPill';
+import { formatDateTime } from '@/lib/format';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
@@ -53,6 +53,12 @@ const LABELS = {
         readOnly: 'La discussion est en lecture seule.',
         posting: 'Envoi…',
         count: '{count} message(s)',
+        denyReasons: {
+            noAssignedTask:
+                'Le référencement est clos : cette discussion est en lecture seule.',
+            readAccess: 'Vous n’avez qu’un accès en lecture sur cette fiche.',
+            noPermission: 'Vous n’avez pas les droits pour écrire dans cette discussion.',
+        },
     },
     en: {
         title: 'Discussion',
@@ -71,6 +77,11 @@ const LABELS = {
         readOnly: 'The discussion is read-only.',
         posting: 'Sending…',
         count: '{count} message(s)',
+        denyReasons: {
+            noAssignedTask: 'The referencing is closed: this discussion is read-only.',
+            readAccess: 'You only have read access on this sheet.',
+            noPermission: 'You are not allowed to write in this discussion.',
+        },
     },
 };
 
@@ -84,12 +95,18 @@ function fill(template, vars) {
  * One discussion thread — the messages of a node, the per-field counts, and the
  * write.
  *
+ * `canPost` / `denyReason` are **read from the payload, never derived here**: the API asks
+ * the repository whether this user may add a post on this very node (defect F6). Until the
+ * thread has answered, `canPost` is false — a composer that appears once the right is known
+ * is honest, one that appears and then has to be taken away is not.
+ *
  * @param {Object} options
  * @param {string|null} options.nodeRef the node the thread hangs on
  * @param {boolean} [options.enabled=true]
  * @param {number} [options.pageSize=100]
  * @returns {{nodeRef: string|null, messages: Object[], total: number, counts: Object,
  *            countFor: Function, loading: boolean, error: Error|null, posting: boolean,
+ *            canPost: boolean, denyReason: string|null,
  *            refresh: Function, post: Function}}
  *
  * @example
@@ -139,12 +156,28 @@ export function useDiscussion({ nodeRef, enabled = true, pageSize = 100 } = {}) 
                 }
                 return result;
             }
+            catch (error) {
+                // A 403 here means the right went away between the read and the write — the
+                // task was completed in another tab, the client closed the referencing.
+                // Re-read the thread so the composer disappears instead of inviting a second
+                // attempt that will fail the same way.
+                if (error && error.status === 403 && target === nodeRef) {
+                    thread.refresh();
+                }
+                throw error;
+            }
             finally {
                 setPosting(false);
             }
         },
         [nodeRef, thread],
     );
+
+    // The server decides; `null` data (loading, disabled, in error) means "not yet allowed".
+    const canPost = Boolean(thread.data && thread.data.canPost !== false);
+    const denyReason = thread.data && thread.data.canPost === false
+        ? (thread.data.postDenyReason || 'noPermission')
+        : null;
 
     return {
         nodeRef: nodeRef || null,
@@ -155,6 +188,8 @@ export function useDiscussion({ nodeRef, enabled = true, pageSize = 100 } = {}) 
         loading: thread.loading,
         error: thread.error,
         posting,
+        canPost,
+        denyReason,
         refresh: thread.refresh,
         post,
     };
@@ -200,7 +235,9 @@ function MessageItem({ message, index, lang, labels }) {
  * @param {{nodeRef: string|null, field: string|null, label: string|null}} [props.anchor]
  * @param {Function} [props.onAnchorChange] `(anchor|null) => void`
  * @param {Array<{nodeRef: string, label: string}>} [props.targets] rows that can be discussed
- * @param {boolean} [props.readOnly] the wizard is read-only: read the thread, do not write
+ * @param {boolean} [props.readOnly] the wizard is read-only: read the thread, do not write.
+ *   The thread's own `canPost` is applied on top of it, so a writable wizard still hides the
+ *   composer on a node the repository refuses.
  * @param {React.ReactNode} [props.title]
  * @param {'panel'|'sheet'} [props.variant='panel']
  * @param {string} [props.className]
@@ -333,8 +370,21 @@ export function CommentsPanel({
                 </ul>
             )}
 
-            {readOnly ? (
-                <p className="text-xs text-[var(--becpg-dark-grey)]">{labels.readOnly}</p>
+            {/* The composer is ABSENT, not disabled, when the user may not post: a greyed
+                Send button still says "you should be able to do this", and the reason is
+                what the user actually needs. `thread.canPost` is the server's verdict on
+                THIS thread — switching the anchor to a row re-asks it (defect F6). */}
+            {readOnly || !thread.canPost ? (
+                // Nothing at all while the verdict is still unknown (thread loading): a
+                // "read-only" sentence that shows for half a second and then turns into a
+                // composer is worse than no sentence.
+                thread.denyReason || readOnly ? (
+                    <p className="text-xs text-[var(--becpg-dark-grey)]">
+                        {thread.denyReason
+                            ? (labels.denyReasons[thread.denyReason] || labels.denyReasons.noPermission)
+                            : labels.readOnly}
+                    </p>
+                ) : null
             ) : (
                 <div className="flex flex-col gap-2">
                     <Textarea

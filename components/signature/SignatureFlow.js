@@ -22,13 +22,15 @@
  *   3. **collects consent** — a mark plus an explicit checkbox;
  *   4. **posts once**, and copes with the fact that a phone on 3G loses answers.
  *
- * ## The single POST, and why it is `tasks/{id}/complete`
+ * ## The single POST, and where it goes
  *
- * Signing *is* completing the signature task: `sign-document.js` is the task's
- * post-deliverable script. There is no separate "sign" webscript to proxy, and
- * inventing one in the portal would move business logic out of beCPG (rule R2,
- * spec §6.2). So the consent payload rides on the completion, and `submitPath`
- * lets an installation point it elsewhere without touching this component.
+ * `POST /api/v1/signature/{taskId}`, once, carrying the consent. That route is
+ * a thin thing: signing *is* completing the signature task, because
+ * `sign-document.js` is that task's post-deliverable script, so it proxies
+ * `becpg/project/complete/task` and lets beCPG run `bSign.signDocument()`.
+ * Inventing a signing endpoint in the portal would move business logic out of
+ * beCPG (rule R2, spec §6.2). `submitPath` lets an installation point the POST
+ * elsewhere without touching this component.
  *
  * ## The three production failures this handles
  *
@@ -43,37 +45,21 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { api, apiUrl, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { AppShell } from '@/components/shell/AppShell';
 import { Card } from '@/components/ui/Card';
-import { Button, Icon, Spinner } from '@/components/ui/Button';
+import { Button, Icon } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Field';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useSession } from '@/components/providers/SessionProvider';
 import { SignaturePad } from '@/components/signature/SignaturePad';
-import { normalizeZones, zonePages, SignatureZones, ZoneLegend } from '@/components/signature/SignatureZones';
-import { useReadTracking } from '@/components/signature/useReadTracking';
-
-/**
- * pdf.js has no business running on the server: it is a browser renderer, it
- * touches `DOMMatrix` and `canvas`, and there is nothing meaningful to
- * pre-render. Loading it client-side also keeps it out of the first JS payload
- * of every other screen.
- */
-const PdfViewer = dynamic(() => import('@/components/signature/PdfViewer').then((module) => module.PdfViewer), {
-    ssr: false,
-    loading: () => (
-        <div className="flex items-center justify-center gap-2 rounded-xl border border-[var(--becpg-grey)] bg-white py-20 text-sm text-[var(--becpg-dark-grey)]">
-            <Spinner size={18} />
-        </div>
-    ),
-});
+import { SignatureDocument, readStorageKey, uuidOf } from '@/components/signature/SignatureDocument';
+import { clearReadProgress } from '@/components/signature/useReadTracking';
 
 /** Where the idempotency key of a submission lives, per task. */
 const REQUEST_KEY_PREFIX = 'becpg-portal:sign-request:';
@@ -102,8 +88,9 @@ const LABELS = {
         progressDone: 'Document consulté en entier',
         progressHint: 'Le bouton de signature s’active une fois toutes les pages consultées.',
         goToPage: 'Reprendre page {page}',
+        goToDocumentPage: 'Reprendre doc. {document}, page {page}',
+        documentCount: '{count} documents à signer',
         toSignature: 'Aller à la signature',
-        zonesHint: 'Les cadres indiquent où votre signature et vos paraphes seront apposés.',
         signTitle: 'Votre signature',
         consent:
             'J’ai lu l’intégralité du document et j’accepte de le signer électroniquement. Je reconnais à cette signature la même valeur qu’une signature manuscrite.',
@@ -121,6 +108,10 @@ const LABELS = {
         signedTitle: 'Ce document est déjà signé',
         signedBody:
             'La signature a déjà été enregistrée pour cette tâche. Il n’y a rien à refaire — vous pouvez télécharger le document.',
+        // Same card, without the promise of a download, when beCPG no longer serves
+        // the document (working copy remplacée à la signature, ou accès retiré).
+        signedBodyNoCopy:
+            'La signature a déjà été enregistrée pour cette tâche. Il n’y a rien à refaire. Le document n’est plus accessible depuis le portail ; demandez-en une copie à votre client si nécessaire.',
         cancelledTitle: 'Signature annulée',
         cancelledBody:
             'Cette demande de signature a été annulée par votre client. Aucune action n’est attendue de votre part.',
@@ -150,8 +141,9 @@ const LABELS = {
         progressDone: 'Whole document read',
         progressHint: 'The sign button unlocks once every page has been seen.',
         goToPage: 'Resume on page {page}',
+        goToDocumentPage: 'Resume on doc. {document}, page {page}',
+        documentCount: '{count} documents to sign',
         toSignature: 'Go to the signature',
-        zonesHint: 'The frames show where your signature and initials will be applied.',
         signTitle: 'Your signature',
         consent:
             'I have read the whole document and I agree to sign it electronically. I acknowledge this signature has the same value as a handwritten one.',
@@ -169,6 +161,8 @@ const LABELS = {
         signedTitle: 'This document is already signed',
         signedBody:
             'A signature has already been recorded for this task. Nothing to redo — you can download the document.',
+        signedBodyNoCopy:
+            'A signature has already been recorded for this task. Nothing to redo. The document is no longer reachable from the portal; ask your customer for a copy if you need one.',
         cancelledTitle: 'Signature cancelled',
         cancelledBody: 'This signature request was cancelled by your customer. No action is expected from you.',
         closedTitle: 'Task already handled',
@@ -198,39 +192,47 @@ function fill(template, vars) {
     );
 }
 
-/** The uuid part of a nodeRef — what the portal puts in its own URLs. */
-function uuidOf(nodeRef) {
-    const value = String(nodeRef || '').trim();
-    if (!value) {
-        return null;
-    }
-    const slash = value.lastIndexOf('/');
-    return slash === -1 ? value : value.slice(slash + 1);
-}
-
 /**
- * The document to render: what `/signature/{taskId}` returned, or — when that
- * route is unavailable — the first content of the task's own deliverables. The
- * task payload is already loaded by the router, so the fallback costs nothing.
+ * Every document this task will sign — because completing it signs **all** its
+ * prepared deliverables, not just the first (`sign-document.js` is a
+ * post-deliverable script). When the signature route is unavailable, falls back
+ * to the contents of the task the router already loaded, so the screen still
+ * shows something rather than an error.
  *
  * @param {Object|null} view `/api/v1/signature/{taskId}` payload
  * @param {Object|null} task the task from `/api/v1/tasks/{id}`
- * @returns {{nodeRef: string, name: string}|null}
+ * @returns {Array<{nodeRef: string, name: string}>}
  */
-export function resolveDocument(view, task) {
-    const fromView = view && view.document ? view.document : null;
-    if (fromView && fromView.nodeRef) {
+export function resolveDocuments(view, task) {
+    const fromView = view && Array.isArray(view.documents) ? view.documents.filter((entry) => entry && entry.nodeRef) : [];
+    if (fromView.length) {
         return fromView;
+    }
+    // Payload predating `documents` — one scalar document.
+    if (view && view.document && view.document.nodeRef) {
+        return [view.document];
     }
     const deliverables = (task && Array.isArray(task.deliverables) ? task.deliverables : [])
         .filter((deliverable) => deliverable && Array.isArray(deliverable.contents));
+    const fallback = [];
     for (const deliverable of deliverables) {
         const content = deliverable.contents.find((entry) => entry && entry.nodeRef);
         if (content) {
-            return content;
+            fallback.push(content);
         }
     }
-    return null;
+    return fallback;
+}
+
+/**
+ * The primary document — the one named in the header and offered for download.
+ *
+ * @param {Object|null} view
+ * @param {Object|null} task
+ * @returns {{nodeRef: string, name: string}|null}
+ */
+export function resolveDocument(view, task) {
+    return resolveDocuments(view, task)[0] || null;
 }
 
 /**
@@ -242,6 +244,14 @@ export function resolveDocument(view, task) {
  * @returns {string} one of OUTCOME
  */
 export function resolveOutcome(view, task) {
+    // The route already decided, from `sign:status` + the deliverable + the
+    // task, in that order of authority. Everything below is the fallback for a
+    // payload that predates it (or for the task-only path).
+    const decided = String((view && view.outcome) || '').toLowerCase();
+    if (Object.values(OUTCOME).includes(decided)) {
+        return decided;
+    }
+
     const signature = (view && view.signature) || null;
     const document = (view && view.document) || null;
     const state = String((signature && signature.state) || '').toLowerCase();
@@ -327,7 +337,9 @@ function OutcomeCard({ icon, tone, title, body, actions }) {
             >
                 <Icon name={icon} size={26} />
             </span>
-            <h2 className="text-lg font-medium text-[var(--becpg-blue)]">{title}</h2>
+            {/* `text-center` is repeated here on purpose: the Card lays its
+                children out in a flow that resets the inherited alignment. */}
+            <h2 className="text-center text-lg font-medium text-[var(--becpg-blue)]">{title}</h2>
             <p className="mx-auto mt-2 max-w-lg text-sm text-[var(--becpg-dark-grey)]">{body}</p>
             {actions ? <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row">{actions}</div> : null}
         </Card>
@@ -364,56 +376,100 @@ export function SignatureFlow({
     const reduceMotion = useReducedMotion();
 
     const view = useApi(taskId ? `signature/${encodeURIComponent(taskId)}` : null);
+    // Aliased so the submit callback can depend on the two things it really
+    // uses rather than on the whole hook object, which changes on every poll.
+    const viewData = view.data;
+    const refreshView = view.refresh;
 
-    const [numPages, setNumPages] = useState(0);
     const [signature, setSignature] = useState({ kind: 'drawn', text: '', dataUrl: null, empty: true });
     const [consent, setConsent] = useState(false);
     const [status, setStatus] = useState('idle');
     const [failure, setFailure] = useState(null);
     const [headerOffset, setHeaderOffset] = useState(56);
+    /** index → `{ pageCount, seenCount, complete, firstUnseen }`, one per document. */
+    const [progressByDocument, setProgressByDocument] = useState({});
 
-    const viewerControls = useRef(null);
+    const viewerControls = useRef(new Map());
     const signPanel = useRef(null);
 
     /* ------------------------------------------------------------ resolution */
 
-    const document_ = useMemo(() => resolveDocument(view.data, task), [view.data, task]);
+    const documents = useMemo(() => resolveDocuments(view.data, task), [view.data, task]);
+    const document_ = documents[0] || null;
     const outcome = useMemo(() => resolveOutcome(view.data, task), [view.data, task]);
     const external = view.data && view.data.signature && view.data.signature.external
         ? view.data.signature
         : null;
 
     const documentUuid = document_ ? uuidOf(document_.nodeRef) : null;
-    // Always the portal proxy — never `document.contentUrl` if it ever pointed
-    // anywhere else, and never an Alfresco URL (AGENTS.md rule 6).
-    const contentUrl = useMemo(
-        () => (documentUuid ? apiUrl(`documents/${encodeURIComponent(documentUuid)}/content`) : null),
-        [documentUuid],
-    );
-    const downloadUrl = useMemo(
-        () => (documentUuid ? apiUrl(`documents/${encodeURIComponent(documentUuid)}/content`, { download: 1 }) : null),
-        [documentUuid],
-    );
+    const taskUuid = uuidOf(taskId);
 
-    // Coordinates are the signature service's, not ours. Absent → no overlay.
-    const zones = useMemo(() => {
-        const payload = view.data || {};
-        return normalizeZones(
-            (payload.signature && (payload.signature.zones || payload.signature.positions)) ||
-                payload.zones ||
-                (payload.document && payload.document.zones) ||
-                null,
-        );
-    }, [view.data]);
-    const markedPages = useMemo(() => zonePages(zones), [zones]);
+    // The primary document's download link, for the terminal cards. The viewers
+    // build their own (see `SignatureDocument`); this one has to exist even when
+    // no viewer is mounted, which is exactly the "already signed" case.
+    //
+    // …and exactly the case where it used to lie. Once a signature task is
+    // completed, beCPG's check-in deletes the working copy the deliverable's
+    // `pjt:dlUrl` still names, so "Télécharger le document signé" pointed at a
+    // node the repository no longer has — the reported 404 (defect F4). The
+    // route now says so with `available: false`, and the button disappears
+    // rather than leading to an error page.
+    const downloadUrl = useMemo(
+        () => (documentUuid && !(document_ && document_.available === false)
+            ? apiUrl(`documents/${encodeURIComponent(documentUuid)}/content`, {
+                ...(taskUuid ? { task: taskUuid } : {}),
+                download: 1,
+            })
+            : null),
+        [documentUuid, taskUuid, document_],
+    );
 
     /* -------------------------------------------------------- read tracking */
 
-    const reading = useReadTracking({
-        pageCount: numPages,
-        storageKey: documentUuid ? `${taskId}:${documentUuid}` : null,
-        enabled: outcome === OUTCOME.OPEN && status !== 'done',
-    });
+    const trackingEnabled = outcome === OUTCOME.OPEN && status !== 'done';
+
+    const handleProgress = useCallback((index, value) => {
+        setProgressByDocument((previous) => {
+            const known = previous[index];
+            if (known
+                && known.pageCount === value.pageCount
+                && known.seenCount === value.seenCount
+                && known.complete === value.complete
+                && known.firstUnseen === value.firstUnseen) {
+                return previous;
+            }
+            return { ...previous, [index]: value };
+        });
+    }, []);
+
+    const handleControls = useCallback((index, controls) => {
+        viewerControls.current.set(index, controls);
+    }, []);
+
+    /**
+     * The gate, summed over **every** document the completion will sign.
+     *
+     * `complete` deliberately requires each document to have reported a page
+     * count: a viewer that has not finished loading reports `pageCount: 0`, and
+     * `0 seen of 0` must never read as "read in full".
+     */
+    const reading = useMemo(() => {
+        const entries = documents.map((unused, index) =>
+            progressByDocument[index] || { pageCount: 0, seenCount: 0, complete: false, firstUnseen: null });
+        const pageCount = entries.reduce((total, entry) => total + (entry.pageCount || 0), 0);
+        const seenCount = entries.reduce((total, entry) => total + (entry.seenCount || 0), 0);
+        const loaded = entries.length > 0 && entries.every((entry) => entry.pageCount > 0);
+        const firstIndex = entries.findIndex((entry) => !entry.complete);
+        return {
+            pageCount,
+            seenCount,
+            documentCount: documents.length,
+            complete: loaded && firstIndex === -1,
+            progress: pageCount > 0 ? seenCount / pageCount : 0,
+            firstIndex: firstIndex === -1 ? null : firstIndex,
+            firstUnseen: firstIndex === -1 ? null : entries[firstIndex].firstUnseen,
+        };
+    }, [documents, progressByDocument]);
 
     /* ------------------------------------------------------------- geometry */
 
@@ -432,7 +488,7 @@ export function SignatureFlow({
     /* ------------------------------------------------------------ submitting */
 
     const requestId = useMemo(() => (taskId ? requestIdFor(taskId) : null), [taskId]);
-    const path = submitPath || `tasks/${encodeURIComponent(taskId || '')}/complete`;
+    const path = submitPath || `signature/${encodeURIComponent(taskId || '')}`;
 
     const blocked = !reading.complete
         ? labels.blockedRead
@@ -452,7 +508,9 @@ export function SignatureFlow({
      */
     const confirmSigned = useCallback(async () => {
         try {
-            const fresh = await api.get(`signature/${encodeURIComponent(taskId)}`, { silent401: true, timeout: 15000 });
+            // `zones=0`: this probe must not make the server re-download and
+            // re-parse the PDF just to answer "is it signed yet".
+            const fresh = await api.get(`signature/${encodeURIComponent(taskId)}?zones=0`, { silent401: true, timeout: 15000 });
             const state = resolveOutcome(fresh, null);
             if (state === OUTCOME.SIGNED || state === OUTCOME.CLOSED) {
                 return true;
@@ -476,13 +534,20 @@ export function SignatureFlow({
             setStatus('done');
             setFailure(null);
             clearRequestId(taskId);
-            reading.clearStored();
+            // Every document's attestation, not just the first: a stale one
+            // would pre-tick the gate on a later, different signature.
+            documents.forEach((entry) => {
+                const key = readStorageKey(taskId, entry.nodeRef);
+                if (key) {
+                    clearReadProgress(key);
+                }
+            });
             toast.success(labels.successTitle);
             if (onSigned) {
                 onSigned(result);
             }
         },
-        [taskId, reading, toast, labels.successTitle, onSigned],
+        [taskId, documents, toast, labels.successTitle, onSigned],
     );
 
     const submit = useCallback(async () => {
@@ -497,7 +562,7 @@ export function SignatureFlow({
             taskId,
             entityNodeRef,
             documentNodeRef: document_ ? document_.nodeRef : null,
-            deliverableNodeRef: (view.data && view.data.signature && view.data.signature.deliverableNodeRef) || null,
+            deliverableNodeRef: (viewData && viewData.signature && viewData.signature.deliverableNodeRef) || null,
             signature: {
                 kind: signature.kind,
                 name: signature.text || null,
@@ -511,6 +576,7 @@ export function SignatureFlow({
             reading: {
                 pages: reading.pageCount,
                 seenPages: reading.seenCount,
+                documents: reading.documentCount,
                 complete: reading.complete,
             },
         };
@@ -520,6 +586,14 @@ export function SignatureFlow({
                 timeout: SUBMIT_TIMEOUT,
                 headers: { 'X-Portal-Request-Id': requestId },
             });
+            // The route answers 200 for "signed" *and* for "was already signed"
+            // — a retry whose first attempt landed. Both are a success for the
+            // supplier, and neither signs twice.
+            if (result && result.signed === false) {
+                setStatus('error');
+                setFailure(new Error(labels.failed));
+                return;
+            }
             succeed(result);
         }
         catch (error) {
@@ -529,6 +603,16 @@ export function SignatureFlow({
             const ambiguous = error.isNetwork || error.code === 'timeout' || error.status >= 500;
             if (ambiguous && (await confirmSigned())) {
                 succeed(null);
+                return;
+            }
+            // 409 = the request was cancelled server-side while this tab was
+            // open. Retrying is pointless and offering it is a lie: re-read and
+            // let the terminal card say so.
+            if (error.status === 409) {
+                setStatus('idle');
+                setFailure(null);
+                refreshView();
+                toast.error(error);
                 return;
             }
             setStatus('error');
@@ -544,10 +628,12 @@ export function SignatureFlow({
         taskId,
         entityNodeRef,
         document_,
-        view.data,
+        viewData,
+        refreshView,
         signature,
         consentText,
         labels.consent,
+        labels.failed,
         reading,
         path,
         succeed,
@@ -570,36 +656,24 @@ export function SignatureFlow({
         return () => window.removeEventListener('beforeunload', guard);
     }, [status, labels.leaving]);
 
-    const handleDocumentLoad = useCallback(({ numPages: pages }) => setNumPages(pages), []);
-
-    const handleViewerReady = useCallback((controls) => {
-        viewerControls.current = controls;
-    }, []);
-
-    const goToPage = useCallback((page) => {
-        if (viewerControls.current) {
-            viewerControls.current.goToPage(page);
-        }
-    }, []);
-
     const scrollToSignature = useCallback(() => {
         if (signPanel.current) {
             signPanel.current.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
         }
     }, [reduceMotion]);
 
+    // "Resume on page N" of the **first document that is not finished** — the
+    // page number alone is meaningless once there are two documents.
     const goToFirstUnseen = useCallback(() => {
-        if (reading.firstUnseen) {
-            goToPage(reading.firstUnseen);
+        const index = reading.firstIndex;
+        if (index === null) {
+            return;
         }
-    }, [reading.firstUnseen, goToPage]);
-
-    const renderOverlay = useCallback(
-        ({ pageNumber, pageSize }) => (
-            <SignatureZones zones={zones} pageNumber={pageNumber} pageSize={pageSize} lang={lang} />
-        ),
-        [zones, lang],
-    );
+        const controls = viewerControls.current.get(index);
+        if (controls) {
+            controls.goToPage(reading.firstUnseen || 1);
+        }
+    }, [reading.firstIndex, reading.firstUnseen]);
 
     /* ------------------------------------------------------------- branches */
 
@@ -612,7 +686,11 @@ export function SignatureFlow({
                 {document_ && document_.name ? (
                     <p className="mt-0.5 flex items-center gap-1 text-xs text-[var(--becpg-dark-grey)]">
                         <Icon name="picture_as_pdf" size={14} />
-                        <span className="truncate">{document_.name}</span>
+                        <span className="truncate">
+                            {documents.length > 1
+                                ? fill(labels.documentCount, { count: documents.length })
+                                : document_.name}
+                        </span>
                     </p>
                 ) : null}
             </div>
@@ -663,7 +741,9 @@ export function SignatureFlow({
                 icon: 'verified',
                 tone: 'ok',
                 title: labels.signedTitle,
-                body: labels.signedBody,
+                // "vous pouvez télécharger le document" next to no download button
+                // is how a fixed 404 becomes a puzzled support call.
+                body: downloadUrl ? labels.signedBody : labels.signedBodyNoCopy,
             },
             [OUTCOME.CANCELLED]: {
                 icon: 'cancel',
@@ -742,7 +822,7 @@ export function SignatureFlow({
 
     /* --- DocuSign / YouSign: the signature does not happen here ------------ */
 
-    if (external && !contentUrl) {
+    if (external && !documents.length) {
         return (
             <AppShell title={labels.title} hideNav>
                 {header}
@@ -766,7 +846,7 @@ export function SignatureFlow({
         );
     }
 
-    if (!contentUrl) {
+    if (!documents.length) {
         return (
             <AppShell title={labels.title} hideNav>
                 {header}
@@ -803,37 +883,22 @@ export function SignatureFlow({
                 </Card>
             ) : null}
 
-            <PdfViewer
-                file={contentUrl}
-                name={document_ ? document_.name : null}
-                downloadUrl={downloadUrl}
-                registerPage={reading.registerPage}
-                renderOverlay={zones.length ? renderOverlay : undefined}
-                onLoad={handleDocumentLoad}
-                onReady={handleViewerReady}
-                stickyTop={headerOffset}
-                scrollOffset={headerOffset + 48}
-            />
-
-            {zones.length ? (
-                <ZoneLegend zones={zones} lang={lang} className="mt-2">
-                    {labels.zonesHint}
-                    {markedPages.length ? (
-                        <span className="ml-1">
-                            {markedPages.map((page) => (
-                                <button
-                                    key={page}
-                                    type="button"
-                                    onClick={() => goToPage(page)}
-                                    className="ml-1 underline underline-offset-2 hover:text-[var(--becpg-orange)]"
-                                >
-                                    p.{page}
-                                </button>
-                            ))}
-                        </span>
-                    ) : null}
-                </ZoneLegend>
-            ) : null}
+            {/* One viewer per signable deliverable — completing the task signs
+                all of them, so the supplier must be able to read all of them. */}
+            {documents.map((entry, index) => (
+                <SignatureDocument
+                    key={entry.nodeRef}
+                    document={entry}
+                    taskId={taskId}
+                    index={index}
+                    total={documents.length}
+                    enabled={trackingEnabled}
+                    headerOffset={headerOffset}
+                    lang={lang}
+                    onProgress={handleProgress}
+                    onControls={handleControls}
+                />
+            ))}
 
             {/* --------------------------------------------- reading progress */}
             <div
@@ -883,7 +948,12 @@ export function SignatureFlow({
                     >
                         {reading.complete
                             ? labels.toSignature
-                            : fill(labels.goToPage, { page: reading.firstUnseen || 1 })}
+                            : documents.length > 1
+                              ? fill(labels.goToDocumentPage, {
+                                  document: (reading.firstIndex || 0) + 1,
+                                  page: reading.firstUnseen || 1,
+                              })
+                              : fill(labels.goToPage, { page: reading.firstUnseen || 1 })}
                     </Button>
                 </div>
             </div>

@@ -233,6 +233,7 @@ export default function MonitorQualityPage() {
 
     return (
         <AppShell
+            fullWidth
             space="monitor"
             title={labels.title}
             actions={

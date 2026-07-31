@@ -46,7 +46,8 @@ import { Icon } from '@/components/ui/Button';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonTable } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { ExpiryPill, formatDate } from '@/components/documents/ExpiryPill';
+import { ExpiryPill } from '@/components/documents/ExpiryPill';
+import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 
 /** Height of a matrix row, in px — fixed, because virtualisation needs it. */

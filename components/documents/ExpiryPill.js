@@ -14,12 +14,13 @@
  * (`noticeDays`, 60 by default). The component only *phrases* them, and falls
  * back to counting the days itself when a caller has a raw date and no status.
  *
- * Date formatting lives here as well (`formatDate`, `formatDateTime`,
- * `daysUntil`): expiry dates are the portal's most date-sensitive surface, and
- * the other screens import these rather than each setting up their own `Intl`.
+ * Date formatting used to live here — fifteen screens imported `formatDate` from
+ * this file, and a second, subtly different copy lived in `ApprovalCard`. Both
+ * are gone: everything now goes through `@/lib/format`.
  */
 
 import { useMessages } from '@/lib/messages';
+import { formatDate, daysUntil } from '@/lib/format';
 import { Icon } from '@/components/ui/Button';
 import { StatusPill, resolveStatus } from '@/components/ui/StatusPill';
 
@@ -73,72 +74,6 @@ function fill(template, vars) {
     return template.replace(/\{(\w+)\}/g, (match, key) =>
         vars[key] === undefined || vars[key] === null ? match : String(vars[key]),
     );
-}
-
-/**
- * Formats an ISO date as a short local date (`31/12/2026`).
- *
- * @param {string|number|Date|null} value ISO string or Date
- * @param {string} [lang='fr']
- * @returns {string} the formatted date, or `'—'` when there is none
- */
-export function formatDate(value, lang = 'fr') {
-    if (!value) {
-        return '—';
-    }
-    const date = value instanceof Date ? value : new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return '—';
-    }
-    return new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-    }).format(date);
-}
-
-/**
- * Formats an ISO date as date + time (`31/12/2026 14:05`).
- *
- * @param {string|number|Date|null} value
- * @param {string} [lang='fr']
- * @returns {string}
- */
-export function formatDateTime(value, lang = 'fr') {
-    if (!value) {
-        return '—';
-    }
-    const date = value instanceof Date ? value : new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return '—';
-    }
-    return new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(date);
-}
-
-/**
- * Whole days between now and a date. Negative when the date is past.
- *
- * Used only as a fallback: `GET /api/v1/documents` already returns
- * `daysToExpiry`, computed server-side with the tenant's notice delay.
- *
- * @param {string|number|Date|null} value
- * @returns {number|null}
- */
-export function daysUntil(value) {
-    if (!value) {
-        return null;
-    }
-    const date = value instanceof Date ? value : new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return null;
-    }
-    return Math.ceil((date.getTime() - Date.now()) / 86400000);
 }
 
 /**

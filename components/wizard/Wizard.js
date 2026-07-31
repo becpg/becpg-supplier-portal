@@ -74,6 +74,7 @@ import { SuggestionsStep } from '@/components/wizard/steps/SuggestionsStep';
 import { ComplianceStep, blockingCatalogs } from '@/components/wizard/steps/ReviewStep';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { formatDate } from '@/lib/format';
 
 const LABELS = {
     fr: {
@@ -745,6 +746,17 @@ export function Wizard({
 
     const finishDisabled = blocking.length > 0;
 
+    // "Terminer" is an action, not a decoration: it is shown only when there is
+    // something to submit. On a task that is already `Completed` — or on a
+    // wizard the server turned read-only (`enforceTask` with no assigned task,
+    // `readAccess`, a `read-only` configuration) — the button is **absent**, not
+    // greyed out (spec: hide, do not disable). It used to be rendered as soon as
+    // a task object existed, so a supplier reopening a task they had already
+    // finished was offered a button that re-posted the completion, got a
+    // meaningless 200 back, and was bounced to /tasks as if something had
+    // happened.
+    const canFinish = Boolean(task) && task.isOpen !== false && !wizardState.readOnly;
+
     return (
         <AppShell
             title={entity.name || labels.step}
@@ -768,9 +780,7 @@ export function Wizard({
                             {task && task.dueDate ? (
                                 <span>
                                     {fill(labels.due, {
-                                        date: new Date(task.dueDate).toLocaleDateString(
-                                            lang === 'en' ? 'en-GB' : 'fr-FR',
-                                        ),
+                                        date: formatDate(task.dueDate, lang),
                                     })}
                                 </span>
                             ) : null}
@@ -864,12 +874,15 @@ export function Wizard({
                         hasNext={currentIndex >= 0 && currentIndex < steps.length - 1}
                         onPrevious={() => goTo(steps[currentIndex - 1] && steps[currentIndex - 1].id)}
                         onNext={() => goTo(steps[currentIndex + 1] && steps[currentIndex + 1].id)}
-                        onFinish={task ? finish : undefined}
+                        onFinish={canFinish ? finish : undefined}
                         finishing={finishing}
                         finishDisabled={finishDisabled}
                         finishReason={finishDisabled ? labels.finishBlocked : null}
                         finishLabel={labels.finish}
                         formulating={formulating}
+                        // `draft` (spec §1.4) — the configuration asks for
+                        // "Terminer" on every step, not only on the last one.
+                        draft={Boolean(wizardState.draft)}
                         autoSave={autoSave}
                     />
                 </div>

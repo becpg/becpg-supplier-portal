@@ -20,6 +20,7 @@ import { Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { resolveStatus } from '@/components/ui/StatusPill';
 import { useMessages } from '@/lib/messages';
+import { formatDate } from '@/lib/format';
 
 /**
  * Why the portal reached that verdict. These are the `reasons[]` codes of
@@ -107,29 +108,6 @@ const TONE_SURFACE = {
 };
 
 /**
- * Deterministic date rendering: the same string on the server and in the
- * browser, whatever the two time zones are (the components are read in UTC).
- *
- * @param {string|null} iso
- * @param {string} lang
- * @returns {string|null}
- */
-export function formatDate(iso, lang) {
-    if (!iso) {
-        return null;
-    }
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) {
-        return null;
-    }
-    const pad = (value) => String(value).padStart(2, '0');
-    const year = date.getUTCFullYear();
-    const month = pad(date.getUTCMonth() + 1);
-    const day = pad(date.getUTCDate());
-    return lang === 'en' ? `${year}-${month}-${day}` : `${day}/${month}/${year}`;
-}
-
-/**
  * @param {Object} props
  * @param {{status: string, reasons: string[], validUntil: string|null}|null} props.approval
  * @param {{name: string|null, code: string|null}|null} [props.supplier]
@@ -150,7 +128,12 @@ export function ApprovalCard({ approval, supplier, validUntil, index = 0, classN
         : local.unknown;
 
     const reasons = Array.isArray(approval && approval.reasons) ? approval.reasons : [];
-    const deadline = formatDate(validUntil || (approval && approval.validUntil), lang);
+    // `fallback: null` on purpose: no validity date must fall through to the
+    // "no validity" sentence below, not print a bare em dash after "Valide
+    // jusqu'au".
+    const deadline = formatDate(validUntil || (approval && approval.validUntil), lang, {
+        fallback: null,
+    });
 
     return (
         <Card

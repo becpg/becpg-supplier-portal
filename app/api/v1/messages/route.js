@@ -32,11 +32,32 @@
  *   "content": "The allergen list is missing soy.",
  *   "field": "bcpg:allergenList" }
  * ```
+ *
+ * ## May I write here? — `canPost`
+ *
+ * A supplier does **not** hold write access on an entity for ever. `SupplierSecurityPlugin`
+ * (beCPG) grants it only while the account holds an assigned — or pooled — workflow task
+ * carrying a supplier-wizard deliverable on that entity; once the referencing is over the
+ * entity is read-only again, and Alfresco refuses the comment. So the GET answers with
+ * **`canPost`**, and the UI removes the composer instead of offering a Send button that can
+ * only fail (defect F6).
+ *
+ * The verdict comes from `nodePermissions.create`, which the comments resource itself
+ * returns: it is the very ACL check the POST performs, so the announced right and the real
+ * one cannot drift apart. `accessMode` / `hasAssignedTask` — the pair the wizard already uses
+ * to decide `readOnly` — is then read from `becpg/security/entitylists/check` to *name* the
+ * reason, so the sentence shown under a closed discussion and the one shown by the wizard
+ * come from a single source. It is deliberately not the other way round: `accessMode` is
+ * beCPG's entity-level verdict on *field* writes and is measurably wider than the forum ACL
+ * (an entity outside the supplier's own perimeter answers `accessMode: 2` while
+ * `nodePermissions.create` is `false`), so trusting it alone would keep offering a Send
+ * button that 500s.
  */
 
 import { NextResponse } from 'next/server';
 import { BadRequestError, toApiResponse } from '@/lib/errors';
 import { becpgJson, getJson, isNodeRef, nodeRefToPath, requireSession } from '@/lib/becpg';
+import { getEntityListsState } from '@/lib/adapters/datalists';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -98,6 +119,64 @@ function requireNodeRef(value) {
     return value;
 }
 
+/** `accessMode` values of `becpg/security/entitylists/check` — same table as the wizard. */
+const ACCESS_MODE = { NONE: 0, READ: 1, WRITE: 2 };
+
+/**
+ * Stable reasons a thread is read-only. The UI maps them to a sentence; they are part of the
+ * API contract, exactly like `ERROR_CODES`.
+ */
+const DENY_REASONS = {
+    /** No workflow task in progress on the entity: the referencing is closed. */
+    NO_ASSIGNED_TASK: 'noAssignedTask',
+    /** beCPG's security grants read access only on this entity. */
+    READ_ACCESS: 'readAccess',
+    /** Refused, and neither of the two above explains it. */
+    NO_PERMISSION: 'noPermission',
+};
+
+/**
+ * Names *why* the repository refuses a post, from the pair the wizard already uses.
+ *
+ * `hasAssignedTask` is tested first, on purpose: for a supplier it is the only thing that
+ * ever opens write access (`SupplierSecurityPlugin`), so it is both the cause and the
+ * sentence the user needs — "the referencing is closed" — while `accessMode: 1` is its
+ * consequence. The wizard tests them in the opposite order because there `enforceTask` may
+ * be off; both orders name a true reason, and only the sentence differs.
+ *
+ * The wording assumes the reader is a supplier, which is who `/messages` is for. An internal
+ * account refused by an ACL would read "the referencing is closed" where "you are not allowed
+ * here" would be truer — it never reaches this branch in practice, because an internal
+ * account that can read a thread can write on it.
+ *
+ * @param {string} nodeRef the node the thread hangs on (entity, row or document)
+ * @param {Object} session
+ * @returns {Promise<{reason: string, accessMode: number|null, hasAssignedTask: boolean|null}>}
+ */
+async function explainDenial(nodeRef, session) {
+    try {
+        const security = await getEntityListsState(nodeRef, {
+            checkTaskAssignment: true,
+            session,
+        });
+        const reason = security.hasAssignedTask === false
+            ? DENY_REASONS.NO_ASSIGNED_TASK
+            : security.accessMode === ACCESS_MODE.READ
+                ? DENY_REASONS.READ_ACCESS
+                : DENY_REASONS.NO_PERMISSION;
+        return {
+            reason,
+            accessMode: security.accessMode,
+            hasAssignedTask: security.hasAssignedTask,
+        };
+    }
+    catch {
+        // Never fail a thread on the explanation: the composer is already hidden, and a
+        // generic sentence is better than an error page over a discussion the user can read.
+        return { reason: DENY_REASONS.NO_PERMISSION, accessMode: null, hasAssignedTask: null };
+    }
+}
+
 /**
  * @param {Request} request
  * @returns {Promise<Response>}
@@ -125,13 +204,40 @@ export async function GET(request) {
         });
 
         const items = Array.isArray(payload?.items) ? payload.items : [];
+        const nodePermissions = payload?.nodePermissions || {};
+
+        // `create` is the repository's own answer to "may this user add a post here", so it
+        // is the one the portal reports.
+        let canPost = nodePermissions.create === true;
+        let denial = null;
+        if (nodePermissions.create === undefined) {
+            // Older comments webscript: no ACL verdict in the payload. Fall back on beCPG's
+            // entity-level one — `accessMode: READ` is a denial we can prove. Anything else,
+            // including a check that could not be run at all, keeps the composer: removing a
+            // control we cannot show to be forbidden is the mirror image of the same defect.
+            const security = await explainDenial(nodeRef, session);
+            canPost = security.accessMode !== ACCESS_MODE.READ;
+            denial = canPost ? null : security;
+        }
+        else if (!canPost) {
+            denial = await explainDenial(nodeRef, session);
+        }
+
         const response = NextResponse.json({
             nodeRef,
             messages: items.map(normalizeMessage),
             total: Number(payload?.total ?? items.length),
             page,
             pageSize,
-            permissions: payload?.nodePermissions || {},
+            permissions: nodePermissions,
+            // The right to write, decided server-side. The UI removes the composer when it is
+            // false and says why with `postDenyReason`; it never re-derives either (F6).
+            canPost,
+            postDenyReason: canPost ? null : (denial ? denial.reason : DENY_REASONS.NO_PERMISSION),
+            // Echoed so a support session can see the wizard's own signals for this node.
+            security: denial
+                ? { accessMode: denial.accessMode, hasAssignedTask: denial.hasAssignedTask }
+                : null,
         });
         response.headers.set('Cache-Control', 'private, no-store');
         return response;

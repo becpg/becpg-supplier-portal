@@ -229,7 +229,7 @@ export default function SpecsPage() {
     const scanning = products.loading || state.scanning;
 
     return (
-        <AppShell title={labels.title}>
+        <AppShell title={labels.title} fullWidth>
             <p className="mb-4 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
 
             <StatGrid columns={2} className="mb-4">

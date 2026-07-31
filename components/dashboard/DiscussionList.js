@@ -19,7 +19,7 @@ import { Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useMessages } from '@/lib/messages';
-import { formatDate } from '@/components/dashboard/ApprovalCard';
+import { formatDate } from '@/lib/format';
 
 const LOCAL = {
     fr: {

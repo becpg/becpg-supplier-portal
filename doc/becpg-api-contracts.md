@@ -64,11 +64,31 @@ Réponse (`columns.get.json.ftl`) :
     "options": "…",               // help / paramètres de contrôle
     "mandatory": false, "readOnly": false, "protectedField": false,
     "repeating": false,
-    "dataType": "d:double",
+    "dataType": "double",
     "constraints": [ { "type": "LIST", "parameters": { } } ],
     "columns": [ /* colonnes imbriquées pour les sous-listes */ ]
 } ] }
 ```
+
+> ⚠ **`dataType` n'est PAS préfixé** (corrigé le 2026-07-31 ; ce document indiquait
+> `"d:double"`, c'était faux). `columns.get.json.ftl` sérialise `"${col.dataType}"` tel quel,
+> et `POST /becpg/form` renvoie le **nom local** du type. Mesuré sur une 26.1.0 :
+>
+> ```
+> {"name":"bcpg:ingListQtyPerc","dataType":"double","type":"property"}
+> {"name":"bcpg:depthLevel","dataType":"int","type":"property"}
+> ```
+>
+> Conséquence côté portail, réelle et longtemps invisible : `DATATYPE_CONTROLS`,
+> `components/form/controls/index.js`, `validation.js`, `DateControl`, `ReadOnlyControl`,
+> `ProductSections` et `autocomplete.js` comparent tous à `d:double` / `d:date` /
+> `d:noderef` — **aucune de ces comparaisons ne pouvait matcher**, donc chaque propriété
+> retombait sur le contrôle texte par défaut (une date sans sélecteur, un booléen sans case).
+> `lib/adapters/forms.js` normalise désormais le type dans `normalizeField`
+> (`qualifyDataType`), à l'unique entonnoir par lequel passent les deux sources.
+>
+> Quand la colonne est une **association**, le template émet `col.endpointType` dans
+> `dataType` — donc une valeur déjà préfixée (`bcpg:ing`), qu'il ne faut pas re-préfixer.
 
 C'est **le contrat des colonnes de datalist** et il gère nativement les `formId` dédiés au
 fournisseur (`datagrid-supplier-nut` d'Aryzta, `supplier` de Bridor).
@@ -154,6 +174,32 @@ Alimente le panneau de conformité du wizard et la jauge de complétude du dashb
 - `becpg/remote/entity?nodeRef=` — fiche entité
 - `becpg/remote/entity/list?query=&maxResults=&fields=` — liste (syntaxe FTS ; **préférer
   db-afts** pour éviter le décalage d'indexation, cf. spec §4.6.6)
+
+  > ⚠ **`fields` plafonne la réponse à `beCPG.remote.maxResults.hardLimit` (256 d'origine),
+  > quel que soit `maxResults`.** `AbstractEntityWebScript` applique ce plafond aux requêtes
+  > portant `fields` ou `lists`. Le plafond est **silencieux** — la réponse s'arrête à 256
+  > lignes sans erreur — mais il est **signalé** : `pagination.hasMoreItems` vaut `true`.
+  > C'est le seul indicateur fiable ; ne jamais lire `pagination.totalItems` comme un
+  > compte (cf. §9).
+  >
+  > Mesuré sur un fournisseur détenant 312 lignes `bcpg:documentAspect` :
+  >
+  > | requête | lignes | `hasMoreItems` |
+  > |---|---|---|
+  > | `maxResults=1000` **sans** `fields` | 312 | `false` |
+  > | `maxResults=1000` **avec** `fields` | **256** | **`true`** |
+  > | `page=1..4`, `maxResults=100`, avec `fields` | 100+100+100+12 = **312** | `false` au dernier |
+  >
+  > Augmenter `maxResults` ne lève pas le plafond : **seule la pagination y parvient**.
+  > Et `page` est ici **1-based**, avec `page=0` qui **est un alias de `page=1`** — itérer
+  > à partir de 0 relit la première fenêtre (mesuré : 100 doublons sur 400 lignes).
+  >
+  > Conséquence si on l'ignore : tout filtre appliqué *en mémoire* après la requête
+  > (`?entity=`, `?status=`) porte sur une fenêtre arbitraire. Sur ce dépôt, un produit
+  > neuf portant huit exigences obligatoires non satisfaites répondait
+  > `total: 0, blocking: 0, completeness: 100` — le portail déclarait le fournisseur en
+  > règle. Côté portail, `searchAllNodes()` (`lib/adapters/documents.js`) lit désormais
+  > jusqu'à épuisement.
 - `becpg/remote/formulate?nodeRef=&format=json` — reformulation entre étapes
 - `becpg/remote/dictionary?type=` — dictionnaire (types, propriétés, libellés)
 
@@ -168,7 +214,75 @@ Alimente le panneau de conformité du wizard et la jauge de complétude du dashb
   (fichier `completeProjectTask.post.desc.xml`)
 - `becpg/project/path?nodeRef=&path=SupplierDocuments` — résolution du dossier documents
   (utilisé par `nextStepWebScript` entre deux étapes du wizard)
-- `becpg/supplier/sendToSupplier` (POST) — démarrer un projet de référencement
+- `becpg/supplier/send-to-supplier` (POST) — démarrer un projet de référencement.
+  **⚠ INUTILISABLE sur 26.1.0**, et ce n'est pas un problème de paramètres : son contrôleur
+  `SupplierPortalWebScript` n'est **déclaré nulle part comme bean Spring**
+  (`becpg-plm-core/.../context/service-context.xml` déclare
+  `webscript.fr.becpg.supplier.createSupplier.post` et `…updateSupplier.post`, mais pas
+  `…sendToSupplier.post`). Alfresco retombe donc sur un webscript déclaratif et cherche un
+  template inexistant :
+
+  ```
+  HTTP 500 — 06312600 Cannot locate template processor for template
+             fr/becpg/supplier/sendToSupplier.post.json
+  ```
+
+  Mesuré en direct sur Alfresco avec un ticket admin, portail hors circuit — encore vérifié
+  le 31/07/2026 sur l'instance locale 26.1.0 (`HTTP 500`). **`POST /api/v1/process/start` ne
+  l'appelle plus** : il compose `becpg/workflow/start-process` (ci-dessous), comme Share.
+- `becpg/workflow/start-process?script=create-supplier-project.js&nodeRefs=…` (POST) —
+  **le point d'entrée qui fonctionne**, et celui qu'utilise réellement la boîte de dialogue
+  « Envoyer au fournisseur » de Share (`beCPG/script/workflow/process.json`,
+  clé `submissionUrl`). Le corps JSON est le `formData` du formulaire :
+
+  ```json
+  { "prop_pjt_projectState": "InProgress",
+    "prop_cm_name": "…",
+    "prop_pjt_projectPriority": "2",
+    "assoc_bcpg_entityTplRef_added": "workspace://SpacesStore/<modèle de projet>",
+    "assoc_bcpg_supplierAccountRef_added": "workspace://SpacesStore/<compte>,…",
+    "prop_pjt_tlDue": "2026-08-21T00:00:00.000Z" }
+  ```
+
+  Réponse `{"persistedObject":"workspace://SpacesStore/<projet>"}`. Le script exécute
+  `bSupplier.createSupplierProject(...)` — donc exactement le même service — puis, si
+  `prop_pjt_tlDue` est fourni, recalcule la durée de la tâche fournisseur.
+  `prop_pjt_tlDue` est le seul moyen de donner une échéance à la tâche : le modèle de projet
+  porte une durée fixe.
+
+  > Le proxy générique du portail (`/api/v1/becpg/**`) n'expose que **GET et HEAD**
+  > (`app/api/v1/becpg/[...path]/route.js`), et `becpg/workflow/` n'est volontairement pas
+  > dans `ALLOWED_BECPG_PATH_PREFIXES` : l'appel est fait côté serveur avec
+  > `skipAllowList: true` depuis `app/api/v1/process/start/route.js`, donc la surface
+  > joignable depuis le navigateur reste inchangée.
+
+- `becpg/workflow/start-process?defs=true&nodeRefs=…` (GET) — **les définitions de
+  `process.json` dont la `condition` et le `permissionGroup` passent pour ces items**, avec
+  les `formFields` **déjà évalués** par `StartProcessWebscript` (`expressionService.eval`).
+  C'est ainsi que le portail obtient `prop_cm_name`
+  (`bSupplier.extractSupplierProjectName`) et `assoc_bcpg_supplierAccountRef`
+  (`bSupplier.extractSupplierAccountRefs`) sans réimplémenter la moindre règle métier — et
+  c'est aussi un second garde-fou : pas de définition ⇒ beCPG refuse ⇒ le portail répond 403.
+
+  > ⚠ `assoc_bcpg_supplierAccountRef_added` est **obligatoire** en pratique.
+  > `create-supplier-project.js` fait
+  > `formDataJson.assoc_…_added != null ? ….split(",") : ""`, et Rhino ne sait pas convertir
+  > `""` en `String[]` :
+  > `La méthode 'SupplierPortalHelper.createSupplierProject([ScriptNode;,ScriptNode,string)' est introuvable`.
+  > Envoyer une chaîne vide n'aide pas non plus (`"".split(",")` ⇒ `[""]` ⇒ `new NodeRef("")`).
+  > D'où l'appel `defs=true` préalable, et le fait que le champ est omis quand il est vide.
+
+- `becpg/autocomplete/targetassoc/associations/pjt:project?classNames=pjt:project,bcpg:entityTplAspect,bcpg:suppliersAspect&excludeProps=bcpg:entityTplEnabled|false`
+  — **comment identifier les modèles de projet fournisseur sans nodeRef codé en dur.**
+  C'est la source de données que la boîte de dialogue de Share utilise elle-même
+  (`modules/supplier/send-to-supplier.get.html.ftl:44` et le champ `bcpg:entityTplRef` du
+  formulaire `supplier-process`, `becpg-plm-form-config.xml:5521`). `bcpg:suppliersAspect`
+  (`PLMModel.ASPECT_SUPPLIERS`) est posé sur le modèle par le produit lui-même
+  (`SupplierPortalInitRepoVisitor:204`). `TargetAssocAutoCompletePlugin.filterByClass()`
+  traduit chaque aspect en `withAspect()`, donc une clause **obligatoire** : la requête est
+  une conjonction. Mesuré sur l'instance locale 26.1.0 : 62 modèles `pjt:project` actifs,
+  **1 seul** retenu (« Projet de référencement fournisseur »).
+  Consommé par `lib/adapters/processTemplates.js`.
 - `api/task-instances` — tâches de workflow (la source du dashlet `my-tasks`)
 - `api/people/{username}?groups=true` — groupes de l'utilisateur, pour résoudre
   `GROUP_EXTERNAL_SUPPLIER_<code>`
@@ -241,6 +355,38 @@ nouveau fichier, aucune modification de l'existant.
 
 - **Colonnes de datalist** : `module/entity-datagrid/config/columns` **existe déjà**, on
   l'utilise tel quel — les datagrids fonctionnent sans rien ajouter.
+
+  > ⚠ **Mais uniquement en repli.** Ce webscript appelle `AlfrescoUtil.getPreferences` : il
+  > s'exécute *en tant qu'utilisateur Share* et répond **401 sans session Share** — que le
+  > serveur du portail ne peut pas obtenir (voir plus bas). Le ré-interroger pour des champs
+  > que l'endpoint `becpg/portal/wizard` a **déjà résolus** transformait chaque étape
+  > datalist et questionnaire en `share_session_required`. Mesuré sur 26.1.0, entité
+  > `17243f08-…` : l'endpoint wizard renvoyait 3/17/28/13/17/12/11/7 champs pour les étapes
+  > 2 à 9 avec le seul `portalTicket`, pendant que
+  > `GET /api/v1/wizard/{id}/step/step2` répondait 401.
+  >
+  > `lib/adapters/wizard.js` (`stepColumns`) consomme donc `step.definition` quand elle
+  > existe et ne retombe sur `config/columns` que sinon. Les deux jeux de champs sont les
+  > mêmes *par construction* : `portal-form.lib.js` est une extraction de `columns.get.js`
+  > et appelle les mêmes `getVisibleFields()` / `createPostBody()` / `POST /becpg/form`.
+  > Seule la sérialisation diffère — `id` au lieu de `formsName`, `help` au lieu de
+  > `options` —, et `normalizeField` lisait déjà les deux formes.
+- **Lignes de datalist : `rows` contient une ligne qui n'en est pas une.** Pour les listes
+  qui portent un total (`bcpg:ingList`…), beCPG ajoute une ligne **synthétique** au payload :
+  `{ nodeRef: null, itemType: 'total', … }`. Elle n'est **pas** comptée dans `total`.
+  Mesuré sur 26.1.0, branche `94411b52-…`, produit sans aucun `bcpg:ingList` :
+
+  ```
+  GET /api/v1/wizard/{entityId}/step/step3
+    → { "total": 0, "rows": [ { "nodeRef": null, "itemType": "total", … } ] }
+  ```
+
+  > ⚠ Se fier à `rows.length` fait donc croire qu'une liste vide contient une ligne. C'est
+  > `total` qui compte les vraies lignes ; `rows` doit être filtré sur
+  > `itemType !== 'total'` avant tout affichage ou tout test de vacuité. Les autres listes du
+  > même wizard (allergènes, physico-chimiques, allégations, microbiologie, organoleptique)
+  > ne portent pas de total et répondent `rows: []` — d'où un comportement qui diffère d'une
+  > étape à l'autre sans que la configuration ne l'explique.
 - **Structure du wizard** : repli sur `config/wizards.default.js` (transcription de la config
   standard livrée). Elle ne contient pas les surcharges client — c'est une béquille de
   développement assumée, remplacée dès que le webscript ci-dessus existe.
@@ -308,11 +454,45 @@ Les 10 étapes se résolvent alors, et la cascade est prouvée : `step3` renvoie
 `formId=datagrid-rawMaterial`, c'est-à-dire la variante spécifique au type d'entité — donc les
 surcharges client seront bien reprises.
 
-⇒ **Il reste au portail à obtenir une session Share.** Le mécanisme existe dans le produit :
-`BeCPGAIMSFilter` établit une session Share à partir d'un token OIDC. Le portail doit donc, une
-fois par session utilisateur, appeler Share avec son `Authorization: Bearer <access_token>`,
-capturer le `JSESSIONID` et le conserver dans son cookie de session chiffré, puis l'envoyer sur
-les appels `/share/service/becpg/portal/wizard`.
+⇒ **Il reste au portail à obtenir une session Share.**
+
+> ⚠ **Correction (mesuré le 2026-07-30 sur une 26.1.0 avec un Keycloak local et un vrai token).**
+> Le paragraphe qui suivait ici affirmait que le portail pouvait appeler Share avec
+> `Authorization: Bearer <access_token>` et récupérer le `JSESSIONID` produit par
+> `BeCPGAIMSFilter`. **C'est faux, et le code le dit :** il n'y a aucune occurrence de `Bearer`
+> en entrée dans `BeCPGAIMSFilter.doFilter()` — les seules portes sont (a) un
+> `SPRING_SECURITY_CONTEXT` déjà en session, (b) une réponse d'autorisation OIDC
+> (`matchesAuthorizationResponse`), (c) une **redirection 302** vers `aims-login`. Le champ
+> `autodetectBearerOnly` de `share-config-custom.xml` n'est jamais lu par ce filtre.
+>
+> Mesures, AIMS activé, token valide de `supplier.local@becpg.fr` :
+>
+> | Appel | Résultat |
+> |---|---|
+> | `GET /share/page/` + `Authorization: Bearer <at>` | `302 → /share/page/aims-login` — token ignoré |
+> | `GET /share/page/aims-dologin` + Bearer | `302 → Keycloak /auth` — token ignoré |
+> | `GET /share/page/` + `Authorization: Basic` | `302 → aims-login` (`enableBasicAuth=false`) |
+> | `POST /share/page/dologin` (login/mdp) | `302 → aims-login` — **AIMS supprime aussi cette porte** |
+> | `GET /share/page/?alf_ticket=TICKET_…` | 200 mais session **anonyme** → `no-form-config` |
+> | rejeu serveur complet du flux code d'autorisation (jar de cookies Share **et** Keycloak) | **21 champs** ✅ |
+>
+> Autrement dit : une session Share s'obtient **uniquement** en jouant le flux
+> `code d'autorisation` de bout en bout, ce qui suppose une session SSO Keycloak — que le
+> navigateur possède et que le serveur du portail n'a pas. Un `JSESSIONID` seul ne prouve rien :
+> Share en distribue un à tout le monde. `lib/shareSession.js` distingue donc désormais les deux
+> en regardant si Share redirige vers l'IdP.
+>
+> Activer AIMS sur Share est par ailleurs **négatif** pour le portail (ligne 4 du tableau) : ne
+> pas l'activer tant que le point ci-dessous n'est pas tranché.
+>
+> Trois voies possibles, à arbitrer :
+> 1. un **endpoint Share additif** qui échange un bearer contre une session Share (réutilise
+>    `BeCPGAIMSFilter.onSuccess` / `getAlfTicket`) — la vraie correction produit ;
+> 2. le portail **proxifie Share sur sa propre origine**, le navigateur établit la session Share
+>    via SSO et le cookie revient au serveur (c'est ce que fait `becpg-http` en production) ;
+> 3. l'**imitation d'utilisateur Keycloak** (rôle `impersonation` sur le compte de service du
+>    portail) : fonctionne sans rien changer au produit, mais donne au portail le pouvoir
+>    d'ouvrir une session pour n'importe qui — décision de sécurité, pas décision technique.
 
 > Écarté : dupliquer un bloc `model-type` pour le formulaire `supplier` de chaque type produit.
 > Les surcharges client (Bridor, Aryzta) sont déclarées sous `node-type` et ne seraient pas
@@ -381,3 +561,144 @@ leurs propriétés :
 
 Badges de confiance (spec §4.4) : ≥ 90 vert, 70-89 orange, < 70 rouge, **rien si absent**
 (une confiance absente ne doit jamais être lue comme une confiance faible).
+
+## 11. Signature — ce que beCPG expose vraiment (spec §9.2)
+
+Tout ci-dessous a été **mesuré** sur l'instance locale 26.1.0, tâche
+`workspace://SpacesStore/89e840ed-…` (« Signature de documents »,
+projet *JUnit SignatureService Project test (8)*).
+
+### 11.1 La géométrie est dans le PDF, pas derrière une API
+
+`PDFBoxServiceImpl.prepareForSignature()` calcule les rectangles (mot-clé d'ancrage, ou
+`fromLeftRatio` / `fromBottomRatio` du MediaBox, puis `index * gap` selon `direction`) et les
+**écrit dans le document** : un `PDSignatureField` + son `PDAnnotationWidget`, puis
+`saveIncremental()`. Nommage figé : `<formattedUsername>-signature` sur la page de signature,
+`<formattedUsername>` pour les paraphes sur toutes les autres.
+
+La seule surface HTTP du module est
+`GET /alfresco/s/becpg/signature/node/{store_type}/{store_id}/{id}/{action}` avec
+`action ∈ {checkout, create-session, checkin, cancel}` — **aucune des quatre ne renvoie de
+coordonnées**. `prepareForSignature(document, recipients, params)` n'est atteignable que depuis
+Java ou jscript (`SignatureScriptHelper`).
+
+⇒ Le portail lit donc les widgets **dans les octets qu'il sert déjà**
+(`lib/pdfSignatureFields.js`, pdf.js côté serveur). Ce n'est ni une devinette ni un recalcul :
+c'est le rectangle que PDFBox remplira. Pas de widget → `zones: []` → **aucun cadre dessiné**.
+
+Mesuré sur `cb1c7ba8-…` (copie de travail préparée, 2 pages, 200 849 o) :
+
+| champ | page | rect PDF | ⇒ ratio (origine haut-gauche) |
+|---|---|---|---|
+| `matthieuWF` (paraphes) | 1 | `[459, 79.2, 559, 114.2]` | x 0.750, y 0.856, l 0.163, h 0.044 |
+| `matthieuWF-signature` | 2 | `[367.2, 79.2, 567.2, 154.2]` | x 0.600, y 0.805, l 0.327, h 0.095 |
+
+`x = 0.60` et `0.75` retombent exactement sur les défauts `signatureFromLeftRatio=60` et
+`initialsFromLeftRatio=75` ; `y` sur `fromBottomRatio=10`.
+
+### 11.2 Le document à afficher n'est **pas** `deliverable.contents[0]`
+
+`becpg/project/task` renvoie, pour la tâche de signature :
+
+| source | nœud | AcroForm |
+|---|---|---|
+| `deliverable.url` → `artworks-viewer?nodeRef=…` | `cb1c7ba8-…` **copie de travail** | **oui** |
+| `deliverable.contents[0]` (`pjt:dlContent`) | `cce86b34-…` original | non |
+
+Afficher `contents[0]` reviendrait à montrer un document sans le moindre champ de signature.
+**C'est l'URL de la vue qui désigne le document à rendre.**
+
+### 11.3 Trois livrables par document et par tâche
+
+`SignatureProjectServiceImpl` crée, pour chaque document et chaque destinataire :
+
+| livrable | `pjt:dlScriptExecOrder` | script |
+|---|---|---|
+| `… - prepare` | `Pre` | `cm:prepare-signature.js` → `bSign.prepareForSignature` + `getSignatureView` |
+| `… - url` | *(aucun)* | porte l'URL de la vue — c'est celui que le portail lit |
+| `… - sign` | `Post` | `cm:sign-document.js` → **`bSign.signDocument()`** |
+
+⇒ **Signer = compléter la tâche.** Il n'existe aucun webscript « signer » à proxyfier ;
+`POST /api/v1/signature/{taskId}` proxyfie `becpg/project/complete/task`, et beCPG exécute le
+script post-livrable. Vérifié : après le POST, le livrable `- sign` passe à `Completed` et le
+projet avance à la tâche suivante (`- validate`).
+
+### 11.4 États lus, et où
+
+| information | source |
+|---|---|
+| `sign:status` (`Initialized`/`Prepared`/`ReadyToSign`/`Signed`) | `GET api/metadata?nodeRef=…` sur le document |
+| `sign:recipientsData` | idem — JSON `{recipients:[{username, nodeRef, preparationDate, signatureDate}]}` |
+| état du livrable / de la tâche | `becpg/project/task` |
+
+Deux pièges mesurés :
+
+- `api/metadata/node/{store}/{id}` répond **405** sur 26.1 : seule la forme
+  `api/metadata?nodeRef=…` fonctionne ;
+- un nœud supprimé répond **`200 {}`**, pas 404. Après signature `sign-document.js` **supprime
+  la copie de travail** ; sans traiter ce cas, l'URL de téléchargement de l'écran « déjà signé »
+  pointerait sur un nœud disparu. Le portail retombe alors sur l'original, où le contenu signé
+  a été archivé.
+
+### 11.5 Prérequis d'installation pour que la signature aboutisse vraiment
+
+`PDFBoxServiceImpl.signContent()` signe **hors ligne** (PDFBox + BouncyCastle, `SHA256WithRSA`,
+`adbe.pkcs7.detached`) avec une clé lue dans le **keystore de métadonnées Alfresco**
+(`encryption.keystore.location`). Sur l'instance locale ce keystore ne contient que la clé
+secrète `metadata` et `beCPG.signature.keystore.alias` est **vide** : `signDocument()` échoue,
+l'exception est avalée par le `try/catch` de `sign-document.js`, la tâche se termine quand même
+et `sign:status` reste `Prepared`.
+
+Pour signer réellement :
+
+```
+keytool -genkeypair -alias signature -keyalg RSA -keysize 2048 -sigalg SHA256withRSA \
+        -storetype JCEKS -keystore <encryption.keystore.location> \
+        -storepass <metadata-keystore.password> -keypass <mot de passe de la clé> \
+        -ext KeyUsage=digitalSignature,nonRepudiation -ext ExtendedKeyUsage=emailProtection
+beCPG.signature.keystore.alias=signature
+beCPG.signature.keystore.password=<mot de passe de la clé>
+beCPG.signature.tsaUrl=https://freetsa.org/tsr,http://timestamp.digicert.com   # défaut produit
+```
+
+Fait sur l'instance locale le 2026-07-31 (alias `signature`, RSA 2048, auto-signé). Contrôle :
+le PDF final contient `/ByteRange` et `adbe.pkcs7.detached`, le CMS porte le certificat
+(`CN=beCPG Supplier Portal Signature (local test)`), un `signingTime` et un
+`id-smime-aa-timeStampToken`, et `sign:status` passe à `Signed`.
+
+⚠️ **Ne pas vider `beCPG.signature.tsaUrl` en pensant « supprimer une dépendance réseau ».**
+Mesuré : sans horodatage, la signature cryptographique est bien apposée (`/ByteRange` +
+`adbe.pkcs7.detached` présents) mais `updateSignatureInformation()` écrit
+`recipientJson.put("signatureDate", null)` — org.json **supprime** alors la clé —, donc
+`allSigned()` renvoie `false` et **`sign:status` reste `Initialized`**. Le document est signé,
+beCPG ne le déclare pas signé. Le portail ne s'y trompe pas (il lit aussi l'état de la tâche),
+mais tout ce qui interroge `sign:status` s'y trompera.
+
+⚠️ **Deuxième condition, silencieuse : l'association `sign:preparedRecipients`.**
+`signDocument()` boucle sur `getTargetAssocs(copieDeTravail, sign:preparedRecipients)` ; si elle
+est vide, il **ne signe rien**, checkine quand même, ne lève aucune exception et laisse
+`sign:status` inchangé — la tâche se termine, le projet avance, et rien n'est signé. C'est
+l'état de la plupart des fixtures JUnit de l'instance locale (copies de travail préparées le
+2026-07-06 dont l'association a disparu). Diagnostic :
+
+```
+GET /alfresco/api/-default-/public/alfresco/versions/1/nodes/{copieDeTravail}/targets
+→ doit contenir assocType "sign:preparedRecipients"
+```
+
+### 11.6 Une tâche peut porter **plusieurs** documents signables
+
+`beCPG/signature/sign-document.js` est un script **post-livrable**, pas post-tâche : compléter
+la tâche l'exécute **une fois par livrable**, et signe donc tous les documents préparés.
+Mesuré : `workspace://SpacesStore/c928cfab-…` (« Signature de documents ») porte deux livrables
+`sample_1.pdf` et `sample_2.pdf`, chacun avec sa propre copie de travail préparée.
+
+`GET /api/v1/signature/{taskId}` renvoie donc **`documents: [...]`** — un objet par livrable
+signable, chacun avec ses propres `zones`, `pageCount`, `signStatus` et `contentUrl`.
+`document` reste le premier, pour les appelants qui n'en attendent qu'un.
+
+L'écran monte une visionneuse par document et la jauge de lecture **additionne leurs pages** :
+n'afficher que le premier ferait attester une lecture qui n'a pas eu lieu sur un document qui,
+lui, serait signé. Les livrables clos sont écartés **seulement s'il en reste un ouvert** — sinon
+il ne resterait rien à afficher sur l'écran « déjà signé », qui est la revisite la plus fréquente
+de ce parcours (#34523).

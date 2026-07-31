@@ -320,6 +320,7 @@ export default function DocumentsPage() {
 
     return (
         <AppShell
+            fullWidth
             title={labels.title}
             badges={{ documents: counts.open }}
             actions={

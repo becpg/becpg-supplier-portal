@@ -211,6 +211,7 @@ export default function MonitorCampaignsPage() {
 
     return (
         <AppShell
+            fullWidth
             space="monitor"
             title={labels.title}
             actions={

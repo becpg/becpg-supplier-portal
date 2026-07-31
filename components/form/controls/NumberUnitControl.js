@@ -37,6 +37,7 @@
 import { useState } from 'react';
 import { Select } from '@/components/ui/Field';
 import { controlParams } from '@/components/form/validation';
+import { formatNumber } from '@/lib/format';
 import { NumberControl } from '@/components/form/controls/NumberControl';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
 
@@ -307,6 +308,6 @@ function joinUnit(value, unit, lang) {
         return null;
     }
     const label = unitLabel(unit, lang);
-    const formatted = new Intl.NumberFormat(lang, { maximumFractionDigits: 6 }).format(shown);
+    const formatted = formatNumber(shown, lang, { maximumFractionDigits: 6 });
     return label === '—' ? formatted : `${formatted} ${label}`;
 }

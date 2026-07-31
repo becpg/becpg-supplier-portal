@@ -29,7 +29,7 @@ import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonList } from '@/components/ui/Skeleton';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
-import { formatDate } from '@/components/dashboard/ApprovalCard';
+import { formatDate } from '@/lib/format';
 
 /**
  * Item-level notification wording, shared by the card and the bell.
@@ -176,9 +176,16 @@ export function NotificationRow({ item, lang, local, unseen = false, onNavigate,
         <Link
             href={item.href || '/tasks'}
             onClick={onNavigate}
+            // Read from the DOM by the audit and by the e2e suite: "which rows
+            // does this user still have to look at" must be assertable without
+            // reading a colour off a screenshot.
+            data-unseen={unseen ? 'true' : 'false'}
             className={[
-                'flex touch-target items-start gap-2.5 rounded-lg px-2 py-2.5 transition-colors',
-                'hover:bg-[var(--becpg-grey)]/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]',
+                // `.becpg-notification-row` carries the rail and the surfaces; the row
+                // shipped a `--becpg-grey`/60 hover measured at 1.11:1 against
+                // white, and read/unread was a 6px dot and nothing else.
+                'becpg-notification-row flex touch-target items-start gap-2.5 rounded-lg px-2 py-2.5 transition-colors',
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]',
                 className,
             ]
                 .filter(Boolean)
@@ -201,8 +208,18 @@ export function NotificationRow({ item, lang, local, unseen = false, onNavigate,
                         </>
                     ) : null}
                     {/* Same rule as the document rows it sits next to: wrap to a
-                        second line, never cut the discriminating half off. */}
-                    <span className="min-w-0 flex-1 text-sm font-medium leading-snug line-clamp-2">
+                        second line, never cut the discriminating half off.
+                        The colour is explicit — this row is also rendered inside
+                        the header's popover, where the inherited colour is the
+                        toolbar's white. */}
+                    <span
+                        className={[
+                            'min-w-0 flex-1 text-sm leading-snug line-clamp-2 text-[var(--becpg-blue)]',
+                            // Weight is the greyscale half of the read/unread
+                            // signal: the rail and the dot are colour, this is not.
+                            unseen ? 'font-semibold' : 'font-medium',
+                        ].join(' ')}
+                    >
                         {item.title || (item.target && item.target.name) || '—'}
                     </span>
                 </span>

@@ -39,7 +39,7 @@ import { api } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { Button, Icon, Spinner } from '@/components/ui/Button';
 import { useToast } from '@/components/providers/ToastProvider';
-import { formatDateTime } from '@/components/documents/ExpiryPill';
+import { formatDateTime } from '@/lib/format';
 
 const LABELS = {
     fr: {

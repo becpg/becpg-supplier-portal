@@ -20,7 +20,7 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useMessages } from '@/lib/messages';
 import { TASK_TYPE_META, taskTypeLabel } from '@/components/dashboard/ActionsCard';
-import { formatDate } from '@/components/dashboard/ApprovalCard';
+import { formatDate, daysUntil } from '@/lib/format';
 
 const LOCAL = {
     fr: {
@@ -58,28 +58,6 @@ const LOCAL = {
 };
 
 const PRIORITY_TONE = { high: 'pill-danger', medium: 'pill-warn', low: 'pill-neutral' };
-
-/**
- * Whole days between now and an ISO date, computed on the UTC calendar so the
- * server render and the hydrated render always agree.
- *
- * @param {string|null} iso
- * @returns {number|null} negative when the date is in the past
- */
-export function daysUntil(iso) {
-    if (!iso) {
-        return null;
-    }
-    const target = new Date(iso);
-    if (Number.isNaN(target.getTime())) {
-        return null;
-    }
-    const dayMs = 24 * 60 * 60 * 1000;
-    const now = new Date();
-    const targetDay = Date.UTC(target.getUTCFullYear(), target.getUTCMonth(), target.getUTCDate());
-    const nowDay = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-    return Math.round((targetDay - nowDay) / dayMs);
-}
 
 /**
  * The due-date pill: the single most useful piece of information on a task row.

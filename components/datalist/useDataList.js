@@ -76,6 +76,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { request } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { formatDateTime, isIsoTimestamp } from '@/lib/format';
 
 /**
  * The grid's own vocabulary.
@@ -238,13 +239,38 @@ export function sortParam(sort) {
 }
 
 /**
+ * The nodeRefs an association cell currently holds.
+ *
+ * A stored association arrives from `splitCells` as an array of cells —
+ * `[{ value: "workspace://…", displayValue: "pH", metadata: "physicoChem" }]` —
+ * and a single one may also arrive as a bare string. Both shapes are reduced to
+ * a flat list of nodeRefs, which is what `assoc_x_removed` expects.
+ *
+ * @param {*} value
+ * @returns {string[]}
+ */
+export function toNodeRefList(value) {
+    if (value === null || value === undefined || value === '') {
+        return [];
+    }
+    if (Array.isArray(value)) {
+        return value.flatMap((entry) => toNodeRefList(entry));
+    }
+    if (typeof value === 'object') {
+        return toNodeRefList(value.value !== undefined ? value.value : value.nodeRef);
+    }
+    return String(value).split(',').map((entry) => entry.trim()).filter(Boolean);
+}
+
+/**
  * Best-effort local rendering of a value the user just typed, used only until
  * the silent refresh brings back the server's `displayValue`.
  *
  * @param {*} value
+ * @param {string} [lang='fr']
  * @returns {string}
  */
-function localDisplay(value) {
+function localDisplay(value, lang = 'fr') {
     if (value === null || value === undefined || value === '') {
         return '';
     }
@@ -252,10 +278,15 @@ function localDisplay(value) {
         return value ? '✓' : '';
     }
     if (Array.isArray(value)) {
-        return value.map((entry) => localDisplay(entry)).filter(Boolean).join(', ');
+        return value.map((entry) => localDisplay(entry, lang)).filter(Boolean).join(', ');
     }
     if (typeof value === 'object') {
         return String(value.displayValue ?? value.label ?? value.name ?? value.value ?? '');
+    }
+    // A date column echoes back the ISO string the picker produced; printed raw
+    // it shows the user a timestamp in the cell he just edited.
+    if (isIsoTimestamp(value)) {
+        return formatDateTime(value, lang, { fallback: String(value) });
     }
     return String(value);
 }
@@ -304,6 +335,7 @@ let draftSequence = 0;
  * @returns {Object} see the properties listed at the end of the function
  */
 export function useDataList(options = {}) {
+    const { lang } = useMessages();
     const {
         entityId,
         stepId,
@@ -503,15 +535,15 @@ export function useDataList(options = {}) {
         (row, column) => {
             const pending = dirty[row.key];
             if (pending && Object.prototype.hasOwnProperty.call(pending, column.name)) {
-                return localDisplay(pending[column.name]);
+                return localDisplay(pending[column.name], lang);
             }
             const display = row.displayValues?.[column.formsName];
             if (display === null || display === undefined) {
-                return localDisplay(row.values?.[column.formsName]);
+                return localDisplay(row.values?.[column.formsName], lang);
             }
             return Array.isArray(display) ? '' : String(display);
         },
-        [dirty],
+        [dirty, lang],
     );
 
     /** Rows of nested sub-lists, as `[{ values, displayValues }]`. */
@@ -544,7 +576,28 @@ export function useDataList(options = {}) {
     /* -------------------------------------------------------------- permissions */
 
     const canCreate = !readOnly && payload.permissions?.create !== false;
-    const canReorder = !readOnly && payload.permissions?.sort === true && !sort;
+
+    /*
+     * Reordering is a **row** permission, not a list one, and reading it off the
+     * list was silently fatal.
+     *
+     * `payload.permissions` is `metadata.parent.permissions.userAccess`, and
+     * beCPG's `JSONDataListOutputWriter` puts exactly one key in it: `create`.
+     * The full map — `edit`, `delete`, `sort`, `lock`… — is emitted per item by
+     * `AbstractDataListExtractor`, which is also where the sortable aspect is
+     * tested (`nodeService.hasAspect(nodeRef, ASPECT_SORTABLE_LIST)`). So
+     * `payload.permissions.sort` was *never* true, on any list, for anyone, and
+     * the up/down buttons never rendered — measured on `bcpg:nutList`, whose rows
+     * all report `"sort": true`.
+     *
+     * Share's own datagrid reads the row: `oRecord.getData("permissions").
+     * userAccess.sort` (`entity-datagrid.js`). This does the same, and keeps the
+     * parent map as a fallback in case a future writer starts filling it.
+     */
+    const canReorder = !readOnly && !sort && (
+        payload.permissions?.sort === true
+        || rows.some((row) => !row.draft && row.permissions?.sort === true)
+    );
     const canEditRow = useCallback(
         (row) => !readOnly && (row.draft || row.permissions?.edit !== false),
         [readOnly],
@@ -711,6 +764,29 @@ export function useDataList(options = {}) {
                 }
             }
 
+            // --- clearing an association is a delta, not a value ------------
+            //
+            // Alfresco persists associations from `assoc_x_added` / `assoc_x_removed`
+            // and **ignores an empty `_added`**. Sending `null` therefore produced
+            // `{added: "", removed: ""}` — a request that returns 200 and changes
+            // nothing. Measured on `bcpg:pclPhysicoChem`: the picker emptied itself,
+            // the row reported "Enregistré", and beCPG still held `pH`. A grid that
+            // says saved and did not save is worse than one that fails.
+            //
+            // So a cleared association names what must be removed: its current
+            // value. beCPG then answers for real — including, on a *mandatory*
+            // association, `Erreur de multiplicité de cible d'association`, which is
+            // the honest outcome and is surfaced as a row error.
+            const outgoing = { ...changes };
+            for (const [name, value] of Object.entries(changes)) {
+                const column = columnByName.get(name);
+                const emptied = value === null || value === undefined || value === ''
+                    || (Array.isArray(value) && value.length === 0);
+                if (column?.type === 'association' && emptied && !row.draft) {
+                    outgoing[name] = { added: [], removed: toNodeRefList(row.values?.[column.formsName]) };
+                }
+            }
+
             // --- optimistic write ------------------------------------------
             const optimisticValues = { ...row.values };
             const optimisticDisplays = { ...row.displayValues };
@@ -720,7 +796,7 @@ export function useDataList(options = {}) {
                     continue;
                 }
                 optimisticValues[column.formsName] = value;
-                optimisticDisplays[column.formsName] = localDisplay(value);
+                optimisticDisplays[column.formsName] = localDisplay(value, lang);
             }
             const patch = (entry) => (
                 entry.key === row.key
@@ -753,7 +829,7 @@ export function useDataList(options = {}) {
                     params: paramsRef.current || undefined,
                     // The reformulation is run once when the step is left, never on
                     // a cell save (spec §4.4: asynchronous and non blocking).
-                    body: { nodeRef: row.nodeRef || undefined, values: changes, formulate: false },
+                    body: { nodeRef: row.nodeRef || undefined, values: outgoing, formulate: false },
                 });
                 if (!alive.current) {
                     return result;
@@ -800,7 +876,7 @@ export function useDataList(options = {}) {
                 return null;
             }
         },
-        [readOnly, path, columns, isUnlocked, setRowStatus, scheduleRefresh, refresh, updateDirty],
+        [readOnly, path, columns, isUnlocked, setRowStatus, scheduleRefresh, refresh, updateDirty, lang],
     );
 
     /**

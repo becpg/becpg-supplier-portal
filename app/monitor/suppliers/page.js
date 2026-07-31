@@ -313,14 +313,21 @@ function MonitorSuppliersScreen() {
         [items, selection],
     );
 
-    const from = pagination.totalItems === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
-    const to = Math.min(pagination.page * pagination.pageSize, pagination.totalItems || 0);
+    // `from`/`to` describe the page in hand, so they are counted from the rows in
+    // hand — never from `totalItems`, which is `null` whenever beCPG could only
+    // answer with its `count + 1` sentinel (see `formatTotal`). The total is
+    // rendered on its own and degrades to "au moins N" when that is all we know.
+    const rowsOnPage = Number.isFinite(pagination.count) ? pagination.count : items.length;
+    const from = rowsOnPage === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
+    const to = (pagination.page - 1) * pagination.pageSize + rowsOnPage;
+    const total = formatTotal(pagination, lang);
     const filtered =
         state.status.length > 0
         || Object.values(state.filters).some((value) => Boolean(value));
 
     return (
         <AppShell
+            fullWidth
             space="monitor"
             title={local.title}
             actions={
@@ -475,7 +482,7 @@ export default function MonitorSuppliersPage() {
     return (
         <Suspense
             fallback={
-                <AppShell space="monitor">
+                <AppShell space="monitor" fullWidth>
                     <SkeletonTable rows={8} columns={6} />
                 </AppShell>
             }

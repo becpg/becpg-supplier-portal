@@ -216,6 +216,7 @@ export default function MonitorDocumentsPage() {
 
     return (
         <AppShell
+            fullWidth
             space="monitor"
             title={labels.title}
             actions={

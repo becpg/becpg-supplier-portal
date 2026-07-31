@@ -60,7 +60,14 @@
 
 import { NextResponse } from 'next/server';
 import { MONITOR_ACTIONS, requireMonitorAccess, runMonitorActions } from '@/lib/adapters/monitor';
-import { allowedProcessTemplates } from '@/app/api/v1/process/start/route';
+// Configuration only — deliberately NOT the discovered list. Discovery answers
+// "which supplier *referencing* templates exist" (`bcpg:suppliersAspect` on a
+// project template); beCPG ships no marker for a *suspension* template, so
+// letting suspension fall back on discovery would silently start a referencing
+// project instead. Suspension therefore stays pinned to PORTAL_PROCESS_TEMPLATES
+// and answers `available: false` until an operator configures it — the same
+// deny-by-default it has always had.
+import { configuredProcessTemplates as allowedProcessTemplates } from '@/lib/adapters/processTemplates';
 import { isNodeRef } from '@/lib/becpg';
 import { AuthError, BadRequestError, toApiResponse } from '@/lib/errors';
 import { getLiveSession } from '@/lib/session';

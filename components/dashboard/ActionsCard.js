@@ -12,7 +12,8 @@ import Link from 'next/link';
 import { Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useMessages } from '@/lib/messages';
-import { STATE_CARD_CLASS, STATE_RAIL, formatDate } from '@/components/dashboard/ApprovalCard';
+import { STATE_CARD_CLASS, STATE_RAIL } from '@/components/dashboard/ApprovalCard';
+import { formatDate } from '@/lib/format';
 
 const LOCAL = {
     fr: {
@@ -73,7 +74,9 @@ export function ActionsCard({ actions, index = 0, className = '' }) {
     const open = (actions && actions.open) || 0;
     const late = (actions && actions.late) || 0;
     const byType = (actions && actions.byType) || {};
-    const nextDue = formatDate(actions && actions.nextDueDate, lang);
+    // `fallback: null` on purpose: with no next due date the card says "aucune
+    // échéance", it does not print "Prochaine échéance : —".
+    const nextDue = formatDate(actions && actions.nextDueDate, lang, { fallback: null });
 
     const types = Object.keys(TASK_TYPE_META).filter((type) => (byType[type] || 0) > 0);
     // Late is the only state that deserves red; an open task that is on time is

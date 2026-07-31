@@ -112,7 +112,7 @@ config/                   chrome messages, default wizards
 doc/                      implementation-status.md, becpg-api-contracts.md
 e2e/                      Playwright — fixtures/, tests/; report/ and results/ are generated
 legacy/                   archived V1 portal — read only
-middleware.js             nothing is reachable without a session; resolves the tenant
+proxy.js                  nothing is reachable without a session; resolves the tenant
 spec.md                   authoritative specification
 ```
 
@@ -152,11 +152,11 @@ Against **dev.becpg.fr**, supplier perspective (`.env.supplier`, gitignored, hol
 password — do not commit it or copy its credentials):
 
 ```bash
-npx next dev --port 3100 --env-file .env.supplier
+set -a && . .env.supplier && set +a && npx next dev --port 3100
 ```
 
 `BECPG_SHARE_URL` **must be set explicitly** in any env file aimed at dev: Next.js loads
-`.env` *in addition to* `--env-file`, so the local `.env` would otherwise point Share at
+`.env` *in addition to* the custom loaded environment, so the local `.env` would otherwise point Share at
 `localhost:8180`, and the portal would take its data from dev and its configuration from
 localhost — rendering ten wizard steps with zero fields, silently, with nothing in the logs.
 

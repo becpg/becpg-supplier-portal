@@ -28,8 +28,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
-import { formatDate } from '@/components/dashboard/ApprovalCard';
-import { daysUntil } from '@/components/dashboard/TaskList';
+import { formatDate, daysUntil } from '@/lib/format';
 
 const LOCAL = {
     fr: {

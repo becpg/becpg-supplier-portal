@@ -257,7 +257,7 @@ export function DatasourcePicker({
     });
 
     const open = focused;
-    const key = open ? `${term} ${parentValue || ''}` : null;
+    const key = open ? `${term}\u0000${parentValue || ''}` : null;
 
     const [state, setState] = useState({
         key,
@@ -446,6 +446,23 @@ export function DatasourcePicker({
             return;
         }
         if (event.key === 'Escape') {
+            /*
+             * An open suggestion list **consumes** Escape.
+             *
+             * In a datalist the picker sits inside a `<tr>` whose own `onKeyDown`
+             * treats Escape as "discard this row" (`DataListRow.handleKeyDown` →
+             * `list.discardRow`). Without this guard, dismissing the suggestions
+             * threw away every pending edit of the whole row: measured on
+             * `bcpg:physicoChemList`, a cell typed as `APRES-ESCAPE` reverted to the
+             * stored `AVANT`, no request was sent, and nothing told the supplier his
+             * line had just been reset.
+             *
+             * When the list is closed the key is *not* consumed, so Escape keeps its
+             * meaning of "cancel my changes to this row".
+             */
+            if (open) {
+                event.stopPropagation();
+            }
             setFocused(false);
             setActive(-1);
             return;

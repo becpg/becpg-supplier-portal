@@ -29,7 +29,7 @@ import { SearchInput } from '@/components/ui/Field';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonList } from '@/components/ui/Skeleton';
-import { formatDate } from '@/components/documents/ExpiryPill';
+import { formatDate } from '@/lib/format';
 
 const LABELS = {
     fr: {

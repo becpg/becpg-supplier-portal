@@ -44,7 +44,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { GaugeBar } from '@/components/ui/Gauge';
 import { Modal } from '@/components/ui/Modal';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { formatDate } from '@/components/documents/ExpiryPill';
+import { formatDate } from '@/lib/format';
 import {
     MonitorActionButtons,
     RISK_LEVELS,

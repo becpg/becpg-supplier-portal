@@ -56,6 +56,8 @@ import { useMemo, useState } from 'react';
 import { Card, SectionHeader } from '@/components/ui/Card';
 import { Field } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Button';
+import { ListIcon } from '@/components/ui/ListIcon';
+import { TabScroller } from '@/components/ui/TabScroller';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonCard, SkeletonTable } from '@/components/ui/Skeleton';
 import { CatalogPanel } from '@/components/products/CatalogPanel';
@@ -64,7 +66,7 @@ import { RequirementChecklist } from '@/components/documents/RequirementChecklis
 import { DataListEditor } from '@/components/datalist/DataListEditor';
 import { DataListCardRow } from '@/components/datalist/DataListCardRow';
 import { isNestedColumn, useDataList } from '@/components/datalist/useDataList';
-import { formatDate } from '@/components/documents/ExpiryPill';
+import { formatDate, formatDateTime, isIsoTimestamp } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { parseListId } from '@/config/wizards.default';
@@ -156,6 +158,23 @@ export function stepTabKey(step) {
 }
 
 /**
+ * The type that decides a step's icon (`lib/listIcons.js`).
+ *
+ * It is the **list name**, not the step id and not the label: `nutList` is what
+ * beCPG's own CSS keys the apple glyph on, and it is stable across instances
+ * where the label ("Nutriments", "Nutritional values", a client's own wording)
+ * is not. `surveyList@2` normalises to `surveyList` inside the resolver, so
+ * Aryzta's four questionnaires all get the questionnaire icon.
+ *
+ * @param {Object} step a step of `GET /api/v1/wizard/{entityId}`
+ * @returns {string} a list name, or the step type when the step has no list
+ */
+export function stepIconType(step) {
+    const parsed = parseListId(step.listId);
+    return parsed.name || step.listName || step.type || '';
+}
+
+/**
  * Builds the tab list: the wizard steps as beCPG ordered them, then the portal's
  * own sections.
  *
@@ -165,7 +184,7 @@ export function stepTabKey(step) {
  *
  * @param {Object[]} steps steps of the wizard state; `[]` when it is unavailable
  * @param {Object} labels the chrome dictionary
- * @returns {Array<{key: string, label: string, kind: string, step: Object|null}>}
+ * @returns {Array<{key: string, label: string, kind: string, iconType: string, step: Object|null}>}
  */
 export function buildProductTabs(steps, labels) {
     const wizardSteps = Array.isArray(steps) ? steps : [];
@@ -186,23 +205,24 @@ export function buildProductTabs(steps, labels) {
             // Already translated by beCPG — the portal never translates a business label.
             label: step.label || step.title || labels[step.type] || step.id,
             kind: step.type,
+            iconType: stepIconType(step),
             step,
         });
     }
 
     if (!wizardSteps.some((step) => step.type === 'form')) {
         // No form step: the properties still open the sheet, from the raw attributes.
-        tabs.unshift({ key: 'sheet', label: labels.sheet, kind: 'form', step: null });
+        tabs.unshift({ key: 'sheet', label: labels.sheet, kind: 'form', iconType: 'form', step: null });
         taken.add('sheet');
     }
 
-    push({ key: 'compliance', label: labels.compliance, kind: 'compliance', step: null });
-    push({ key: 'specs', label: labels.specs, kind: 'specs', step: null });
+    push({ key: 'compliance', label: labels.compliance, kind: 'compliance', iconType: 'compliance', step: null });
+    push({ key: 'specs', label: labels.specs, kind: 'specs', iconType: 'specs', step: null });
 
     if (!wizardSteps.some((step) => step.type === 'documents')) {
         // No `documents` step in this configuration: the portal's own check-list
         // takes the slot. Exactly one Documents tab, either way.
-        push({ key: 'documents', label: labels.documents, kind: 'documents', step: null });
+        push({ key: 'documents', label: labels.documents, kind: 'documents', iconType: 'documents', step: null });
     }
 
     return tabs;
@@ -261,8 +281,18 @@ export function readableValue(field, lang) {
         }
         if (typeof entry === 'string') {
             // A d:date arrives as an ISO string; nobody reads a timestamp.
-            if (field.dataType === 'd:date' || field.dataType === 'd:datetime') {
-                return formatDate(entry, lang);
+            if (field.dataType === 'd:date') {
+                return formatDate(entry, lang, { fallback: entry });
+            }
+            if (field.dataType === 'd:datetime') {
+                return formatDateTime(entry, lang, { fallback: entry });
+            }
+            // `RawPropertySheet` below has no data type to give us — it renders
+            // `entity.attributes` directly, where `cm:created` and `cm:modified`
+            // are plain strings. Recognising the *shape* of the value is what
+            // stops `2026-07-06T14:48:55.903Z` from being printed as-is.
+            if (isIsoTimestamp(entry)) {
+                return formatDateTime(entry, lang, { fallback: entry });
             }
             return entry;
         }
@@ -506,7 +536,8 @@ function PanelSkeleton({ variant }) {
 function StepHeader({ step, labels }) {
     const title = step.label || step.title || '';
     const subtitle = step.title && step.title !== title ? step.title : labels.readOnly;
-    return <SectionHeader title={title} subtitle={subtitle} />;
+    // Same glyph as the tab that opened this panel — one list, one picture.
+    return <SectionHeader title={title} subtitle={subtitle} icon={<ListIcon type={stepIconType(step)} size={18} />} />;
 }
 
 /**
@@ -613,7 +644,15 @@ function ListPanel({ entityId, step, params, variant, labels }) {
             entityId={entityId}
             list={list}
             readOnly
-            title={step.label || step.title}
+            // A node, not a string: the grid's own heading gets the same glyph as
+            // the tab and the card header, and `DataListEditor` already types
+            // `title` as a ReactNode — nothing in components/datalist changes.
+            title={
+                <span className="inline-flex items-center gap-2">
+                    <ListIcon type={stepIconType(step)} size={18} />
+                    {step.label || step.title}
+                </span>
+            }
             description={step.title && step.title !== step.label ? step.title : undefined}
         />
     );
@@ -643,6 +682,7 @@ function DocumentsPanel({ nodeRef, step, labels }) {
             <SectionHeader
                 title={(step && (step.label || step.title)) || labels.documents}
                 subtitle={(step && step.title !== step.label && step.title) || labels.documentsHint}
+                icon={<ListIcon type={step ? stepIconType(step) : 'documents'} size={18} />}
             />
             <RequirementChecklist
                 groups={(requirements.data && requirements.data.groups) || []}
@@ -813,9 +853,15 @@ export function ProductSections({
     return (
         <>
             <div className="mb-4 border-b border-[var(--becpg-grey)]">
-                {/* Horizontal scroll rather than a wrap: at 360px a ten-step
-                    configuration would otherwise build a four-line wall of tabs. */}
-                <div className="scroll-x no-scrollbar" role="tablist" aria-label={labels.sections}>
+                {/*
+                    Horizontal scroll rather than a wrap: at 360px a ten-step
+                    configuration would otherwise build a four-line wall of tabs.
+                    `TabScroller` adds what was missing — the chevrons, the edge
+                    fades, "reveal the active tab", the arrow keys — without
+                    changing that scroll. Labels are beCPG's translated list
+                    names and are never truncated.
+                */}
+                <TabScroller ariaLabel={labels.sections} activeKey={activeKey}>
                     {tabs.map((tab) => (
                         <button
                             key={tab.key}
@@ -827,20 +873,29 @@ export function ProductSections({
                             // support screenshot annotation) cannot key on the text. The kind
                             // can: it is the portal's own vocabulary, not the client's data.
                             data-tab-kind={tab.kind}
+                            // How `TabScroller` finds the tab it has to reveal.
+                            data-tab-key={tab.key}
                             aria-selected={tab.key === activeKey}
                             aria-controls={`panel-${tab.key}`}
+                            // Roving tabindex: one Tab press leaves the bar for the
+                            // panel instead of walking eleven tabs. Arrow keys move
+                            // inside it (WAI-ARIA tabs, manual activation).
+                            tabIndex={tab.key === activeKey ? 0 : -1}
                             onClick={() => onTabChange(tab.key)}
                             className={[
-                                'touch-target -mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors',
+                                'touch-target -mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors',
                                 tab.key === activeKey
                                     ? 'border-[var(--becpg-orange)] text-[var(--becpg-blue)]'
                                     : 'border-transparent text-[var(--becpg-dark-grey)] hover:text-[var(--becpg-blue)]',
                             ].join(' ')}
                         >
+                            {/* beCPG's own 16px glyph per characteristic list — the
+                                picture a supplier already reads the bar by in Share. */}
+                            <ListIcon type={tab.iconType} />
                             {tab.label}
                         </button>
                     ))}
-                </div>
+                </TabScroller>
             </div>
 
             {tabs.map((tab) => {

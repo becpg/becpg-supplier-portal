@@ -27,8 +27,10 @@
 import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Icon } from '@/components/ui/Button';
+import { ListIcon } from '@/components/ui/ListIcon';
 import { Modal } from '@/components/ui/Modal';
 import { useMessages } from '@/lib/messages';
+import { hasListIcon } from '@/lib/listIcons';
 
 const LABELS = {
     fr: {
@@ -39,6 +41,7 @@ const LABELS = {
         readOnly: 'Lecture seule',
         done: 'Vue',
         current: 'Étape en cours',
+        todo: 'Pas encore vue',
         locked: 'Disponible plus tard',
         progress: '{percent} % du parcours',
     },
@@ -50,6 +53,7 @@ const LABELS = {
         readOnly: 'Read only',
         done: 'Visited',
         current: 'Current step',
+        todo: 'Not visited yet',
         locked: 'Available later',
         progress: '{percent}% of the path',
     },
@@ -83,6 +87,28 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
           ? 'check'
           : KIND_ICONS[step.kind] || 'radio_button_unchecked';
 
+    // The characteristic list this step edits, when it edits one — `null` for a
+    // synthetic step and for a list beCPG ships no glyph for. `buildStepModel`
+    // spreads the server step, so `listName` / `listId` survive into the model.
+    const candidate = step.listName || step.listId || '';
+    const listIconType = candidate && hasListIcon(candidate) ? candidate : null;
+
+    /*
+     * The state line is the button's accessible name, so it must describe the
+     * button the user is actually offered.
+     *
+     * It used to fall through to "Disponible plus tard" for every step that was
+     * not current, frozen, read-only or already visited — which is most of the
+     * rail. MEASURED on a wizard sitting on step 7 of 12: "Documents · Étape 1
+     * sur 12 · Disponible plus tard" on a button that was **enabled and
+     * clickable**, next to "Allégations · Étape 9 sur 12 · Disponible plus tard"
+     * that really was disabled. The same words for the two opposite states, and a
+     * screen reader announcing "available later" on an actionable control.
+     *
+     * `selectable` is the very flag that drives `disabled` two lines below, so the
+     * label now reads from it: a step you can reach is "pas encore vue", a step
+     * you cannot is "disponible plus tard".
+     */
     const state = active
         ? labels.current
         : step.frozen
@@ -91,7 +117,9 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
             ? labels.readOnly
             : done
               ? labels.done
-              : labels.locked;
+              : selectable
+                ? labels.todo
+                : labels.locked;
 
     return (
         <li>
@@ -128,11 +156,16 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
                 <span className="min-w-0 flex-1">
                     <span
                         className={[
-                            'block truncate text-sm',
+                            'flex items-center gap-1.5 truncate text-sm',
                             active ? 'font-medium' : '',
                         ].join(' ')}
                     >
-                        {step.label}
+                        {/* Only for a step that IS a beCPG characteristic list.
+                            A synthetic step (documents, suggestions, compliance)
+                            has no glyph and must not borrow one — the numbered
+                            status circle to its left already identifies it. */}
+                        {listIconType ? <ListIcon type={listIconType} size={14} /> : null}
+                        <span className="min-w-0 truncate">{step.label}</span>
                     </span>
                     <span className="mt-0.5 block truncate text-[11px] opacity-70">
                         {fill(labels.step, { index, total })} · {state}

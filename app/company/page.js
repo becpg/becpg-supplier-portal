@@ -32,10 +32,12 @@ import { Field } from '@/components/ui/Field';
 import { Gauge, GaugeBar } from '@/components/ui/Gauge';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
+import { ListIcon } from '@/components/ui/ListIcon';
 import { SkeletonCard } from '@/components/ui/Skeleton';
+import { TabScroller } from '@/components/ui/TabScroller';
 import { RequirementChecklist } from '@/components/documents/RequirementChecklist';
 import { SpecPanel } from '@/components/specs/SpecPanel';
-import { formatDate } from '@/components/documents/ExpiryPill';
+import { formatDate } from '@/lib/format';
 import { useSession } from '@/components/providers/SessionProvider';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
@@ -569,24 +571,37 @@ export default function CompanyPage() {
             ) : (
                 <>
                     <div className="mb-4 border-b border-[var(--becpg-grey)]">
-                        <div className="scroll-x no-scrollbar">
+                        {/* Same bar, same defect: a supplier profile can declare
+                            as many sections as the wizard configuration does, and
+                            the row scrolled with nothing saying so. `tabs={false}`
+                            because these keep `aria-current="page"` rather than
+                            the tabs pattern — the arrow keys would be a lie. */}
+                        <TabScroller ariaLabel={labels.title} activeKey={active ? active.key : null} tabs={false}>
                             {sections.map((entry) => (
                                 <button
                                     key={entry.key}
                                     type="button"
+                                    data-tab-key={entry.key}
                                     onClick={() => setSection(entry.key)}
                                     aria-current={active && active.key === entry.key ? 'page' : undefined}
                                     className={[
-                                        'touch-target -mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors',
+                                        'touch-target -mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors',
                                         active && active.key === entry.key
                                             ? 'border-[var(--becpg-orange)] text-[var(--becpg-blue)]'
                                             : 'border-transparent text-[var(--becpg-dark-grey)] hover:text-[var(--becpg-blue)]',
                                     ].join(' ')}
                                 >
+                                    <ListIcon
+                                        type={
+                                            entry.step
+                                                ? entry.step.listName || entry.step.listId || entry.step.type
+                                                : entry.key
+                                        }
+                                    />
                                     {entry.label}
                                 </button>
                             ))}
-                        </div>
+                        </TabScroller>
                     </div>
 
                     {wizard.loading || entity.loading ? (

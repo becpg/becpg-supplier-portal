@@ -124,7 +124,7 @@ function ProductScreen() {
     const product = entity.data;
 
     return (
-        <AppShell title={product ? product.name : labels.sheet}>
+        <AppShell title={product ? product.name : labels.sheet} fullWidth>
             <ProductHeader
                 entity={product}
                 loading={entity.loading}
@@ -153,7 +153,7 @@ export default function ProductPage() {
     return (
         <Suspense
             fallback={
-                <AppShell>
+                <AppShell fullWidth>
                     <SkeletonCard lines={4} />
                 </AppShell>
             }

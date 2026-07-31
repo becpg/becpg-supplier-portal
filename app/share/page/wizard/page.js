@@ -42,7 +42,7 @@
  * portal route while the **stored** deliverable URL in beCPG is untouched. I1
  * forbids rewriting the deliverable, not navigating away from it.
  *
- * Access: the middleware requires a session before this page renders, so an
+ * Access: the proxy requires a session before this page renders, so an
  * anonymous click goes through `/login?next=/share/page/wizard?…` and comes back
  * here. The session check below is defence in depth.
  */

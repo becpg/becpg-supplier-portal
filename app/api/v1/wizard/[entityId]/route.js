@@ -18,7 +18,7 @@
 import { NextResponse } from 'next/server';
 import { toApiResponse } from '@/lib/errors';
 import { requireSession } from '@/lib/becpg';
-import { getWizardState } from '@/lib/adapters/wizard';
+import { getWizardState, withoutStepDefinitions } from '@/lib/adapters/wizard';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -41,7 +41,8 @@ export async function GET(request, context) {
             session,
         });
 
-        const response = NextResponse.json(state);
+        // The per-step field definitions belong to `…/step/{stepId}`, not here.
+        const response = NextResponse.json(withoutStepDefinitions(state));
         // Per-user, permission-dependent state: never cached anywhere.
         response.headers.set('Cache-Control', 'private, no-store');
         return response;

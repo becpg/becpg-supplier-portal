@@ -34,7 +34,7 @@ import { GaugeBar } from '@/components/ui/Gauge';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Icon } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { formatDate } from '@/components/documents/ExpiryPill';
+import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 
 const LABELS = {

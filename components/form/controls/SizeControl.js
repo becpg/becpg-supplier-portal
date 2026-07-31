@@ -18,6 +18,7 @@
  */
 
 import { controlParams } from '@/components/form/validation';
+import { formatNumber } from '@/lib/format';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
 
 /** Steps of the human-readable scale, as Alfresco's `formatFileSize` uses them. */
@@ -50,9 +51,7 @@ export function formatFileSize(value, lang = 'fr') {
         step += 1;
     }
     const unit = step === 0 ? (LABELS[lang] || LABELS.fr).bytes : UNITS[step];
-    const formatted = new Intl.NumberFormat(lang, {
-        maximumFractionDigits: step === 0 ? 0 : 1,
-    }).format(size);
+    const formatted = formatNumber(size, lang, { maximumFractionDigits: step === 0 ? 0 : 1 });
     return `${formatted} ${unit}`;
 }
 

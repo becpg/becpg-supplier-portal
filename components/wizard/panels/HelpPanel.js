@@ -33,7 +33,7 @@ import { Card } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { SkeletonText } from '@/components/ui/Skeleton';
 import { SpecPanel } from '@/components/specs/SpecPanel';
-import { formatDate, formatDateTime } from '@/components/documents/ExpiryPill';
+import { formatDate, formatDateTime } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 

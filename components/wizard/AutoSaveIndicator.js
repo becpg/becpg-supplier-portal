@@ -24,6 +24,7 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Icon, Spinner } from '@/components/ui/Button';
 import { useMessages } from '@/lib/messages';
+import { formatTime } from '@/lib/format';
 import { AUTOSAVE_STATUS } from '@/components/wizard/useAutoSave';
 
 const LABELS = {
@@ -46,32 +47,6 @@ const LABELS = {
         unsaved: 'Your changes are not lost: they will be sent again.',
     },
 };
-
-/**
- * `HH:MM` in the user's locale.
- *
- * @param {Date|null} date
- * @param {string} lang
- * @returns {string}
- */
-export function formatTime(date, lang = 'fr') {
-    if (!date) {
-        return '';
-    }
-    const value = date instanceof Date ? date : new Date(date);
-    if (Number.isNaN(value.getTime())) {
-        return '';
-    }
-    try {
-        return new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'fr-FR', {
-            hour: '2-digit',
-            minute: '2-digit',
-        }).format(value);
-    }
-    catch {
-        return value.toISOString().slice(11, 16);
-    }
-}
 
 /**
  * @param {Object} props

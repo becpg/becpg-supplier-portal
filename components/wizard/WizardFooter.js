@@ -59,6 +59,7 @@ const LABELS = {
  * @param {React.ReactNode} [props.finishReason] why finishing is blocked
  * @param {React.ReactNode} [props.finishLabel]
  * @param {boolean} [props.formulating] a background reformulation is running
+ * @param {boolean} [props.draft] the wizard declares `draft` — "Terminer" on every step
  * @param {React.ReactNode} [props.extra] rendered on the left, before the indicator
  * @param {string} [props.className]
  */
@@ -74,6 +75,7 @@ export function WizardFooter({
     finishReason = null,
     finishLabel,
     formulating = false,
+    draft = false,
     extra = null,
     className = '',
 }) {
@@ -81,7 +83,20 @@ export function WizardFooter({
     const labels = LABELS[lang] || LABELS.fr;
     const reduceMotion = useReducedMotion();
 
-    const showFinish = Boolean(onFinish) && !hasNext;
+    /*
+     * `draft` is a wizard attribute of the product's own configuration, and its
+     * documented meaning is exactly this: "bouton Terminer toujours visible"
+     * (spec §1.4). `getWizardState` has always returned it — every supplier
+     * wizard of `config/wizards.default.js` declares `draft: true`, and Share
+     * returns it too — but nothing consumed it, so the button only ever appeared
+     * on the last step. A supplier who had finished filling in step 3 had to walk
+     * to the end of the rail to submit.
+     *
+     * It stays subordinate to `onFinish`: a read-only wizard, or a task that is
+     * already completed, still gets **no** button at all rather than a greyed one
+     * (spec: hide, do not disable).
+     */
+    const showFinish = Boolean(onFinish) && (!hasNext || draft);
 
     return (
         <div className={`mt-4 ${className}`}>

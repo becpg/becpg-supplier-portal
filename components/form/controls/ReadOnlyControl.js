@@ -20,6 +20,7 @@
 
 import { Icon } from '@/components/ui/Button';
 import { controlParams, numberFormat } from '@/components/form/validation';
+import { formatDate, formatDateTime, formatNumber, isIsoTimestamp } from '@/lib/format';
 
 const LABELS = {
     fr: { yes: 'Oui', no: 'Non', empty: '—' },
@@ -83,22 +84,26 @@ export function formatValue(field, value, lang = 'fr') {
             return labels.no;
         }
     }
-    if (dataType === 'd:date' || dataType === 'd:datetime') {
-        const date = new Date(value);
-        if (!Number.isNaN(date.getTime())) {
-            return new Intl.DateTimeFormat(lang, {
-                dateStyle: 'medium',
-                ...(dataType === 'd:datetime' ? { timeStyle: 'short' } : {}),
-            }).format(date);
-        }
-        return String(value);
+    if (dataType === 'd:date') {
+        return formatDate(value, lang, { fallback: String(value) });
+    }
+    if (dataType === 'd:datetime') {
+        return formatDateTime(value, lang, { fallback: String(value) });
     }
     if (dataType === 'd:int' || dataType === 'd:long' || dataType === 'd:double' || dataType === 'd:float') {
         const parsed = Number(value);
         if (Number.isFinite(parsed)) {
             const { maximumFractionDigits, minimumFractionDigits } = numberFormat(field);
-            return new Intl.NumberFormat(lang, { maximumFractionDigits, minimumFractionDigits }).format(parsed);
+            return formatNumber(parsed, lang, { maximumFractionDigits, minimumFractionDigits });
         }
+    }
+    // Last line of defence. A property can reach this control with no data type
+    // at all — the degraded property sheet of `/products/{id}` builds its fields
+    // straight from `entity.attributes`, where `cm:created` is just a string.
+    // Without this the sheet printed `2026-07-06T14:48:55.903Z` verbatim, which
+    // is precisely the bug this module was created to end.
+    if (isIsoTimestamp(value)) {
+        return formatDateTime(value, lang, { fallback: String(value) });
     }
     return String(value);
 }

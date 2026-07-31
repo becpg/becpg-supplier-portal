@@ -1,121 +1,95 @@
 /**
- * `GET /api/v1/signature/{taskId}` — where to sign, and what to sign.
+ * `/api/v1/signature/{taskId}` — **what to sign, where it lands, and the one
+ * POST that signs it** (spec §9.2, ticket #35696).
  *
- * ## What beCPG already does, and what is left to the client
+ * ## The design decision, restated because the code only makes sense with it
  *
- * Signature is applied **server-side** (spec §9.2):
- * `SignatureService.prepareForSignature()` positions the signature and initials,
- * `PDFBoxServiceImpl.signDocument()` performs the cryptographic signature, and
- * the DocuSign / YouSign implementations do the same remotely. The client only
- * **displays** the document and **collects consent**.
+ * In beCPG the signature is applied **server-side**:
+ * `SignatureService.prepareForSignature()` positions the signature and the
+ * initials, `PDFBoxServiceImpl.signDocument()` performs the cryptographic
+ * signature (PDFBox + BouncyCastle, in the Alfresco JVM — no external service),
+ * and DocuSign / YouSign do the same remotely. **The client only displays and
+ * collects consent.** That is why there is no PDFTron here, and no annotation
+ * SDK of any kind: they solve a problem the portal does not have, they cost a
+ * licence, and Apryse's WebViewer is what makes Firefox crawl (#35696).
  *
- * `beCPG/signature/prepare-signature.js` stores the result of
- * `bSign.getSignatureView(document, recipient, task)` on the task's URL
- * deliverable. This route reads the task, finds that deliverable, and returns
- * both halves the portal needs:
+ * ## GET
  *
- *   - `signature.url` — the signature view beCPG computed. Absolute (DocuSign,
- *     YouSign) it is opened as-is; relative (a Share page) it is exposed through
- *     the portal's own Share proxy, since Alfresco is never reachable from the
- *     browser;
- *   - `document` — the node to render, with a **portal** content URL, so the
- *     light viewer of spec §9.2 (`pdf.js` / `react-pdf`) can display it without
- *     ever seeing an Alfresco URL or a ticket.
- *
- * The heavy PDFTron/Apryse viewer is deliberately not involved: it is
- * oversized for display-and-consent, it is licensed, and it is what makes
- * Firefox crawl (#35696).
- *
- * Response:
  * ```json
  * { "taskId": "workspace://SpacesStore/…",
- *   "task": { "nodeRef", "name", "description", "state", "entityNodeRef" },
- *   "signature": { "url": "https://…", "external": true, "deliverableNodeRef": "…" },
- *   "document": { "nodeRef", "name", "mimetype", "contentUrl", "downloadUrl" },
- *   "documents": [ … ] }
+ *   "task": { "nodeRef", "name", "state", "entityNodeRef", … },
+ *   "outcome": "open | signed | cancelled | closed",
+ *   "signature": { "external": false, "state": "InProgress", "status": "Prepared",
+ *                  "zones": [ { "page": 2, "type": "signature", "x": 0.6, "y": 0.805,
+ *                               "width": 0.327, "height": 0.095,
+ *                               "unit": "ratio", "origin": "top-left" } ],
+ *                  "zonesSource": "acroform", "zonesReason": null },
+ *   "document": { "nodeRef", "name", "signStatus", "pageCount", "available": true,
+ *                 "contentUrl": "/api/v1/documents/{id}/content?task={taskId}" },
+ *   "originals": [ … ] }
  * ```
+ *
+ * Three things in there are load-bearing:
+ *
+ * - `document` is the node named by the **signature view URL** — the prepared
+ *   *working copy* — not `deliverable.contents[0]`, which is the untouched
+ *   original with no signature field in it (see `lib/adapters/signature.js`);
+ * - `signature.zones` are read out of that document's AcroForm, i.e. out of the
+ *   very rectangles `prepareForSignature()` wrote. An empty array means the
+ *   overlay draws nothing. `zonesReason` says why, so a missing overlay is
+ *   diagnosable instead of mysterious;
+ * - **`available: false` means beCPG will not serve those bytes** — the working
+ *   copy was deleted by the check-in that followed the signature, or the
+ *   supplier has lost read access to it. `contentUrl` and `downloadUrl` are then
+ *   `null`, and an unreadable original is dropped from `originals` altogether:
+ *   the screen must never offer a link that answers 404 (defect F4). It is
+ *   measured, not assumed — `api/metadata` answers `200 {}` for such a node.
+ *
+ * ## POST — the single call that signs
+ *
+ * One POST, and it carries the consent:
+ *
+ * ```json
+ * { "requestId": "sign-…", "consent": { "accepted": true, "text": "…", "at": "…" },
+ *   "signature": { "kind": "drawn|typed", "name": "…", "image": "data:image/png;…" },
+ *   "reading": { "pages": 12, "seenPages": 12, "complete": true } }
+ * ```
+ *
+ * It does **not** invent a signing endpoint: signing *is* completing the task,
+ * because `beCPG/signature/sign-document.js` is that task's post-deliverable
+ * script. The portal proxies `becpg/project/complete/task` and lets beCPG run
+ * `bSign.signDocument()` (rule R2, spec §6.2).
+ *
+ * ### The three production failures it answers
+ *
+ * | failure | answer |
+ * |---|---|
+ * | already signed (second tab, reload after success, #34523) | `200 { "signed": true, "alreadySigned": true }` — read from `sign:status`, no second signature is attempted |
+ * | cancelled document / refused task | `409 signature/cancelled`, no signature attempted |
+ * | network dies mid-submit | the retry re-reads beCPG *before* doing anything; a POST that landed but whose answer was lost resolves as `alreadySigned`, not as an error. `requestId` is echoed for log correlation only — the idempotency comes from beCPG's state, which is the only place that cannot lie |
+ *
+ * `consent.accepted !== true` is a 400: this endpoint exists to record a
+ * consent, and a signature without one is not a thing the portal will do.
  */
 
 import { NextResponse } from 'next/server';
-import { BadRequestError, NotFoundError, toApiResponse } from '@/lib/errors';
-import { getJson, isNodeRef, nodeRefToPath, pathToNodeRef, requireSession } from '@/lib/becpg';
+import { AuthError, BadRequestError, ConflictError, toApiResponse } from '@/lib/errors';
+import { getLiveSession } from '@/lib/session';
+import { createBecpgClient } from '@/lib/adapters/session';
+import { getSignatureView, signSignatureTask } from '@/lib/adapters/signature';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/** Deliverable states that mean "nothing to sign any more". */
-const CLOSED_STATES = new Set(['Completed', 'Cancelled']);
-
-/**
- * Accepts a nodeRef, a node path or a bare UUID.
- *
- * @param {string} taskId
- * @returns {string} a nodeRef
- */
-function toTaskNodeRef(taskId) {
-    const value = String(taskId || '').trim();
-    if (!value) {
-        throw new BadRequestError('Missing task id');
+/** Reading the request body must never be the thing that 500s. */
+async function readBody(request) {
+    try {
+        const text = await request.text();
+        return text ? JSON.parse(text) : {};
     }
-    if (isNodeRef(value)) {
-        return value;
+    catch {
+        throw new BadRequestError('Malformed signature payload');
     }
-    if (value.includes('/')) {
-        return pathToNodeRef(value);
-    }
-    if (/^[A-Za-z0-9-]{8,}$/.test(value)) {
-        return `workspace://SpacesStore/${value}`;
-    }
-    throw new BadRequestError('Invalid task id');
-}
-
-/**
- * Turns the URL beCPG stored on the deliverable into something the browser can
- * open.
- *
- * @param {string} url raw deliverable URL
- * @returns {{url: string, external: boolean}|null}
- */
-function toSignatureUrl(url) {
-    const value = String(url || '').trim();
-    if (!value) {
-        return null;
-    }
-    if (/^https?:\/\//i.test(value)) {
-        // DocuSign / YouSign: an absolute, already-authenticated URL.
-        return { url: value, external: true };
-    }
-    // A Share page (e.g. `artworks-viewer?nodeRef=…`): reachable only through the
-    // portal's Share proxy — the browser never talks to Alfresco directly.
-    const path = value.replace(/^\/+/, '').replace(/^share\//, '');
-    const prefixed = path.startsWith('page/') || path.startsWith('service/') ? path : `page/${path}`;
-    return { url: `/api/v1/share/${prefixed}`, external: false };
-}
-
-/**
- * Portal URLs for a document node. Nothing here exposes Alfresco or the ticket.
- *
- * @param {Object} content one entry of the deliverable's `contents`
- * @returns {Object|null}
- */
-function toDocument(content) {
-    if (!content?.nodeRef || !isNodeRef(content.nodeRef)) {
-        return null;
-    }
-    const path = nodeRefToPath(content.nodeRef);
-    const name = content.name || 'document';
-    const encoded = encodeURIComponent(name);
-    return {
-        nodeRef: content.nodeRef,
-        name,
-        type: content.type || null,
-        path: content.path || null,
-        siteId: content.siteId || null,
-        // Inline rendering for the light viewer…
-        contentUrl: `/api/v1/becpg/api/node/content/${path}/${encoded}`,
-        // …and an explicit download for "keep a copy".
-        downloadUrl: `/api/v1/becpg/api/node/content/${path}/${encoded}?a=true`,
-    };
 }
 
 /**
@@ -126,67 +100,69 @@ function toDocument(content) {
 export async function GET(request, context) {
     const { taskId } = await context.params;
     try {
-        const session = await requireSession();
-        const nodeRef = toTaskNodeRef(taskId);
-
-        // `projectTaskInfo` is mounted on `becpg/project/task` (see its
-        // .desc.xml); it returns the task with its deliverables, their URL and
-        // their contents.
-        const payload = await getJson('becpg/project/task', {
-            query: { nodeRef },
-            session,
-        });
-
-        const task = payload?.task;
-        if (!task) {
-            throw new NotFoundError('Task not found', { details: { taskId } });
+        const session = await getLiveSession();
+        if (!session) {
+            throw new AuthError('No portal session');
         }
+        const client = createBecpgClient(session);
 
-        const deliverables = Array.isArray(task.deliverables) ? task.deliverables : [];
-        // The signature deliverable is the one carrying the URL
-        // `bSign.getSignatureView()` produced, and still open.
-        const signatureDeliverable = deliverables.find((deliverable) => deliverable?.url
-            && !CLOSED_STATES.has(deliverable.state))
-            || deliverables.find((deliverable) => deliverable?.url)
-            || null;
+        // `?zones=0` is the escape hatch for the polling the client does after a
+        // lost answer: it must not re-download the PDF just to ask "is it signed".
+        const withZones = new URL(request.url).searchParams.get('zones') !== '0';
 
-        const documents = deliverables
-            .flatMap((deliverable) => (Array.isArray(deliverable.contents) ? deliverable.contents : []))
-            .map(toDocument)
-            .filter(Boolean);
+        const payload = await getSignatureView({ client, taskId, withZones });
 
-        const signature = toSignatureUrl(signatureDeliverable?.url);
-        const primary = (signatureDeliverable?.contents || []).map(toDocument).find(Boolean)
-            || documents[0]
-            || null;
-
-        if (!signature && !primary) {
-            throw new NotFoundError('This task carries nothing to sign', { details: { taskId } });
-        }
-
-        const response = NextResponse.json({
-            taskId: nodeRef,
-            task: {
-                nodeRef: task.nodeRef || nodeRef,
-                name: task.name || '',
-                description: task.description || '',
-                state: task.state || null,
-                completionPercent: task.completionPercent || null,
-                entityNodeRef: task.entityNodeRef && task.entityNodeRef !== '#access_forbidden'
-                    ? task.entityNodeRef
-                    : null,
-            },
-            signature: signature
-                ? { ...signature, deliverableNodeRef: signatureDeliverable?.nodeRef || null,
-                    state: signatureDeliverable?.state || null }
-                : null,
-            document: primary,
-            documents,
-        });
+        const response = NextResponse.json(payload);
         response.headers.set('Cache-Control', 'private, no-store');
         return response;
     }
     catch (error) {
-        return toApiResponse(error, { route: 'signature', method: 'GET', taskId });
+        return toApiResponse(error, { route: '/api/v1/signature/[taskId]', method: 'GET', taskId });
+    }
+}
+
+/**
+ * @param {Request} request
+ * @param {{ params: Promise<{ taskId: string }> }} context
+ * @returns {Promise<Response>}
+ */
+export async function POST(request, context) {
+    const { taskId } = await context.params;
+    try {
+        const session = await getLiveSession();
+        if (!session) {
+            throw new AuthError('No portal session');
+        }
+        const client = createBecpgClient(session);
+        const body = await readBody(request);
+
+        const consent = body && body.consent;
+        if (!consent || consent.accepted !== true) {
+            throw new BadRequestError('Signature refused: no consent recorded');
+        }
+
+        const requestId = typeof body.requestId === 'string' && body.requestId
+            ? body.requestId.slice(0, 120)
+            : request.headers.get('x-portal-request-id');
+
+        const result = await signSignatureTask({ client, taskId, requestId });
+
+        if (result.cancelled) {
+            throw new ConflictError('This signature request was cancelled', {
+                details: { reason: 'signature-cancelled', outcome: result.outcome },
+            });
+        }
+
+        const response = NextResponse.json({
+            ...result,
+            // Echoed so the UI can state, truthfully, that nothing was signed
+            // twice — and so a support log can be matched to a browser session.
+            consentRecordedAt: consent.at || new Date().toISOString(),
+        }, { status: 200 });
+        response.headers.set('Cache-Control', 'private, no-store');
+        return response;
+    }
+    catch (error) {
+        return toApiResponse(error, { route: '/api/v1/signature/[taskId]', method: 'POST', taskId });
     }
 }

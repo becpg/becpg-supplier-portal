@@ -37,7 +37,7 @@ import { Card } from '@/components/ui/Card';
 import { Gauge } from '@/components/ui/Gauge';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { formatDate } from '@/components/documents/ExpiryPill';
+import { formatDate } from '@/lib/format';
 
 const LABELS = {
     fr: {

@@ -87,6 +87,25 @@ function fill(template, vars) {
 }
 
 /**
+ * React key of a catalogue row.
+ *
+ * Not `catalog.id`: `/entities/{id}/catalogs` returns one row **per report
+ * locale**, all sharing the catalogue id and differing by `locale` and by the
+ * fields they report missing — two real rows, one id. Keying on the id alone is
+ * what produced `Encountered two children with the same key, 'incoRawMaterials'`.
+ * `(id, locale)` is unique by construction: the adapter de-duplicates on exactly
+ * that pair (`dedupeCatalogs` in lib/adapters/entities.js), so no index
+ * fallback is needed and none is used — an index key here would silently
+ * survive a real duplicate instead of the adapter dropping it.
+ *
+ * @param {Object} catalog
+ * @returns {string}
+ */
+function rowKey(catalog) {
+    return `${catalog.id || catalog.label || ''}::${catalog.locale || ''}`;
+}
+
+/**
  * The label a missing field is shown with. beCPG sends the dictionary label; the
  * qname is the fallback so a field is never rendered as an empty chip.
  *
@@ -378,7 +397,7 @@ export function CatalogPanel({
                             <ul className="mt-2 flex list-none flex-wrap gap-1.5 p-0">
                                 {list.map((catalog) => (
                                     <li
-                                        key={catalog.id || catalog.label}
+                                        key={rowKey(catalog)}
                                         className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--becpg-grey)]/60 px-2 py-1 text-xs"
                                         title={catalog.label || catalog.id}
                                     >
@@ -409,7 +428,7 @@ export function CatalogPanel({
 
             {list.map((catalog, index) => (
                 <CatalogCard
-                    key={catalog.id || catalog.label || index}
+                    key={rowKey(catalog)}
                     catalog={catalog}
                     onFieldClick={onFieldClick}
                     compact={compact}

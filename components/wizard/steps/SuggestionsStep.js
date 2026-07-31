@@ -45,6 +45,7 @@ import { SuggestionBadge, SuggestionHint } from '@/components/wizard/SuggestionB
 import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { formatDateTime, isIsoTimestamp } from '@/lib/format';
 
 const LABELS = {
     fr: {
@@ -190,20 +191,26 @@ function isRestorable(value) {
  * Renders a value the way a human reads it, whatever shape beCPG sent.
  *
  * @param {*} value
+ * @param {string} [lang='fr']
  * @returns {string}
  */
-function readableValue(value) {
+function readableValue(value, lang = 'fr') {
     if (value === null || value === undefined || value === '') {
         return '—';
     }
     if (Array.isArray(value)) {
-        return value.map(readableValue).filter((entry) => entry !== '—').join(', ') || '—';
+        return value.map((entry) => readableValue(entry, lang)).filter((entry) => entry !== '—').join(', ') || '—';
     }
     if (typeof value === 'object') {
         return String(value.displayValue || value.name || value.label || value.value || '—');
     }
     if (typeof value === 'boolean') {
         return value ? '✓' : '✗';
+    }
+    // The AI returns a d:date suggestion as a bare ISO string, with no type
+    // beside it — the "before → after" line would otherwise show a timestamp.
+    if (isIsoTimestamp(value)) {
+        return formatDateTime(value, lang, { fallback: String(value) });
     }
     return String(value);
 }
@@ -268,7 +275,7 @@ function SuggestionCard({
                                 {labelFor(change)}
                             </button>
                             <span className="min-w-0 flex-1 truncate font-medium text-[var(--becpg-blue)]">
-                                {readableValue(change.value)}
+                                {readableValue(change.value, lang)}
                             </span>
                         </li>
                     ))}

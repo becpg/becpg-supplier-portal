@@ -109,9 +109,21 @@ export function CompletionCard({ completion, index = 0, className = '' }) {
                         {local.worst}
                     </p>
                     <div className="flex flex-col gap-2">
+                        {/* One bar per catalogue. The key is `id || label`, not `id`
+                            alone, because that is exactly the key the producer
+                            de-duplicates on (`toCompletion` in lib/adapters/entities.js
+                            passes `(catalog) => catalog.id || catalog.label || ''` to
+                            `dedupeCatalogs`). `bcpg:entityScore` may carry a catalogue
+                            with a label and no id — `normalizeCatalog` defends against
+                            exactly that — and two such rows both keyed on `catalog.id`
+                            would both be `null`: the duplicate-key defect again, in the
+                            one place it was left. Keying on less than the de-duplication
+                            key is what makes a collision possible; keying on more would
+                            split a row the producer already merged. No index fallback,
+                            for the reason given in CatalogPanel.rowKey. */}
                         {catalogs.map((catalog, position) => (
                             <GaugeBar
-                                key={catalog.id}
+                                key={catalog.id || catalog.label}
                                 value={catalog.score}
                                 label={catalog.label}
                                 size="sm"

@@ -87,6 +87,9 @@ export const messages = {
         'state.required': 'Champ obligatoire',
         'state.of': '{from}-{to} sur {total}',
         'state.page': 'Page {page} sur {pages}',
+        // beCPG cannot always count a result set (see `formatTotal()`): say so
+        // rather than print a number that is not one.
+        'state.atLeast': 'au moins {total}',
 
         // --- Errors ---
         'error.title': 'Une erreur est survenue',
@@ -180,6 +183,7 @@ export const messages = {
         'state.required': 'Required field',
         'state.of': '{from}-{to} of {total}',
         'state.page': 'Page {page} of {pages}',
+        'state.atLeast': 'at least {total}',
 
         // --- Errors ---
         'error.title': 'Something went wrong',

@@ -24,6 +24,7 @@
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
+import { ListIcon } from '@/components/ui/ListIcon';
 import { DataListEditor } from '@/components/datalist/DataListEditor';
 import { useDataList } from '@/components/datalist/useDataList';
 import { useToast } from '@/components/providers/ToastProvider';
@@ -139,7 +140,15 @@ export function DataListStep({
             stepId={step.id}
             params={params}
             list={list}
-            title={step.title || step.label}
+            // beCPG's own glyph for this characteristic list, next to the name
+            // it gave the step — the same picture the product sheet's tab bar
+            // and section headers use.
+            title={
+                <span className="inline-flex items-center gap-2">
+                    <ListIcon type={step.listName || step.listId || step.type} size={18} />
+                    {step.title || step.label}
+                </span>
+            }
             description={step.title && step.label !== step.title ? step.label : undefined}
             className={className}
             actions={

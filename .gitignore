@@ -34,6 +34,8 @@ coverage
 # bundles), traces, videos and screenshots. Never committed.
 e2e/report
 e2e/results
+# Per-spec output directories (`--output e2e/results-<spec>`), same class as above.
+e2e/results-*
 test-results
 playwright-report
 

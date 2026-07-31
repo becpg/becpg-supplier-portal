@@ -49,8 +49,19 @@ sous `/tmp`). Sans les deux instances, les 8 tests de la spec `04` échouent en
 | Suite E2E | ✅ **52/52** (6 specs) — voir §E2E |
 | Thème beCPG | ✅ **appliqué et vérifié à l'exécution** — voir §Thème |
 | Fichiers | 18 pages, 38 route handlers, 86 composants, 21 modules `lib/` |
-| Gestion de version | ✅ git, branche `main`, dernier commit `cdd64f8` |
-| beCPG (`../becpg`) | branche **`feature/supplier-portal-v2`**, **13 fichiers modifiés + 1 répertoire non suivi** (tous attribuables à ce projet) |
+| Gestion de version | ✅ git, branche `main` |
+| beCPG (`../becpg`) | ✅ **rien à reprendre** — voir ci-dessous |
+
+> **Correction (2026-07-31).** La ligne beCPG disait « branche
+> `feature/supplier-portal-v2`, 13 fichiers modifiés ». **C'est faux aujourd'hui, et
+> la bonne nouvelle est meilleure que l'ancienne** : `feature/supplier-portal-v2`
+> est désormais un **ancêtre strict de `master`** (`git merge-base --is-ancestor`
+> → vrai, `git log master..feature/supplier-portal-v2` → vide). Le travail B2/B3/B6
+> a été intégré : `master` porte
+> `becpg-share/.../org/alfresco/becpg/portal/wizard.get.{desc.xml,js}`. Le dépôt
+> `../becpg` est sur `master`, **propre** (un seul fichier non suivi,
+> `docker-compose.override.yml.old`, sans rapport). Il n'y a donc **aucune branche
+> beCPG à sortir ni à pousser**, et rien n'a été modifié côté beCPG pendant ce tour.
 
 ## Par section de la spec
 
@@ -158,7 +169,249 @@ tronquée à 1440 px. Mesuré après correction : **0 nœud de texte tronqué**.
 | **P2** | L'export CSV du parc est tronqué à 250 lignes sur 251 sans que le fichier le dise. La route pose `X-Portal-Truncated: true`, mais `download()` est un clic sur `<a>` : **un téléchargement navigateur ne peut pas lire un en-tête de réponse**. | `lib/client.js` (`download`), routes `monitor/suppliers` et `monitor/documents` | Contourné, pas résolu : l'avertissement est affiché **avant** le téléchargement depuis `pagination.truncated`. Correctif propre = un commentaire `#` en tête de CSV, ou passer par `fetch()` + `Blob`. |
 | ~~**P3**~~ | ~~La redirection d'un `ExternalUser` hors de `/monitor` n'a jamais été observée à l'exécution.~~ **CLOS, et il cachait un vrai défaut** — la redirection ne se produisait pas. Observée ce tour depuis l'instance `:3100` (compte fournisseur réel) : elle échouait, le fournisseur recevait une page verrouillée listant les groupes internes à demander. Corrigé et désormais couvert par deux tests. | `app/monitor/layout.js`, `lib/adapters/monitor.js` | Voir §Correctifs. « Correct par construction, mais non vérifié » s'est révélé faux : c'est exactement pourquoi la formule n'a pas de valeur. |
 | **P5** | **À 360 px sur `/monitor`, le nom du tenant est illisible.** Mesuré : le libellé « local » dispose de 27 px alors qu'il en demande 33 — il s'affiche « lo… », et son sous-titre « espace fournisseur » tombe à « es… ». Sur `/` le nom passe entier (seul le sous-titre est tronqué, 73 < 105). La cause est le bouton de rafraîchissement propre au pilotage, qui prend ~46 px dans une barre déjà pleine (menu, marque, tenant, cloche + pastille « 99+ », avatar, chevron). La spec §4.3 veut que le fournisseur sache **toujours** pour quel client il travaille. | `components/shell/Header.js`, `components/shell/TenantBadge.js` | Non corrigé : le texte reste **entier dans le DOM** (le test « le tenant est identifié en permanence » porte sur le contenu, pas sur les pixels, et passe), et arbitrer ce qu'on retire de la barre du pilotage à 360 px est une décision produit, pas un choix de thème. Le sous-titre est le candidat évident. **Ne pas conclure du vert de la suite que le tenant est lisible sur téléphone.** |
-| **P4** | `middleware.js` utilise une convention **dépréciée** en Next.js 16 (`⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.`). | `middleware.js` | Renommer implique de toucher le fichier qui porte « rien n'est joignable sans session ». Un avertissement cosmétique ne justifie pas de remuer la barrière d'authentification sans test de non-régression. À faire, mais délibérément pas ici. |
+| ~~**P4**~~ | ~~`middleware.js` utilise une convention **dépréciée** en Next.js 16.~~ **CLOS.** Migré vers `proxy.js`, et ce n'était pas qu'un renommage : `middleware` tournait en **Edge runtime**, `proxy` tourne en **Node.js**, et l'option `runtime` est refusée dans un fichier proxy. Voir §Migration `middleware` → `proxy`. | `proxy.js` | Le « test de non-régression » qui manquait a été construit : matrice de 27 chemins × (anonyme, authentifié), avant / après, identique au caractère près. |
+
+## Trois défauts de plateforme remontés par la console (2026-07-31)
+
+Trois avertissements du serveur de dev, corrigés ensemble. Aucun n'était
+cosmétique.
+
+### Migration `middleware` → `proxy`
+
+`middleware.js` → `proxy.js`, fonction `middleware()` → `proxy()`, `config.matcher`
+inchangé au caractère près.
+
+**Ce n'est pas qu'un renommage.** Mesuré en stampant le runtime dans un en-tête de
+réponse : sous la convention `middleware` la fonction s'exécutait en
+`edge:edge-runtime` ; sous `proxy` elle s'exécute en `node:22.22.1`. La doc Next 16
+le confirme et précise que l'option de segment `runtime` est **refusée** dans un
+fichier proxy — il n'y a pas de retour en arrière. Rien ici n'en dépendait
+(`jose` s'appuie sur WebCrypto, disponible des deux côtés), mais le commentaire
+« Edge-safe » en tête de fichier était devenu faux et a été réécrit.
+
+Non-régression, puisque ce fichier porte « rien n'est joignable sans session » :
+une matrice de 27 chemins (pages, `/api/v1`, `/api/auth`, `/api/health`, formes
+préfixées `/t/<tenant>/`, assets exclus par le matcher, `_next/*`) × deux états
+(anonyme, session chiffrée forgée hors ligne avec `lib/session.js`), relevant pour
+chacun le statut, la cible de redirection **et** si la fonction s'est exécutée du
+tout — un en-tête sonde, seul moyen de distinguer « exclu par le matcher » de
+« laissé passer par `isPublicFile()` ». Avant / après : identiques. Rejoué ensuite
+sur un build de production : toujours identiques.
+
+### `shape.png` en LCP sur `/login`
+
+La marque décorative du bas-droite (`opacity: .13`, `alt=""`, `aria-hidden`) était
+le Largest Contentful Paint. Elle l'**est toujours**, et c'est légitime : à
+400 × 400 px visibles elle est un ordre de grandeur plus grande que le plus gros
+bloc de texte, sur une page dont la seule autre image est un logotype 200 × 37.
+Vérifié qu'on ne peut pas s'en débarrasser en la déplaçant : mesuré sur Chrome,
+un `background-image` sur l'élément **et** un `background-image` sur un
+pseudo-élément `::after` restent l'un comme l'autre candidats LCP.
+
+Le vrai défaut était ailleurs : sans `priority`, `next/image` pose
+`loading="lazy"` — l'élément qui décide du LCP de la page n'était découvert
+qu'après la mise en page. `priority` place un `<link rel="preload">` dans le
+`<head>`, où le preload scanner le trouve dans les premiers octets du HTML.
+
+Mesuré sur build de production, 1440 × 900, médiane de 7 chargements, réseau
+bridé à ~1,6 Mb/s / 150 ms de latence :
+
+| variante | LCP médian |
+|---|---|
+| `next/image` sans `priority` (état livré) | **1628 ms** |
+| `next/image` + `priority` | **780 ms** |
+| `background-image` CSS (élément supprimé du DOM) | 1588 ms |
+
+La piste CSS, séduisante sur localhost, ne gagne rien sur un réseau réaliste —
+découverte seulement après l'analyse de la feuille de style — et double les
+octets (PNG brut 14 Ko contre WebP 6,6 Ko servi par l'optimiseur). Écartée.
+
+Pas de `sizes` : avec `sizes`, `next/image` construit le srcset à partir des seuls
+`deviceSizes`, dont le plancher est 640 — exactement la variante que tous les
+appareils reçoivent déjà. L'ajouter ne ferait que promettre une adaptativité qui
+n'existe pas.
+
+### Clé React dupliquée `incoRawMaterials`
+
+Deux causes distinctes, et il fallait les séparer avant de corriger.
+
+1. **Ce n'est pas un doublon** — `EntityCatalogServiceImpl.formulateCatalog()`
+   boucle sur les `rep:reportLocales` de l'entité et émet **une entrée par
+   langue**, même `id`, `locale` différent, et surtout `missingFields`
+   différents : un libellé légal peut être saisi en français et manquant en
+   anglais. Deux lignes réelles, un seul id. La clé devient `id::locale`.
+2. **C'en est un** — `EntityCatalogServiceImpl.getCatalogsDef()` concatène
+   **tous les fichiers** de `/app:company_home/cm:System/cm:PropertyCatalogs`
+   sans dédoublonner sur l'id : un second fichier qui redéclare un id ne
+   remplace pas le premier, il en ajoute un jumeau, et les deux sont formulés.
+   Observé sur l'instance locale, qui porte un fichier de définition parasite à
+   côté de `catalogs.json` : `becpg/entity/catalog/node/…` renvoie
+   `incoFinishedProduct` **deux fois**, même locale, même score. Dédoublonné
+   dans l'adaptateur, sur `(id, locale)`, en gardant l'entrée **la moins bonne**
+   — masquer la plus stricte dirait au fournisseur que son dossier est plus
+   complet que ce que beCPG en pense.
+
+Aucune clé indexée nulle part : un `|| index` en dernier recours aurait fait
+survivre silencieusement le doublon du cas 2 au lieu de le laisser tomber dans
+l'adaptateur.
+
+Les blocs de synthèse (`toCompletion`, `toCatalogCompletion`) collapsent en plus
+les locales entre elles : ils affichent un compteur et une liste de pastilles, où
+« 2 catalogue(s) » pour un catalogue en deux langues était simplement faux.
+
+**Une occurrence résiduelle, trouvée à la consolidation et corrigée.**
+`CompletionCard` clefait encore sur `catalog.id` **seul**, alors que le producteur
+(`toCompletion`) dédoublonne sur `id || label`. Un `bcpg:entityScore` portant deux
+catalogues sans `id` — cas contre lequel `normalizeCatalog` se défend
+explicitement (`id: raw.id || null`) — produisait deux clés `null`. Clef alignée
+sur la clef de dédoublonnage : **moins que la clef du producteur rend une
+collision possible, plus qu'elle scinderait une ligne déjà fusionnée**. Le
+commentaire qui affirmait « ces ids sont uniques par construction » était faux et
+a été réécrit.
+
+En revanche `app/monitor/suppliers/[id]/page.js` **garde** son `|| index` :
+`details.blockingCatalog` vient de `evaluateBlockingCatalogs()`
+(`lib/adapters/approval.js`), pas de `toCatalogCompletion`, et rien n'y garantit
+l'unicité. La règle « pas de clef indexée » vaut là où le producteur garantit
+l'unicité ; l'appliquer ailleurs remplacerait un filet par un défaut.
+
+## Consolidation du 2026-07-31 — trois défauts fonctionnels
+
+Vérifiés **par lecture seule** : ni serveur, ni navigateur, ni écriture Alfresco
+(consigne explicite de l'utilisateur). Voir §« Ce que cette consolidation ne dit
+pas » plus bas.
+
+### F4 — un lien « Télécharger » qui répondait 404
+
+`getSignatureView()` savait déjà que le nœud était illisible — `fetchDocumentMeta`
+renvoyait `null` — mais la seule conséquence était un repli sur
+`deliverable.contents[0]`, vide sur cette tâche. Le nodeRef mort partait quand
+même dans `portalContentUrls()`, et `SignatureFlow` en faisait un bouton.
+
+`probeDocument()` (`lib/adapters/signature.js`) rend maintenant un verdict
+**à trois valeurs** : `true`, `false` (beCPG répond `200 {}` — supprimé ou refusé)
+et `null` (la sonde elle-même a échoué → *inconnu*, on garde l'ancien
+comportement, un incident réseau ne doit jamais masquer un document valide).
+Conséquences : `contentUrl`/`downloadUrl` à `null`, analyse des zones sautée,
+entrées illisibles retirées d'`originals[]`, panneau « Document indisponible » au
+lieu d'une visionneuse, et `pageCount: 0` — donc la porte de lecture reste
+verrouillée : *un document que personne ne peut ouvrir ne peut pas être attesté lu*.
+
+### F5 — cliquer une discussion ne l'ouvrait pas
+
+`app/messages/page.js` lisait `?nodeRef=` **une fois**, dans l'initialiseur d'un
+`useState`, depuis `window.location.search`. Arriver du tableau de bord est une
+transition client (`next/link`, `app/page.js:224`) : le composant monte avant que
+la nouvelle query string ne soit sur `window.location`, l'initialiseur lit `null`,
+et plus rien ne relit jamais l'URL. Rechargement à la main : ça marchait — d'où
+l'impression que « rien ne se passait ». La même ligne branchait sur
+`typeof window` pendant le rendu, donc chaque ouverture directe d'un lien profond
+levait une erreur d'hydratation.
+
+Aligné sur le motif que suivent déjà `/tasks`, `/monitor/suppliers` et
+`/products/[id]` : `useSearchParams()` dans un `MessagesScreen`, relu **pendant le
+rendu**, export par défaut enveloppé dans `<Suspense>`. Le `history.replaceState`
+de la sélection interne est conservé, et le montage est correct que Next
+resynchronise `useSearchParams` depuis `replaceState` ou non — les deux chemins
+ont été tracés.
+
+### F6 — un bouton « Envoyer » qui ne pouvait qu'échouer
+
+Un fournisseur n'a le droit d'écrire sur une entité que **tant qu'il porte une
+tâche assignée** dessus (`SupplierSecurityPlugin`). Le composeur était pourtant
+affiché sur tous les fils ; le POST refusé remontait en **502 / `error.network`**
+(« Connexion impossible au serveur ») pour un problème de droits.
+
+`GET /api/v1/messages` renvoie désormais `canPost`, `postDenyReason` et
+`security: { accessMode, hasAssignedTask }`. **`canPost` vaut
+`nodePermissions.create`**, c'est-à-dire le contrôle d'ACL que le POST exécutera
+lui-même : le droit annoncé et le droit réel ne peuvent pas diverger. Le couple
+`accessMode` / `hasAssignedTask` n'est lu **que sur le chemin refusé**, et
+seulement pour *nommer* la raison — `accessMode` seul est mesurablement plus large
+que l'ACL du forum et aurait continué à proposer un bouton qui 500.
+
+Côté client (`/messages` et `CommentsPanel`) : ni `<textarea>` ni bouton, une
+phrase avec cadenas. La décision est **lue** du payload, jamais redérivée.
+Tant que le fil n'a pas répondu, `canPost` est faux : un composeur qui apparaît
+une fois le droit connu est honnête, un composeur repris ne l'est pas.
+
+Au passage, `lib/errors.js` : `isPermissionDenial` ne connaissait que l'anglais
+alors que le dépôt répond en français (`Access refusé. Vous n'avez pas la
+permission de réaliser cette opération.`), et sous un **500**, Alfresco laissant
+échapper l'`AccessDeniedException`. Regex étendue aux formes françaises et
+nouvelle branche `status >= 500 && isPermissionDenial(message) → 403`. Ce
+reclassement **restreint** (un 502 devient un 403), il n'ouvre rien.
+
+## Démarrage d'un processus — la liste n'est plus collée dans la configuration
+
+`POST /api/v1/process/start` n'instancie que des modèles autorisés. La liste
+vient maintenant de beCPG (`lib/adapters/processTemplates.js`) au lieu d'un
+nodeRef collé dans `PORTAL_PROCESS_TEMPLATES`.
+
+**Le marqueur est celui du produit, pas une heuristique.** Le dialogue Share
+« Envoyer au fournisseur » ne demande de nodeRef à personne : il remplit son
+sélecteur depuis **une** source d'autocomplétion, déclarée à l'identique dans
+`send-to-supplier.get.html.ftl:44` et `becpg-plm-form-config.xml:5521` —
+`classNames=pjt:project,bcpg:entityTplAspect,bcpg:suppliersAspect` +
+`excludeProps=bcpg:entityTplEnabled|false`. `filterByClass()` transforme chaque
+aspect en `withAspect()`, soit un `+ASPECT:"…"` **obligatoire** : c'est une
+conjonction, pas un score. Le discriminant est `bcpg:suppliersAspect`, posé par
+le produit lui-même dans `SupplierPortalInitRepoVisitor` (`pjtTpl.getAspects()
+.add(PLMModel.ASPECT_SUPPLIERS)`).
+
+*Relu dans les sources beCPG à la consolidation* : les deux déclarations existent
+bien et sont identiques, la ligne du visitor est bien là, et — contrôle
+décisif — `becpg-project-form-config.xml` utilise la **même** source
+**sans** `bcpg:suppliersAspect` pour le sélecteur générique de modèles de projet.
+L'aspect discrimine donc réellement.
+
+**Précédence :** `PORTAL_PROCESS_TEMPLATES` gagne dès qu'elle est renseignée, et
+alors **aucune requête de découverte n'est émise**. Le test porte sur la variable
+**brute** : une valeur renseignée mais inutilisable veut dire « ne rien démarrer »,
+et ne rend pas la main à la découverte. La découverte ne remplit la liste que si
+la variable est absente.
+
+**Ce que la découverte n'élargit pas.** La requête est une constante serveur : le
+navigateur ne peut influencer ni le chemin, ni `classNames`, ni `excludeProps`.
+Le refus par défaut est intact — une instance sans modèle marqué résout une liste
+**vide**, et une liste vide ne démarre rien. Un `?` nommant un autre modèle, par
+id ou par nodeRef, est refusé exactement comme avant.
+
+`/api/v1/monitor/actions` (suspension) reste **volontairement en configuration
+seule** : beCPG ne pose aucun marqueur pour un modèle de *suspension*, donc un
+repli sur la découverte démarrerait en silence un projet de référencement.
+
+**Le chemin de démarrage a dû changer.** `becpg/supplier/send-to-supplier` répond
+500 (classe non déclarée en bean Spring). Le portail compose ce que fait Share :
+`GET becpg/workflow/start-process?defs=true&nodeRefs=…` (beCPG évalue lui-même
+`bSupplier.extract*` — aucune logique métier ne migre dans le portail, règle R2),
+puis `POST …?script=create-supplier-project.js`. Les deux avec
+`skipAllowList: true` : **`becpg/workflow/` n'est donc pas ajouté à la liste
+blanche joignable depuis le navigateur** — vérifié, `ALLOWED_BECPG_PATH_PREFIXES`
+ne la contient pas, et `/api/v1/becpg/[...path]` n'expose de toute façon que
+`GET`/`HEAD`. L'appel `defs=true` est un second verrou gratuit : pas de
+définition (condition/`permissionGroup` refusés par beCPG) → 403, rien n'est
+démarré.
+
+Cache par **tenant + utilisateur** (la requête est filtrée par les permissions,
+la réponse dépend donc réellement de l'appelant), TTL
+`PORTAL_PROCESS_TEMPLATES_TTL`. `stale` sert la dernière bonne réponse plutôt que
+de faire disparaître un bouton qui marchait.
+
+États d'échec distingués, et c'est le point : « rien n'est ouvert ici » est un
+**403** définitif, « on n'a pas pu demander » un **502** — l'UI ne dit jamais à un
+fournisseur que son type de demande n'existe pas parce que Solr a hoqueté
+(`ProductList` : `processUnavailable` vs `noProcess`).
+
+⚠️ **Réserve sur l'identité des ids.** `templateId()` donne
+`supplier-referencing` au **premier** modèle de la liste triée par nodeRef. Sur
+une instance à plusieurs modèles marqués, importer un modèle dont le nodeRef trie
+avant l'actuel **réassigne cet id**. Sans conséquence de sécurité (les deux sont
+des modèles fournisseur marqués) et la fenêtre est courte — l'UI renvoie l'id issu
+du `GET` du même chargement de page — mais l'id n'est pas aussi stable que son nom
+le laisse croire. Correctif propre si le cas se présente : dériver l'id de l'uuid
+**toujours**, et ne garder `supplier-referencing` comme alias que lorsqu'il n'y a
+qu'un seul candidat.
 
 ## Correctifs du tour de vérification (2026-07-30, 16 h)
 
@@ -244,7 +497,7 @@ pas des tests vides.
 - **3 variables d'environnement documentées** dans `env.example`, qui ne l'étaient pas alors
   que la règle AGENTS.md l'exige : `BECPG_SHARE_URL`, `BECPG_SHARE_WIZARD_ENDPOINT`,
   `PORTAL_VERSION`. Le piège de `BECPG_SHARE_URL` est écrit noir sur blanc : Next.js charge
-  `.env` **en plus** d'un `--env-file`, donc un `.env` local qui pointe Share sur `:8180`
+  `.env` **en plus** du fichier d'environnement chargé, donc un `.env` local qui pointe Share sur `:8180`
   fuit dans un run visant dev — le portail prend alors ses données sur dev et sa
   configuration sur localhost, et rend **dix étapes à zéro champ, silencieusement**.
 
@@ -506,3 +759,60 @@ Sorties de cette liste ce tour, parce que réellement exercées :
   corrigé et couvert par deux tests vérifiés rouges sans le correctif (§Correctifs) ;
 - ~~`app/help/` et `NotificationBell.js` ni relus ni testés~~ → relus, exercés au navigateur
   (§Cloche, §4.2), `/help` ajouté à `SUPPLIER_PAGES` donc couvert par la suite.
+
+## Ce que cette consolidation ne dit pas (2026-07-31)
+
+Le tour de consolidation a tourné **à l'aveugle, sur consigne explicite** : aucun
+serveur de dev, aucun navigateur, aucune écriture Alfresco. La seule vérification
+exécutée est `npx next build` + `npx eslint .` dans une copie `rsync` isolée.
+Tout le reste a été vérifié **par lecture du code et des sources beCPG**.
+
+Ce que cela couvre honnêtement :
+
+- une cause supprimée est vérifiable par lecture (F5 : plus aucun lecteur de
+  `window.location.search` ; F1 : plus aucun fichier de convention `middleware`) ;
+- une décision serveur est vérifiable par lecture (F6 : `canPost` vient de
+  `nodePermissions.create` ; F4 : `available:false` ⇒ `downloadUrl: null`) ;
+- une chaîne d'appels est traçable (dashboard → `next/link` → `useSearchParams`).
+
+Ce que cela **ne** couvre **pas**, et qu'il ne faut pas lire comme mesuré :
+
+1. **Les trois avertissements de console sont non vérifiés à l'exécution.** On a
+   vérifié structurellement qu'ils *ne peuvent plus* se produire (convention de
+   fichier absente, `priority` posé, clefs uniques par construction) ; personne
+   n'a rouvert une console pour constater leur disparition.
+2. **Aucun rendu n'a été observé.** Les panneaux « Document indisponible »,
+   « discussion en lecture seule », `processUnavailable` sont lus dans le JSX,
+   pas vus à l'écran. Aucune mesure de responsive, aucune vérification
+   d'hydratation à l'exécution.
+3. **Les chiffres LCP de §`shape.png`** viennent du tour précédent et n'ont pas
+   été rejoués.
+4. **La découverte de modèles n'a pas été rejouée contre une instance.** Le
+   marqueur, lui, a été **relu dans les sources beCPG** ce tour (les deux
+   déclarations de la source d'autocomplétion, la ligne du visitor, et le
+   contre-exemple `becpg-project-form-config.xml` sans l'aspect). Les nombres
+   « 62 modèles → 1 » du tour précédent n'ont pas été remesurés.
+5. **Aucune couverture E2E n'a été ajoutée** (Playwright laissé de côté sur
+   consigne). Ce qu'un tour de test devra couvrir en priorité :
+   - matrice d'authentification du `proxy` (anonyme → 307, `/api/*` → 401,
+     tenant discordant, exclusions du matcher) ;
+   - clic sur une discussion **depuis le tableau de bord** (transition client,
+     pas un rechargement), lien profond à 360 px, `?nodeRef=` inconnu et malformé ;
+   - `canPost` vrai/faux : composeur et bouton **absents** (pas seulement
+     désactivés) + phrase de raison ; POST refusé en cours de session → 403 et
+     disparition du composeur ; compte interne qui garde son composeur ;
+   - tâche de signature signée dont la copie de travail a disparu → aucun lien de
+     téléchargement ; tâche ouverte lisible → visionneuse + téléchargement ;
+   - découverte peuplant le sélecteur de type de demande ; override supprimant la
+     découverte ; modèle non fournisseur refusé en 403 ; les trois états dégradés ;
+   - un produit avec `rep:reportLocales` renseigné → deux cartes catalogue, badges
+     de locale distincts, console propre.
+
+## Défauts signalés à la consolidation, non corrigés
+
+| # | Défaut | Où | Pourquoi pas corrigé |
+|---|---|---|---|
+| **P6** | `uploadTarget` est construit **inconditionnellement**, donc `/documents` et le `DocumentList` du tableau de bord proposent **Déposer** sur toute exigence du périmètre, y compris sur des entités sans tâche ouverte. Même forme que F6 : on propose, puis beCPG refuse. | `lib/adapters/documents.js` (~ligne 761) | Structurel, non démontré : le jeu de données local n'a d'exigence que sur l'entité inscriptible. Correctif symétrique de F6 — un `canUpload` par entité, issu du même `becpg/security/entitylists/check`, mémoïsé par requête, et pas de `uploadTarget` quand il est faux. Secondairement, filtrer par le même drapeau la liste déroulante d'entités du dépôt libre. |
+| **P7** | `/messages` rend le contenu des messages en **texte brut** : le HTML écrit depuis Share s'affiche `<p>test</p>`. | `app/messages/page.js` | Hors périmètre des six défauts. Assainir puis rendre, ou convertir en texte à l'adaptation — décision produit. |
+| **P8** | Une branche `status >= 500` reclassée en 403 perd `upstreamStatus` dans ses `details` (seule la branche `UpstreamError` l'ajoute). Le support ne voit plus que c'était un 500. | `lib/errors.js`, `errorFromStatus` | Cohérent avec la branche 401 préexistante, qui a le même trou. À corriger ensemble, pas à moitié. |
+| **P9** | L'id `supplier-referencing` peut se réassigner si un second modèle marqué est importé — voir la réserve en §Démarrage d'un processus. | `lib/adapters/processTemplates.js`, `templateId()` | Sans conséquence de sécurité, fenêtre courte. Correctif propre décrit sur place. |

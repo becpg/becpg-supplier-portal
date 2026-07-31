@@ -24,7 +24,7 @@ import { StatCard, StatGrid } from '@/components/ui/StatCard';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { entityTypeLabel } from '@/components/products/ProductHeader';
-import { formatDate } from '@/components/documents/ExpiryPill';
+import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
@@ -214,7 +214,7 @@ export default function ProductsPage() {
     );
 
     return (
-        <AppShell title={labels.title}>
+        <AppShell title={labels.title} fullWidth>
             <p className="mb-4 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
 
             <StatGrid columns={4} className="mb-4">

@@ -40,7 +40,8 @@ import { Select } from '@/components/ui/Field';
 import { SkeletonCard, SkeletonText } from '@/components/ui/Skeleton';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { ExpiryPill, ValidityRange, formatDate, formatDateTime } from '@/components/documents/ExpiryPill';
+import { ExpiryPill, ValidityRange } from '@/components/documents/ExpiryPill';
+import { formatDate, formatDateTime } from '@/lib/format';
 import {
     MonitorActionButtons,
     describeReason,
@@ -464,6 +465,7 @@ export default function MonitorSupplierSheetPage() {
 
     return (
         <AppShell
+            fullWidth
             space="monitor"
             title={supplier ? supplier.name : local.back}
             headerStatus={

@@ -51,7 +51,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Gauge, GaugeBar, toneForValue } from '@/components/ui/Gauge';
 import { SkeletonText } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { formatDate } from '@/components/documents/ExpiryPill';
+import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 
 const LABELS = {
@@ -537,8 +537,15 @@ export function SupplierScorecard({
                                 </p>
                             ) : (
                                 <ul className="mt-3 flex flex-col gap-2 border-t border-[var(--becpg-grey)] pt-3">
+                                    {/* `catalog.id` alone is enough here, with no
+                                        index fallback: `/monitor/suppliers/{id}`
+                                        collapses `bcpg:entityScore` to one row per
+                                        catalogue (dedupeCatalogs), so the ids in this
+                                        list are unique by construction. An index
+                                        fallback would only hide it if that ever
+                                        stopped being true. */}
                                     {catalogs.map((catalog, index) => (
-                                        <li key={catalog.id || catalog.label || index}>
+                                        <li key={catalog.id || catalog.label}>
                                             <GaugeBar
                                                 value={catalog.score}
                                                 label={catalog.label || catalog.id}

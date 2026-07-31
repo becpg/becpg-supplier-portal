@@ -50,8 +50,30 @@ import { Skeleton } from '@/components/ui/Skeleton';
  * @param {Object} [props.badges] nav counters, `{ tasks: 3, documents: 1 }`
  * @param {number} [props.notificationCount]
  * @param {boolean} [props.hideNav] full-bleed layout (signature viewer, print view)
- * @param {boolean} [props.fullWidth] drops the max-width on the content column
+ * @param {boolean} [props.fullWidth] the content column spans the whole window
  * @param {boolean} [props.noPadding] content owns its own padding
+ *
+ * ## Which screens are `fullWidth`, and why
+ *
+ * The application frame — header, rail, content column — is **always** the
+ * width of the window. What is capped is the content *column*, by
+ * `.page-container` at `--portal-max-width`, and `fullWidth` is the opt-out.
+ * One rule decides:
+ *
+ * > **A screen whose content is a grid goes full width. A screen whose content
+ * > is read or filled in keeps the cap.**
+ *
+ * Full width — `/products`, `/products/[id]`, `/documents`, `/tasks`, `/specs`
+ * and everything under `/monitor`: their value is the number of columns and
+ * rows visible at once. A supplier comparing eleven ingredient columns, a
+ * quality manager reading a supplier × document-type matrix, gain a column for
+ * every 120px. Nothing on those screens is a paragraph.
+ *
+ * Capped — the dashboard, `/company`, `/help`, `/messages`, every wizard step
+ * and `/login`: cards, forms, prose and a conversation. A 1900px line of text
+ * is not a fix, it is a different defect (≈220 characters per line against the
+ * 45–90 typographic norm), and a two-column form grid stretched to 1900px puts
+ * a label 900px from its value.
  */
 export function AppShell({
     children,
@@ -94,7 +116,22 @@ export function AppShell({
                 onMenuClick={hideNav ? undefined : () => setDrawerOpen(true)}
             />
 
-            <div className="mx-auto flex w-full max-w-[var(--portal-max-width)] flex-1">
+            {/*
+                The FRAME is the window. It used to carry
+                `max-w-[var(--portal-max-width)]` as well, which capped the
+                sidebar *and* the content together: at 1920 the whole
+                application sat in a 1400px column with 260px of dead white on
+                each side and a navigation rail floating in the middle of the
+                screen rather than against its edge. Measured before / after,
+                on every screen: 1920 → gutters 260px/260px, now 0/0;
+                1600 → 100/100, now 0/0.
+
+                The readable cap did not disappear, it moved to where it belongs
+                — `.page-container`, i.e. the *text column*, which is what a
+                maximum width is for. A page whose content is a grid opts out
+                with `fullWidth`; see the prop's doc above.
+            */}
+            <div className="flex w-full flex-1">
                 {/* The sidebar sticks under the 3.5rem header; the TEST banner
                     scrolls away with the page, which is fine — it is part of the
                     header, which is itself sticky. */}

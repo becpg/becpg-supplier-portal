@@ -48,7 +48,7 @@ import { Wizard } from '@/components/wizard/Wizard';
 import { ReviewStep } from '@/components/wizard/steps/ReviewStep';
 import { DocumentsStep } from '@/components/wizard/steps/DocumentsStep';
 import { SignatureFlow } from '@/components/signature/SignatureFlow';
-import { formatDate } from '@/components/documents/ExpiryPill';
+import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 

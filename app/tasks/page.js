@@ -32,7 +32,8 @@ import { Select } from '@/components/ui/Field';
 import { SkeletonTable } from '@/components/ui/Skeleton';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
 import { TASK_TYPE_META, taskTypeLabel } from '@/components/dashboard/ActionsCard';
-import { DueBadge, PriorityPill, daysUntil } from '@/components/dashboard/TaskList';
+import { DueBadge, PriorityPill } from '@/components/dashboard/TaskList';
+import { daysUntil, formatDate } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
@@ -121,21 +122,6 @@ const LOCAL = {
 
 /** How many tasks a single read pulls; the adapter caps its own scan anyway. */
 const PAGE_SIZE = 100;
-
-/** Deterministic dd/mm/yyyy — see `formatDate` in the dashboard components. */
-function shortDate(iso, lang) {
-    if (!iso) {
-        return null;
-    }
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) {
-        return null;
-    }
-    const pad = (value) => String(value).padStart(2, '0');
-    return lang === 'en'
-        ? `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`
-        : `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()}`;
-}
 
 /**
  * Does a task fall inside the selected due-date window?
@@ -248,7 +234,7 @@ function TasksScreen() {
 
     const nextDue = useMemo(() => {
         const dates = rows.map((task) => task.dueDate).filter(Boolean).sort();
-        return dates.length > 0 ? shortDate(dates[0], lang) : null;
+        return dates.length > 0 ? formatDate(dates[0], lang, { fallback: null }) : null;
     }, [rows, lang]);
 
     const columns = useMemo(
@@ -414,7 +400,7 @@ function TasksScreen() {
     );
 
     return (
-        <AppShell title={local.title} badges={{ tasks: counters.open || 0 }}>
+        <AppShell title={local.title} badges={{ tasks: counters.open || 0 }} fullWidth>
             <PageHeader title={local.title} description={local.description} />
 
             <StatGrid columns={3} className="mb-4">
@@ -502,7 +488,7 @@ export default function TasksPage() {
     return (
         <Suspense
             fallback={
-                <AppShell>
+                <AppShell fullWidth>
                     <SkeletonTable rows={6} columns={5} />
                 </AppShell>
             }

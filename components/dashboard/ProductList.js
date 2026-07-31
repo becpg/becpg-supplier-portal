@@ -30,7 +30,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi, useMutation } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
-import { formatDate } from '@/components/dashboard/ApprovalCard';
+import { formatDate } from '@/lib/format';
 
 const LOCAL = {
     fr: {
@@ -49,6 +49,9 @@ const LOCAL = {
         noProcess:
             'Aucun type de demande n’est ouvert aux fournisseurs sur cette instance. '
             + 'Contactez votre interlocuteur habituel.',
+        processUnavailable:
+            'Les types de demande n’ont pas pu être récupérés. Réessayez dans un instant ; '
+            + 'si cela persiste, contactez votre interlocuteur habituel.',
         submit: 'Envoyer la demande',
         sent: 'Demande envoyée. Votre client va la traiter.',
         noCompletion: 'Non évalué',
@@ -69,6 +72,9 @@ const LOCAL = {
         processPlaceholder: 'Choose…',
         noProcess:
             'No request type is open to suppliers on this instance. Please contact your usual contact.',
+        processUnavailable:
+            'Request types could not be retrieved. Try again in a moment; if it persists, '
+            + 'please contact your usual contact.',
         submit: 'Send the request',
         sent: 'Request sent. Your customer will process it.',
         noCompletion: 'Not scored',
@@ -100,14 +106,22 @@ const STATE_LABELS = {
 };
 
 /**
- * Turns a configured template id (`supplier-renewal`) into something readable
- * without inventing a translation: the id **is** the tenant's configuration.
+ * The label of a request type.
  *
- * @param {string} id
+ * A **discovered** template carries beCPG's own name for it ("Projet de
+ * référencement fournisseur"), already in the user's locale — that is the label
+ * to show, and the portal invents nothing (AGENTS rule 4). A template pinned
+ * through `PORTAL_PROCESS_TEMPLATES` has no name, only an id, so the id is
+ * de-slugged: it **is** the tenant's configuration.
+ *
+ * @param {{id: string, label: ?string}} entry
  * @returns {string}
  */
-function processLabel(id) {
-    return String(id || '').replace(/[-_]+/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
+function processLabel(entry) {
+    if (entry && entry.label) {
+        return String(entry.label);
+    }
+    return String(entry?.id || '').replace(/[-_]+/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 }
 
 /**
@@ -128,8 +142,11 @@ function RequestUpdateModal({ product, onClose, onDone }) {
     // but there is no reason to query it on every dashboard render.
     const { data, loading } = useApi('process/start', { enabled: Boolean(product) });
     const processes = (data && Array.isArray(data.processes) ? data.processes : []).map(
-        (entry) => ({ value: entry.id, label: processLabel(entry.id) }),
+        (entry) => ({ value: entry.id, label: processLabel(entry) }),
     );
+    // "We could not ask beCPG" is not "nothing is open here": the first is
+    // transient and worth retrying, the second is the instance's configuration.
+    const unresolved = Boolean(data && data.discovery && data.discovery.available === false);
 
     const send = useMutation(
         (input) => api.post('process/start', input),
@@ -187,7 +204,7 @@ function RequestUpdateModal({ product, onClose, onDone }) {
                 <Skeleton height={44} radius="0.5rem" />
             ) : processes.length === 0 ? (
                 <p className="rounded-lg bg-[var(--status-warn-bg)] px-3 py-2 text-sm text-[var(--status-warn)]">
-                    {local.noProcess}
+                    {unresolved ? local.processUnavailable : local.noProcess}
                 </p>
             ) : (
                 <Field label={local.process} required>

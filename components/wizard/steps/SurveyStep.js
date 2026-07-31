@@ -98,14 +98,28 @@ export function SurveyStep({ entityId, step, params, autoSave, onComment, classN
 
     // "12 réponses sur 18" — a questionnaire without a progress count is a
     // questionnaire nobody knows how far they are into.
+    //
+    // Two things this must NOT count, both measured on 26.1.0 as reading
+    // "12 réponse(s) sur 12" on a questionnaire where nothing had been answered:
+    //
+    //  1. **the first column.** In every beCPG datalist the first column carries
+    //     the row's identity — here the question — and `DataListCardRow` already
+    //     treats it as such (it is the card's headline). A question is always
+    //     filled: counting it makes every row answered by construction.
+    //  2. **an empty association.** `survey:slChoices` with nothing selected
+    //     arrives as `[]`, which is neither null nor `''` and passed the test.
     const answered = useMemo(() => {
-        const editable = flatColumns.filter((column) => !column.readOnly);
+        const [, ...answerColumns] = flatColumns;
+        const editable = answerColumns.filter((column) => !column.readOnly);
         if (editable.length === 0) {
             return null;
         }
         return (list.rows || []).filter((row) =>
             editable.some((column) => {
                 const value = list.valueOf(row, column);
+                if (Array.isArray(value)) {
+                    return value.length > 0;
+                }
                 return value !== null && value !== undefined && value !== '';
             }),
         ).length;

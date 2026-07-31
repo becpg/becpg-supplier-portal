@@ -256,8 +256,11 @@ export function CardGrid({ columns = 3, className = '', children }) {
  * @param {React.ReactNode} props.title
  * @param {React.ReactNode} [props.subtitle]
  * @param {React.ReactNode} [props.actions]
+ * @param {React.ReactNode} [props.icon] rendered before the title — a `ListIcon`
+ *        when the section names a beCPG list, so the section header and the tab
+ *        that opens it carry the same glyph
  */
-export function SectionHeader({ title, subtitle, actions, className = '' }) {
+export function SectionHeader({ title, subtitle, actions, icon, className = '' }) {
     return (
         <div className={`mb-3 flex flex-wrap items-end justify-between gap-2 ${className}`}>
             {/* The 3px `--becpg-orange` rail is the range's section marker — the
@@ -265,7 +268,10 @@ export function SectionHeader({ title, subtitle, actions, className = '' }) {
                 heading reads as beCPG on every screen without a single new colour.
                 3.73:1 on white: a rule, not text, so 1.4.11's 3:1 is the bar. */}
             <div className="min-w-0 border-l-[3px] border-l-[var(--becpg-orange)] pl-2.5">
-                <h2 className="text-base font-medium text-[var(--becpg-blue)] sm:text-lg">{title}</h2>
+                <h2 className="flex items-center gap-2 text-base font-medium text-[var(--becpg-blue)] sm:text-lg">
+                    {icon ? <span className="flex shrink-0 items-center">{icon}</span> : null}
+                    <span className="min-w-0">{title}</span>
+                </h2>
                 {subtitle ? (
                     <p className="text-xs text-[var(--becpg-dark-grey)] sm:text-sm">{subtitle}</p>
                 ) : null}

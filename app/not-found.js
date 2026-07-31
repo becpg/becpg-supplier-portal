@@ -9,7 +9,7 @@
  * Deliberately a **server component with no session read**: `not-found` is also
  * what renders for an unauthenticated 404, and a session read here would either
  * throw or redirect, turning a missing page into a login loop. It therefore
- * offers only the one link that is always valid — `/`, which the middleware
+ * offers only the one link that is always valid — `/`, which the proxy
  * sends to `/login` when there is no session.
  *
  * The language comes from the `becpg_portal_lang` cookie, the same contract the

@@ -1,5 +1,6 @@
 /**
- * Edge middleware: nothing is reachable without a session.
+ * Proxy (Next.js 16 file convention, ex-`middleware.js`): nothing is reachable
+ * without a session.
  *
  * Public surface, and only this:
  *   /login (and /t/<tenant>/login)   the sign-in page and its tenant selector
@@ -14,7 +15,13 @@
  * The resolved tenant is forwarded to the route handlers as `x-becpg-tenant`,
  * so they do not have to redo the host/path/cookie resolution.
  *
- * Edge-safe: only `jose` (WebCrypto) and plain URL work — no node built-in.
+ * **Runtime.** `middleware.js` ran on the Edge runtime; `proxy.js` runs on the
+ * Node.js runtime, and the `runtime` segment option is rejected here, so there
+ * is no way back. Nothing in this file needed the change: it only uses `jose`
+ * (WebCrypto, available in both) and plain `URL`. Keeping it free of node
+ * built-ins is still the right instinct — this code runs in front of every
+ * request, and the platform may push it back to an edge tier — but it is no
+ * longer a hard constraint enforced by the compiler.
  */
 
 import { NextResponse } from 'next/server';
@@ -77,7 +84,7 @@ function forward(request, prefix, appPath, headers) {
     return NextResponse.rewrite(url, init);
 }
 
-export async function middleware(request) {
+export async function proxy(request) {
     const { pathname, search } = request.nextUrl;
     const { pathname: appPath, prefix } = stripTenantPrefix(pathname);
 
@@ -131,7 +138,7 @@ export const config = {
     matcher: [
         /*
          * Everything except the Next.js internals and the static assets served
-         * from /public. `/api/auth/*` is filtered inside the middleware rather
+         * from /public. `/api/auth/*` is filtered inside the proxy rather
          * than here, so the tenant-prefixed form (/t/<tenant>/api/...) is also
          * covered.
          */

@@ -46,6 +46,7 @@
 import { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { TabScroller } from '@/components/ui/TabScroller';
 import { FieldRenderer } from '@/components/form/FieldRenderer';
 import { readValue } from '@/components/form/validation';
 
@@ -318,16 +319,30 @@ export function FormRenderer({
         ) : (
             <>
                 {tabs.length > 1 ? (
-                    <div
-                        role="tablist"
-                        aria-label={definition?.formId || 'tabs'}
-                        className="-mx-1 mb-4 flex gap-1 overflow-x-auto px-1 pb-1"
+                    /* Same overflow affordance as the product sheet's bar: a
+                       Share form config can declare a dozen sets, and this row
+                       scrolled silently too. `surface="card"` because it sits on
+                       a white Card, not on the page grey — that is what the edge
+                       fade has to fade into. */
+                    <TabScroller
+                        ariaLabel={definition?.formId || 'tabs'}
+                        activeKey={currentTab}
+                        surface="card"
+                        className="-mx-1 mb-4"
+                        /* No `gap-*` here: `.tab-track` declares the gap and is
+                           unlayered CSS, which beats Tailwind's utility layer —
+                           the same trap `/help`'s topic rail documents. The
+                           padding is what a pill tab's focus ring needs so it is
+                           not clipped by `overflow-x`. */
+                        trackClassName="px-1 pb-1"
                     >
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
                                 type="button"
                                 role="tab"
+                                data-tab-key={tab.id}
+                                tabIndex={tab.id === currentTab ? 0 : -1}
                                 aria-selected={tab.id === currentTab}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={[
@@ -348,7 +363,7 @@ export function FormRenderer({
                                 ) : null}
                             </button>
                         ))}
-                    </div>
+                    </TabScroller>
                 ) : null}
 
                 <div className="flex flex-col gap-4 sm:gap-6">

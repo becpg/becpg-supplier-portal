@@ -57,7 +57,7 @@ Un `.env.supplier` existe pour la **perspective fournisseur** sur dev, avec un v
 contient un mot de passe : ne le commitez pas, et ne recopiez pas ses identifiants ailleurs.
 
 ```bash
-npx next dev --port 3100 --env-file .env.supplier
+set -a && . .env.supplier && set +a && npx next dev --port 3100
 ```
 
 Pourquoi dev et pas le local pour ce cas : le compte fournisseur et les vrais projets de
@@ -73,7 +73,7 @@ réinitialisé sans IDS — donc aucune session fournisseur n'y est ouvrable.
 
 `BECPG_SHARE_URL` **doit être posé explicitement** dans tout fichier d'environnement visant
 dev, même si dev sert `/alfresco` et `/share` sur le même hôte. Raison : **Next.js charge
-`.env` en plus du `--env-file`**, et `.env` pointe Share sur `localhost:8180`. Laissé de
+`.env` en plus du fichier chargé**, et `.env` pointe Share sur `localhost:8180`. Laissé de
 côté, le portail prend ses **données sur dev** et sa **configuration sur le Share local** :
 il résout un wizard dont il n'a jamais vu les nodeRefs et rend **dix étapes à zéro champ**,
 sans une ligne dans les logs. `.env.supplier` le pose déjà.
@@ -142,7 +142,7 @@ par conception. Il n'y a pas de configuration OIDC côté navigateur.
 3. La session (token OIDC + ticket Alfresco) est chiffrée en JWE dans un cookie `httpOnly` — clusterisable sans sticky session.
 4. Ni le token ni le ticket n'atteignent le navigateur : le portail est un **proxy**, comme `/share/proxy/alfresco`.
 5. Multitenant : 1 realm Keycloak par tenant ; claims obligatoires `becpg_url` + `becpg_instance` ; claim absent → 401.
-6. Tenant résolu par sous-domaine, puis `/t/<tenant>/…` (réécrit par le middleware, il n'y a **pas** de `app/t/[tenant]/`), puis sélecteur sur `/login`.
+6. Tenant résolu par sous-domaine, puis `/t/<tenant>/…` (réécrit par le proxy, il n'y a **pas** de `app/t/[tenant]/`), puis sélecteur sur `/login`.
 7. API interne sous `/api/v1` : **proxy** de webscripts existants ou **composition** dans le route handler.
 8. Côté beCPG, le portail n'ajoute qu'un webscript Share (vue `.get.json.ftl` du wizard) ; trois évolutions additives (B2/B3/B6) l'accompagnent, **toutes désactivées par défaut**.
 9. Le statut d'agrément est **dérivé à la volée** (requêtes db-afts), jamais persisté : aucune évolution du modèle de données.
@@ -183,7 +183,7 @@ config/                   messages du chrome, wizards par défaut
 doc/                      implementation-status.md, becpg-api-contracts.md
 e2e/                      Playwright — fixtures/, tests/ (report/ et results/ générés)
 legacy/                   archives V1 — **lecture seule, ne rien importer**
-middleware.js             rien n'est joignable sans session ; résout le tenant
+proxy.js                  rien n'est joignable sans session ; résout le tenant
 ```
 
 Packaging : `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `deployment.yml`,

@@ -15,6 +15,16 @@
  * ---------------------------------------------------------------------------
  */
 :root {
+  /*
+   * The portal ships **one** theme, the light one, because `theme.css` — the
+   * file this block mirrors — declares one. Saying so out loud stops a browser
+   * in OS dark mode from auto-inverting form controls, scrollbars and canvas
+   * against a palette that has no dark counterpart, which is what turns a white
+   * popover on a white page into a *differently* unreadable popover on a grey
+   * page. When theme.css grows a dark palette this is the line that flips.
+   */
+  color-scheme: light;
+
   /* --- theme.css, verbatim ------------------------------------------- */
   --becpg-blue: #004254;
   --becpg-green: #00ffbd;
@@ -171,6 +181,57 @@
   --becpg-shadow-raised: 0 1px 2px rgba(0, 66, 84, 0.06), 0 2px 10px rgba(0, 66, 84, 0.04);
   --becpg-shadow-lifted: 0 10px 24px rgba(0, 66, 84, 0.14);
   --becpg-shadow-overlay: 0 12px 32px rgba(0, 66, 84, 0.18);
+
+  /*
+   * The boundary of a floating surface — popover, dropdown, dialog.
+   *
+   * WCAG 2.1 SC 1.4.11 asks **3:1** for the visual boundary of a user interface
+   * component. The notification panel shipped a `--becpg-grey` edge over a page
+   * that is mostly white cards, and the pair measured, pixel for pixel:
+   *
+   *   panel #ffffff on page #ffffff .................. 1.00:1  ✗
+   *   1px border #e4ecee on either ................... 1.20:1  ✗
+   *   worst neighbour anywhere on its perimeter ...... 1.11:1  ✗ (20 of 24 samples < 3)
+   *
+   * The lightest neutral the theme already ships that clears the bar is
+   * `--becpg-darkGrey`: **4.67:1** on white, 4.43:1 on the page surface, 3.90:1
+   * on `--becpg-grey`, 4.24:1 on a zebra stripe — it passes on every surface the
+   * portal paints a popover over. No new hue; the alias is the point (see
+   * `--becpg-dark-grey` above).
+   */
+  --becpg-overlay-border: var(--becpg-darkGrey);
+
+  /*
+   * The page surface, flattened.
+   *
+   * `AppShell` paints the page `--becpg-grey` at 30% over white. Anything that
+   * has to *match* that surface with an opaque colour — the fade at the end of
+   * an overflowing tab bar, which must actually mask the tab it covers — needs
+   * it composited, not layered. Same convention as `--status-*-bg` above: a
+   * brand colour over white at a fixed alpha, written out.
+   *
+   * Deliberately **not** `color-mix(in srgb, var(--becpg-grey) 30%, white)`.
+   * Lightning CSS cannot fold a `color-mix` whose arguments are `var()`s, so it
+   * emits a preceding fallback declaration — and that fallback is the *first*
+   * colour at full strength. Verified in the built bundle: the tab fade fell
+   * back to solid `--becpg-grey`, and a 6% orange wash fell back to solid
+   * `#ff642d`. Tailwind's own `/30` utilities are safe because it wraps them in
+   * `@supports (color: color-mix(…))`; hand-written CSS in this file is not.
+   */
+  --becpg-page-surface: #f7f9fa;
+
+  /*
+   * An unread row in a popover list — `--becpg-orange` at 6% over white, and at
+   * 14% for the hovered state, flattened for the reason above.
+   *
+   * Both are washes, i.e. decoration: what actually carries "unread" is the
+   * `--becpg-orange-deep` rail (4.83:1 on white, 4.53:1 on the wash, 4.14:1 on
+   * the hovered wash) and the heavier title, so the signal survives greyscale.
+   * Text stays comfortable on both: `--becpg-blue` 10.34:1 / 9.44:1,
+   * `--becpg-dark-grey-deep` 5.39:1 / 4.92:1.
+   */
+  --becpg-unread-surface: #fff6f2;
+  --becpg-unread-surface-hover: #ffe9e2;
 
   /*
    * Datagrid surfaces. The zebra and the hover wash are the palette at a low
@@ -445,7 +506,12 @@ body {
  * Same treatment for a component the toolbar hosts but does not style — the
  * notification bell owns its own trigger markup. `>` keeps the rule on the
  * trigger only: the bell's popover is a *sibling* of that button inside the same
- * wrapper, and it is a white surface that must keep its own dark text.
+ * wrapper, and it is a white surface that must keep its own dark text — which
+ * it now actually does, through `.becpg-popover` below. It did not: `color` on
+ * `.becpg-toolbar` is **inherited**, so every string in that panel that did not
+ * name a colour of its own rendered white on white, at 1.00:1. The panel title
+ * and every notification title were invisible; only the muted second line and
+ * the pills, which do name a colour, showed. That is the "blanc sur blanc".
  */
 .becpg-toolbar .toolbar-slot > :is(button, a) {
   color: var(--becpg-on-toolbar-color);
@@ -469,6 +535,87 @@ body {
   background-color: #ffffff;
   color: var(--becpg-blue);
   box-shadow: 0 0 0 1.5px var(--becpg-orange);
+}
+
+/*
+ * A floating surface drawn OVER the page: the bell's panel today, any dropdown
+ * the toolbar hosts tomorrow.
+ *
+ * Three things, all of which the bell was missing:
+ *
+ *  1. **Its own foreground.** A popover anchored inside `.becpg-toolbar`
+ *     inherits the toolbar's white text. It must re-declare `--foreground`, or
+ *     every unstyled string in it is white on white (1.00:1 → 11.01:1).
+ *  2. **A boundary that passes 1.4.11.** `--becpg-overlay-border` is 4.67:1 on
+ *     white; the panel used `--becpg-grey`, 1.20:1.
+ *  3. **The overlay elevation the theme already ships.** `--becpg-shadow-overlay`
+ *     is blue-tinted (the page is blue-tinted); Tailwind's `shadow-xl` is a
+ *     neutral black wash that goes muddy on `--becpg-grey`.
+ */
+.becpg-popover {
+  color: var(--foreground);
+  background-color: var(--background);
+  border: 1px solid var(--becpg-overlay-border);
+  box-shadow: var(--becpg-shadow-overlay);
+}
+
+/* Header and footer strips of a popover: a real surface change, so the panel
+   reads as three bands instead of one flat rectangle. */
+.becpg-popover-band {
+  background-color: var(--becpg-grey);
+  color: var(--foreground);
+}
+
+/*
+ * The rows of a popover list are separated, the way Share separates the rows of
+ * a datagrid: one hairline, no zebra, no vertical rule (`beCPG.css` — measured
+ * `1px #EEEEEE`, 1.13:1). `--becpg-grey` is the portal's equivalent, 1.20:1.
+ *
+ * 1.4.11 is not the bar here and the number is not a failure: a separator
+ * *inside* an already-bounded list is decoration, not the boundary that
+ * identifies a component. The boundary is the panel's own 4.67:1 edge.
+ */
+.becpg-popover-list > * + * {
+  border-top: 1px solid var(--becpg-grey);
+}
+
+/*
+ * A row inside a popover list.
+ *
+ * Resting is the panel's own white. Hover/focus is `--becpg-grey`, the theme's
+ * surface grey — 1.20:1, against the 1.11:1 the bell shipped (`--becpg-grey`/60,
+ * i.e. #eff4f5). Neither number is a compliance claim: a hover wash is a
+ * redundant echo of the pointer, and what carries 1.4.11 for the *focused*
+ * state is the focus ring.
+ */
+.becpg-notification-row {
+  border-left: 3px solid transparent;
+}
+
+.becpg-notification-row:hover {
+  background-color: var(--becpg-grey);
+}
+
+/*
+ * Unread, in three signals so it survives greyscale and colour blindness: a 3px
+ * rail, a heavier title, and the dot the row already drew. The screen-reader
+ * path is the row's own "Nouveau" text, not any of these.
+ *
+ * The rail is `--becpg-orange-deep`, **not** `--becpg-orange`. The brand orange
+ * is the portal's accent everywhere 3:1 is the bar, but on *white* it measures
+ * **2.95:1** and misses — the 3.73:1 quoted for it in this file is the pair
+ * `--becpg-orange` on `--becpg-blue`, i.e. the toolbar, and does not transfer to
+ * a white popover. `--becpg-orange-deep` is the same hue pushed down the same
+ * axis and measures 4.83:1 on white, 4.57:1 on the wash below, 4.03:1 on the
+ * hovered row — it clears 3:1 on every surface this rail is ever drawn over.
+ */
+.becpg-notification-row[data-unseen='true'] {
+  border-left-color: var(--becpg-orange-deep);
+  background-color: var(--becpg-unread-surface);
+}
+
+.becpg-notification-row[data-unseen='true']:hover {
+  background-color: var(--becpg-unread-surface-hover);
 }
 
 .becpg-toolbar .toolbar-divider {
@@ -851,7 +998,16 @@ body {
 /* Mobile-first helpers — the wizard must be completable on a phone       */
 /* ---------------------------------------------------------------------- */
 
-/* Page shell: full-bleed on phones, centered and padded above sm */
+/*
+ * Page shell: full-bleed on phones, centered and padded above sm.
+ *
+ * This is now the **only** place `--portal-max-width` is applied. The frame
+ * (`AppShell`) and the toolbar (`Header`) used to apply it as well, so the cap
+ * stacked and `fullWidth` — which only drops this one — could not actually make
+ * a page full width. A cap on the text column is a typographic decision; a cap
+ * on the application frame is dead white space. See `AppShell`'s `fullWidth`
+ * for which screens keep it.
+ */
 .page-container {
   width: 100%;
   max-width: var(--portal-max-width);
@@ -927,6 +1083,121 @@ body {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Tab bars that overflow (components/ui/TabScroller.js)                  */
+/*                                                                        */
+/* A tab bar wider than its box scrolls, and used to say nothing about it: */
+/* the product sheet measured scrollWidth 1420 against clientWidth 960 —   */
+/* 460px of hidden tabs, no scrollbar (it is deliberately hidden), no      */
+/* chevron, and no way for a pointer to page through. What follows is the  */
+/* affordance only; the scrolling itself is unchanged.                     */
+/* ---------------------------------------------------------------------- */
+
+.tab-scroller {
+  position: relative;
+  min-width: 0;
+  /*
+   * What the edge fade fades *into*. A tab bar normally sits straight on the
+   * page surface (`--becpg-page-surface`, the AppShell background flattened)
+   * and inside a Card it sits on white. One variable, two surfaces, no colour
+   * repeated in a component file.
+   *
+   * It has to be *opaque*: the fade's job is to hide the tab passing under it,
+   * and a translucent stop would let the label read straight through.
+   */
+  --tab-scroller-surface: var(--becpg-page-surface);
+}
+
+.tab-scroller-on-card {
+  --tab-scroller-surface: var(--background);
+}
+
+.tab-track {
+  /* The tabs' `offsetParent`, which is what `revealHorizontally` measures
+     against — do not remove without changing that function. */
+  position: relative;
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tab-track::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-track > * {
+  flex: none;
+}
+
+.tab-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.tab-fade-start {
+  left: 0;
+  background: linear-gradient(to right, var(--tab-scroller-surface) 45%, transparent);
+}
+
+.tab-fade-end {
+  right: 0;
+  background: linear-gradient(to left, var(--tab-scroller-surface) 45%, transparent);
+}
+
+.tab-scroll-button {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: inline-flex;
+  width: 1.75rem;
+  height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  border: 1px solid var(--becpg-overlay-border);
+  border-radius: 9999px;
+  background-color: var(--background);
+  color: var(--becpg-blue);
+  box-shadow: var(--becpg-shadow-raised);
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.tab-scroll-start {
+  left: 0;
+}
+
+.tab-scroll-end {
+  right: 0;
+}
+
+.tab-scroll-button:hover {
+  background-color: var(--becpg-grey);
+}
+
+.tab-scroll-button:active {
+  background-color: var(--becpg-blue-lighter);
+}
+
+/*
+ * Not drawn on touch: a 28px chevron is well under the portal's 44px target,
+ * and a finger already swipes the bar. `display: none` — not `visibility` — so
+ * it leaves the tab order too. The fade stays, and carries "there is more" on
+ * its own.
+ */
+@media (pointer: coarse) {
+  .tab-scroll-button {
+    display: none;
+  }
 }
 
 /* Datagrids: never break the page layout on a phone, scroll the table instead */

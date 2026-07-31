@@ -53,7 +53,7 @@ import {
     readMonitorFilters,
     useDebouncedValue,
 } from '@/components/monitor/MonitorFilters';
-import { formatDateTime } from '@/components/documents/ExpiryPill';
+import { formatDateTime } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
@@ -154,6 +154,7 @@ function MonitorOverviewScreen() {
 
     return (
         <AppShell
+            fullWidth
             space="monitor"
             title={local.title}
             badges={{ nc: (data && data.nonConformities && data.nonConformities.open) || 0 }}
@@ -268,7 +269,7 @@ export default function MonitorOverviewPage() {
     return (
         <Suspense
             fallback={
-                <AppShell space="monitor">
+                <AppShell space="monitor" fullWidth>
                     <OverviewSkeleton />
                 </AppShell>
             }

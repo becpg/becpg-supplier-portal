@@ -124,7 +124,12 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
         <header className={`becpg-toolbar safe-top sticky top-0 z-50 ${className}`}>
             <TestBanner />
             <div className="shadow-[0_2px_10px_rgba(0,66,84,0.25)]">
-                <div className="mx-auto flex h-14 max-w-[var(--portal-max-width)] items-center gap-1.5 px-2 sm:gap-2 sm:px-4">
+                {/* Full width, like the frame under it. Capped at
+                    `--portal-max-width` the toolbar painted its blue edge to
+                    edge but pushed the brand 260px inboard at 1920, so the logo
+                    no longer lined up with the navigation rail it sits above —
+                    and the account menu floated 260px off the right edge. */}
+                <div className="flex h-14 w-full items-center gap-1.5 px-2 sm:gap-2 sm:px-4">
                     {onMenuClick ? (
                         <IconButton
                             icon="menu"

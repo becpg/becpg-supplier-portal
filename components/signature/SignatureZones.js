@@ -342,6 +342,13 @@ export function SignatureZones({ zones, pageNumber, pageSize = null, lang = 'fr'
             {boxes.map(({ zone, box }) => (
                 <motion.div
                     key={zone.id}
+                    // The frames are `aria-hidden` decoration, so they carry no
+                    // accessible name to assert on. These two attributes are
+                    // what makes "the signature frame is on page 2" checkable —
+                    // in a test, and in a production console when a customer
+                    // reports a frame in the wrong place.
+                    data-zone-type={zone.type}
+                    data-zone-page={zone.page}
                     className={`absolute rounded-[3px] border-2 border-dashed ${
                         TYPE_STYLES[zone.type] || TYPE_STYLES[ZONE_TYPES.SIGNATURE]
                     }`}

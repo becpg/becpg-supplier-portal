@@ -105,15 +105,19 @@ export function SessionProvider({ initialSession = null, children }) {
                 setSession(payload);
                 setError(null);
                 setLoading(false);
-                // The session loaded: any earlier re-login attempt is water under the bridge.
-                // Clearing here keeps the counter about *consecutive* failures, so a legitimate
-                // expiry hours later is not refused because of an old incident.
-                try {
-                    window.sessionStorage.removeItem(RELOGIN_KEY);
-                }
-                catch {
-                    // No sessionStorage: nothing to clear.
-                }
+                // The counter is deliberately NOT cleared here.
+                //
+                // It used to be, "so a legitimate expiry hours later is not refused because of
+                // an old incident" — but re-login always makes this very call succeed, which is
+                // the whole point of re-logging in. Clearing on that success therefore reset the
+                // counter on *every* bounce and the guard below could never trip. Measured on
+                // /tasks/<id>?step=<n> with a step endpoint answering 401: 14 full navigations
+                // and 6 trips through /api/auth/login in 30 s, still going — the infinite loop
+                // the guard exists to stop.
+                //
+                // RELOGIN_WINDOW_MS already gives the ageing that was wanted: attempts older
+                // than the window are filtered out below, so an expiry hours later starts from
+                // a clean slate without anything having to erase the counter.
             })
             .catch((cause) => {
                 if (!alive || cause.name === 'AbortError') {

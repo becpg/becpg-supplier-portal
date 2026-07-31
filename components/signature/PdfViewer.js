@@ -100,6 +100,12 @@ const MAX_PIXEL_RATIO = 2;
 /** Fallback aspect ratio (A4 portrait) while the first page is measuring. */
 const DEFAULT_ASPECT = 1.414;
 
+/** How long a smooth scroll is given to land before it is snapped, in ms. */
+const SETTLE_DELAY = 700;
+
+/** How far off the target a settled scroll may be, in px. */
+const SETTLE_TOLERANCE = 8;
+
 const LABELS = {
     fr: {
         previous: 'Page précédente',
@@ -221,6 +227,8 @@ export const PdfViewer = forwardRef(function PdfViewer(
     const scrollRef = useRef(null);
     const pageElements = useRef(new Map());
     const pageRefCallbacks = useRef(new Map());
+    /** Pending "did the smooth scroll actually land" check. */
+    const settleTimer = useRef(0);
 
     // Read once: a canvas rendered at 3x on a mid-range phone is a memory wall,
     // not a sharper page. The component is client-only, so `window` is there.
@@ -346,16 +354,51 @@ export const PdfViewer = forwardRef(function PdfViewer(
             if (!element) {
                 return target;
             }
-            const top = element.getBoundingClientRect().top + window.scrollY - scrollOffset;
+
             const reduced =
                 typeof window !== 'undefined' &&
                 window.matchMedia &&
                 window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            window.scrollTo({ top: Math.max(0, top), behavior: reduced ? 'auto' : behavior });
+            const mode = reduced ? 'auto' : behavior;
+
+            // `scrollIntoView`, not `window.scrollTo(getBoundingClientRect().top
+            // + scrollY)`: the second only works when the *window* is the
+            // scroller. It silently does nothing the day the viewer sits in a
+            // dialog or in a pane with its own overflow — and `scroll-margin-top`
+            // (set on the wrapper) already compensates the sticky toolbar.
+            element.scrollIntoView({ behavior: mode, block: 'start', inline: 'nearest' });
+
+            // A smooth scroll is an *animation*, and browsers are free to cancel
+            // one: Chromium drops it when it sees user input, which a real click
+            // on this very button counts as (measured — the page simply never
+            // moved). Landing on the page is the feature; the animation is not.
+            // So: verify, and snap if it did not happen.
+            if (settleTimer.current) {
+                clearTimeout(settleTimer.current);
+                settleTimer.current = 0;
+            }
+            if (mode === 'smooth') {
+                settleTimer.current = setTimeout(() => {
+                    settleTimer.current = 0;
+                    const current = pageElements.current.get(target);
+                    if (!current) {
+                        return;
+                    }
+                    if (Math.abs(current.getBoundingClientRect().top - scrollOffset) > SETTLE_TOLERANCE) {
+                        current.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' });
+                    }
+                }, SETTLE_DELAY);
+            }
             return target;
         },
         [numPages, scrollOffset],
     );
+
+    useEffect(() => () => {
+        if (settleTimer.current) {
+            clearTimeout(settleTimer.current);
+        }
+    }, []);
 
     const controls = useMemo(
         () => ({
@@ -518,8 +561,12 @@ export const PdfViewer = forwardRef(function PdfViewer(
         // overflow turns the toolbar's `position: sticky` into dead weight.
         <div className={`rounded-xl border border-[var(--becpg-grey)] bg-white ${className}`}>
             {/* ------------------------------------------------------ toolbar */}
+            {/* One row, always. Wrapping put the zoom controls on a second line
+                at 360px, where the sticky toolbar then covered a third of the
+                page. Scrolling the toolbar itself is the honest trade: the
+                controls stay reachable and the document keeps its height. */}
             <div
-                className="sticky z-20 flex flex-wrap items-center gap-1 rounded-t-xl border-b border-[var(--becpg-grey)] bg-white/95 px-2 py-1.5 backdrop-blur sm:gap-2 sm:px-3"
+                className="sticky z-20 flex flex-nowrap items-center gap-1 overflow-x-auto rounded-t-xl border-b border-[var(--becpg-grey)] bg-white/95 px-2 py-1.5 backdrop-blur sm:gap-2 sm:px-3"
                 style={{ top: `${stickyTop}px` }}
             >
                 <IconButton
@@ -535,7 +582,7 @@ export const PdfViewer = forwardRef(function PdfViewer(
                     disabled={!numPages || currentPage >= numPages}
                 />
 
-                <label className="ml-1 flex items-center gap-1 text-xs text-[var(--becpg-dark-grey)]">
+                <label className="ml-1 flex shrink-0 items-center gap-1 text-xs text-[var(--becpg-dark-grey)]">
                     <span className="sr-only">{labels.page}</span>
                     <input
                         type="number"
@@ -555,7 +602,9 @@ export const PdfViewer = forwardRef(function PdfViewer(
                     <span className="tabular-nums">{fill(labels.of, { pages: numPages || '…' })}</span>
                 </label>
 
-                <span className="mx-auto" />
+                {/* Pushes the zoom cluster right; `shrink` keeps it from
+                    forcing a horizontal scroll on a narrow toolbar. */}
+                <span className="min-w-0 flex-1 shrink" />
 
                 <IconButton icon="zoom_out" label={labels.zoomOut} onClick={() => zoomBy(-SCALE_STEP)} disabled={scale <= MIN_SCALE} />
                 <button
