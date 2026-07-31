@@ -16,8 +16,8 @@ import { NextResponse } from 'next/server';
 import {
     getSession,
     refreshSessionIfNeeded,
-    sessionCookie,
     toPublicSession,
+    writeSession,
 } from '@/lib/session';
 import { getTenant, resolveTenant, toPublicTenant } from '@/lib/tenant';
 import { DEFAULT_LANG, LANG_COOKIE, normalizeLang } from '@/config/messages';
@@ -59,8 +59,12 @@ export async function GET(request) {
     );
 
     if (changed) {
-        const cookie = await sessionCookie(session);
-        response.cookies.set(cookie.name, cookie.value, cookie.options);
+        // `writeSession`, never `sessionCookie` + a single `cookies.set`: a real
+        // OIDC session is ~5.4 kB and does not fit in one cookie, so it is chunked
+        // across `becpg_portal_session.N` (lib/session.js). A single oversized
+        // cookie is dropped by the browser without a word, and the refreshed token
+        // is lost — the session then dies at its old expiry instead of the new one.
+        await writeSession(response, session);
     }
 
     return response;

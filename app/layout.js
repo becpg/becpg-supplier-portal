@@ -2,6 +2,8 @@ import { Roboto } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { LANG_COOKIE, normalizeLang } from "@/config/messages";
+import { getSession, toPublicSession } from "@/lib/session";
+import { getTenant, toPublicTenant } from "@/lib/tenant";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 
@@ -65,9 +67,49 @@ export const viewport = {
     viewportFit: "cover",
 };
 
+/**
+ * Who the request is, resolved from the session cookie alone.
+ *
+ * `getSession()` decrypts the JWE and stops there: **no beCPG call, no ticket
+ * use, no network at all**, so this costs the same on every page as the language
+ * cookie read above. What it returns is deliberately *partial* — the identity
+ * (user, tenant, TEST flag), never the space, the groups, the suppliers or the
+ * capabilities, which only `/api/v1/session` can compose because they need the
+ * repository.
+ *
+ * It exists because without it the shell had no server-rendered notion of being
+ * signed in at all: `SessionProvider` started every document at `session = null`
+ * — the signed-out state — and only left it once a client round trip landed. The
+ * first paint after a successful login was therefore always signed-out chrome,
+ * and any failure of that single request (a timeout on the 50-task scan behind
+ * `resolveMySuppliers`, a network blip, an upstream hiccup) left it there with no
+ * way out but a manual reload. Seeding removes the dependency instead of racing
+ * it.
+ *
+ * Both projections are the ones `/api/v1/session` already serialises
+ * (`toPublicSession` / `toPublicTenant`), so nothing crosses to the browser that
+ * did not already: no ticket, no access/refresh/id token (AGENTS.md rule 5).
+ *
+ * @returns {Promise<{user: Object, tenant: Object|null, isTest: boolean, lang: string}|null>}
+ */
+async function readIdentity(lang) {
+    const session = await getSession();
+    if (!session) {
+        return null;
+    }
+    const tenant = getTenant(session.tenantId);
+    return {
+        user: toPublicSession(session),
+        tenant: toPublicTenant(tenant),
+        isTest: Boolean(tenant && tenant.isTest),
+        lang,
+    };
+}
+
 export default async function RootLayout({ children }) {
     const cookieStore = await cookies();
     const lang = normalizeLang(cookieStore.get(LANG_COOKIE)?.value);
+    const identity = await readIdentity(lang);
 
     return (
         <html lang={lang}>
@@ -84,11 +126,19 @@ export default async function RootLayout({ children }) {
                 {/*
                     PROVIDERS INSERTION POINT.
 
-                    SessionProvider fetches GET /api/v1/session once and holds the
-                    user, the tenant (logo, label, TEST flag), the beCPG groups and
-                    the resolved space for the whole tab; it also restarts the OIDC
-                    flow when any call answers 401. It carries the tenant, so there
-                    is no separate TenantProvider.
+                    SessionProvider is seeded with `initialIdentity` — who the
+                    server already knows this request to be, from the cookie — and
+                    then fetches GET /api/v1/session for what the cookie cannot
+                    say: the beCPG groups, the resolved space, the supplier(s) and
+                    the capabilities. It carries the tenant, so there is no
+                    separate TenantProvider. It also restarts the OIDC flow when
+                    any call answers 401.
+
+                    The seed is what makes the shell signed-in from the very first
+                    paint after login. It is computed per document, so it is
+                    equally correct in the other direction: after a sign-out the
+                    cookie is gone, the seed is null, and no cached payload can
+                    keep the signed-in shell alive.
 
                     ToastProvider is nested inside it because a toast can need to
                     resolve a session-dependent message, never the reverse.
@@ -98,7 +148,7 @@ export default async function RootLayout({ children }) {
                     page. /login renders inside them and simply never triggers the
                     session call.
                 */}
-                <SessionProvider>
+                <SessionProvider initialIdentity={identity}>
                     <ToastProvider>{children}</ToastProvider>
                 </SessionProvider>
             </body>

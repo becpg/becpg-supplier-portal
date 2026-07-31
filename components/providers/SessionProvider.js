@@ -3,11 +3,25 @@
 /**
  * The session context — the shell's single source of truth.
  *
- * It fetches `GET /api/v1/session` **once** on mount and keeps the result for
- * the lifetime of the tab (the provider is mounted by the root layout, so it
- * survives every client navigation). That one payload carries everything the
- * chrome needs: the user, the tenant (label, logo, TEST flag), the beCPG groups,
- * the resolved `space`, the supplier(s) and the capabilities.
+ * It starts from the **identity the root layout resolved server-side** from the
+ * session cookie (`initialIdentity`: user, tenant, TEST flag) and fetches
+ * `GET /api/v1/session` for the rest — the beCPG groups, the resolved `space`,
+ * the supplier(s) and the capabilities, none of which can be read off a cookie.
+ * The result is kept for the lifetime of the tab (the provider is mounted by the
+ * root layout, so it survives every client navigation).
+ *
+ * **Why the seed exists.** Without it the provider began every document at
+ * `session = null`, which the shell renders as the *signed-out* state: no name,
+ * no tenant, no navigation. The first paint after a successful login was
+ * therefore always signed-out chrome over a perfectly valid session, and the one
+ * request that could fix it had no retry — a timeout, a network blip or an
+ * upstream failure while composing the payload left the shell signed-out until
+ * the user reloaded the page by hand. The seed makes the signed-in state a
+ * property of the document, not of a race.
+ *
+ * Consequently: **only a 401 clears the session.** Every other failure is a
+ * failed *read* of a session that still exists, and is reported as an error
+ * without repainting the shell as signed out.
  *
  * It never sees a ticket or a token — `/api/v1/session` returns
  * `toPublicSession()` / `toPublicTenant()` projections (AGENTS.md rule 5).
@@ -77,21 +91,44 @@ function isPublicPathname(pathname) {
 
 /**
  * @param {Object} props
- * @param {Object} [props.initialSession] server-rendered seed; skips the first fetch
+ * @param {{user: Object, tenant: Object|null, isTest: boolean, lang: string}} [props.initialIdentity]
+ *        server-rendered seed built by `app/layout.js` from the session cookie.
+ *        Partial by construction — identity only, never `space` / `groups` /
+ *        `suppliers` / `capabilities` — so it never replaces the fetch below.
  * @param {React.ReactNode} props.children
  */
-export function SessionProvider({ initialSession = null, children }) {
+export function SessionProvider({ initialIdentity = null, children }) {
     const pathname = usePathname();
     const publicPage = isPublicPathname(pathname);
-
-    const [session, setSession] = useState(initialSession);
-    const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(!initialSession && !publicPage);
     const [nonce, setNonce] = useState(0);
     const redirecting = useRef(false);
 
+    // One state object keyed by "which fetch belongs in flight". Same shape and
+    // same reason as `useApi` in lib/client.js: when the key changes the state is
+    // adjusted **during render** rather than in an effect, so leaving /login for
+    // an application page shows the loading state immediately instead of painting
+    // one settled frame of the signed-out shell first.
+    const key = `${publicPage ? 'public' : 'private'}:${nonce}`;
+    const [state, setState] = useState({
+        key,
+        session: publicPage ? null : initialIdentity,
+        error: null,
+        loading: !publicPage,
+    });
+
+    if (state.key !== key) {
+        setState({
+            key,
+            session: publicPage ? null : state.session,
+            error: null,
+            loading: !publicPage,
+        });
+    }
+
+    const { session, error, loading } = state;
+
     useEffect(() => {
-        if (publicPage || (initialSession && nonce === 0)) {
+        if (publicPage) {
             return undefined;
         }
         const controller = new AbortController();
@@ -102,9 +139,7 @@ export function SessionProvider({ initialSession = null, children }) {
                 if (!alive) {
                     return;
                 }
-                setSession(payload);
-                setError(null);
-                setLoading(false);
+                setState({ key, session: payload, error: null, loading: false });
                 // The counter is deliberately NOT cleared here.
                 //
                 // It used to be, "so a legitimate expiry hours later is not refused because of
@@ -123,16 +158,26 @@ export function SessionProvider({ initialSession = null, children }) {
                 if (!alive || cause.name === 'AbortError') {
                     return;
                 }
-                setSession(null);
-                setError(cause);
-                setLoading(false);
+                // **A 401 is the only answer that means "there is no session".** The
+                // server has just said the cookie is gone, expired or refused, and the
+                // shell must show that. Anything else — a timeout, a network error, a
+                // 5xx, an upstream beCPG failure while composing the payload — is a
+                // failed READ of a session the browser still holds; dropping the
+                // server-seeded identity on it is precisely what used to paint the
+                // signed-out shell over a user who had just signed in successfully.
+                setState((previous) => ({
+                    key,
+                    session: cause.status === 401 ? null : previous.session,
+                    error: cause,
+                    loading: false,
+                }));
             });
 
         return () => {
             alive = false;
             controller.abort();
         };
-    }, [publicPage, initialSession, nonce]);
+    }, [publicPage, key]);
 
     // Session expiry: restart the OIDC flow, once, aimed back at this page.
     useEffect(() => {
@@ -169,8 +214,14 @@ export function SessionProvider({ initialSession = null, children }) {
                     + 'The failing call is not an authentication problem.',
                 );
                 redirecting.current = true;
-                setError(new Error('unauthorized_loop'));
-                setLoading(false);
+                // The identity is deliberately left alone: the loop is a failing
+                // endpoint, not a lost session, and blanking the shell on top of it
+                // would hide who the user is while telling them nothing new.
+                setState((previous) => ({
+                    ...previous,
+                    error: new Error('unauthorized_loop'),
+                    loading: false,
+                }));
                 return;
             }
 
