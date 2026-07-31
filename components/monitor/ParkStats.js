@@ -41,6 +41,14 @@
  *   `beCPG.remote.maxResults.limit` clamped the count) is shown with a `≈` and
  *   says so in clear text. A window-scoped breakdown says so too. The screen
  *   never presents a capped number as a park-wide fact.
+ * - **A ratio's denominator is the population its numerator was counted over.**
+ *   The status tiles and the composition bars partition `park.scanned`, so that is
+ *   what they are shown "out of" — not `park.total`, which is the size of the whole
+ *   filtered park and a *floor* of it when the scan window did not hold it. Reading
+ *   the two as one pair is defect B5: the screen showed "Agréés 256" beside "sur
+ *   251 fournisseurs". `park.breakdownScope` is the API telling this file which of
+ *   the two populations the buckets cover; when it says `park` they are the same
+ *   number and the wording keeps the park form.
  */
 
 import Link from 'next/link';
@@ -80,6 +88,14 @@ const LABELS = {
         },
         hints: {
             ofPark: 'sur {total} fournisseurs',
+            /*
+             * Used instead of `ofPark` as soon as the breakdown is window-scoped.
+             * "Agréés 248 / sur 250+ fournisseurs" is the shape of defect B5: the
+             * numerator counts the rows that were read, the denominator names the
+             * whole park, and a reader has no way to know they are different sets.
+             * The denominator is now always the population the numerator partitions.
+             */
+            ofScanned: 'sur les {scanned} fournisseurs lus',
             complianceDetail: '{missing} manquants · {expired} expirés · {refused} refusés',
             complianceMandatory: '{compliant} / {total} documents obligatoires',
             expiring: 'documents · {d60} à 60 j, {d90} à 90 j',
@@ -94,6 +110,7 @@ const LABELS = {
             subtitle: "Statut d'agrément dérivé, jamais stocké (§5.4.3)",
             empty: 'Aucun fournisseur dans ce périmètre',
             share: '{share} %',
+            unknown: '{count} fournisseur(s) lus sans statut d’agrément évalué : ils ne sont dans aucune barre.',
             windowScope:
                 'Répartition calculée sur les {scanned} fournisseurs lus (le parc en compte {total}) : affinez les filtres pour une répartition exacte.',
         },
@@ -128,6 +145,8 @@ const LABELS = {
         },
         hints: {
             ofPark: 'of {total} suppliers',
+            /* See the note on the French `ofScanned`. */
+            ofScanned: 'of the {scanned} suppliers read',
             complianceDetail: '{missing} missing · {expired} expired · {refused} rejected',
             complianceMandatory: '{compliant} / {total} mandatory documents',
             expiring: 'documents · {d60} at 60 d, {d90} at 90 d',
@@ -142,6 +161,7 @@ const LABELS = {
             subtitle: 'Approval status is derived, never stored (§5.4.3)',
             empty: 'No supplier in this perimeter',
             share: '{share} %',
+            unknown: '{count} supplier(s) read with no evaluated approval status: they are in none of the bars.',
             windowScope:
                 'Breakdown computed on the {scanned} suppliers read (the park holds {total}): narrow the filters for an exact breakdown.',
         },
@@ -213,6 +233,17 @@ function buildTiles(overview, local, query, lang) {
     // cannot count past the scan window, it only says "there is at least one more".
     // "sur 250+" is the truth; "sur 250" would not be.
     const parkTotal = formatTotal({ total: park.total, exact: park.exact !== false }, lang).text;
+    /*
+     * The denominator of a status tile is the population that status was counted
+     * over, and that is `park.scanned` — never `park.total`, which is a floor of the
+     * whole park as soon as the scan window did not hold it (defect B5: "Agréés 256"
+     * beside "sur 251"). `park.breakdownScope` is the API saying which of the two it
+     * is; when it says `park` the two are the same number anyway.
+     */
+    const overPark = park.breakdownScope !== 'window';
+    const ofPopulation = overPark
+        ? interpolate(local.hints.ofPark, { total: parkTotal })
+        : interpolate(local.hints.ofScanned, { scanned: park.scanned || 0 });
     const compliance = overview.compliance || {};
     const expiring = overview.expiring || {};
     const buckets = expiring.buckets || {};
@@ -229,7 +260,7 @@ function buildTiles(overview, local, query, lang) {
             value: park.approved || 0,
             icon: 'verified',
             tone: 'ok',
-            hint: interpolate(local.hints.ofPark, { total: parkTotal }),
+            hint: ofPopulation,
             href: withStatus('approved'),
         },
         {
@@ -247,7 +278,7 @@ function buildTiles(overview, local, query, lang) {
             value: park.suspended || 0,
             icon: 'block',
             tone: (park.suspended || 0) > 0 ? 'danger' : 'ok',
-            hint: interpolate(local.hints.ofPark, { total: parkTotal }),
+            hint: ofPopulation,
             href: withStatus('suspended'),
         },
         {
@@ -337,8 +368,18 @@ function buildTiles(overview, local, query, lang) {
  */
 function ParkComposition({ park, local, query, lang }) {
     const reduceMotion = useReducedMotion();
-    const total = ['approved', 'inProgress', 'toRenew', 'suspended']
+    const counted = ['approved', 'inProgress', 'toRenew', 'suspended']
         .reduce((sum, status) => sum + (park[status] || 0), 0);
+    /*
+     * The four buckets partition `park.scanned` (defect B5). Sharing them over
+     * their own sum instead would repair a hole by hiding it: whatever the API
+     * could not classify would vanish into the percentages of the rest. The
+     * denominator is the population, `unknown` is the remainder, and the remainder
+     * is named below rather than absorbed.
+     */
+    const scanned = Number(park.scanned) > 0 ? Number(park.scanned) : counted;
+    const total = Math.max(scanned, counted);
+    const unknown = Math.max(0, total - counted);
 
     if (total === 0) {
         return <EmptyState compact title={local.park.empty} />;
@@ -399,16 +440,29 @@ function ParkComposition({ park, local, query, lang }) {
                     );
                 })}
             </ul>
-            {park.breakdownScope === 'window' ? (
-                <p className="mt-auto flex items-start gap-1.5 pt-4 text-xs text-[var(--status-warn)]">
-                    <Icon name="info" size={14} className="mt-0.5 shrink-0" />
-                    <span>
-                        {interpolate(local.park.windowScope, {
-                            scanned: park.scanned || 0,
-                            total: formatTotal({ total: park.total, exact: park.exact !== false }, lang).label,
-                        })}
-                    </span>
-                </p>
+            {/* Rendered only when there is something to say: an empty block here
+                still costs its `pt-4` and would squeeze the bars of a panel that
+                has no caveat to report. */}
+            {unknown > 0 || park.breakdownScope === 'window' ? (
+                <div className="mt-auto flex flex-col gap-1 pt-4">
+                    {unknown > 0 ? (
+                        <p className="flex items-start gap-1.5 text-xs text-[var(--status-warn)]">
+                            <Icon name="info" size={14} className="mt-0.5 shrink-0" />
+                            <span>{interpolate(local.park.unknown, { count: unknown })}</span>
+                        </p>
+                    ) : null}
+                    {park.breakdownScope === 'window' ? (
+                        <p className="flex items-start gap-1.5 text-xs text-[var(--status-warn)]">
+                            <Icon name="info" size={14} className="mt-0.5 shrink-0" />
+                            <span>
+                                {interpolate(local.park.windowScope, {
+                                    scanned: park.scanned || 0,
+                                    total: formatTotal({ total: park.total, exact: park.exact !== false }, lang).label,
+                                })}
+                            </span>
+                        </p>
+                    ) : null}
+                </div>
             ) : null}
         </>
     );
