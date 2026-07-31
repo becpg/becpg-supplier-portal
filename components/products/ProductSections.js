@@ -918,7 +918,13 @@ export function ProductSections({
                                 'touch-target -mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors',
                                 tab.key === activeKey
                                     ? 'border-[var(--becpg-orange)] text-[var(--becpg-blue)]'
-                                    : 'border-transparent text-[var(--becpg-dark-grey)] hover:text-[var(--becpg-blue)]',
+                                    // `--becpg-dark-grey-deep`, not `--becpg-dark-grey`.
+                                    // This bar sits straight on the page surface
+                                    // (`bg-[var(--becpg-grey)]/30` = #f7f9fa, AppShell),
+                                    // not on a white card, and #747474 measures 4.67:1
+                                    // on white but only **4.43:1** there — under AA for
+                                    // 14px text. #666666 is 5.44:1 on the same surface.
+                                    : 'border-transparent text-[var(--becpg-dark-grey-deep)] hover:text-[var(--becpg-blue)]',
                             ].join(' ')}
                         >
                             {/* beCPG's own 16px glyph per characteristic list — the

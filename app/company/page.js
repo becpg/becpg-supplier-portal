@@ -626,7 +626,10 @@ export default function CompanyPage() {
                                         'touch-target -mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors',
                                         active && active.key === entry.key
                                             ? 'border-[var(--becpg-orange)] text-[var(--becpg-blue)]'
-                                            : 'border-transparent text-[var(--becpg-dark-grey)] hover:text-[var(--becpg-blue)]',
+                                            // Same swap, same reason as the product sheet's
+                                            // bar: on the page surface #747474 is 4.43:1,
+                                            // #666666 is 5.44:1.
+                                            : 'border-transparent text-[var(--becpg-dark-grey-deep)] hover:text-[var(--becpg-blue)]',
                                     ].join(' ')}
                                 >
                                     <ListIcon

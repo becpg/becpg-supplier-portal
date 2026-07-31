@@ -38,11 +38,30 @@
  * ## The answer state
  *
  * ```js
- * { [qid]: { cid: '<choice id>'|null, listOptions: 'v1,v2', comment: 'text' } }
+ * { [qid]: { cid: '<choice id>'|null, listOptions: 'v1,v2',
+ *            comment: 'text', commentCid: '<the choice that comment belongs to>' } }
  * ```
  *
  * One entry per **question**, not per choice: beCPG stores one `survey:surveyList`
  * row per question, with one `slComment` and one `slChoices`.
+ *
+ * ### Why `commentCid` exists
+ *
+ * A comment is configured on the **choice**, not on the question: in `def`, each
+ * radio answer carries its own `commentType` / `commentLabel`
+ * (`SurveyServiceImpl.appendQuestionDefinition`, the `else` branch reads
+ * `defChoice.getResponseCommentType()`). "Rainy" can ask for a textarea and
+ * "Sunny" for a number, on the same question — and the repository still has only
+ * one `slComment` to store it in.
+ *
+ * Share resolves that with the DOM: there is a single comment container per
+ * question, and `insertComment` **rebuilds it** whenever the selected choice
+ * differs from the input's `data-choice-id` (`decision-tree.js:1031-1052`), which
+ * throws the previous text away. So in Share, changing the answer clears the
+ * comment. `commentCid` reproduces exactly that: the text belongs to the choice
+ * it was typed for, and reading it back under another choice yields "".
+ * Without it a textarea's prose would be posted into a `number` field and
+ * `saveSurveyData` would log a `NumberFormatException` per save.
  */
 
 /**
@@ -184,6 +203,30 @@ export function isChoiceSelected(question, choice, state) {
 }
 
 /**
+ * The comment text to show — and to send — for this question.
+ *
+ * Empty as soon as the answer moved to a choice other than the one the text was
+ * typed for, which is what Share's `insertComment` does by rebuilding the input
+ * whenever its `data-choice-id` no longer matches the selected choice. Anything
+ * else would show a textarea's prose inside the `number` box of the next answer,
+ * and post it there.
+ *
+ * @param {Object} question
+ * @param {Object} [state]
+ * @returns {string}
+ */
+export function commentValue(question, state) {
+    const choice = commentChoiceOf(question, state);
+    if (!choice || !state) {
+        return '';
+    }
+    if (state.commentCid && state.commentCid !== choice.id) {
+        return '';
+    }
+    return String(state.comment || '');
+}
+
+/**
  * The values selected in a list choice, as an array.
  *
  * @param {Object} choice
@@ -258,15 +301,48 @@ export function initialAnswerState(questions, answers) {
         }
         const stored = byQid.get(String(question.id));
         const list = listChoiceOf(question);
-        state[question.id] = {
+        const seeded = {
             // A radio question keeps the chosen choice id; a list question keeps
             // its container's id, so `cid` is always the thing beCPG expects back.
             cid: stored?.cid || (list ? list.id : null) || null,
             listOptions: stored?.listOptions || '',
             comment: stored?.comment || '',
+            commentCid: null,
+            // "beCPG already holds an answer for this question." Read by
+            // {@link visibleQuestionIds} to rescue orphan roots; see there.
+            stored: Boolean(stored),
         };
+        // Which choice does the stored comment belong to? The answer is already
+        // in `cid`, and `commentChoiceOf` resolves it the same way for all three
+        // shapes beCPG serves: `{qid, cid: <answer>, comment}` for a radio,
+        // `{qid, cid: "sub-…", listOptions, comment}` for a list, and
+        // `{qid, comment}` — no cid at all — for a comment-only question
+        // (`SurveyServiceImpl.getSurveyData`, the `responseType` branch).
+        seeded.commentCid = commentChoiceOf(question, seeded)?.id || null;
+        state[question.id] = seeded;
     }
     return state;
+}
+
+/**
+ * Every question id that some choice declares as a child.
+ *
+ * @param {Object[]} questions
+ * @returns {Set<string>}
+ */
+function childQuestionIds(questions) {
+    const children = new Set();
+    for (const question of questions || []) {
+        for (const choice of question?.choices || []) {
+            if (!choice?.cid) {
+                continue;
+            }
+            for (const child of Array.isArray(choice.cid) ? choice.cid : [choice.cid]) {
+                children.add(child);
+            }
+        }
+    }
+    return children;
 }
 
 /**
@@ -274,6 +350,29 @@ export function initialAnswerState(questions, answers) {
  *
  * A direct port of `toggleVisible`, minus the DOM: single pass, in `sort` order,
  * `visible` growing as parents are processed.
+ *
+ * ## The one addition to Share's rule, and why
+ *
+ * Share's roots are `i === 0 || question.start === true`, full stop. On the
+ * questionnaire captured from the reference instance that leaves **two of the
+ * three answered questions rooted nowhere**: `start` is
+ * `questions.isEmpty() || questionIsVisible` (`SurveyServiceImpl:403`), so only
+ * the first row gets it unless the customer ticked `survey:questionIsVisible`,
+ * and neither of the other two is any choice's `cid`. Share renders one question
+ * out of three and never shows the other two answers.
+ *
+ * That is not merely a display bug here. {@link serialiseAnswers} sends the
+ * visible questions only, and `saveSurveyData` resets every row before
+ * re-applying what it receives — so answering the first question would **delete
+ * the two answers the supplier had already given**. Reproducing that faithfully
+ * would be reproducing data loss.
+ *
+ * So a third root case: a question beCPG already holds an answer for
+ * (`state.stored`) **and that no choice claims as a child**. It is strictly
+ * additive — it never hides anything Share shows — and it cannot resurrect an
+ * abandoned branch, because a real child is claimed by its parent's `cid` and so
+ * is excluded by construction. A branch the supplier walks away from still
+ * disappears, and its answer is still cleared, exactly as in Share.
  *
  * @param {Object[]} questions sorted `def`
  * @param {Object} answerState
@@ -287,6 +386,7 @@ export function visibleQuestionIds(questions, answerState, options = {}) {
     const visible = new Set();
     const readOnly = Boolean(options.readOnly);
     const hasAnswers = Boolean(options.hasAnswers);
+    const children = childQuestionIds(questions);
 
     for (let index = 0; index < (questions || []).length; index += 1) {
         const question = questions[index];
@@ -294,7 +394,10 @@ export function visibleQuestionIds(questions, answerState, options = {}) {
             continue;
         }
 
-        if (index === 0 || question.start === true) {
+        const orphanWithAnswer = answerState?.[question.id]?.stored === true
+            && !children.has(question.id);
+
+        if (index === 0 || question.start === true || orphanWithAnswer) {
             if (isMessage(question) && !question.mandatory) {
                 visible.add(question.id);
             }
@@ -329,11 +432,23 @@ export function visibleQuestionIds(questions, answerState, options = {}) {
  * Serialises the answers for `POST /becpg/survey` — the equivalent of Share's
  * hidden input, and byte-compatible with it.
  *
- * Only **visible** questions contribute (rule 3 above). One divergence, shared
- * with `lib/adapters/survey.js` and deliberate: an entry carrying nothing at all
- * is omitted rather than sent as `{ qid, cid, listOptions: "" }`. beCPG resets
- * every row before re-applying, so the stored answer is cleared either way — and
- * the empty form makes the repository resolve `new NodeRef(store, "")`.
+ * Only **visible** questions contribute (rule 3 above).
+ *
+ * **Exactly one entry per question**, and that is not a simplification —
+ * `saveSurveyData` indexes the array into a `HashMap<qid, JSONObject>`
+ * (`SurveyServiceImpl:214-220`), so a second entry for the same question
+ * *silently replaces* the first and the repository keeps only whichever came
+ * last. Share reaches the same shape by a different road: it pushes one entry
+ * per selected choice and then writes the comment onto `result[result.length-1]`
+ * (`_handleCommentVisibility`), which is one entry because exactly one choice of
+ * a question is ever selected. Building it directly is the same payload without
+ * the assumption.
+ *
+ * One divergence from Share, shared with `lib/adapters/survey.js` and
+ * deliberate: an entry carrying nothing at all is omitted rather than sent as
+ * `{ qid, cid, listOptions: "" }`. beCPG resets every row before re-applying, so
+ * the stored answer is cleared either way — and the empty form makes the
+ * repository resolve `new NodeRef(store, "")`.
  *
  * @param {Object[]} questions sorted `def`
  * @param {Object} answerState
@@ -349,30 +464,35 @@ export function serialiseAnswers(questions, answerState, visible) {
             continue;
         }
         const state = (answerState && answerState[question.id]) || {};
+        const list = listChoiceOf(question);
 
-        for (const choice of question.choices) {
-            if (!isChoiceSelected(question, choice, state)) {
-                continue;
-            }
+        // The choice that carries the answer: the list container for a
+        // response-type question, the ticked radio otherwise.
+        const answer = list
+            || (question.choices || []).find(
+                (choice) => !isChoiceContainer(choice) && isChoiceSelected(question, choice, state),
+            )
+            || null;
 
-            const options = Array.isArray(choice.list) ? selectedOptions(choice, state).join(',') : '';
-            const comment = choice.comment ? String(state.comment || '') : '';
-            // A container id is only ever sent alongside the options it holds:
-            // on its own, beCPG would resolve it as a choice nodeRef and store a
-            // dangling `survey:slChoices`. A real answer node is always sent.
-            const keepCid = Boolean(choice.id) && (!isChoiceContainer(choice) || options !== '');
+        const options = list ? selectedOptions(list, state).join(',') : '';
+        const comment = commentValue(question, state);
+        // A container id is only ever sent alongside the options it holds: on its
+        // own, beCPG resolves `cid` as a choice nodeRef (`optString("listOptions",
+        // optString("cid", null))`) and would store a dangling `survey:slChoices`
+        // — and `"sub-" + id.substring(4)` is not a node id at all. A real answer
+        // node is always sent.
+        const keepCid = Boolean(answer?.id) && (!isChoiceContainer(answer) || options !== '');
 
-            if (!keepCid && options === '' && comment === '') {
-                continue;
-            }
-
-            result.push({
-                qid: question.id,
-                ...(keepCid ? { cid: choice.id } : {}),
-                ...(options === '' ? {} : { listOptions: options }),
-                ...(comment === '' ? {} : { comment }),
-            });
+        if (!keepCid && options === '' && comment === '') {
+            continue;
         }
+
+        result.push({
+            qid: question.id,
+            ...(keepCid ? { cid: answer.id } : {}),
+            ...(options === '' ? {} : { listOptions: options }),
+            ...(comment === '' ? {} : { comment }),
+        });
     }
 
     return result;
@@ -392,17 +512,51 @@ export function isAnswered(question, state) {
     if (!question || isMessage(question) || !state) {
         return false;
     }
+    return hasChoice(question, state) || commentValue(question, state).trim() !== '';
+}
+
+/**
+ * Has a choice been picked on this question? (Ignores the comment.)
+ *
+ * @param {Object} question
+ * @param {Object} [state]
+ * @returns {boolean}
+ */
+function hasChoice(question, state) {
     const list = listChoiceOf(question);
     if (list) {
-        if (selectedOptions(list, state).length > 0) {
-            return true;
-        }
+        return selectedOptions(list, state).length > 0;
     }
-    else if (state.cid && (question.choices || []).some((choice) => choice.id === state.cid && choice.label !== 'hidden')) {
-        return true;
+    return Boolean(state?.cid)
+        && (question.choices || []).some((choice) => choice.id === state.cid && choice.label !== 'hidden');
+}
+
+/**
+ * Is a **mandatory** question satisfied?
+ *
+ * Stricter than {@link isAnswered}, and Share's own rule: `insertComment` is
+ * called with `question.mandatory` (`decision-tree.js:746`), so the comment box
+ * of a mandatory question is a required field too. Picking "Other" and leaving
+ * "please specify" empty answers nothing.
+ *
+ * The gauge deliberately keeps using {@link isAnswered}: a progress bar that
+ * refuses to move until an optional-looking box is filled reads as broken.
+ *
+ * @param {Object} question
+ * @param {Object} [state]
+ * @returns {boolean}
+ */
+export function isComplete(question, state) {
+    if (!question || isMessage(question) || !state) {
+        return false;
     }
-    const comment = commentChoiceOf(question, state);
-    return Boolean(comment) && String(state.comment || '').trim() !== '';
+    // A comment-only question has no choice to pick: its comment IS the answer.
+    const choices = (question.choices || []).filter((choice) => !isChoiceContainer(choice));
+    const list = listChoiceOf(question);
+    if ((choices.length > 0 || list) && !hasChoice(question, state)) {
+        return false;
+    }
+    return !commentChoiceOf(question, state) || commentValue(question, state).trim() !== '';
 }
 
 /**
@@ -428,11 +582,14 @@ export function surveyProgress(questions, answerState, visible) {
     let answered = 0;
 
     for (const question of asked) {
-        const done = isAnswered(question, answerState ? answerState[question.id] : null);
-        if (done) {
+        const state = answerState ? answerState[question.id] : null;
+        if (isAnswered(question, state)) {
             answered += 1;
         }
-        else if (question.mandatory) {
+        // Two different verdicts on purpose: the gauge counts what the supplier
+        // has touched, the blocking list counts what is actually complete — a
+        // mandatory question whose required comment is still blank is not.
+        if (question.mandatory && !isComplete(question, state)) {
             missing.push(question);
         }
     }

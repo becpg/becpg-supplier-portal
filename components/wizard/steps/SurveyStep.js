@@ -138,8 +138,17 @@ export function SurveyStep({
     const answers = useMemo(() => (data && data.answers) || [], [data]);
 
     const [progress, setProgress] = useState(null);
-    const [invalidIds, setInvalidIds] = useState([]);
     const [checked, setChecked] = useState(false);
+
+    const missing = useMemo(() => (progress && progress.missing) || [], [progress]);
+    // Derived, not frozen at check time. A check that keeps naming a question the
+    // supplier has just answered is worse than no check: the list shrinks as the
+    // blanks are filled and turns into "complete" on the last one, so the answer
+    // to "am I done?" stays true without asking again.
+    const invalidIds = useMemo(
+        () => (checked ? missing.map((question) => question.id) : []),
+        [checked, missing],
+    );
 
     // The answers to send are read at send time, never captured in the closure:
     // a failed write must re-read whatever has been answered since (§4.4 F2).
@@ -148,9 +157,6 @@ export function SurveyStep({
     const save = useCallback(
         (serialised) => {
             pending.current = serialised;
-            // A check is only meaningful on the answers it was run against.
-            setChecked(false);
-            setInvalidIds([]);
 
             if (!autoSave) {
                 return;
@@ -183,17 +189,17 @@ export function SurveyStep({
     );
 
     const check = useCallback(() => {
-        const missing = (progress && progress.missing) || [];
-        setInvalidIds(missing.map((question) => question.id));
         setChecked(true);
         if (missing.length > 0) {
             const target = document.getElementById(questionDomId(`survey-${step.id}`, missing[0].id));
             if (target) {
                 target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                // `preventScroll`, or the browser's own focus scroll fights the
+                // smooth one and lands somewhere between the two.
                 target.focus({ preventScroll: true });
             }
         }
-    }, [progress, step.id]);
+    }, [missing, step.id]);
 
     const goTo = useCallback(
         (questionId) => {
@@ -221,7 +227,6 @@ export function SurveyStep({
         );
     }
 
-    const missing = (progress && progress.missing) || [];
     const title = step.title || step.label;
 
     return (

@@ -646,8 +646,14 @@ body {
  * **2.95:1** and misses — the 3.73:1 quoted for it in this file is the pair
  * `--becpg-orange` on `--becpg-blue`, i.e. the toolbar, and does not transfer to
  * a white popover. `--becpg-orange-deep` is the same hue pushed down the same
- * axis and measures 4.83:1 on white, 4.57:1 on the wash below, 4.03:1 on the
+ * axis and measures 4.83:1 on white, 4.53:1 on the wash below and 4.14:1 on the
  * hovered row — it clears 3:1 on every surface this rail is ever drawn over.
+ * (Recomputed token-to-token; the 4.57 / 4.03 this comment first carried were
+ * off by a rounding step. A number in a comment is only worth what it was
+ * measured against — the wrong "3.73:1 on white" above is what that costs.)
+ *
+ * The dot beside the title is the **same** `--becpg-orange-deep`, set in
+ * `NotificationList.NotificationRow`: two oranges 3px apart read as a mistake.
  */
 .becpg-notification-row[data-unseen='true'] {
   border-left-color: var(--becpg-orange-deep);
@@ -1175,6 +1181,26 @@ body {
   flex: none;
 }
 
+/*
+ * The focus ring, drawn *inside* the tab.
+ *
+ * An `outline` is clipped by its scroll container, and `overflow-x: auto` makes
+ * the block axis clip too (CSS Overflow 3: a `visible` paired with a non-visible
+ * value computes to `auto`). So the baseline ring — 2px at `outline-offset: 2px`
+ * — lost its top and bottom edge on every tab of every bar, leaving two floating
+ * vertical strokes. `FormRenderer` had already worked around it for its own bar
+ * with `pb-1` on the track; this generalises the fix and covers the top edge too.
+ *
+ * A negative offset rather than padding on the track: padding would have to be
+ * given back with a negative margin, that margin would collapse through
+ * `.tab-scroller`, and the whole bar would shift. An inset ring changes no
+ * geometry at all — the tabs are `px-3 py-2`, so 2px inside the edge is clear of
+ * the label — and it is what a clipped container can actually show.
+ */
+.tab-track > *:focus-visible {
+  outline-offset: -2px;
+}
+
 .tab-fade {
   position: absolute;
   top: 0;
@@ -1406,6 +1432,25 @@ body {
   position: relative;
   display: block;
   min-width: 0;
+}
+
+/*
+ * Room for the flag, taken from the wrapper rather than from the control.
+ *
+ * The flag is absolutely positioned at the trailing edge, and that edge is
+ * already occupied: `Field.Select` paints its chevron there and `Field.Input`
+ * its unit suffix, both absolute inside their own wrapper. The two glyphs
+ * stacked. Padding the wrapper shrinks the control *and* the affix that travels
+ * with it, so the flag lands in a strip nothing else draws in — where padding
+ * the control itself would have had to out-specify the `data-affix-end` rules
+ * below and would have collapsed the 40px a unit suffix needs down to 20px.
+ *
+ * On the cell, not on the row: a `<td>` keeps its width, so nothing outside
+ * this cell moves when a value stops being missing. That is the whole point of
+ * flagging in place — see the note in `DataListRow.DataListCell`.
+ */
+.becpg-grid-field[data-invalid='true'] {
+  padding-inline-end: 18px;
 }
 
 .becpg-grid-field-flag {

@@ -107,6 +107,26 @@ export function DataListCell({ row, column, list, context, autoFocus = false, la
     const display = list.displayOf(row, column);
     const id = `${row.key}__${column.formsName}`;
 
+    /*
+     * The size of a read cell — and the one line that decided whether the whole
+     * density spec reached the screen.
+     *
+     * `.becpg-grid` sets Share's measured 13px/16px on the `<table>`, but every
+     * read cell used to declare `text-sm` (14px/20px) on its own wrapper. A
+     * font-size set **on** an element always beats an inherited one — layers and
+     * specificity never enter into it — so the token was overridden on every
+     * cell and the row pitch went with it: 8 + 20 + 8 + 1 = 37px, against
+     * Share's 33px. Read cells are most of a product sheet, so this is where the
+     * grid actually looked loose.
+     *
+     * The table therefore declares no size at all and inherits the grid's; the
+     * card keeps 14px, because below `md` a row is a card on a 360px screen and
+     * 13px there is a legibility question, not a density one.
+     */
+    const valueClass = layout === 'card'
+        ? 'block min-w-0 break-words text-sm'
+        : 'block min-w-0 break-words';
+
     // A protected column arrives read-only from the adapter on purpose: it takes
     // a deliberate confirmation to touch it (spec §6, point 6).
     if (column.protectedField && !editable && !list.readOnly && list.canEditRow(row)) {
@@ -115,7 +135,7 @@ export function DataListCell({ row, column, list, context, autoFocus = false, la
                 type="button"
                 onClick={() => list.requestUnlock(row, column)}
                 title={label('protectedLocked')}
-                className="group flex w-full items-center justify-between gap-1 rounded-md border border-dashed border-[var(--becpg-grey)] px-2 py-1 text-left text-sm hover:border-[var(--becpg-orange)]"
+                className={`group flex w-full items-center justify-between gap-1 rounded-md border border-dashed border-[var(--becpg-grey)] px-2 py-1 text-left${layout === 'card' ? ' text-sm' : ''} hover:border-[var(--becpg-orange)]`}
             >
                 <span className="min-w-0 truncate">{display || '—'}</span>
                 <Icon
@@ -164,10 +184,10 @@ export function DataListCell({ row, column, list, context, autoFocus = false, la
             layout,
         });
         if (rendered !== null) {
-            return <span className="block min-w-0 break-words text-sm">{rendered}</span>;
+            return <span className={valueClass}>{rendered}</span>;
         }
         return (
-            <span className="block min-w-0 break-words text-sm" title={display || undefined}>
+            <span className={valueClass} title={display || undefined}>
                 {display || <span className="text-[var(--becpg-dark-grey)]">—</span>}
             </span>
         );
@@ -178,7 +198,7 @@ export function DataListCell({ row, column, list, context, autoFocus = false, la
     if (!control) {
         // The registry does not know this control: show the value rather than an
         // empty cell. Writing a replacement editor here is explicitly forbidden.
-        return <span className="block min-w-0 break-words text-sm">{display || '—'}</span>;
+        return <span className={valueClass}>{display || '—'}</span>;
     }
 
     const missing = column.mandatory && (value === null || value === undefined || value === '');

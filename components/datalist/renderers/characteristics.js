@@ -37,7 +37,69 @@
  *    on its own it would push every leaf right for no reason.
  */
 
+import { ListIcon } from '@/components/ui/ListIcon';
+import { hasListIcon } from '@/lib/listIcons';
 import { EmptyCell, Indent, TotalCell } from '@/components/datalist/renderers/cells';
+
+/**
+ * The icon key of a characteristic cell — Share's `data.metadata`.
+ *
+ * `product-columnRenderers.js:141` renders the whole cell as
+ * `<span class="{data.metadata}">{displayName}</span>`, and `beCPG.css:940-1050`
+ * turns that class into a 16×16 `background-image`. So the key is not derived,
+ * looked up or guessed: the repository ships it *in the cell*, and an
+ * association cell survives `splitCells` as `{value, displayValue, metadata}` —
+ * `values.assoc_bcpg_ingListIng[0].metadata === "ing"`.
+ *
+ * Two shapes reach this, and only one carries the key. A **multi-valued**
+ * association keeps its cells (an array of maps), so `metadata` is there; a
+ * **single-valued** one is flattened by `splitCells` to the bare nodeRef, and
+ * the key is gone. That is why this returns `null` rather than falling back to
+ * the column, the list or the row's `itemType`: no icon is Share's own
+ * behaviour for a class it has no picture for, and a *wrong* icon on a
+ * characteristic is worse than none.
+ *
+ * @param {*} value the cell's raw value
+ * @returns {string|null}
+ */
+export function characteristicIconKey(value) {
+    const cell = Array.isArray(value) ? value[0] : value;
+    if (!cell || typeof cell !== 'object' || Array.isArray(cell)) {
+        return null;
+    }
+    const metadata = cell.metadata;
+    return typeof metadata === 'string' && metadata !== '' ? metadata : null;
+}
+
+/**
+ * A characteristic's label, with the glyph beCPG ships for its type.
+ *
+ * Share applies `padding-left: 20px` and a background image; the portal puts a
+ * real 16px `<img>` in front of the text with a 4px gap — the same 20px, but as
+ * a box rather than a painted background, so a name that wraps aligns under
+ * itself instead of running back under the icon.
+ *
+ * The gate is `hasListIcon`, which is precisely "beCPG ships a picture for this
+ * class". A type it has none for renders exactly as before — no icon, no
+ * placeholder, no reserved box — which is what Share's CSS does when a class
+ * has no rule. The total row's key is `"total"`, and there is no `total` glyph,
+ * so it keeps its bare bold label.
+ *
+ * @param {Object} props
+ * @param {string|null} props.iconKey
+ * @param {React.ReactNode} props.children
+ */
+function CharacteristicLabel({ iconKey, children }) {
+    if (!iconKey || !hasListIcon(iconKey)) {
+        return children;
+    }
+    return (
+        <span className="flex items-start gap-1">
+            <ListIcon type={iconKey} size={16} />
+            <span className="min-w-0">{children}</span>
+        </span>
+    );
+}
 
 /**
  * `bcpg:depthLevel` of a row, as a 1-based level.
@@ -62,23 +124,34 @@ function depthOf(row) {
  * @returns {Function} a renderer
  */
 function indentingRenderer(step) {
-    return function indented({ displayValue, row, layout }) {
+    return function indented({ value, displayValue, row, layout }) {
         const text = displayValue === null || displayValue === undefined ? '' : String(displayValue);
         if (!text) {
             return <EmptyCell />;
         }
+        const isTotal = row?.itemType === 'total';
+        const iconKey = characteristicIconKey(value);
+        const iconed = Boolean(iconKey) && hasListIcon(iconKey);
         const depth = depthOf(row);
-        if (depth === null || depth <= 1) {
+        const isIndented = depth !== null && depth > 1;
+        if (!iconed && !isIndented) {
             // Nothing to add over the default rendering: decline, so the grid
             // keeps its own (identical) markup and its own title.
-            return row?.itemType === 'total' ? <TotalCell>{text}</TotalCell> : null;
+            return isTotal ? <TotalCell>{text}</TotalCell> : null;
         }
+        /*
+         * The icon goes **inside** the indent, as it does in Share, where one
+         * span carries both the type class and `style="margin-left:25px"`. The
+         * `title` stays on the indent so a name truncated by a narrow column is
+         * still readable on hover — the default cell provides one, and a
+         * renderer that takes the cell over has to keep it.
+         */
         const body = (
-            <Indent depth={depth} step={step} layout={layout} title={text}>
-                {text}
+            <Indent depth={depth ?? 1} step={step} layout={layout} title={text}>
+                <CharacteristicLabel iconKey={iconKey}>{text}</CharacteristicLabel>
             </Indent>
         );
-        return row?.itemType === 'total' ? <TotalCell>{body}</TotalCell> : body;
+        return isTotal ? <TotalCell>{body}</TotalCell> : body;
     };
 }
 

@@ -38,6 +38,7 @@
  * | `multiChoicelist` → `<select multiple>` | checkbox rows | a multi-select listbox cannot be operated one-handed, and the portal is responsive to 360px |
  * | notes rendered as sanitised HTML | tags turned into lines and bullets | there is no `dangerouslySetInnerHTML` in this codebase and a supplier-facing screen is not where to introduce one |
  * | an untouched group serialised as `listOptions: ""` | omitted | beCPG resolves `""` as a nodeRef; omitting writes the same empty answer |
+ * | comment input rebuilt from the DOM when the selected choice changes | `commentCid` in the state | same observable behaviour, no DOM read |
  *
  * Everything else — the reveal rules, the order, the legend, the notes, the
  * urls, the requirement colours, the comment types, what is sent — is Share's.
@@ -51,6 +52,7 @@ import {
     COMMENT_INPUT_TYPES,
     REQUIREMENT_TONES,
     commentChoiceOf,
+    commentValue,
     initialAnswerState,
     isAnswered,
     isMessage,
@@ -374,6 +376,10 @@ function QuestionBlock({
     const domId = questionDomId(prefix, question.id);
     const list = listChoiceOf(question);
     const comment = commentChoiceOf(question, state);
+    // Never `state.comment` directly: the text belongs to the choice it was
+    // typed for, and reading it back under another answer is exactly what
+    // `commentValue` refuses to do.
+    const commentText = commentValue(question, state);
     const radios = (question.choices || []).filter(
         (choice) => !Array.isArray(choice.list) && choice.label !== 'hidden',
     );
@@ -488,15 +494,20 @@ function QuestionBlock({
                     className="mb-1 text-sm font-medium text-[var(--becpg-blue)]"
                 />
             ) : null}
-            <ReadOnlyAnswer values={state.comment ? [state.comment] : []} labels={labels} />
+            <ReadOnlyAnswer values={commentText ? [commentText] : []} labels={labels} />
         </div>
     ) : (
         <CommentControl
+            // Keyed by the choice: a `text` box and a `number` box are two
+            // different controls, and React must not reuse one as the other when
+            // the answer changes — which is `insertComment`'s `data-choice-id`
+            // check, expressed the way React expresses identity.
+            key={comment.id}
             id={`${domId}-comment`}
             choice={comment}
-            value={state.comment || ''}
-            invalid={invalid && !answered}
-            onChange={(value) => onComment(question, value)}
+            value={commentText}
+            invalid={invalid && commentText.trim() === ''}
+            onChange={(value) => onComment(question, comment, value)}
             labels={labels}
         />
     );
@@ -702,8 +713,11 @@ export function DecisionTree({
         },
         [change, state],
     );
+    // The comment is stamped with the choice it belongs to. Share does the same
+    // with `data-choice-id` on the input it rebuilds; here the stamp is state,
+    // so the rule survives a re-render and a reload.
     const onComment = useCallback(
-        (question, value) => change(question.id, { comment: value }),
+        (question, choice, value) => change(question.id, { comment: value, commentCid: choice.id }),
         [change],
     );
 

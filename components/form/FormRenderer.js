@@ -333,8 +333,16 @@ export function FormRenderer({
                            unlayered CSS, which beats Tailwind's utility layer —
                            the same trap `/help`'s topic rail documents. The
                            padding is what a pill tab's focus ring needs so it is
-                           not clipped by `overflow-x`. */
-                        trackClassName="px-1 pb-1"
+                           not clipped by `overflow-x`.
+
+                           `py-1`, not `pb-1`: these tabs draw their ring with
+                           `focus-visible:ring-2`, i.e. a box-shadow, and a
+                           box-shadow is clipped by the scroll container on all
+                           four sides — the bar had room below the ring and none
+                           above it. (The underline bars elsewhere keep the
+                           baseline `outline` instead, which `.tab-track >
+                           *:focus-visible` in globals.css draws inset.) */
+                        trackClassName="px-1 py-1"
                     >
                         {tabs.map((tab) => (
                             <button

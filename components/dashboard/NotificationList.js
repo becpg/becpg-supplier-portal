@@ -203,8 +203,15 @@ export function NotificationRow({ item, lang, local, unseen = false, onNavigate,
                 <span className="flex items-center gap-1.5">
                     {unseen ? (
                         <>
+                            {/* The same orange as the rail 3px to its left
+                                (`--becpg-orange-deep`), not the brand accent: two
+                                different oranges on one row read as a mistake, and
+                                the brand one measures 2.95:1 on white and 2.77:1
+                                on the unread wash — under 1.4.11's 3:1 for a
+                                graphical object. `--becpg-orange-deep` is 4.83:1
+                                and 4.53:1 on the same two surfaces. */}
                             <span
-                                className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--becpg-orange)]"
+                                className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--becpg-orange-deep)]"
                                 aria-hidden="true"
                             />
                             {/* The dot is a colour: say it too. */}
@@ -227,8 +234,19 @@ export function NotificationRow({ item, lang, local, unseen = false, onNavigate,
                         {item.title || (item.target && item.target.name) || '—'}
                     </span>
                 </span>
+                {/*
+                  * `--becpg-dark-grey-deep` (#666666), not `--becpg-dark-grey`
+                  * (#747474). This row is no longer always drawn on white: the
+                  * bell now gives it a hover wash and an unread wash, and 12px
+                  * text has to clear 4.5:1 on *every* surface the row can take.
+                  * Measured — #747474: 4.67 on white, but 4.39 on the unread
+                  * wash, 4.01 on its hover and 3.90 on the plain `--becpg-grey`
+                  * hover, i.e. failing on three of four. #666666: 5.74 / 5.39 /
+                  * 4.92 / 4.79, passing on all four. The title above is
+                  * `--becpg-blue` and was never in question (9.4:1 at worst).
+                  */}
                 {item.entity && item.entity.label ? (
-                    <span className="mt-0.5 block truncate text-xs text-[var(--becpg-dark-grey)]">
+                    <span className="mt-0.5 block truncate text-xs text-[var(--becpg-dark-grey-deep)]">
                         {item.entity.label}
                     </span>
                 ) : null}
@@ -236,7 +254,7 @@ export function NotificationRow({ item, lang, local, unseen = false, onNavigate,
                     <span className={`pill pill-sm pill-no-dot ${severity.pill}`}>
                         {words.types[item.type] || item.type}
                     </span>
-                    {when ? <span className="text-xs text-[var(--becpg-dark-grey)]">{when}</span> : null}
+                    {when ? <span className="text-xs text-[var(--becpg-dark-grey-deep)]">{when}</span> : null}
                     {item.isMandatory ? (
                         <span className="text-xs font-medium text-[var(--status-danger)]">{words.mandatory}</span>
                     ) : null}
@@ -249,7 +267,8 @@ export function NotificationRow({ item, lang, local, unseen = false, onNavigate,
                 </span>
             </span>
 
-            <Icon name="chevron_right" size={18} className="mt-1 shrink-0 text-[var(--becpg-dark-grey)]" />
+            {/* Same grey as the two lines above it: one row, one secondary tone. */}
+            <Icon name="chevron_right" size={18} className="mt-1 shrink-0 text-[var(--becpg-dark-grey-deep)]" />
         </Link>
     );
 }
