@@ -55,6 +55,19 @@ export const NOTIFICATION_LABELS = {
         assigned: 'Qui m’est assignée',
         mandatory: 'Obligatoire',
         isNew: 'Nouveau',
+        /*
+         * Defect L3. `scope.empty` is the API saying the account is attached to
+         * **no supplier**: no `GROUP_EXTERNAL_SUPPLIER_<code>` membership and no
+         * task pointing at one. Document notifications cannot be scoped, so none
+         * are reported — and an empty list then reads as "you are up to date"
+         * when what happened is that nobody can tell whose documents to look at.
+         * That is a configuration fact and it belongs on the screen, not only in
+         * the payload.
+         */
+        scopeEmpty: {
+            noSupplierIdentity: 'Votre compte n’est rattaché à aucun fournisseur : vos documents ne peuvent pas être identifiés. Seules vos tâches sont listées. Signalez-le à votre contact chez le client.',
+            fallback: 'Le périmètre de votre compte est vide : certaines alertes ne peuvent pas être calculées.',
+        },
         // The pill counts the whole set; the card lists its most urgent rows. Said
         // out loud, because a "12" over four lines otherwise reads as a bug.
         countTitle: '{total} en attente · les {shown} plus urgentes ci-dessous',
@@ -76,6 +89,11 @@ export const NOTIFICATION_LABELS = {
         assigned: 'Assigned to me',
         mandatory: 'Mandatory',
         isNew: 'New',
+        /* See the note on the French `scopeEmpty`. */
+        scopeEmpty: {
+            noSupplierIdentity: 'Your account is not attached to any supplier, so your documents cannot be identified. Only your tasks are listed. Report it to your contact at the customer.',
+            fallback: 'Your account perimeter is empty: some alerts cannot be computed.',
+        },
         countTitle: '{total} pending · the {shown} most urgent below',
     },
 };
@@ -86,6 +104,43 @@ export const NOTIFICATION_LABELS = {
  */
 export function notificationLabels(lang) {
     return NOTIFICATION_LABELS[lang] || NOTIFICATION_LABELS.fr;
+}
+
+/**
+ * Renders a `scope.empty` block — the API's way of saying "this list is empty
+ * because of how the account is configured, not because there is nothing to
+ * show" (defect L3).
+ *
+ * It is a **warning**, not an empty state: the two coexist. An `EmptyState`
+ * answers "what is in this list"; this answers "why can the list not be built".
+ * Rendering only the first is what turned a mis-provisioned account into a
+ * silent, reassuring zero.
+ *
+ * Shared by the dashboard card and the header bell, which read the same payload
+ * and must not word the same fact differently.
+ *
+ * @param {Object} props
+ * @param {{reason?: string, hint?: string}|null} props.empty the API block
+ * @param {Object} props.local a {@link notificationLabels} dictionary
+ */
+export function ScopeEmptyNote({ empty, local, className = '' }) {
+    if (!empty) {
+        return null;
+    }
+    const words = local.scopeEmpty || {};
+    const message = words[empty.reason] || words.fallback;
+    if (!message) {
+        return null;
+    }
+    return (
+        <p
+            role="status"
+            className={`flex items-start gap-1.5 rounded-lg bg-[var(--status-warn-bg)] px-2.5 py-2 text-xs text-[var(--becpg-dark-grey-deep)] ${className}`}
+        >
+            <Icon name="info" size={14} className="mt-0.5 shrink-0 text-[var(--status-warn)]" />
+            <span>{message}</span>
+        </p>
+    );
 }
 
 /** Severity → pill class + icon chip class. */
@@ -286,6 +341,7 @@ export function NotificationList({ limit = 6, index = 0, className = '' }) {
     const { data, error, loading, refresh } = useApi('notifications', { params: { limit } });
     const items = data && Array.isArray(data.items) ? data.items : [];
     const counts = (data && data.counts) || {};
+    const scopeEmpty = (data && data.scope && data.scope.empty) || null;
 
     return (
         <Card
@@ -318,12 +374,24 @@ export function NotificationList({ limit = 6, index = 0, className = '' }) {
                 ) : null
             }
         >
+            {/* The scope note sits **above** the list, not inside its empty
+                state: it also applies when tasks did come back and only the
+                document half of the payload could not be scoped. */}
+            <ScopeEmptyNote empty={scopeEmpty} local={local} className="mb-2" />
             {loading ? (
                 <SkeletonList rows={3} withAvatar />
             ) : error ? (
                 <ErrorState error={error} onRetry={refresh} compact />
             ) : items.length === 0 ? (
-                <EmptyState variant="success" compact title={local.empty} message={local.emptyHint} />
+                /* Not the reassuring green variant when the scope is empty: a
+                   check mark and "nothing needs your attention" directly
+                   contradict the warning right above it. */
+                <EmptyState
+                    variant={scopeEmpty ? 'empty' : 'success'}
+                    compact
+                    title={local.empty}
+                    message={scopeEmpty ? undefined : local.emptyHint}
+                />
             ) : (
                 <ul className="-mx-2 flex flex-col">
                     {items.map((item, position) => (

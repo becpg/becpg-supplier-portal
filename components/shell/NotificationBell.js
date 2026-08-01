@@ -54,13 +54,14 @@ import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonList } from '@/components/ui/Skeleton';
 import {
     NotificationRow,
+    ScopeEmptyNote,
     notificationLabels,
     sortNewestFirst,
 } from '@/components/dashboard/NotificationList';
 import { useSession } from '@/components/providers/SessionProvider';
 import { api } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
-import { formatTime } from '@/lib/format';
+import { formatTime, formatTotal } from '@/lib/format';
 
 /** How often the endpoint is polled while the tab is visible. */
 export const POLL_INTERVAL_MS = 120000;
@@ -319,6 +320,19 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
     const total = Number(counts.total) > 0 ? Number(counts.total) : 0;
     const badge = data ? total : Math.max(0, Number(initialCount) || 0);
     const hidden = Math.max(0, total - items.length);
+    /*
+     * The badge is a **floor** whenever the endpoint had to truncate its set
+     * (`counts.exact === false`, i.e. the notification limit or the document
+     * window was reached). `formatTotal` renders that as "50+", which is the
+     * same treatment the dashboard card already gives the very same number —
+     * printing a flat "50" here made the two disagree about what "50" meant.
+     * `initialCount` is a server-rendered seed with no `exact` of its own, so it
+     * is shown as given.
+     */
+    const badgeText = data
+        ? formatTotal({ total: badge, exact: counts.exact !== false }, lang).text
+        : String(badge);
+    const scopeEmpty = (data && data.scope && data.scope.empty) || null;
 
     // Novelty is browser-only state, so it is read **lazily, from the click that
     // opens the panel** (see `toggle`) — never at mount and never in an effect.
@@ -489,8 +503,12 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
         };
     }, [open, close]);
 
+    // Spoken with the same "50+" treatment as the badge: a screen-reader user
+    // must not be told a precise figure the sighted badge does not claim.
     const announcement =
-        badge === 0 ? local.countNone : badge === 1 ? local.countOne : fill(local.countMany, { count: badge });
+        badge === 0 ? local.countNone
+            : badge === 1 && counts.exact !== false ? local.countOne
+                : fill(local.countMany, { count: badgeText });
 
     return (
         <div className={`relative ${className}`}>
@@ -527,7 +545,7 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                         aria-hidden="true"
                         className="absolute right-0.5 top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--becpg-orange-deep)] px-1 text-[10px] font-medium text-white ring-2 ring-white"
                     >
-                        {badge > 99 ? '99+' : badge}
+                        {badge > 99 ? '99+' : badgeText}
                     </span>
                 ) : null}
             </button>
@@ -599,6 +617,9 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                         </div>
 
                         <div className="min-h-0 flex-1 overflow-y-auto p-2">
+                            {/* Why the panel may be short, said before the rows
+                                rather than after them (defect L3). */}
+                            <ScopeEmptyNote empty={scopeEmpty} local={words} className="mb-2" />
                             {loading ? (
                                 <SkeletonList rows={3} withAvatar />
                             ) : error ? (

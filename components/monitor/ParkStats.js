@@ -98,8 +98,32 @@ const LABELS = {
             ofScanned: 'sur les {scanned} fournisseurs lus',
             complianceDetail: '{missing} manquants · {expired} expirés · {refused} refusés',
             complianceMandatory: '{compliant} / {total} documents obligatoires',
+            /*
+             * Defect L1. The four counters behind the rate are capped
+             * independently; when two of them clamp on the same ceiling the
+             * subtraction gives `max(0, 250 − 250) = 0` and the tile printed
+             * **0 %** — measured 0 % where the truth was 29 %. That is not an
+             * imprecise number, it is a different statement, and no `≈` makes it
+             * true. The API now sends `rate: null` in that case and the tile
+             * shows a dash with the reason. The counters below it stay: they are
+             * floors, and a floor is still information.
+             */
+            noRate: {
+                countsCapped: 'Taux non calculable : beCPG a plafonné le comptage des documents.',
+                scopeTruncated: 'Taux non calculable : {dropped} fournisseur(s) du parc n’ont pas pu être interrogés.',
+                emptyScope: 'Aucun fournisseur dans ce périmètre : il n’y a rien à évaluer.',
+            },
+            /*
+             * A project, a tâche and an NC are not filed under a supplier, so no
+             * park filter can reach them — measured on dev.becpg.fr: with the park
+             * scope applied these counters read 0 while 5 open NCs and 15 late
+             * tasks existed. They are supplier-scoped, never park-scoped, and the
+             * tile says so instead of letting the filter take credit for them.
+             */
+            notParkScoped: 'tout le parc fournisseur (filtre non applicable)',
             expiring: 'documents · {d60} à 60 j, {d90} à 90 j',
             campaigns: 'en cours · {rate} % de réponse, {late} en retard',
+            campaignsNoRate: 'en cours · taux de réponse sans objet, {late} en retard',
             lateTasks: 'échéance dépassée',
             nc: 'dont {blocking} bloquantes',
             inProgress: '{count} en cours de référencement',
@@ -125,6 +149,8 @@ const LABELS = {
         },
         approx: 'Compteur approché : beCPG a plafonné le comptage.',
         approxShort: 'approché',
+        scopeEmpty: 'Aucun fournisseur ne correspond à ce périmètre. Aucun compteur n’a été calculé : les chiffres ci-dessus sont des zéros de construction, pas des mesures.',
+        scopeDropped: '{dropped} fournisseur(s) du parc n’ont pas pu être interrogés (limite de {chunks} requêtes) : les compteurs sont des minimums.',
         unsupported:
             'Filtre non disponible sur cette instance : {names}. Aucune propriété beCPG standard ne le porte.',
         assocScope:
@@ -149,8 +175,17 @@ const LABELS = {
             ofScanned: 'of the {scanned} suppliers read',
             complianceDetail: '{missing} missing · {expired} expired · {refused} rejected',
             complianceMandatory: '{compliant} / {total} mandatory documents',
+            /* See the note on the French `noRate`. */
+            noRate: {
+                countsCapped: 'Rate not computable: beCPG capped the document count.',
+                scopeTruncated: 'Rate not computable: {dropped} supplier(s) of the park could not be queried.',
+                emptyScope: 'No supplier in this perimeter: there is nothing to evaluate.',
+            },
+            /* See the note on the French `notParkScoped`. */
+            notParkScoped: 'whole supplier park (filter not applicable)',
             expiring: 'documents · {d60} at 60 d, {d90} at 90 d',
             campaigns: 'open · {rate} % answered, {late} late',
+            campaignsNoRate: 'open · no response rate to compute, {late} late',
             lateTasks: 'past due',
             nc: 'including {blocking} blocking',
             inProgress: '{count} being referenced',
@@ -176,6 +211,8 @@ const LABELS = {
         },
         approx: 'Approximate counter: beCPG capped the count.',
         approxShort: 'approximate',
+        scopeEmpty: 'No supplier matches this perimeter. No counter was computed: the figures above are zeros by construction, not measurements.',
+        scopeDropped: '{dropped} supplier(s) of the park could not be queried ({chunks} query limit): the counters are floors.',
         unsupported:
             'Filter not available on this instance: {names}. No standard beCPG property carries it.',
         assocScope: 'Filter {names} applied on the window read (Alfresco does not index associations).',
@@ -245,6 +282,10 @@ function buildTiles(overview, local, query, lang) {
         ? interpolate(local.hints.ofPark, { total: parkTotal })
         : interpolate(local.hints.ofScanned, { scanned: park.scanned || 0 });
     const compliance = overview.compliance || {};
+    // `null` means "no rate" (defect L1); `undefined` means an older payload that
+    // did not carry the field at all — both must land on the dash, not on a 0.
+    const hasRate = compliance.rate !== null && compliance.rate !== undefined;
+    const noRateReason = (compliance.rateUnavailable || {}).reason || 'countsCapped';
     const expiring = overview.expiring || {};
     const buckets = expiring.buckets || {};
     const campaigns = overview.campaigns || {};
@@ -252,6 +293,14 @@ function buildTiles(overview, local, query, lang) {
     const tasks = overview.tasks || {};
     const suffix = query ? `?${query}` : '';
     const withStatus = (status) => `/monitor/suppliers?${[`status=${status}`, query].filter(Boolean).join('&')}`;
+    /*
+     * A counter the park filter cannot reach says so in its own hint. Silence
+     * would let the filter chip above the grid take credit for a number it never
+     * touched — which is the same class of error as the 0 % rate: the figure is
+     * right, the population it is attributed to is not.
+     */
+    const withScope = (block, hint) =>
+        (block.parkScoped === false ? `${hint} · ${local.hints.notParkScoped}` : hint);
 
     return [
         {
@@ -283,26 +332,44 @@ function buildTiles(overview, local, query, lang) {
         },
         {
             id: 'compliance',
+            /*
+             * `rate === null` is the API saying "the inputs of this ratio are
+             * floors, there is no rate" (defect L1). It must reach the screen as
+             * an absence — no value, no gauge, no tone — never as a 0 that reads
+             * like a measured catastrophe. `hasRate` is therefore a null test and
+             * not a truthiness test: 0 % is a legitimate rate.
+             */
             label: local.tiles.compliance,
-            value: compliance.rate === undefined ? null : compliance.rate,
-            unit: '%',
+            value: hasRate ? compliance.rate : null,
+            unit: hasRate ? '%' : undefined,
             icon: 'fact_check',
-            tone: compliance.rate >= 90 ? 'ok' : compliance.rate >= 70 ? 'warn' : 'danger',
-            approx: compliance.exact === false,
-            hint: interpolate(local.hints.complianceMandatory, {
-                compliant: compliance.compliant || 0,
-                total: compliance.mandatoryTotal || 0,
-            }),
+            tone: !hasRate ? 'neutral'
+                : compliance.rate >= 90 ? 'ok'
+                    : compliance.rate >= 70 ? 'warn' : 'danger',
+            // A missing rate is not an approximate rate: the `≈` marker only
+            // qualifies a number that is actually shown.
+            approx: hasRate && compliance.exact === false,
+            hint: hasRate
+                ? interpolate(local.hints.complianceMandatory, {
+                    compliant: compliance.compliant || 0,
+                    total: compliance.mandatoryTotal || 0,
+                })
+                : interpolate(
+                    local.hints.noRate[noRateReason] || local.hints.noRate.countsCapped,
+                    { dropped: (compliance.rateUnavailable || {}).droppedSuppliers || 0 },
+                ),
             href: `/monitor/documents${suffix}`,
             children: (
                 <div className="mt-2">
-                    <GaugeBar
-                        value={compliance.rate ?? null}
-                        size="sm"
-                        showValue={false}
-                        ariaLabel={local.tiles.compliance}
-                    />
-                    <p className="mt-1 text-[11px] text-[var(--becpg-dark-grey)]">
+                    {hasRate ? (
+                        <GaugeBar
+                            value={compliance.rate}
+                            size="sm"
+                            showValue={false}
+                            ariaLabel={local.tiles.compliance}
+                        />
+                    ) : null}
+                    <p className={`text-[11px] text-[var(--becpg-dark-grey)] ${hasRate ? 'mt-1' : ''}`}>
                         {interpolate(local.hints.complianceDetail, {
                             missing: compliance.missing || 0,
                             expired: compliance.expired || 0,
@@ -329,10 +396,15 @@ function buildTiles(overview, local, query, lang) {
             icon: 'campaign',
             tone: (campaigns.unanswered || 0) > 0 ? 'warn' : 'info',
             approx: campaigns.exact === false,
-            hint: interpolate(local.hints.campaigns, {
-                rate: campaigns.responseRate ?? 0,
-                late: campaigns.late || 0,
-            }),
+            // `responseRate: null` means "no campaign to answer", not 0 % and not
+            // 100 %: the API refuses to score an empty set (defect L1's rule).
+            hint: withScope(campaigns, campaigns.responseRate === null
+                || campaigns.responseRate === undefined
+                ? interpolate(local.hints.campaignsNoRate, { late: campaigns.late || 0 })
+                : interpolate(local.hints.campaigns, {
+                    rate: campaigns.responseRate,
+                    late: campaigns.late || 0,
+                })),
             href: `/monitor/campaigns${suffix}`,
         },
         {
@@ -342,7 +414,7 @@ function buildTiles(overview, local, query, lang) {
             icon: 'alarm',
             tone: (tasks.late || 0) > 0 ? 'danger' : 'ok',
             approx: tasks.exact === false,
-            hint: local.hints.lateTasks,
+            hint: withScope(tasks, local.hints.lateTasks),
             href: `/monitor/campaigns${suffix}`,
         },
         {
@@ -352,7 +424,7 @@ function buildTiles(overview, local, query, lang) {
             icon: 'report_problem',
             tone: (nc.blocking || 0) > 0 ? 'danger' : (nc.open || 0) > 0 ? 'warn' : 'ok',
             approx: nc.exact === false,
-            hint: interpolate(local.hints.nc, { blocking: nc.blocking || 0 }),
+            hint: withScope(nc, interpolate(local.hints.nc, { blocking: nc.blocking || 0 })),
             href: `/monitor/quality${suffix}`,
         },
     ];
@@ -568,6 +640,14 @@ export function ParkStats({ overview, query = '', className = '' }) {
     const unsupported = filters.unsupported || [];
     const assocFilters = (filters.applied || []).filter((entry) => entry.mode === 'assoc');
     const panels = Array.isArray(profile.panels) ? profile.panels : ['park', 'expiry'];
+    /*
+     * Defect L3. `scope.empty` is the API stating a *configuration fact* — the
+     * perimeter matches no supplier — and the whole grid is then zeros that were
+     * never measured. Left unrendered it reads as a park in perfect health.
+     */
+    const scope = overview.scope || {};
+    const scopeEmpty = Boolean(scope.empty);
+    const scopeDropped = Number(scope.dropped) > 0 ? Number(scope.dropped) : 0;
 
     // `flex flex-col` on the card and `flex-1` on its body is what lets the
     // panels' trailing captions sit on the bottom edge (see `mt-auto` above).
@@ -604,6 +684,23 @@ export function ParkStats({ overview, query = '', className = '' }) {
 
     return (
         <div className={className}>
+            {scopeEmpty || scopeDropped > 0 ? (
+                <div
+                    role="status"
+                    className="mb-3 flex items-start gap-2 rounded-lg border border-[var(--status-warn)]/40 bg-[var(--status-warn)]/10 px-3 py-2 text-xs text-[var(--becpg-dark-grey-deep)] sm:mb-4"
+                >
+                    <Icon name="info" size={16} className="mt-0.5 shrink-0 text-[var(--status-warn)]" />
+                    <span>
+                        {scopeEmpty
+                            ? local.scopeEmpty
+                            : interpolate(local.scopeDropped, {
+                                dropped: scopeDropped,
+                                chunks: scope.chunks || 0,
+                            })}
+                    </span>
+                </div>
+            ) : null}
+
             <StatGrid columns={4}>
                 {ordered.map((tile, index) => (
                     <StatCard

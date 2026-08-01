@@ -63,6 +63,7 @@ const LABELS = {
             expiring: 'Expire < {days} j',
             compliance: 'Conformité documentaire',
             mandatory: '{done} / {total} obligatoires',
+            noScope: 'aucun périmètre à évaluer',
         },
         search: 'Rechercher un document',
         noMatch: 'Aucun document ne correspond à ce filtre',
@@ -79,6 +80,15 @@ const LABELS = {
         noFile: 'Pas encore fourni',
         blockingBanner:
             '{count} document(s) obligatoire(s) bloquent votre agrément. Ils sont en haut de la liste.',
+        /*
+         * Defect L3. `supplierScope.empty` says the account resolves to no
+         * supplier at all. The document query is then scoped on nothing and the
+         * page shows "0 à fournir · conformité 100 %" — a perfect score handed to
+         * an account that beCPG cannot even attach a document to. The fact is a
+         * configuration one and it goes on the screen.
+         */
+        scopeEmpty:
+            'Votre compte n’est rattaché à aucun fournisseur : aucune exigence documentaire ne peut être calculée. Les compteurs ci-dessus sont vides, pas satisfaits. Contactez votre interlocuteur chez le client.',
     },
     en: {
         title: 'My documents',
@@ -104,6 +114,7 @@ const LABELS = {
             expiring: 'Expiring < {days} d',
             compliance: 'Document compliance',
             mandatory: '{done} / {total} mandatory',
+            noScope: 'no perimeter to evaluate',
         },
         search: 'Search a document',
         noMatch: 'No document matches this filter',
@@ -120,6 +131,9 @@ const LABELS = {
         noFile: 'Not provided yet',
         blockingBanner:
             '{count} mandatory document(s) are holding your approval back. They are at the top of the list.',
+        /* See the note on the French `scopeEmpty`. */
+        scopeEmpty:
+            'Your account is not attached to any supplier, so no document requirement can be computed. The counters above are empty, not satisfied. Contact your customer representative.',
     },
 };
 
@@ -190,6 +204,13 @@ export default function DocumentsPage() {
 
     const summary = requirements.data ? requirements.data.summary : null;
     const byStatus = (summary && summary.byStatus) || {};
+    // The API's own statement that the account resolves to no supplier — see
+    // `labels.scopeEmpty`. Never inferred from `items.length === 0`.
+    const scopeEmpty = Boolean(
+        requirements.data
+        && requirements.data.supplierScope
+        && requirements.data.supplierScope.empty,
+    );
 
     const refreshAll = useCallback(() => {
         requirements.refresh();
@@ -375,37 +396,59 @@ export default function DocumentsPage() {
                         setFilter('expiring');
                     }}
                 />
+                {/* Same rule as the monitoring tile (defect L1): a ratio computed
+                    over nothing is not 100 %, it is *no ratio*. An account with an
+                    empty supplier scope was shown a green "100 % · 0 / 0
+                    obligatoires" — a perfect score for a perimeter beCPG cannot
+                    even attach a document to. */}
                 <StatCard
                     label={labels.stats.compliance}
-                    value={summary ? summary.completeness : 0}
-                    unit="%"
+                    value={scopeEmpty ? null : (summary ? summary.completeness : 0)}
+                    unit={scopeEmpty ? undefined : '%'}
                     icon="verified"
                     tone={
-                        !summary || summary.completeness >= 100
-                            ? 'ok'
-                            : summary.completeness >= 60
-                              ? 'warn'
-                              : 'danger'
+                        scopeEmpty
+                            ? 'neutral'
+                            : !summary || summary.completeness >= 100
+                                ? 'ok'
+                                : summary.completeness >= 60
+                                    ? 'warn'
+                                    : 'danger'
                     }
                     hint={
-                        summary
-                            ? fill(labels.stats.mandatory, {
-                                  done: summary.mandatorySatisfied,
-                                  total: summary.mandatory,
-                              })
-                            : undefined
+                        scopeEmpty
+                            ? labels.stats.noScope
+                            : summary
+                                ? fill(labels.stats.mandatory, {
+                                    done: summary.mandatorySatisfied,
+                                    total: summary.mandatory,
+                                })
+                                : undefined
                     }
                     loading={requirements.loading}
                     index={3}
                 >
-                    <GaugeBar
-                        value={summary ? summary.completeness : null}
-                        showValue={false}
-                        size="sm"
-                        className="mt-2"
-                    />
+                    {scopeEmpty ? null : (
+                        <GaugeBar
+                            value={summary ? summary.completeness : null}
+                            showValue={false}
+                            size="sm"
+                            className="mt-2"
+                        />
+                    )}
                 </StatCard>
             </StatGrid>
+
+            {/* Read before the blocking banner: when the scope is empty there is
+                nothing blocking *because nothing was evaluated* (defect L3). */}
+            {scopeEmpty ? (
+                <Card variant="accent" padding="sm" className="mb-4">
+                    <p className="flex items-start gap-2 text-sm" role="status">
+                        <Icon name="info" size={18} className="mt-0.5 text-[var(--becpg-orange)]" />
+                        <span>{labels.scopeEmpty}</span>
+                    </p>
+                </Card>
+            ) : null}
 
             {blocking > 0 ? (
                 <Card variant="accent" padding="sm" className="mb-4">
