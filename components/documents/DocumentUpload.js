@@ -97,11 +97,32 @@ const LABELS = {
 /** Default ceiling, mirroring what Alfresco accepts comfortably through the proxy. */
 const DEFAULT_MAX_MB = 50;
 
-/** How many times the row is re-read while waiting for the AI verdict. */
-const AI_POLL_ATTEMPTS = 4;
+/**
+ * How many times the row is re-read after the AI review has answered.
+ *
+ * This is no longer a hunt for a verdict — the review is *requested* now (see
+ * `requestAiReview` below), so by the time these run the state is already
+ * written. They exist only because the write goes through becpg-ai into
+ * Alfresco, and the search index the document list reads from lags the
+ * transaction by a beat. Two re-reads, not four: we are waiting on an index, not
+ * on a model.
+ */
+const AI_POLL_ATTEMPTS = 2;
 
 /** Delay between two of those re-reads, in ms. */
-const AI_POLL_DELAY = 4000;
+const AI_POLL_DELAY = 2000;
+
+/**
+ * How long the *spinner* waits. Measured on dev-ai.becpg.fr, a real document
+ * review is ~20 s; becpg-ai cuts a silent plugin off at 180 s.
+ *
+ * Deliberately **shorter** than the route's own 120 s ceiling: this number is a
+ * UX limit, not a correctness one. If the browser stops waiting first, the route
+ * still finishes and still applies the verdict — the write lands, and the row
+ * picks it up on its next read. Nobody loses a review by giving up on the
+ * spinner; they only stop looking at it.
+ */
+const AI_REVIEW_TIMEOUT = 90000;
 
 function labelsFor(lang) {
     return LABELS[lang] || LABELS.fr;
@@ -250,6 +271,10 @@ export function AiValidationBadge({ state, hints, date, withHints = false, class
  * @param {string} [props.disabledReason] shown instead of the zone when disabled
  * @param {React.RefObject} [props.dropRef] extra element that also accepts the drop (the row)
  * @param {Function} [props.onUploaded] `(result, { attempt }) => void` — refresh the list
+ * @param {Function} [props.onAiReview] `(review) => void` — the verdict returned by
+ *   `POST /api/v1/documents/{id}/ai-review`, once, right after the upload. Optional:
+ *   the row also picks the state up from beCPG on the next re-read, this is just the
+ *   fast path that avoids waiting for the index.
  * @param {Function} [props.onCancel] renders a cancel button in the inline variant
  * @param {{state: string|null, hints: string|null, date: string|null}} [props.aiValidation]
  * @param {boolean} [props.autoFocus] focus the trigger on mount (row expanded by the user)
@@ -266,6 +291,7 @@ export function DocumentUpload({
     disabledReason,
     dropRef,
     onUploaded,
+    onAiReview,
     onCancel,
     aiValidation,
     autoFocus = false,
@@ -303,6 +329,51 @@ export function DocumentUpload({
             triggerRef.current.focus();
         }
     }, [autoFocus]);
+
+    /**
+     * Asks becpg-ai to review the file that was just uploaded, and hands the
+     * verdict to the caller through `onAiReview`.
+     *
+     * Everything here is best-effort by construction. The upload has already
+     * succeeded when this runs, so a review that fails, times out, or finds
+     * nothing to say must leave the user with a successful deposit and no
+     * verdict — never with an error. That is why nothing throws out of here and
+     * why the toast is not used: a supplier who deposited a valid certificate
+     * has no use for "AI unavailable".
+     *
+     * @param {Object|null} result the upload result, carrying the new `nodeRef`
+     * @returns {Promise<Object|null>} the review, or `null`
+     */
+    const requestAiReview = useCallback(
+        async (result) => {
+            const nodeRef = result && result.nodeRef;
+            if (!nodeRef) {
+                return null;
+            }
+            // becpg-ai identifies a node by its bare uuid.
+            const documentId = String(nodeRef).split('/').pop();
+            if (!documentId) {
+                return null;
+            }
+
+            try {
+                const review = await api.post(
+                    `documents/${encodeURIComponent(documentId)}/ai-review`,
+                    { locale: lang },
+                    { timeout: AI_REVIEW_TIMEOUT },
+                );
+                if (alive.current && onAiReview) {
+                    onAiReview(review);
+                }
+                return review;
+            }
+            catch {
+                // Deliberately silent: see above.
+                return null;
+            }
+        },
+        [lang, onAiReview],
+    );
 
     /**
      * Uploads one file. Every failure surfaces twice — inline (so it stays next
@@ -344,10 +415,21 @@ export function DocumentUpload({
                     onUploaded(result, { attempt: 0 });
                 }
 
-                // beCPG analyses the file after the transaction commits. Poll the
-                // parent a few times so the verdict lands on its own, then give up
-                // silently — a missing verdict is a non-event, not an error.
+                // Ask for the AI verdict instead of waiting for one.
+                //
+                // This used to poll `onUploaded` hoping `bcpg:aiValidationState`
+                // would appear. It could not: nothing in beCPG calls becpg-ai, so
+                // the field the UI was watching had no author and the wait always
+                // timed out. The portal now requests the review itself and the
+                // route applies it, which is what finally makes the state exist.
                 setWaitingForAi(true);
+                await requestAiReview(result);
+                if (!alive.current) {
+                    return;
+                }
+
+                // The verdict is written; these re-reads only let the search index
+                // catch up so the row shows it.
                 for (let attempt = 1; attempt <= AI_POLL_ATTEMPTS; attempt += 1) {
                     await new Promise((resolve) => setTimeout(resolve, AI_POLL_DELAY));
                     if (!alive.current) {
@@ -371,7 +453,7 @@ export function DocumentUpload({
                 toast.error(cause);
             }
         },
-        [accept, maxBytes, labels, documentRef, entityRef, majorVersion, onUploaded, toast],
+        [accept, maxBytes, labels, documentRef, entityRef, majorVersion, onUploaded, requestAiReview, toast],
     );
 
     const onFiles = useCallback(

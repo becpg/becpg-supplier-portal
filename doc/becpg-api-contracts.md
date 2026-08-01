@@ -578,10 +578,62 @@ leurs propriétés :
 
 - `GET /api/suggestions/{entityId}` — suggestions avec `confidence` (par ligne et moyenne)
 - `POST /api/suggestions/apply` — appliquer
-- Authentification : **token OIDC** (pas le ticket Alfresco), headers `X-BecPG-Instance`.
+
+### 10.1 Authentification : le bearer OIDC **seul**
+
+**Token OIDC** (jamais le ticket Alfresco) dans `Authorization: Bearer …`, et **rien d'autre**.
+
+> ⚠️ **Ne jamais envoyer `X-BecPG-Instance` à côté du bearer.** Cette page l'a longtemps
+> prescrit ; c'est faux, et c'est la raison pour laquelle le portail n'a **jamais** atteint
+> becpg-ai. Côté becpg-ai ce header est le *principal* de `RequestHeaderAuthenticationFilter`
+> (alias de `BECPG_TICKET`), et ce filtre passe **avant** le filtre bearer : une simple valeur
+> `dev` y est interprétée comme un jeton composite `<instance>$<login>@<tenant>#<ticket>`, échoue
+> dans `UserNameHelper`, et la requête reste **anonyme** — le bearer n'est jamais regardé.
+>
+> Mesuré sur dev-ai.becpg.fr, même token valide :
+>
+> | Appel | sans le header | avec `X-BecPG-Instance: dev` |
+> |---|---|---|
+> | `GET /api/auth/me` | **200** `{"username":"6bae8a39-…","isAdmin":false}` | **401** |
+> | `GET /api/suggestions/{id}` | **200**, 29 suggestions | **500** |
+>
+> Le tenant n'a pas besoin d'être transmis : il voyage **dans le token**, en claims
+> `becpg_instance` et `becpg_url` (vérifié : `"becpg_instance":"dev"`,
+> `"becpg_url":"https://dev.becpg.fr"`), que `OAuth2DelegatedAuthenticationProvider` lit pour
+> réécrire l'URL de l'appel descendant vers beCPG.
+
+Le header `BECPG_TICKET` (base64 de `<instance>$<login>@<tenant>#<TICKET_…>`) reste le second
+schéma accepté par becpg-ai ; il ne sert qu'au mode `DEV_FAKE_AUTH`, où la session ne porte pas
+de bearer.
+
+### 10.2 `GET /api/suggestions/{id}` accepte aussi un **document**
+
+Non documenté côté becpg-ai, et pourtant central : `createSuggestionContext` regarde le type du
+nœud, voit `cm:content`, le garde comme `currentDocument` et résout l'entité porteuse via
+`bcpg:documentEntityRef`. C'est ce qui permet au portail de demander la revue d'un document
+juste après son dépôt (`POST /api/v1/documents/{id}/ai-review`).
+
+Deux conséquences mesurées :
+
+- La suggestion `DocumentReview` renvoyée porte des `suggestedChanges` qui écrivent
+  `bcpg:aiValidationState` / `…Hints` / `…Date` **sur le document**, imbriqués dans le
+  `cm:contains` de l'entité. C'est le seul écrivain de ces champs : rien dans beCPG n'appelle
+  becpg-ai.
+- Si le document n'a **pas** de `bcpg:documentEntityRef` (cas d'un dépôt libre dans
+  `Documents fournisseur`), l'entité ne peut pas être résolue et `currentEntity` reste le
+  document lui-même : les plugins d'extraction proposent alors des propriétés produit
+  (`bcpg:legalName`, `cm:title`…) **sur un nœud `cm:content`**. Mesuré sur dev. Ne jamais
+  appliquer automatiquement autre chose que `DocumentReview`.
+
+### 10.3 Badges de confiance
 
 Badges de confiance (spec §4.4) : ≥ 90 vert, 70-89 orange, < 70 rouge, **rien si absent**
 (une confiance absente ne doit jamais être lue comme une confiance faible).
+
+Valeurs réellement observées sur dev-ai (2026-08-01) : `null` sur la quasi-totalité des
+suggestions d'entité (Classification, FieldSuggestion, Organoleptics), **80** sur un
+`DocumentReview`, **100** sur une extraction de document. Le seau `low` n'a jamais été produit
+par le modèle.
 
 ## 11. Signature — ce que beCPG expose vraiment (spec §9.2)
 
