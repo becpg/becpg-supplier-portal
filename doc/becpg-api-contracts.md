@@ -775,3 +775,35 @@ n'afficher que le premier ferait attester une lecture qui n'a pas eu lieu sur un
 lui, serait signé. Les livrables clos sont écartés **seulement s'il en reste un ouvert** — sinon
 il ne resterait rien à afficher sur l'écran « déjà signé », qui est la revisite la plus fréquente
 de ce parcours (#34523).
+
+### 11.7 Une tâche de signature ne nomme **aucun** produit — mesuré, et contourné
+
+Mesuré de bout en bout sur dev.becpg.fr le 03/08/2026, projet
+`bb82cde1-…` (« PORTALTEST 35846 Nougat de chez Remi … REFERENCING - 2026 »), tâche
+`4c865b96-…` « Signature de documents » assignée à `supplier-test@becpg.fr` :
+
+| source | réponse pour le fournisseur |
+|---|---|
+| les 3 livrables (`- prepare`, `- url`, `- sign`) | désignent tous **le document**, jamais le produit |
+| `becpg/project/task` → `task.entityNodeRef` | `"#access_forbidden"` |
+| `becpg/remote/entity?nodeRef=<projet>` | **401** |
+| `api/task-instances?authority=<fournisseur>` | la tâche **n'y est pas** (le workflow de signature n'est pas listé pour lui) — seule la source `pjt:tlResourcesAssocIndex` la voit |
+
+⇒ Il n'existe **aucun** chemin par association ou par propriété qui relie, pour ce compte,
+la tâche de signature au produit. Le seul lien lisible est la **hiérarchie** :
+`SupplierPortalServiceImpl.getOrCreateSupplierDocumentsFolder(entityNodeRef)` crée
+« Documents fournisseur » comme enfant direct de l'entité, et
+`SignatureProjectHelper.findDocumentsToSign()` ne cherche que là-dedans.
+
+`lib/adapters/tasks.js` remonte donc du document vers l'entité, avec
+`becpg/remote/entity?nodeRef=…&fields=…&lists=none` (546–720 octets par nœud, mesuré), en
+s'arrêtant au premier ancêtre qui n'est ni `cm:`/`sys:`/`st:`/`app:` ni `pjt:` — deux sauts
+dans ce parcours. Le nœud de départ est **l'original** (`contents[0]`), pas la copie de
+travail : après signature `sign-document.js` supprime celle-ci, et la fiche d'une tâche close
+doit continuer à nommer son produit (vérifié après signature).
+
+⚠️ Piège associé : sur dev, `=sys:node-uuid:"<uuid>"` sur `becpg/remote/entity/list` renvoie
+**0 résultat** pour un nœud fraîchement créé, là où `ID:"<nodeRef>"` le trouve — le contraire
+de ce que le chemin « db-afts temps réel » laisse espérer. La marche ci-dessus lit le nœud
+directement et ne dépend donc d'aucun index.
+

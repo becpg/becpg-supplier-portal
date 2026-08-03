@@ -55,7 +55,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { BadRequestError, ForbiddenError, UpstreamError, toApiResponse } from '@/lib/errors';
+import { BadRequestError, ForbiddenError, PortalError, UpstreamError, toApiResponse } from '@/lib/errors';
 import { becpgJson, isNodeRef, requireSession } from '@/lib/becpg';
 import { resolveProcessTemplates } from '@/lib/adapters/processTemplates';
 
@@ -246,6 +246,9 @@ export async function POST(request) {
         // `items[0]`, so the loop lives here rather than upstream.
         const targets = nodeRefs.length > 0 ? nodeRefs : [entityNodeRef];
         const results = [];
+        // The error objects, kept apart from `results`: those are serialised into
+        // the response and must carry a code and a message, nothing more.
+        const failures = [];
         for (const target of targets) {
             try {
                 results.push({
@@ -257,6 +260,7 @@ export async function POST(request) {
             catch (error) {
                 // A batch never rolls back: report per target, like the
                 // monitoring actions do.
+                failures.push(error);
                 results.push({
                     entityNodeRef: target,
                     ok: false,
@@ -270,9 +274,25 @@ export async function POST(request) {
         // A single-entity request that failed is a failure, not a 200 with a
         // silent `ok: false` the dialog would render as success.
         if (started.length === 0) {
-            const first = results[0];
-            throw new UpstreamError(first?.message || 'Could not start the process', {
-                details: { process: body.process || tplNodeRef, results },
+            const first = failures[0];
+            const details = { process: body.process || tplNodeRef, results };
+            // A refusal is a settled answer, not a transient upstream failure.
+            // Wrapping it in an UpstreamError answered 502 `error.network` — "the
+            // connection failed, try again" — for something no retry can fix.
+            // Measured on dev.becpg.fr the 03/08/2026: `supplier-test@becpg.fr`
+            // starting a referencing gets "Accès refusé" out of
+            // `create-supplier-project.js`, i.e. a 403, and the dialog told the
+            // supplier it was a network problem.
+            if (first instanceof PortalError && first.status >= 400 && first.status < 500) {
+                throw new PortalError(first.message, {
+                    status: first.status,
+                    code: first.code,
+                    messageKey: first.messageKey,
+                    details,
+                });
+            }
+            throw new UpstreamError(first?.message || results[0]?.message || 'Could not start the process', {
+                details,
             });
         }
 

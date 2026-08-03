@@ -87,6 +87,7 @@ const LABELS = {
         progress: '{seen} / {pages} pages consultées',
         progressDone: 'Document consulté en entier',
         progressHint: 'Le bouton de signature s’active une fois toutes les pages consultées.',
+        readyHint: 'Tout est prêt : votre signature sera apposée sur le document.',
         goToPage: 'Reprendre page {page}',
         goToDocumentPage: 'Reprendre doc. {document}, page {page}',
         documentCount: '{count} documents à signer',
@@ -140,6 +141,7 @@ const LABELS = {
         progress: '{seen} / {pages} pages read',
         progressDone: 'Whole document read',
         progressHint: 'The sign button unlocks once every page has been seen.',
+        readyHint: 'All set: your signature will be applied to the document.',
         goToPage: 'Resume on page {page}',
         goToDocumentPage: 'Resume on doc. {document}, page {page}',
         documentCount: '{count} documents to sign',
@@ -997,8 +999,13 @@ export function SignatureFlow({
                     ) : null}
 
                     <div className="mt-4 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        {/* `blocked` is what still stands between the supplier and the
+                            signature — and when nothing does, saying "the button unlocks
+                            once every page has been read" next to an *enabled* button is
+                            simply false (observed on dev, 03/08/2026). The unblocked case
+                            gets its own sentence. */}
                         <p className="text-xs text-[var(--becpg-dark-grey)]">
-                            {blocked || labels.progressHint}
+                            {blocked || labels.readyHint}
                         </p>
                         <Button
                             variant="accent"
