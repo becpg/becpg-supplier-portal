@@ -767,7 +767,7 @@ Traversent, parce que ce sont les données que le fournisseur produit sur son pr
 - `bcpg:ingList`, `bcpg:allergenList`, `bcpg:nutList`, `bcpg:physicoChemList`,
   `bcpg:microbioList`, `bcpg:organoList`, `bcpg:labelClaimList` ;
 - les réponses de questionnaire, **question par question**, quand la même question existe des deux
-  côtés (rapprochement sur `bcpg:code` de `survey:surveyQuestion`, cf. §4.7.4) ;
+  côtés (rapprochement sur `bcpg:code` de `survey:surveyQuestion`, cf. §4.7.5) ;
 - les **documents** déposés par le fournisseur et leurs dates d'effectivité — un certificat IFS
   est le certificat du fournisseur, pas celui du client.
 
@@ -800,13 +800,54 @@ Points non négociables :
    est une information commerciale qui ne lui appartient pas.
 3. **Rien n'est écrit sans approbation explicite, champ par champ.** La reprise emprunte le canal
    des **suggestions** (§4.4) : chaque valeur arrive comme une proposition que le fournisseur
-   applique ou écarte. Aucun nouveau mécanisme d'écriture, aucun nouveau chemin de confiance — et
-   le fournisseur voit ce qu'il transfère avant qu'il ne parte.
+   applique ou écarte. Aucun nouveau modèle de revue à inventer, et le fournisseur voit ce qu'il
+   transfère avant qu'il ne parte. Deux précisions, sans lesquelles la formule est un piège —
+   voir §4.7.4.
 4. **Traçabilité côté client.** Une valeur reprise est marquée comme telle dans
    `bcpg:activityList` : le qualiticien doit pouvoir distinguer une donnée saisie pour lui d'une
    donnée recopiée d'un autre dossier — cela change la lecture qu'il en fait.
 
-#### 4.7.4 Rapprochement des questionnaires
+#### 4.7.4 « Canal suggestion » : ce que ça veut dire exactement
+
+Reprendre le canal des suggestions veut dire **reprendre le modèle de revue et son écran** — une
+proposition, une provenance, une valeur avant/après, appliquer ou écarter. Cela ne veut pas dire
+reprendre la plomberie de `becpg-ai`, et deux points doivent être explicites sinon
+l'implémentation se trompe.
+
+**a. L'écriture ne passe pas par becpg-ai.** Aujourd'hui `applySuggestion()` poste sur
+`becpg-ai /api/suggestions/apply`, qui écrit ensuite dans beCPG. C'est correct pour une
+proposition *produite* par le modèle. Pour une reprise inter-tenant ce serait un détour :
+
+- la reprise ne doit pas dépendre de la disponibilité de becpg-ai — c'est un service optionnel ;
+- surtout, cela ferait **transiter par un tiers** des données que le fournisseur déplace entre
+  deux clients concurrents. Le hop n'apporte rien et ajoute une surface.
+
+Une valeur reprise s'écrit donc par le **chemin normal du wizard**
+(`PUT /wizard/{entityId}/step/{stepId}`), celui qu'emprunte la saisie manuelle du fournisseur.
+Même contrôle de sécurité, même gel de listes, même journalisation.
+
+**b. La provenance est une troisième catégorie, et le filtre doit l'admettre.** Le portail ne
+présente au fournisseur que les suggestions **adossées à un document** : une déduction faite par
+le modèle sur la fiche elle-même, sans pièce à l'appui, n'est pas proposée (§4.4). Une suggestion
+de reprise n'est ni l'une ni l'autre — elle est adossée à **une valeur que le fournisseur a
+lui-même déclarée dans un autre dossier**, ce qui est une justification au moins aussi forte
+qu'un document.
+
+La règle doit donc s'énoncer « pas de déduction non justifiée », et non « rien d'autre que des
+documents » : formulée en excluant tout ce qui n'a pas de `documentId`, elle **avalerait
+silencieusement les reprises**. Trois provenances, trois traitements :
+
+| Provenance | Justification | Proposé au fournisseur |
+|---|---|---|
+| extraction / relecture d'un document déposé | la pièce elle-même | oui, avec l'indice de confiance |
+| **reprise depuis un autre tenant** | la valeur déclarée par le fournisseur ailleurs | **oui**, sans indice de confiance : ce n'est pas une estimation, c'est une recopie |
+| déduction du modèle sur la fiche | aucune | non |
+
+L'indice de confiance n'a pas de sens sur une reprise et ne doit pas être simulé : afficher « 100 % »
+sur une recopie ferait passer pour une certitude du modèle ce qui n'est qu'un transfert. L'écran
+affiche la provenance, pas un score.
+
+#### 4.7.5 Rapprochement des questionnaires
 
 Le cas des questionnaires est le plus délicat, parce que le rapprochement se fait sur
 `bcpg:code` de `survey:surveyQuestion`, et que ce code n'est **garanti stable que pour les
@@ -818,7 +859,7 @@ de code seule, sur deux libellés différents, est un faux ami — répondre « 
 question dans un dossier d'agrément est pire que ne pas répondre. Les questions non rapprochées
 sont listées comme restant à saisir.
 
-#### 4.7.5 Ce que ça demande à beCPG
+#### 4.7.6 Ce que ça demande à beCPG
 
 Rien de nouveau côté écriture : la reprise écrit par le chemin habituel du wizard. Côté lecture,
 un seul besoin, sur l'instance **source** :
@@ -829,7 +870,7 @@ un seul besoin, sur l'instance **source** :
   liste blanche dans le portail, donc du côté qui ne fait pas autorité (règle R1, §5.1.1). **La
   liste de ce qui a le droit de sortir doit être dans beCPG.**
 
-#### 4.7.6 Limites assumées
+#### 4.7.7 Limites assumées
 
 - **Deux tenants sur des versions de modèle différentes** : le rapprochement par QName dégrade
   proprement (le champ inconnu est ignoré), mais une propriété dont la *sémantique* a changé entre
