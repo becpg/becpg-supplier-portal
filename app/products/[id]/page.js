@@ -30,6 +30,8 @@
 import { Suspense, useCallback } from 'react';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AppShell } from '@/components/shell/AppShell';
+import { Icon } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { ProductHeader } from '@/components/products/ProductHeader';
@@ -43,12 +45,22 @@ const LABELS = {
         notFound: 'Produit introuvable',
         notFoundHint: 'Cette fiche n’existe pas ou ne fait pas partie de votre périmètre.',
         back: 'Mes produits',
+        partial:
+            'Cette fiche est affichée de façon incomplète : elle renvoie vers au moins une'
+            + ' donnée que votre compte n’est pas autorisé à lire. Les champs concernés sont'
+            + ' absents de l’écran — ils ne sont pas vides pour autant. Demandez l’accès à'
+            + ' votre contact beCPG si l’un d’eux vous est nécessaire.',
     },
     en: {
         sheet: 'Sheet',
         notFound: 'Product not found',
         notFoundHint: 'This sheet does not exist, or is not part of your scope.',
         back: 'My products',
+        partial:
+            'This sheet is shown incomplete: it points at least at one piece of data your'
+            + ' account may not read. The fields concerned are absent from the screen — which'
+            + ' does not mean they are empty. Ask your beCPG contact for access if you need one'
+            + ' of them.',
     },
 };
 
@@ -131,6 +143,21 @@ function ProductScreen() {
                 backHref="/products"
                 className="mb-4"
             />
+
+            {/* An entity carrying a reference this account may not follow makes
+                `becpg/remote/entity` answer 200 with an empty body; `getEntityJson`
+                retries narrowed so the sheet still opens (it used to 404 on a product
+                the supplier owns). The price is a sheet missing fields for a reason
+                that has nothing to do with the data being unset — say it, rather than
+                let a refusal read as an empty product. */}
+            {product && product.partial ? (
+                <Card variant="accent" padding="sm" className="mb-4">
+                    <p className="flex items-start gap-2 text-xs" role="status">
+                        <Icon name="info" size={16} className="mt-0.5 text-[var(--becpg-orange)]" />
+                        <span>{labels.partial}</span>
+                    </p>
+                </Card>
+            ) : null}
 
             <ProductSections
                 entity={product}
