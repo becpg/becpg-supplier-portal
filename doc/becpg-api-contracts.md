@@ -557,6 +557,59 @@ Types d'étape : `form`, `entityDataList`, `survey`, `documents`.
 > `listId` peut porter un suffixe `@N` (ex. `surveyList@1`) : plusieurs instances de la même
 > liste sur une entité — c'est le mécanisme des questionnaires multiples d'Aryzta (spec §2ter.1).
 
+### 8bis. Le signal de version de configuration — **il manque, et voici ce qu'il faut**
+
+Le portail met en cache les structures de wizard et les colonnes résolues
+(`lib/adapters/wizardConfig.js`, `WIZARD_CACHE_TTL`, 300 s par défaut) : sans ce cache, un
+wizard à dix étapes coûte une résolution Share par étape — **mesuré sur une instance 26.1
+locale, `GET /api/v1/wizard/{id}` : 1435 ms à froid contre 50 ms à chaud**.
+
+Le problème n'est pas le cache, c'est qu'il n'a rien à quoi se raccrocher. **Chaque instance
+a ses propres wizards et ils sont rafraîchis** — Upfield versionne ses assistants par année.
+Aujourd'hui, rafraîchir un wizard dans Share laisse le portail servir l'ancienne structure
+jusqu'à `WIZARD_CACHE_TTL`.
+
+**Mesuré, sur une instance 26.1 avec une vraie session Share** (et sur dev.becpg.fr pour le
+premier) — aucun de ces endpoints ne publie de version :
+
+| Appel | Réponse |
+|---|---|
+| `GET module/entity-datagrid/config/columns` | `Cache-Control: max-age=3600, must-revalidate` — **pas d'ETag, pas de Last-Modified** |
+| `GET module/entity-datagrid/config/columns?noCache=<epoch ms>` | ajoute `Last-Modified: <la valeur qu'on a envoyée>` — aucune information |
+| `GET becpg/portal/wizard` | `Cache-Control: max-age=300, must-revalidate` — **pas d'ETag, pas de Last-Modified** |
+| `POST becpg/form?reload=true` | `{"SUCCESS": true}` — un déclencheur, pas une version |
+| `GET becpg/admin/repository/reload-cache` | admin / `GROUP_SystemMgr` uniquement — un déclencheur, pas une version |
+
+La structure elle-même vient de `config.scoped["wizard"]` (Surf, `share-config-custom.xml`),
+qu'aucun webscript ne date ni ne versionne.
+
+**Ce qu'il faut ajouter côté beCPG** — additif, sans droit particulier, une seule ligne de
+réponse :
+
+```
+GET /share/service/becpg/portal/config-version
+->  200  ETag: "26.1.0.26-1770135804000"
+    { "version": "26.1.0.26-1770135804000", "reloadCount": 7,
+      "lastReload": "2026-08-03T18:12:41Z" }
+```
+
+La valeur doit changer **à chaque rechargement de la configuration** : au démarrage
+(`BecpgFormServiceImpl.afterPropertiesSet`), sur `POST /becpg/form?reload=true`
+(`FormGetWebScript`) et sur `becpg/admin/repository/reload-cache`. Un compteur incrémenté dans
+`reloadConfig()` suffit ; l'exposer côté Share permet en plus d'y mêler le `config.scoped`
+de Surf.
+
+Côté portail c'est **déjà écrit et débrayé** : `BECPG_CONFIG_VERSION_ENDPOINT` pointe sur ce
+chemin, le jeton entre dans toutes les clés de cache, et `CONFIG_VERSION_TTL` (60 s) borne la
+fenêtre de péremption. Vérifié de bout en bout en branchant la sonde sur une ressource Share
+qui publie réellement un ETag : **cinq appels à chaud à 40–58 ms, changement de l'ETag, l'appel
+suivant repasse à 696 ms (résolution complète), puis de nouveau 42–55 ms.** L'invalidation est
+donc bien portée par la clé, et non par un délai.
+
+En attendant, `POST /api/v1/config/refresh` vide le cache de l'appelant — mais **seulement sur
+le réplica qui répond**, ce qui n'est pas une procédure d'exploitation. C'est l'argument
+principal pour l'ajout ci-dessus.
+
 ## 9. Documents et exigences documentaires
 
 Aucune API dédiée n'est nécessaire (spec §5.4.2) : `DocumentFormulationHandler` matérialise

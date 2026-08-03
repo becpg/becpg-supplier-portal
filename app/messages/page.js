@@ -33,7 +33,7 @@ import { SkeletonList } from '@/components/ui/Skeleton';
 import { RichText } from '@/components/ui/RichText';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useSession } from '@/components/providers/SessionProvider';
-import { formatDateTime } from '@/lib/format';
+import { formatDateTime, formatTotal } from '@/lib/format';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
@@ -60,6 +60,8 @@ const LABELS = {
         you: 'Vous',
         openSubject: 'Ouvrir la fiche',
         thread: 'Discussion',
+        more: 'Charger la suite',
+        loading: 'Chargement…',
         tooLong: 'Message trop long (20 000 caractères maximum).',
         denyReasons: {
             noAssignedTask:
@@ -90,6 +92,8 @@ const LABELS = {
         you: 'You',
         openSubject: 'Open the sheet',
         thread: 'Discussion',
+        more: 'Load more',
+        loading: 'Loading…',
         tooLong: 'Message too long (20,000 characters maximum).',
         denyReasons: {
             noAssignedTask: 'The referencing is closed: this discussion is read-only.',
@@ -101,6 +105,30 @@ const LABELS = {
 
 /** Same ceiling as the route handler, checked here so the user is told before sending. */
 const MAX_LENGTH = 20000;
+
+/**
+ * Subjects fetched per request.
+ *
+ * This screen used to ask for 100 in one go, and the referential charged for all
+ * of them: `becpg/remote/entity/list` bills roughly per row, and `listMyEntities`
+ * reads a window that runs from the first row to the end of the requested page.
+ * Measured on dev.becpg.fr, `supplier-test@becpg.fr`, median of four runs through
+ * `GET /api/v1/entities`:
+ *
+ * ```
+ * pageSize=100 -> 1405 ms      pageSize=25 -> 393 ms
+ * ```
+ *
+ * — for a list nobody scrolls past its first screen. So the subject list is read
+ * a page at a time and **stays complete**: {@link SUBJECT_PAGE_SIZE} more on every
+ * "load more", and a search that goes to the server (`q=`) rather than filtering
+ * the fraction already in the browser, which would have silently hidden the
+ * subjects living on page two.
+ */
+const SUBJECT_PAGE_SIZE = 25;
+
+/** Idle time before a typed search is sent upstream, in ms. */
+const SEARCH_DEBOUNCE_MS = 300;
 
 /** Initials of a display name, for the message avatar. */
 function initials(name) {
@@ -220,11 +248,50 @@ function MessagesScreen() {
     const [sending, setSending] = useState(false);
     const bottomRef = useRef(null);
 
-    const products = useApi('entities', { params: { pageSize: 100 } });
+    /*
+     * The subject list is paginated for real (see SUBJECT_PAGE_SIZE). Three pieces
+     * of state, and no data library:
+     *
+     *   `search`  the debounced term actually sent upstream (`q=`), so the search
+     *             spans the WHOLE catalogue and not the first page of it;
+     *   `page`    the page being requested;
+     *   `loaded`  the pages already received, kept per search term so a new search
+     *             never shows the previous one's rows.
+     */
+    const [search, setSearch] = useState('');
+    const [page, setPage] = useState(1);
+    const [loaded, setLoaded] = useState({ q: '', pages: [], hasMore: false });
 
-    /** Subjects: the supplier record first, then the products. */
+    useEffect(() => {
+        const timer = setTimeout(() => setSearch(query.trim()), SEARCH_DEBOUNCE_MS);
+        return () => clearTimeout(timer);
+    }, [query]);
+
+    // A new term restarts the pagination, adjusted during render rather than in an
+    // effect — the pattern this screen already uses for the deep link above.
+    const [searchKey, setSearchKey] = useState(search);
+    if (searchKey !== search) {
+        setSearchKey(search);
+        setPage(1);
+    }
+
+    const products = useApi('entities', {
+        params: { pageSize: SUBJECT_PAGE_SIZE, page, q: search || undefined },
+        onSuccess: (data) => {
+            const pagination = (data && data.pagination) || {};
+            setLoaded((previous) => {
+                // Pages of another search are dropped, not merged.
+                const base = previous.q === search ? previous.pages.slice(0, page - 1) : [];
+                const pages = [...base];
+                pages[page - 1] = (data && data.items) || [];
+                return { q: search, pages, hasMore: pagination.hasMoreItems === true };
+            });
+        },
+    });
+
+    /** Subjects: the supplier record first, then every product page received so far. */
     const subjects = useMemo(() => {
-        const items = (products.data && products.data.items) || [];
+        const items = loaded.q === search ? loaded.pages.flat().filter(Boolean) : [];
         const list = items.map((item) => ({
             nodeRef: item.nodeRef,
             name: item.name,
@@ -232,7 +299,16 @@ function MessagesScreen() {
             href: `/products/${item.uuid}`,
         }));
         const supplier = session.supplier;
-        if (supplier && supplier.nodeRef && !list.some((entry) => entry.nodeRef === supplier.nodeRef)) {
+        // The supplier's own record is not part of the paginated catalogue, so the
+        // search has to be applied to it here — otherwise it would sit at the top of
+        // every result set, matching or not.
+        const term = search.toLowerCase();
+        const supplierMatches = !term
+            || [supplier && supplier.name, supplier && supplier.code]
+                .filter(Boolean)
+                .some((value) => String(value).toLowerCase().includes(term));
+        if (supplier && supplier.nodeRef && supplierMatches
+            && !list.some((entry) => entry.nodeRef === supplier.nodeRef)) {
             list.unshift({
                 nodeRef: supplier.nodeRef,
                 name: supplier.name || labels.myRecord,
@@ -242,19 +318,25 @@ function MessagesScreen() {
             });
         }
         return list;
-    }, [products.data, session.supplier, labels.myRecord]);
+    }, [loaded, search, session.supplier, labels.myRecord]);
 
-    const filteredSubjects = useMemo(() => {
-        const term = query.trim().toLowerCase();
-        if (!term) {
-            return subjects;
-        }
-        return subjects.filter((subject) =>
-            [subject.name, subject.code]
-                .filter(Boolean)
-                .some((value) => String(value).toLowerCase().includes(term)),
-        );
-    }, [subjects, query]);
+    /** More pages upstream for the term currently displayed. */
+    const hasMoreSubjects = loaded.q === search && loaded.hasMore;
+    // Skeleton while no page of the CURRENT term has arrived — the first load and a
+    // new search — but never while page 2 travels, which must not blank page 1. The
+    // test is on the received pages and not on `subjects.length`, which is already 1
+    // before any call: the supplier's own record comes from the session.
+    // The count is a floor while pages remain: `formatTotal` renders "25+", never an
+    // invented total (beCPG cannot count this result set — see lib/format.js).
+    const subjectsLoading = products.loading && !(loaded.q === search && loaded.pages.length > 0);
+    const subjectCount = formatTotal(
+        {
+            totalItems: hasMoreSubjects ? null : subjects.length,
+            totalAtLeast: subjects.length,
+            totalExact: !hasMoreSubjects,
+        },
+        lang,
+    ).text;
 
     const activeSubject = useMemo(
         () => subjects.find((subject) => subject.nodeRef === selected) || null,
@@ -347,28 +429,32 @@ function MessagesScreen() {
         <Card padding="sm" className="h-full">
             <div className="mb-2 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-medium">{labels.subjects}</h2>
-                <span className="pill pill-neutral pill-no-dot pill-sm">{subjects.length}</span>
+                <span className="pill pill-neutral pill-no-dot pill-sm">{subjectCount}</span>
             </div>
-            {subjects.length > 8 ? (
+            {/* The search box appears as soon as the catalogue does not fit in one
+                page, because from that point on scrolling is no longer enough to
+                find a subject — and it queries the server, so it finds the ones
+                that are not loaded yet. */}
+            {subjects.length > 8 || hasMoreSubjects || search ? (
                 <div className="mb-2">
                     <SearchInput value={query} onChange={setQuery} placeholder={labels.search} />
                 </div>
             ) : null}
-            {products.loading ? (
+            {subjectsLoading ? (
                 <SkeletonList rows={5} />
-            ) : products.error ? (
+            ) : products.error && subjects.length === 0 ? (
                 <ErrorState error={products.error} onRetry={products.refresh} compact />
-            ) : filteredSubjects.length === 0 ? (
+            ) : subjects.length === 0 ? (
                 <EmptyState
-                    variant={query ? 'search' : 'empty'}
+                    variant={search ? 'search' : 'empty'}
                     icon="forum"
                     title={labels.noSubjects}
-                    message={query ? undefined : labels.noSubjectsHint}
+                    message={search ? undefined : labels.noSubjectsHint}
                     compact
                 />
             ) : (
                 <ul className="flex max-h-[60vh] list-none flex-col gap-1 overflow-y-auto p-0 lg:max-h-[calc(100dvh-18rem)]">
-                    {filteredSubjects.map((subject) => (
+                    {subjects.map((subject) => (
                         <li key={subject.nodeRef}>
                             <button
                                 type="button"
@@ -397,6 +483,30 @@ function MessagesScreen() {
                             </button>
                         </li>
                     ))}
+                    {/* Real pagination, not an infinite scroll: a keyboard user reaches
+                        it, and nothing is fetched that was not asked for. The error of a
+                        failed *extra* page is shown here rather than replacing the list
+                        that already loaded. */}
+                    {hasMoreSubjects ? (
+                        <li className="pt-1">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                icon="expand_more"
+                                className="w-full"
+                                loading={products.loading}
+                                disabled={products.loading}
+                                onClick={() => setPage((current) => current + 1)}
+                            >
+                                {products.loading ? labels.loading : labels.more}
+                            </Button>
+                        </li>
+                    ) : null}
+                    {products.error && subjects.length > 0 ? (
+                        <li>
+                            <ErrorState error={products.error} onRetry={products.refresh} compact />
+                        </li>
+                    ) : null}
                 </ul>
             )}
         </Card>
