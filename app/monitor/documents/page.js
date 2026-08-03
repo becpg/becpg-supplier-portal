@@ -71,6 +71,13 @@ const LABELS = {
         },
         truncated:
             'Parc plus large que la fenêtre d’analyse ({scanned} fournisseurs sur {total}) : affinez les filtres pour une matrice complète.',
+        scopeEmpty:
+            'Aucun fournisseur ne correspond à ce périmètre. Aucune requête documentaire n’a été exécutée : les compteurs ci-dessus sont des zéros de construction, pas des mesures.',
+        /* Le dénominateur d’une tuile est la population sur laquelle elle a été
+           comptée — ici tout le parc lu, pas la page affichée. */
+        cellsScope: 'cellules · sur les {total} fournisseurs du parc',
+        statusScope:
+            'Filtre d’affichage « {status} » : {kept} ligne(s) retenue(s) sur les {shown} affichées de cette page. Les compteurs ci-dessus portent sur les {total} fournisseurs du parc, pas sur cette page.',
         unsupported:
             'Filtre(s) non pris en charge par le modèle beCPG standard : {names}. À paramétrer côté client.',
         pageOf: '{from}–{to} sur {total} fournisseurs',
@@ -110,6 +117,13 @@ const LABELS = {
         },
         truncated:
             'Park larger than the scan window ({scanned} suppliers out of {total}): narrow the filters for a complete matrix.',
+        scopeEmpty:
+            'No supplier matches this perimeter. No document query was run: the counters above are zeros by construction, not measurements.',
+        /* See the note on the French labels: a tile is shown over the population
+           it was counted on — the whole park read, not the page displayed. */
+        cellsScope: 'cells · over the {total} suppliers of the park',
+        statusScope:
+            'Display filter “{status}”: {kept} row(s) kept out of the {shown} shown on this page. The counters above cover the {total} suppliers of the park, not this page.',
         unsupported:
             'Filter(s) unsupported by the standard beCPG model: {names}. Configure them client side.',
         pageOf: '{from}–{to} of {total} suppliers',
@@ -227,6 +241,23 @@ export default function MonitorDocumentsPage() {
         : (data && data.rows ? data.rows.length : 0);
     const from = rowsOnPage === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
     const to = (pagination.page - 1) * pagination.pageSize + rowsOnPage;
+    // A configuration fact the API states, never inferred from `rows.length === 0`.
+    const scopeEmpty = Boolean(data && data.scope && data.scope.empty);
+    /*
+     * The status select — and the three status tiles that set it — filter the **page
+     * in hand**, because that is all the client holds; `totals` above counts cells
+     * over the whole scanned park. Measured on dev.becpg.fr: the tile read
+     * « MANQUANTS 34 » while the 25 rows displayed under it carried 5 missing cells,
+     * and clicking the tile narrowed those 25 rows. Two populations, one screen, and
+     * nothing saying so. The figures stay as they are — both are right — and the
+     * screen now names the population of each.
+     */
+    const shownRows = (data && data.rows) || [];
+    const keptRows = status === 'all'
+        ? shownRows.length
+        : shownRows.filter((row) =>
+            Object.values(row.cells || {}).some((cell) => cell.status === status)).length;
+
     const total = formatTotal(pagination, lang);
     const parkTotal = formatTotal(
         {
@@ -274,6 +305,10 @@ export default function MonitorDocumentsPage() {
                             : undefined
                     }
                 />
+                {/* The three cell counters below are folded over the **whole scanned
+                    park**, while the filter they toggle narrows the page displayed.
+                    Both are legitimate; the hint names the population so the pair
+                    cannot be read as one number contradicting the other. */}
                 <StatCard
                     label={labels.stats.missing}
                     value={totals.missing || 0}
@@ -281,6 +316,7 @@ export default function MonitorDocumentsPage() {
                     tone={totals.missing ? 'danger' : 'ok'}
                     loading={matrix.loading}
                     index={1}
+                    hint={fill(labels.cellsScope, { total: total.text })}
                     onClick={() => setStatus(status === 'missing' ? 'all' : 'missing')}
                 />
                 <StatCard
@@ -290,6 +326,7 @@ export default function MonitorDocumentsPage() {
                     tone={totals.expired ? 'danger' : 'ok'}
                     loading={matrix.loading}
                     index={2}
+                    hint={fill(labels.cellsScope, { total: total.text })}
                     onClick={() => setStatus(status === 'expired' ? 'all' : 'expired')}
                 />
                 <StatCard
@@ -299,6 +336,7 @@ export default function MonitorDocumentsPage() {
                     tone={totals.expiring ? 'warn' : 'ok'}
                     loading={matrix.loading}
                     index={3}
+                    hint={fill(labels.cellsScope, { total: total.text })}
                     onClick={() => setStatus(status === 'expiring' ? 'all' : 'expiring')}
                 />
             </StatGrid>
@@ -352,6 +390,29 @@ export default function MonitorDocumentsPage() {
             </div>
 
             {/* ----------------------------------------------------- warnings */}
+            {scopeEmpty ? (
+                <Card variant="accent" padding="sm" className="mb-3">
+                    <p className="flex items-start gap-2 text-xs">
+                        <Icon name="info" size={16} className="mt-0.5 text-[var(--becpg-orange)]" />
+                        <span>{labels.scopeEmpty}</span>
+                    </p>
+                </Card>
+            ) : null}
+
+            {status !== 'all' ? (
+                <p className="mb-3 flex items-start gap-2 text-xs text-[var(--becpg-dark-grey)]">
+                    <Icon name="info" size={14} className="mt-0.5 shrink-0" />
+                    <span>
+                        {fill(labels.statusScope, {
+                            status: labels.statuses[status] || status,
+                            kept: keptRows,
+                            shown: shownRows.length,
+                            total: total.text,
+                        })}
+                    </span>
+                </p>
+            ) : null}
+
             {pagination.truncated ? (
                 <Card variant="accent" padding="sm" className="mb-3">
                     <p className="flex items-start gap-2 text-xs">

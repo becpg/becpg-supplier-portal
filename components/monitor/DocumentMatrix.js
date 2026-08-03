@@ -369,11 +369,30 @@ export function DocumentMatrix({
     return (
         <div className={className}>
             {/* ------------------------------------------------ desktop matrix */}
+            {/*
+                `contain: paint` is load-bearing, not decoration. `overflow-auto`
+                clips what is *drawn*, but the fixed-layout table inside it keeps
+                contributing its full width to the root's scrollable area, so the
+                **page itself** gained a horizontal scrollbar as soon as the matrix
+                was wider than its container. Measured on dev.becpg.fr at 1280 px:
+                `document.documentElement.scrollWidth` 1789 for a 1280 viewport, and
+                `window.scrollTo(600, 0)` really moved the page by 509 px — the
+                header, the tiles and the bottom bar sliding out of view while the
+                matrix stayed put. Not reproducible at 1920 (the table fits) nor at
+                360 (the card list is rendered instead), i.e. it only appeared at the
+                widths where the matrix is actually used.
+                `contain: paint` gives the scroller the containment the clip implies:
+                the page stops scrolling (scrollWidth back to 1280) and the matrix
+                keeps its own scrollbar (scrollWidth 1572 for a 958 px viewport).
+                It must not become `overflow: clip` — the matrix has to stay
+                scrollable — and `isolation`/`overflow-x: clip` on the parent were
+                measured as no-ops here.
+            */}
             <div
                 ref={scrollRef}
                 onScroll={schedule}
                 className="hidden overflow-auto rounded-xl border border-[var(--becpg-grey)] bg-white md:block"
-                style={{ maxHeight: height }}
+                style={{ maxHeight: height, contain: 'paint' }}
                 tabIndex={0}
                 aria-label={labels.supplier}
             >

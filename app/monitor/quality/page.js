@@ -82,6 +82,14 @@ const LABELS = {
             noActionsLate: 'Aucune action corrective en retard',
             closing: 'Clôture moyenne {value} j',
             noClosing: 'Aucune NC fermée sur ce périmètre',
+            /*
+             * Le délai de clôture se calcule sur les lignes listées, et les NC
+             * fermées sont exclues de la liste par défaut. Mesuré sur dev : la
+             * première tuile annonçait « 11 au total » (donc 1 fermée) pendant que
+             * celle-ci affirmait « Aucune NC fermée sur ce périmètre ». Il y en a
+             * une ; elle n'est simplement pas dans la population lue.
+             */
+            closingHidden: '{count} NC fermée(s) — cochez « Inclure les NC fermées » pour le délai de clôture',
         },
         dayUnit: 'j',
         allStates: 'Tous les états',
@@ -125,6 +133,8 @@ const LABELS = {
             noActionsLate: 'No late corrective action',
             closing: 'Mean closing {value} d',
             noClosing: 'No closed NC in this perimeter',
+            /* See the note on the French `closingHidden`. */
+            closingHidden: '{count} closed NC — tick “Include closed NCs” for the closing delay',
         },
         dayUnit: 'd',
         allStates: 'All states',
@@ -333,10 +343,19 @@ export default function MonitorQualityPage() {
                     }
                     loading={quality.loading}
                     index={3}
+                    /*
+                     * `meanClosingDelayDays` is folded over the **listed** rows, and
+                     * closed NCs are excluded from the list unless the box is ticked.
+                     * "Aucune NC fermée" is therefore only true when the summary
+                     * counts none either — otherwise the delay is not absent, it is
+                     * out of the population, and the hint says which.
+                     */
                     hint={
                         typeof summary.meanClosingDelayDays === 'number'
                             ? fill(labels.hints.closing, { value: summary.meanClosingDelayDays })
-                            : labels.hints.noClosing
+                            : (summary.closed || 0) > 0
+                              ? fill(labels.hints.closingHidden, { count: summary.closed })
+                              : labels.hints.noClosing
                     }
                 />
             </StatGrid>

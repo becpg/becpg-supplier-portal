@@ -79,7 +79,11 @@ const LABELS = {
         },
         searchSupplier: 'Filtrer par fournisseur',
         truncated:
-            'Fenêtre d’analyse : {scanned} campagne(s) lue(s) sur {total} ouverte(s) — beCPG borne une liste à 250 lignes, et un filtre fournisseur restreint encore l’ensemble. Le tri et les totaux de cette page portent sur cette fenêtre.',
+            'Fenêtre d’analyse : beCPG borne une liste à 250 lignes et {scanned} campagne(s) ont été lues. Le tri et les totaux de cette page portent sur cette fenêtre — affinez l’état ou le périmètre pour une vue complète.',
+        scopeEmpty:
+            'Aucun fournisseur ne correspond à ce périmètre. Aucune campagne ne peut lui être rattachée : les compteurs ci-dessus sont des zéros de construction, pas des mesures.',
+        parkScoped: 'Compteurs restreints au périmètre filtré ({count} fournisseur(s)).',
+        noRate: 'Aucune campagne à évaluer',
         unsupported:
             'Filtre(s) non pris en charge par le modèle beCPG standard : {names}. À paramétrer côté client.',
         pageOf: '{from}–{to} sur {total} campagnes',
@@ -123,7 +127,11 @@ const LABELS = {
         },
         searchSupplier: 'Filter by supplier',
         truncated:
-            'Scan window: {scanned} campaign(s) read out of {total} open — beCPG caps a listing at 250 rows, and a supplier filter narrows the set further. The sort and the totals on this page cover that window.',
+            'Scan window: beCPG caps a listing at 250 rows and {scanned} campaign(s) were read. The sort and the totals on this page cover that window — narrow the state or the perimeter for a complete view.',
+        scopeEmpty:
+            'No supplier matches this perimeter. No campaign can be attached to it: the counters above are zeros by construction, not measurements.',
+        parkScoped: 'Counters restricted to the filtered perimeter ({count} supplier(s)).',
+        noRate: 'No campaign to score',
         unsupported:
             'Filter(s) unsupported by the standard beCPG model: {names}. Configure them client side.',
         pageOf: '{from}–{to} of {total} campaigns',
@@ -210,6 +218,12 @@ export default function MonitorCampaignsPage() {
     const to = (pagination.page - 1) * pagination.pageSize + rowsOnPage;
     const total = formatTotal(pagination, lang);
     const open = formatTotal({ total: summary.open, exact: summary.openExact !== false }, lang);
+    // A configuration fact the API states, never inferred from `items.length === 0`:
+    // the perimeter matched no supplier, which is why every tile reads 0.
+    const scopeEmpty = Boolean(data && data.scope && data.scope.empty);
+    // `null` is a real answer — "there is no campaign to score" — and must reach the
+    // tile as an absence, never as a 0 % nor as the 100 % it used to invent.
+    const hasRate = summary.responseRate !== null && summary.responseRate !== undefined;
 
     const stateOptions = useMemo(
         () => [
@@ -262,11 +276,11 @@ export default function MonitorCampaignsPage() {
                 />
                 <StatCard
                     label={labels.stats.response}
-                    value={summary.responseRate === undefined ? '—' : summary.responseRate}
-                    unit="%"
+                    value={hasRate ? summary.responseRate : '—'}
+                    unit={hasRate ? '%' : undefined}
                     icon="how_to_reg"
                     tone={
-                        summary.responseRate === undefined
+                        !hasRate
                             ? 'neutral'
                             : summary.responseRate >= 80
                               ? 'ok'
@@ -277,9 +291,11 @@ export default function MonitorCampaignsPage() {
                     loading={campaigns.loading}
                     index={1}
                     hint={
-                        summary.meanCompletion === undefined
-                            ? undefined
-                            : fill(labels.hints.meanCompletion, { value: summary.meanCompletion })
+                        !hasRate
+                            ? labels.noRate
+                            : summary.meanCompletion === undefined
+                              ? undefined
+                              : fill(labels.hints.meanCompletion, { value: summary.meanCompletion })
                     }
                 />
                 <StatCard
@@ -313,18 +329,38 @@ export default function MonitorCampaignsPage() {
             </StatGrid>
 
             {/* ----------------------------------------------------- warnings */}
+            {scopeEmpty ? (
+                <Card variant="accent" padding="sm" className="mb-3">
+                    <p className="flex items-start gap-2 text-xs">
+                        <Icon name="info" size={16} className="mt-0.5 text-[var(--becpg-orange)]" />
+                        <span>{labels.scopeEmpty}</span>
+                    </p>
+                </Card>
+            ) : null}
+
+            {/* `scanned` is the rows beCPG returned, not the rows left after the
+                perimeter filter: the banner speaks of the engine's 250-row cap, so
+                it must quote the engine's own figure. */}
             {pagination.truncated ? (
                 <Card variant="accent" padding="sm" className="mb-3">
                     <p className="flex items-start gap-2 text-xs">
                         <Icon name="warning" size={16} className="mt-0.5 text-[var(--becpg-orange)]" />
                         <span>
                             {fill(labels.truncated, {
-                                scanned: summary.scanned ?? total.value,
-                                total: open.label,
+                                scanned: pagination.scanned ?? summary.scanned ?? total.value,
                             })}
                         </span>
                     </p>
                 </Card>
+            ) : null}
+
+            {/* The counters follow the perimeter — said out loud, so "248" on an
+                unfiltered screen and "10" on a filtered one are not read as the
+                same question answered twice. */}
+            {summary.parkScoped && !scopeEmpty ? (
+                <p className="mb-3 text-xs text-[var(--becpg-dark-grey)]">
+                    {fill(labels.parkScoped, { count: (data && data.scope && data.scope.suppliers) || 0 })}
+                </p>
             ) : null}
 
             {filters.unsupported && filters.unsupported.length > 0 ? (
