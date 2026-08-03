@@ -526,11 +526,21 @@ function MessagesScreen() {
         <AppShell title={labels.title}>
             <p className="mb-4 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
 
-            <div className="grid gap-4 lg:grid-cols-[20rem_1fr]">
+            {/* `minmax(0, …)` on the tracks and `min-w-0` on the panes, because a
+                grid item's `min-width` defaults to `auto` — "never narrower than my
+                min-content". A subject whose title is one unbroken 36-character
+                string (beCPG hands back the node id when the entity name does not
+                resolve) therefore sized the track to *its* width and pushed the
+                document past the viewport: MEASURED at a 360px viewport, the list
+                pane came out 506px wide and `document.scrollingElement.scrollWidth`
+                548px, i.e. the whole page scrolled sideways. `truncate` on the label
+                could not help — it needs every ancestor to allow shrinking, and the
+                grid item was the one that did not. */}
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
                 {/* Below lg the two panes never coexist: the list is the screen
                     until a subject is picked, then the thread is. */}
-                <div className={selected ? 'hidden lg:block' : 'block'}>{subjectList}</div>
-                <div className={selected ? 'block' : 'hidden lg:block'}>
+                <div className={`min-w-0 ${selected ? 'hidden lg:block' : 'block'}`}>{subjectList}</div>
+                <div className={`min-w-0 ${selected ? 'block' : 'hidden lg:block'}`}>
                     {selected ? (
                         threadView
                     ) : (
