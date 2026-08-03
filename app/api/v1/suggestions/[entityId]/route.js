@@ -38,6 +38,24 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
+ * How long a suggestion run may take upstream.
+ *
+ * A suggestion run is not a lookup: becpg-ai fans out to every enabled plugin,
+ * each of which may fetch a document, extract its text and call a model. The
+ * generic `DEFAULT_TIMEOUT` of 30 s is sized for a webscript and is the wrong
+ * order of magnitude here. Measured on dev-ai, on the becpg-ai side:
+ * `DocumentExtractionSuggestionPlugin` alone took **38.5 s** and 29.0 s on two
+ * runs, and `ClassificationSuggestionPlugin` 16.7 s — one plugin over the whole
+ * request's former budget. The first call this route made against a single
+ * untyped spreadsheet duly failed with `becpg-ai timed out after 30000ms`, while
+ * the run completed perfectly well upstream.
+ *
+ * 180 s matches becpg-ai's own ceiling for a silent plugin, so the portal now
+ * gives up at the same moment upstream does rather than well before it.
+ */
+const AI_SUGGESTIONS_TIMEOUT = 180000;
+
+/**
  * @param {Request} request
  * @param {{ params: Promise<{ entityId: string }> }} context
  * @returns {Promise<Response>}
@@ -56,6 +74,14 @@ export async function GET(request, context) {
                 || process.env.PORTAL_DEFAULT_LANG
                 || 'fr',
             session,
+            timeout: AI_SUGGESTIONS_TIMEOUT,
+            // A suggestion run is idempotent in the HTTP sense but *not* free:
+            // every attempt re-reads the documents and re-calls the model. The
+            // generic client would replay a merely-slow GET up to three times —
+            // which is exactly what was observed against dev-ai, three full runs
+            // billed for one request. A run is attempted once, and a failure is
+            // reported as a failure.
+            retries: 0,
         });
 
         const response = NextResponse.json(result);
