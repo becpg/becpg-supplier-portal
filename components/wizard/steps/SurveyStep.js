@@ -126,7 +126,17 @@ export function SurveyStep({
     const labels = LABELS[lang] || LABELS.fr;
     const toast = useToast();
 
-    const call = useApi(entityId && step ? `wizard/${entityId}/step/${step.id}` : null, { params });
+    // `entityId` is a **nodeRef** on the task route (`workspace://SpacesStore/…`)
+    // and a bare uuid on the product route. Unencoded, the `//` collapses to `/`
+    // in the URL and the App Router segment no longer matches — the step 404s on
+    // the one screen it is meant to be answered from. `FormStep` already encodes;
+    // this is the same rule, applied to the read and the write.
+    const call = useApi(
+        entityId && step
+            ? `wizard/${encodeURIComponent(entityId)}/step/${encodeURIComponent(step.id)}`
+            : null,
+        { params },
+    );
     const data = call.data;
 
     // Three independent verdicts, and the strictest wins: the wizard's own
@@ -168,7 +178,7 @@ export function SurveyStep({
                         return null;
                     }
                     try {
-                        return await api.put(`wizard/${entityId}/step/${step.id}`, {
+                        return await api.put(`wizard/${encodeURIComponent(entityId)}/step/${encodeURIComponent(step.id)}`, {
                             answers: payload,
                             // A questionnaire answer changes no formulated value:
                             // reformulating on every click would cost a round trip
