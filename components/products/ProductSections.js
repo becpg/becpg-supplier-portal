@@ -259,6 +259,9 @@ export function isConfigUnavailable(error) {
  * @param {string} lang
  * @returns {string|null}
  */
+/** `workspace://SpacesStore/<uuid>` — a stored `d:noderef`, never a label. */
+const NODEREF_RE = /^workspace:\/\/SpacesStore\/[0-9a-f-]{36}$/i;
+
 export function readableValue(field, lang) {
     const value =
         field.displayValue !== null && field.displayValue !== undefined && field.displayValue !== ''
@@ -290,6 +293,14 @@ export function readableValue(field, lang) {
             // stops `2026-07-06T14:48:55.903Z` from being printed as-is.
             if (isIsoTimestamp(entry)) {
                 return formatDateTime(entry, lang, { fallback: entry });
+            }
+            // A `d:noderef` whose label could not be resolved. `workspace://…` is
+            // machine data: it tells a supplier nothing, and printing it is worse
+            // than an empty cell — the same rule the datalist renderers apply to a
+            // raw JSON envelope. `resolveNodeRefLabels` fills the label when the
+            // target is readable; when it is not, the field reads as absent.
+            if (NODEREF_RE.test(entry)) {
+                return null;
             }
             return entry;
         }
