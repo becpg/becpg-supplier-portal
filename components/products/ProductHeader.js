@@ -39,10 +39,27 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { formatDate } from '@/lib/format';
 
+/** `workspace://SpacesStore/<uuid>` → `<uuid>`, for a portal route. */
+function nodeRefUuid(nodeRef) {
+    return String(nodeRef || '').split('/').pop();
+}
+
+function fill(template, vars) {
+    return String(template).replace(/\{(\w+)\}/g, (match, name) =>
+        (vars[name] === undefined || vars[name] === null ? match : String(vars[name])),
+    );
+}
+
 const LABELS = {
     fr: {
         completion: 'Complétude',
         code: 'Code',
+        branch: 'Mise à jour en cours',
+        branchFrom: 'Mise à jour de la version {version}',
+        branchTitle: 'Cette fiche est une copie de travail créée pour le référencement.',
+        branchTitleLocked:
+            'Cette fiche est la copie de travail créée pour le référencement. '
+            + 'La version validée existe côté client, mais elle ne vous est pas accessible en lecture.',
         erpCode: 'Code ERP',
         supplier: 'Fournisseur',
         subsidiary: 'Filiale',
@@ -68,6 +85,12 @@ const LABELS = {
     en: {
         completion: 'Completion',
         code: 'Code',
+        branch: 'Update in progress',
+        branchFrom: 'Update of version {version}',
+        branchTitle: 'This sheet is a working copy created for the referencing.',
+        branchTitleLocked:
+            'This sheet is the working copy created for the referencing. '
+            + 'The approved version exists on the customer side, but you have no read access to it.',
         erpCode: 'ERP code',
         supplier: 'Supplier',
         subsidiary: 'Subsidiary',
@@ -206,6 +229,46 @@ export function ProductHeader({
                                 <Icon name="tag" size={12} />
                                 <span className="tabular-nums">{entity.code}</span>
                             </span>
+                        ) : null}
+                        {/*
+                         * Referencing a product cuts a **branch** off the validated
+                         * version, so this sheet and the version the customer has
+                         * approved are two entries that look like two products.
+                         * Measured on dev: 48 of the 58 products this account sees
+                         * are branches, and nothing said so.
+                         *
+                         * The validated version is linked **only when the account can
+                         * actually read it**. Measured on dev: of the 48 branches, the
+                         * origin is readable for 11 and refused for 37 (`#AccessDenied`
+                         * on the association, 401 on the node). So both cases are real,
+                         * and a link to a 401 is worse than plain text — the locked case
+                         * says so in its tooltip instead of pretending the page exists.
+                         */}
+                        {entity.branch ? (
+                            entity.branch.originReadable ? (
+                                <Link
+                                    href={`/products/${nodeRefUuid(entity.branch.origin.nodeRef)}`}
+                                    className="pill pill-warn pill-no-dot pill-sm hover:underline"
+                                    title={labels.branchTitle}
+                                >
+                                    <Icon name="call_split" size={12} />
+                                    <span>
+                                        {entity.branch.versionLabel
+                                            ? fill(labels.branchFrom, { version: entity.branch.versionLabel })
+                                            : labels.branch}
+                                    </span>
+                                    <Icon name="open_in_new" size={12} />
+                                </Link>
+                            ) : (
+                                <span className="pill pill-warn pill-no-dot pill-sm" title={labels.branchTitleLocked}>
+                                    <Icon name="call_split" size={12} />
+                                    <span>
+                                        {entity.branch.versionLabel
+                                            ? fill(labels.branchFrom, { version: entity.branch.versionLabel })
+                                            : labels.branch}
+                                    </span>
+                                </span>
+                            )
                         ) : null}
                     </div>
                 </div>

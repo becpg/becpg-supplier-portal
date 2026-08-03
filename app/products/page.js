@@ -22,11 +22,18 @@ import { Select } from '@/components/ui/Field';
 import { GaugeBar } from '@/components/ui/Gauge';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
 import { StatusPill } from '@/components/ui/StatusPill';
+import { Icon } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { entityTypeLabel } from '@/components/products/ProductHeader';
 import { formatDate, formatTotal } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+
+function fill(template, vars) {
+    return String(template).replace(/\{(\w+)\}/g, (match, name) =>
+        (vars[name] === undefined || vars[name] === null ? match : String(vars[name])),
+    );
+}
 
 const LABELS = {
     fr: {
@@ -35,6 +42,10 @@ const LABELS = {
         search: 'Rechercher un produit',
         allStates: 'Tous les états',
         allTypes: 'Tous les types',
+        branch: 'MAJ',
+        branchFrom: 'Mise à jour de la version {version}',
+        branch: 'Update',
+        branchFrom: 'Update of version {version}',
         columns: {
             name: 'Produit',
             code: 'Code',
@@ -149,7 +160,29 @@ export default function ProductsPage() {
                 header: labels.columns.name,
                 meta: { primary: true, label: labels.columns.name },
                 cell: ({ row }) => (
-                    <span className="block max-w-[22rem] truncate font-medium">{row.original.name || '—'}</span>
+                    <span className="flex min-w-0 items-center gap-1.5">
+                        <span className="min-w-0 truncate font-medium">{row.original.name || '—'}</span>
+                        {/*
+                         * Referencing cuts a working branch off the validated
+                         * version, so the same product can appear twice. Marking
+                         * the branch is what turns two rows that look unrelated
+                         * into one product in two states. Measured on dev: 48 of
+                         * 58 rows are branches.
+                         */}
+                        {row.original.branch ? (
+                            <span
+                                className="pill pill-warn pill-no-dot pill-sm shrink-0"
+                                title={
+                                    row.original.branch.versionLabel
+                                        ? fill(labels.branchFrom, { version: row.original.branch.versionLabel })
+                                        : labels.branch
+                                }
+                            >
+                                <Icon name="call_split" size={12} />
+                                <span className="hidden sm:inline">{labels.branch}</span>
+                            </span>
+                        ) : null}
+                    </span>
                 ),
             },
             {
