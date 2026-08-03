@@ -35,6 +35,7 @@ const LABELS = {
     fr: {
         title: 'Cahiers des charges',
         subtitle: 'Documents de référence applicables à vos produits',
+        consult: 'Consulter',
         open: 'Ouvrir',
         download: 'Télécharger',
         appliesTo: 'S’applique à',
@@ -51,6 +52,7 @@ const LABELS = {
     en: {
         title: 'Specifications',
         subtitle: 'Reference documents applicable to your products',
+        consult: 'View',
         open: 'Open',
         download: 'Download',
         appliesTo: 'Applies to',
@@ -159,6 +161,30 @@ function SpecRow({ specification, variant, index = 0 }) {
                         </p>
                     ) : null}
 
+                    <div className="mt-2 flex flex-wrap gap-2">
+                        {/*
+                         * The cahier des charges as an *entity*: its properties and
+                         * the documents deposited under its `SupplierDocuments`.
+                         * A specification is a `bcpg:entityV2`, so the ordinary
+                         * entity sheet reads it — and, having no assigned task on
+                         * it, the supplier gets it read-only from the server's own
+                         * security check rather than from a flag set here.
+                         *
+                         * This is the consultation half of the feature; the file
+                         * download below only exists when the node carries content,
+                         * which a specification need not.
+                         */}
+                        {specification.uuid ? (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                icon="menu_book"
+                                href={`/products/${specification.uuid}`}
+                            >
+                                {labels.consult}
+                            </Button>
+                        ) : null}
+                    </div>
                     {href ? (
                         <div className="mt-2 flex flex-wrap gap-2">
                             <Button

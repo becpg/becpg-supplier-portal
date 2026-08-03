@@ -128,6 +128,36 @@ export const DEFAULT_WIZARDS = {
         ],
     },
 
+    /*
+     * Cahier des charges — consultation, jamais saisie.
+     *
+     * beCPG ne définit **aucun** `<wizard id="supplier-productSpecification">` dans
+     * `becpg-plm-share-config.xml` : un `bcpg:productSpecification` est un
+     * `bcpg:entityV2` porteur de `bcpg:entityListsAspect`, donc ses listes sont
+     * une donnée, pas une structure fixe — les coder en dur ici reviendrait à
+     * inventer un modèle que le produit n'a pas.
+     *
+     * Ce défaut donne donc le seul contenu dont l'existence est certaine : les
+     * documents déposés sous `SupplierDocuments` du cahier des charges. Le jour où
+     * Share déclare un vrai assistant pour ce type, il gagne la priorité (voir
+     * `getWizard`) et ses listes apparaissent sans une ligne de code ici — c'est
+     * exactement la règle que le wizard applique déjà pour les produits.
+     *
+     * `enforceTask: true` : aucun fournisseur n'a de tâche assignée sur un cahier
+     * des charges, donc l'assistant se résout en lecture seule de lui-même. La
+     * consultation ne dépend pas d'un drapeau posé ici mais du contrôle de
+     * sécurité côté serveur, qui reste l'autorité (bug #25928).
+     */
+    'supplier-productSpecification': {
+        id: 'supplier-productSpecification',
+        draft: false,
+        enforceTask: true,
+        skipSecurityRules: false,
+        steps: [
+            { id: 'step1', labelId: 'becpg.wizard.supplier.documents.label', titleId: 'becpg.wizard.supplier.documents.title', type: 'documents' },
+        ],
+    },
+
     /* Réclamation fournisseur */
     'supplier-nc': {
         id: 'supplier-nc',
