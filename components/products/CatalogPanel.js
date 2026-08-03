@@ -41,6 +41,7 @@ const LABELS = {
         missingCount: '{count} champ(s) manquant(s)',
         duplicates: 'Valeurs déjà utilisées',
         duplicateOn: 'Déjà utilisé par',
+        duplicateUnnamed: '{count} autre(s) produit(s)',
         protectedFields: '{count} champ(s) verrouillé(s) par le client',
         none: 'Aucun catalogue applicable',
         noneHint:
@@ -62,6 +63,7 @@ const LABELS = {
         missingCount: '{count} missing field(s)',
         duplicates: 'Values already in use',
         duplicateOn: 'Already used by',
+        duplicateUnnamed: '{count} other product(s)',
         protectedFields: '{count} field(s) locked by the customer',
         none: 'No applicable catalogue',
         noneHint:
@@ -118,6 +120,42 @@ function fieldLabel(field) {
     }
     const base = field.label || field.field || '—';
     return field.locale ? `${base} (${String(field.locale).toUpperCase()})` : base;
+}
+
+/**
+ * « Déjà utilisé par … » — the products that already carry a value the catalogue
+ * requires to be unique.
+ *
+ * `nonUniqueFields[].entities` is a list of **nodeRefs** as beCPG sends it, and
+ * the adapter (`nameDuplicateEntities`) turns each into `{ nodeRef, name }` for
+ * every target the account may read. Only the names are rendered: a supplier who
+ * is told `workspace://SpacesStore/372029fb-…` learns nothing, and cannot even
+ * tell whether it is one of its own products. What it cannot see is counted
+ * instead — "and 2 other products" is a true statement it can act on.
+ *
+ * @param {Object} field a normalised `nonUniqueFields` entry
+ * @param {Object} labels the chrome dictionary
+ * @returns {React.ReactNode}
+ */
+function duplicateTargets(field, labels) {
+    const entities = Array.isArray(field?.entities) ? field.entities : [];
+    if (entities.length === 0) {
+        return null;
+    }
+    const named = entities
+        .map((entity) => (typeof entity === 'string' ? null : entity?.name || entity?.label || null))
+        .filter(Boolean);
+    const unnamed = entities.length - named.length;
+
+    const parts = [...named];
+    if (unnamed > 0) {
+        parts.push(fill(labels.duplicateUnnamed, { count: unnamed }));
+    }
+    return (
+        <span className="block text-[var(--becpg-dark-grey)]">
+            {labels.duplicateOn} {parts.join(', ')}
+        </span>
+    );
 }
 
 /**
@@ -254,19 +292,16 @@ function CatalogCard({ catalog, onFieldClick, compact = false, index = 0 }) {
                                 >
                                     <span className="font-medium">{fieldLabel(field)}</span>
                                     {field.value ? <span> : « {field.value} »</span> : null}
-                                    {Array.isArray(field.entities) && field.entities.length > 0 ? (
-                                        <span className="block text-[var(--becpg-dark-grey)]">
-                                            {labels.duplicateOn}{' '}
-                                            {field.entities
-                                                .map((entity) =>
-                                                    typeof entity === 'string'
-                                                        ? entity
-                                                        : entity.name || entity.label || entity.nodeRef,
-                                                )
-                                                .filter(Boolean)
-                                                .join(', ')}
-                                        </span>
-                                    ) : null}
+                                    {/*
+                                        beCPG names the twins by nodeRef, and this
+                                        line used to print
+                                        `workspace://SpacesStore/372029fb-…` to a
+                                        supplier — the one part of the sentence
+                                        that carries no information. The adapter
+                                        resolves the names it can read; the rest
+                                        are counted, never identified.
+                                    */}
+                                    {duplicateTargets(field, labels)}
                                 </li>
                             ))}
                         </ul>

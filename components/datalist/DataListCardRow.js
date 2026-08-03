@@ -26,6 +26,7 @@ import {
 } from '@/components/datalist/DataListRow';
 import { renderDataListCell } from '@/components/datalist/renderers';
 import { isTotalRow, ROW_STATUS, useDataListLabels } from '@/components/datalist/useDataList';
+import { isMachineValue } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 
 /**
@@ -134,7 +135,9 @@ export function DataListCardRow({
                         </p>
                         {headColumn && !headEditable ? (
                             <p className="truncate text-sm font-medium">
-                                {headlineNode ?? (headline || '—')}
+                                {/* Same last guard as the table cell: a nodeRef or a
+                                    node uuid is never the title of a row. */}
+                                {headlineNode ?? ((isMachineValue(headline) ? '' : headline) || '—')}
                             </p>
                         ) : null}
                     </div>

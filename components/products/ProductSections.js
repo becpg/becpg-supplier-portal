@@ -66,7 +66,7 @@ import { RequirementChecklist } from '@/components/documents/RequirementChecklis
 import { DataListEditor } from '@/components/datalist/DataListEditor';
 import { useDataList } from '@/components/datalist/useDataList';
 import { DecisionTree } from '@/components/survey/DecisionTree';
-import { formatDate, formatDateTime, isIsoTimestamp } from '@/lib/format';
+import { formatDate, formatDateTime, isIsoTimestamp, isMachineValue, nodeLabel } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { parseListId } from '@/config/wizards.default';
@@ -259,9 +259,6 @@ export function isConfigUnavailable(error) {
  * @param {string} lang
  * @returns {string|null}
  */
-/** `workspace://SpacesStore/<uuid>` — a stored `d:noderef`, never a label. */
-const NODEREF_RE = /^workspace:\/\/SpacesStore\/[0-9a-f-]{36}$/i;
-
 export function readableValue(field, lang) {
     const value =
         field.displayValue !== null && field.displayValue !== undefined && field.displayValue !== ''
@@ -294,12 +291,13 @@ export function readableValue(field, lang) {
             if (isIsoTimestamp(entry)) {
                 return formatDateTime(entry, lang, { fallback: entry });
             }
-            // A `d:noderef` whose label could not be resolved. `workspace://…` is
-            // machine data: it tells a supplier nothing, and printing it is worse
-            // than an empty cell — the same rule the datalist renderers apply to a
-            // raw JSON envelope. `resolveNodeRefLabels` fills the label when the
+            // A `d:noderef` whose label could not be resolved, the uuid a
+            // hierarchy node is named after, a repository path. All machine data:
+            // they tell a supplier nothing, and printing one is worse than an
+            // empty cell — the same rule the datalist renderers apply to a raw
+            // JSON envelope. `resolveNodeRefLabels` fills the label when the
             // target is readable; when it is not, the field reads as absent.
-            if (NODEREF_RE.test(entry)) {
+            if (isMachineValue(entry)) {
                 return null;
             }
             return entry;
@@ -308,7 +306,16 @@ export function readableValue(field, lang) {
             return entry.map(render).filter(Boolean).join(', ') || null;
         }
         if (typeof entry === 'object') {
-            return entry.displayValue || entry.label || entry.name || entry.value || null;
+            // An expanded node summary — what `becpg/remote/entity` returns for a
+            // `d:noderef` such as Famille / Sous-famille. Its label lives in
+            // `bcpg:lkvValue`, and none of `displayValue` / `label` / `name`
+            // exists on it: read straight from `entry` and the field silently
+            // disappeared from the sheet.
+            const label = nodeLabel(entry, lang);
+            if (label) {
+                return label;
+            }
+            return render(entry.value !== undefined ? entry.value : null);
         }
         return String(entry);
     };
@@ -420,12 +427,30 @@ function RawPropertySheet({ attributes, lang, labels }) {
         if (!attributes || typeof attributes !== 'object') {
             return [];
         }
-        return Object.entries(attributes)
+        // A `d:mltext` property arrives **three times**: `bcpg:legalName` (the
+        // caller's locale, which is what the sheet wants), `bcpg:legalName_fr` and
+        // `bcpg:legalName_en`. Printed as they come, the sheet read « Dénomination
+        // légale / Dénomination légale_fr / Dénomination légale_en » with the same
+        // text twice and a blank — the multilingual storage of the repository
+        // showing through a business screen. The suffixed twin is dropped whenever
+        // the base property answered; a locale that is the *only* one filled in is
+        // kept, because dropping it would lose the value.
+        const answered = new Set();
+        const entries = Object.entries(attributes)
             .map(([qname, raw]) => {
                 const value = readableValue({ value: raw, displayValue: null, dataType: null }, lang);
+                if (value !== null && !/_[a-z]{2}(_[A-Z]{2})?$/.test(qname)) {
+                    answered.add(qname);
+                }
                 return value === null ? null : { qname, value };
             })
-            .filter(Boolean)
+            .filter(Boolean);
+
+        return entries
+            .filter(({ qname }) => {
+                const base = qname.replace(/_[a-z]{2}(_[A-Z]{2})?$/, '');
+                return base === qname || !answered.has(base);
+            })
             .sort((a, b) => a.qname.localeCompare(b.qname));
     }, [attributes, lang]);
 

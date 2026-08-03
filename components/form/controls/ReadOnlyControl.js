@@ -20,7 +20,14 @@
 
 import { Icon } from '@/components/ui/Button';
 import { controlParams, numberFormat } from '@/components/form/validation';
-import { formatDate, formatDateTime, formatNumber, isIsoTimestamp } from '@/lib/format';
+import {
+    formatDate,
+    formatDateTime,
+    formatNumber,
+    isIsoTimestamp,
+    isMachineValue,
+    nodeLabel,
+} from '@/lib/format';
 
 const LABELS = {
     fr: { yes: 'Oui', no: 'Non', empty: '—' },
@@ -59,8 +66,21 @@ export function formatValue(field, value, lang = 'fr') {
         if ('value' in value) {
             return formatValue(field, value.value, lang);
         }
+        // An expanded node summary — `becpg/remote/entity` returns one for every
+        // `d:noderef` and every association target it can read. It has no
+        // `displayValue`, no `value` and no `nodeRef`, so it used to fall into
+        // the mltext branch below, whose "first filled-in entry" is the
+        // repository `path`: `/app:company_home/cm:System/cm:ProductHierarchy/…`
+        // was printed as the value of *Famille*. Measured on dev.becpg.fr.
+        const node = nodeLabel(value, lang);
+        if (node) {
+            return node;
+        }
         if ('nodeRef' in value) {
-            return String(value.name || value.label || value.nodeRef);
+            // Nothing readable on the target: an em dash is the caller's job, but
+            // a nodeRef is never an answer. Same rule as `ProductSections`.
+            const named = value.name || value.label;
+            return named && !isMachineValue(named) ? String(named) : '';
         }
         // An mltext map: the current language first, then whatever is filled in.
         const entries = Object.entries(value).filter(([, text]) => text !== null && text !== undefined && text !== '');
@@ -68,7 +88,8 @@ export function formatValue(field, value, lang = 'fr') {
             return '';
         }
         const current = entries.find(([locale]) => String(locale).toLowerCase().startsWith(lang));
-        return String((current || entries[0])[1]);
+        const picked = (current || entries[0])[1];
+        return isMachineValue(picked) ? '' : String(picked);
     }
     if (typeof value === 'boolean') {
         return value ? labels.yes : labels.no;
@@ -104,6 +125,13 @@ export function formatValue(field, value, lang = 'fr') {
     // is precisely the bug this module was created to end.
     if (isIsoTimestamp(value)) {
         return formatDateTime(value, lang, { fallback: String(value) });
+    }
+    // Same line of defence, for the other family of machine values: an unresolved
+    // `d:noderef`, the uuid a hierarchy node is named after, a repository path.
+    // The field reads as empty rather than as an identifier — a gap is honest,
+    // `workspace://SpacesStore/…` looks like an answer and is not one.
+    if (isMachineValue(value)) {
+        return '';
     }
     return String(value);
 }

@@ -52,6 +52,7 @@
 import { createElement, useCallback, useRef, useState } from 'react';
 import { getControl } from '@/components/form/controls';
 import { renderDataListCell } from '@/components/datalist/renderers';
+import { isMachineValue } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { Icon, IconButton, Spinner } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -186,9 +187,18 @@ export function DataListCell({ row, column, list, context, autoFocus = false, la
         if (rendered !== null) {
             return <span className={valueClass}>{rendered}</span>;
         }
+        /*
+         * Last guard before the raw value reaches the grid: `displayValue` is
+         * beCPG's own label and is right almost always, but a `d:noderef` column
+         * whose target beCPG could not name arrives as the nodeRef itself, and a
+         * hierarchy node arrives as the uuid it is named after. Neither is an
+         * answer; both look like one. An em dash says "not filled in", which is
+         * the truth the supplier can act on.
+         */
+        const readable = isMachineValue(display) ? null : display;
         return (
-            <span className={valueClass} title={display || undefined}>
-                {display || <span className="text-[var(--becpg-dark-grey)]">—</span>}
+            <span className={valueClass} title={readable || undefined}>
+                {readable || <span className="text-[var(--becpg-dark-grey)]">—</span>}
             </span>
         );
     }
