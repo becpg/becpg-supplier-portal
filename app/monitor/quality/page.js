@@ -23,10 +23,19 @@
  *     suspension process for a suspension. The status flips on its own once
  *     beCPG holds the blocking NC.
  *
- * The four tiles are **count queries over the whole perimeter** — they do not
- * move when the list below is filtered, which is deliberate: `qa:ncState` and
- * `qa:ncType` narrow the *rows an officer works on*, not the size of the problem
- * the department owns.
+ * The four tiles do not move when `qa:ncState` or `qa:ncType` are set, which is
+ * deliberate: those narrow the *rows an officer works on*, not the size of the
+ * problem the department owns.
+ *
+ * A **park filter is different** and the tiles do follow it. A perimeter
+ * (`family`, `site`, `q`…) changes *which suppliers* the screen is about, and a
+ * counter for another perimeter is not an imprecise figure, it is a figure about
+ * someone else. Measured on dev.becpg.fr before this: filtering on suppliers
+ * owning no NC left the list empty under tiles still reading « 5 NC ouvertes ·
+ * 2 bloquantes », while « Au-delà du délai » and « Délai moyen » — computed from
+ * the filtered rows — correctly read 0. Four tiles, two populations. They are
+ * now one: `summary.parkScoped` says which, and `scope.empty` says when the
+ * perimeter matched no supplier at all (in which case nothing was queried).
  *
  * The processing delay is `maintenant − cm:created` while the NC is open, and
  * `cm:modified − cm:created` once it is closed: beCPG stores no closure date, and
@@ -83,6 +92,8 @@ const LABELS = {
             'Plus de NC que la fenêtre d’analyse ({scanned} analysées) : affinez les filtres pour une vue complète.',
         inexact:
             'Compteurs approchés : le moteur a renvoyé un total borné pour au moins une requête.',
+        scopeEmpty:
+            'Aucun fournisseur ne correspond à ce périmètre. Aucune requête n’a été exécutée : les compteurs ci-dessus sont des zéros de construction, pas des mesures.',
         unsupported:
             'Filtre(s) non pris en charge par le modèle beCPG standard : {names}. À paramétrer côté client.',
         pageOf: '{from}–{to} sur {total} NC',
@@ -123,6 +134,8 @@ const LABELS = {
         truncated:
             'More NCs than the scan window ({scanned} scanned): narrow the filters for a complete view.',
         inexact: 'Approximate counters: the engine returned a capped total for at least one query.',
+        scopeEmpty:
+            'No supplier matches this perimeter. No query was run: the counters above are zeros by construction, not measurements.',
         unsupported:
             'Filter(s) unsupported by the standard beCPG model: {names}. Configure them client side.',
         pageOf: '{from}–{to} of {total} NCs',
@@ -188,6 +201,9 @@ export default function MonitorQualityPage() {
         totalExact: true,
     };
     const filters = (data && data.filters) || {};
+    // A configuration fact the API states, never inferred from `items.length === 0`:
+    // "the perimeter matched no supplier", which is why every tile reads 0.
+    const scopeEmpty = Boolean(data && data.scope && data.scope.empty);
     const correctiveActions = summary.correctiveActions || {};
     // `null` is a real answer here (no open NC at all), so the tile shows a dash
     // and drops its unit rather than printing "— j".
@@ -326,6 +342,15 @@ export default function MonitorQualityPage() {
             </StatGrid>
 
             {/* ----------------------------------------------------- warnings */}
+            {scopeEmpty ? (
+                <Card variant="accent" padding="sm" className="mb-3">
+                    <p className="flex items-start gap-2 text-xs">
+                        <Icon name="info" size={16} className="mt-0.5 text-[var(--becpg-orange)]" />
+                        <span>{labels.scopeEmpty}</span>
+                    </p>
+                </Card>
+            ) : null}
+
             {pagination.truncated ? (
                 <Card variant="accent" padding="sm" className="mb-3">
                     <p className="flex items-start gap-2 text-xs">
