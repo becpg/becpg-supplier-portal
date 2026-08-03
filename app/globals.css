@@ -1490,6 +1490,39 @@ body {
   pointer-events: none;
 }
 
+/* ---------------------------------------------------------------------- */
+/* `d:mltext` (components/form/controls/MlTextControl.js)                  */
+/*                                                                        */
+/* The first language box and the "N other language(s)" disclosure share   */
+/* one wrapper. Everywhere but the grid it is a column — which is exactly  */
+/* what the control rendered before the wrapper existed — and inside the   */
+/* grid it becomes a row (below).                                         */
+/* ---------------------------------------------------------------------- */
+
+.becpg-ml-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/*
+ * The disclosure, on a finger.
+ *
+ * MEASURED at 390px on a card row: **24px tall** — the button is a 14px icon in
+ * 4px of padding, and that is what it has always been, in the grid and outside
+ * it. Below `md` the grid is not rendered at all, so nothing here can shrink a
+ * row; what it does is bring the one target the card layout had left under the
+ * portal's 40px floor back up to it. `.becpg-grid .becpg-ml-toggle` is more
+ * specific, so a tablet in a grid keeps the grid's own 26px scale — exactly
+ * what `.becpg-grid-icon` does for the row chrome.
+ */
+@media (max-width: 767px), (pointer: coarse) {
+  .becpg-ml-toggle {
+    min-height: 40px;
+    padding-inline: 6px;
+  }
+}
+
 @media (min-width: 768px) {
   /* An editable row trades cell padding for control height and keeps the pitch:
      26 + 2×3 + 1 = 33px, the same as 16 + 2×8 + 1 for a read row. */
@@ -1598,6 +1631,121 @@ body {
     height: auto;
     min-height: 66px;
     resize: vertical;
+  }
+
+  /*
+   * A multilingual column, at the grid's pitch.
+   *
+   * MEASURED on `bcpg:microbioList`, whose « Critères texte » is a `d:mltext`:
+   * the cell stood **58px** tall — a 26px box with the "1 other language(s)"
+   * button stacked 8px under it — while every other cell in the row was 26px.
+   * That one column set the pitch of all four rows to **65px** against the
+   * 34px `nutList` and `allergenList` hold. The `textarea` rule above does not
+   * reach it: the height is not the control's, it is the stack's.
+   *
+   * So the stack becomes a row here, and the disclosure becomes an icon at the
+   * grid's own 26px — the same treatment `.becpg-grid-icon` gives the row
+   * chrome, and for the same reason. Nothing is removed: the button keeps its
+   * `aria-expanded`, its sentence as `aria-label` and `title`, and the count of
+   * filled translations stays painted beside the icon.
+   *
+   * Under `min-width: 768px`, like everything else in this block — below it the
+   * table is not rendered at all (`DataListEditor` switches to `DataListCardRow`),
+   * so the 40px touch target of a phone is a structural guarantee here, not a
+   * convention.
+   */
+  .becpg-grid .becpg-ml-primary {
+    flex-direction: row;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .becpg-grid .becpg-ml-primary > .becpg-ml-locale {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  /* One box is shown at rest and the column header names the field, so the
+     chip is redundant *here* only. The input still carries the language as its
+     `aria-label`, and an opened translation keeps its own chip. */
+  .becpg-grid .becpg-ml-primary .becpg-ml-tag {
+    display: none;
+  }
+
+  .becpg-grid .becpg-ml-toggle {
+    flex: none;
+    align-self: center;
+    justify-content: center;
+    min-height: 26px;
+    min-width: 26px;
+    padding: 2px;
+    border-radius: 4px;
+  }
+
+  /* The name survives in `aria-label` — see the button in `MlTextControl`. */
+  .becpg-grid .becpg-ml-toggle-text {
+    display: none;
+  }
+
+  .becpg-grid .becpg-ml-toggle-count {
+    padding-inline: 3px;
+  }
+
+  /*
+   * A repeating LIST, at the grid's pitch.
+   *
+   * `SelectControl` renders a multi-value list as a checkbox group — the right
+   * answer in a form, and an impossible one in a cell. MEASURED on
+   * `bcpg:organoList`: « Rapports » (`rep:reportKinds`, eight allowed values)
+   * stood **394px** tall and set the pitch of all seven rows to **401px**, which
+   * is twelve times Share's. Nothing in the row was taller than 26px.
+   *
+   * Same treatment as the textarea above — one line at rest, open while it has
+   * the focus — with two differences that matter:
+   *
+   *  - the **selected** options are ordered first (`data-checked`), so the line
+   *    on show is the answer and not the top of a list nobody chose;
+   *  - the rest state **scrolls** (`overflow-y: auto`) rather than clipping.
+   *    That is not cosmetic: a `Tab` into a clipped `overflow: hidden` box moves
+   *    the focus onto an invisible checkbox, which is a lost focus. A scroll
+   *    container brings it into view, and `:focus-within` opens the group whole
+   *    on the very first one — so a keyboard user sees the eight values, and the
+   *    supplier who is only reading sees a 34px row.
+   */
+  .becpg-grid .becpg-checkgroup {
+    max-height: var(--becpg-grid-control-height);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    gap: 0;
+    padding: 0;
+    border-color: transparent;
+    border-bottom-color: var(--becpg-blue-lighter);
+    border-radius: 3px;
+    background-color: transparent;
+  }
+
+  .becpg-grid .becpg-checkgroup:focus-within {
+    max-height: 220px;
+    border-color: var(--becpg-blue-light);
+    background-color: var(--background);
+  }
+
+  .becpg-grid .becpg-checkgroup-option {
+    min-height: 24px;
+    padding-inline: 4px;
+    font-size: var(--becpg-grid-font-size);
+    line-height: var(--becpg-grid-line-height);
+    order: 1;
+  }
+
+  /* What is answered comes first, so the visible line is the value. */
+  .becpg-grid .becpg-checkgroup-option[data-checked='true'] {
+    order: 0;
+  }
+
+  .becpg-grid .becpg-checkgroup-option input[type='checkbox'] {
+    width: 14px;
+    height: 14px;
   }
 }
 

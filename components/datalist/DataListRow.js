@@ -565,6 +565,45 @@ const ARROWS_OWNED_BY_CONTROL = new Set([
 ]);
 
 /**
+ * Targets for which `Enter` is **already** the way to use them, so the grid must
+ * keep its hands off it.
+ *
+ * `Enter` on a `<button>` *is* the click — it is the whole of operating a button
+ * without a mouse — and the same holds for a link. The row handler used to
+ * `preventDefault()` on every `Enter` whose target was not a `<textarea>`, which
+ * made « Supprimer la ligne », « Dupliquer cette ligne », the save / undo pair,
+ * the detail chevron and the picker's own buttons **unreachable from the
+ * keyboard**: the key committed the row and moved the caret down instead of
+ * pressing the button under it. Measured: 0 click events fired, no confirmation
+ * dialog, focus landed on the row below.
+ *
+ * A `<select>` is deliberately absent. `Enter` there is not an activation — the
+ * native list is opened and browsed with the arrows and Space — so the grid
+ * keeps it, and "Enter validates the row and goes down one" stays true from a
+ * unit cell as it is from a text cell.
+ *
+ * @param {EventTarget|null} target
+ * @returns {boolean}
+ */
+function ownsEnterKey(target) {
+    if (!target || typeof target.tagName !== 'string') {
+        return false;
+    }
+    if (target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON') {
+        return true;
+    }
+    if (target.tagName === 'A' && target.hasAttribute && target.hasAttribute('href')) {
+        return true;
+    }
+    // No `<div onClick>` exists in this codebase (AGENTS.md), but a control from
+    // the registry is free to expose a widget by role rather than by tag, and
+    // ARIA says a `button` role answers Enter exactly like the element does.
+    const role = typeof target.getAttribute === 'function' ? target.getAttribute('role') : null;
+    return role === 'button' || role === 'link' || role === 'menuitem'
+        || role === 'menuitemcheckbox' || role === 'menuitemradio' || role === 'option';
+}
+
+/**
  * The `<tr>` above or below, skipping the detail rows an expanded row inserts.
  *
  * `nextElementSibling` never crosses a section boundary, so this cannot walk
@@ -662,7 +701,11 @@ function moveFocusHorizontally(rowEl, cellIndex, direction) {
  *    commits the row being left. They are handed back to the control whenever
  *    the control owns them: an open suggestion list (which calls
  *    `preventDefault`), a `<select>`, a `<textarea>`, a number or a date.
- *  - **Enter** commits, **Escape** discards. Unchanged.
+ *  - **Enter** commits and goes down one row, **Escape** discards — *except on
+ *    something Enter already operates*. On a `<button>` or a link the key is
+ *    that element's click, so the row hands it over ({@link ownsEnterKey}): a
+ *    supplier can reach « Supprimer la ligne », the detail chevron or the
+ *    picker's buttons without a mouse.
  *
  * @param {Object} props
  * @param {Object} props.row
@@ -760,7 +803,7 @@ export function DataListRow({
                 return;
             }
 
-            if (event.key === 'Enter' && target.tagName !== 'TEXTAREA') {
+            if (event.key === 'Enter' && !ownsEnterKey(target)) {
                 /*
                  * A picker that has just chosen an option `preventDefault`s the
                  * key on its way up (`DatasourcePicker.onKeyDown`), and that is

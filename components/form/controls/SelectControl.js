@@ -132,12 +132,26 @@ export function SelectControl({
             onChange(next);
         };
         return (
+            /*
+             * `becpg-checkgroup` is what lets `app/globals.css` give this group
+             * a grid-sized rest state.
+             *
+             * MEASURED on `bcpg:organoList`, whose « Rapports »
+             * (`rep:reportKinds`) is a repeating LIST of eight values: the group
+             * is **394px** tall, and it set the pitch of all seven rows to
+             * **401px** against the 34px the other lists hold. A checkbox group
+             * is the right rendering in a form and an impossible one in a cell,
+             * so the grid clips it to one line — selected values first — and
+             * opens it while it has the focus, the way it already does for a
+             * textarea. The class is the only thing this file owes that rule;
+             * nothing about the control changes outside a grid.
+             */
             <div
                 id={id}
                 role="group"
                 aria-label={field.label}
                 className={[
-                    'flex flex-col gap-1 rounded-lg border bg-white p-2',
+                    'becpg-checkgroup flex flex-col gap-1 rounded-lg border bg-white p-2',
                     Boolean(error) || invalid ? 'border-[var(--status-danger)]' : 'border-[var(--becpg-grey)]',
                 ].join(' ')}
                 {...rest}
@@ -145,7 +159,8 @@ export function SelectControl({
                 {options.map((option) => (
                     <label
                         key={option.value}
-                        className="flex min-h-[36px] cursor-pointer items-center gap-2 rounded px-1 text-sm hover:bg-[var(--becpg-blue-lighter)]/40"
+                        data-checked={selected.includes(option.value) ? 'true' : undefined}
+                        className="becpg-checkgroup-option flex min-h-[36px] cursor-pointer items-center gap-2 rounded px-1 text-sm hover:bg-[var(--becpg-blue-lighter)]/40"
                     >
                         <input
                             type="checkbox"

@@ -134,7 +134,9 @@ Hauteur relevée sur toutes les lignes du corps du tableau :
 |---|---|---|
 | `nutList` (22 lignes) | **34 px** | ✅ conforme à Share (33 px) |
 | `allergenList` (17 lignes) | **34 px** | ✅ conforme |
-| `microbioList` (4 lignes) | **65 px** | ⚠️ voir §4.1 |
+| `microbioList` (4 lignes) | **65 px** | ✅ **34 px** depuis §4.1 |
+| `physicoChemList` (6) · `labelClaimList` (13) | **34 px** | ✅ mesurées après §4.1 |
+| `organoList` (7 lignes) | **401 px** | ✅ **34 px** depuis §4.5 |
 
 Cause racine de l'ancien pas de 95 px : les deux boutons de réordonnancement empilés.
 **Mesurés maintenant à 26 × 26 px** (règle `.becpg-grid-icon`) — la correction est réelle.
@@ -202,15 +204,28 @@ présentés comme acquis.
 
 ## 4. Ce qui ne marche **toujours pas**
 
-### 4.1 `microbioList` a un pas de 65 px, pas 34
+### 4.1 ~~`microbioList` a un pas de 65 px, pas 34~~ — **corrigé et mesuré**
 
-Mesuré, cause identifiée : la colonne **« Critères texte »** est un `d:mltext` dont le
-contrôle occupe **58 px** de haut (champ + bouton « 1 autre(s) langue(s) »). La règle CSS
-qui écrase les `textarea` dans la grille ne l'atteint pas. Les autres cellules de la même
-ligne font 26 px.
+Cause confirmée : la colonne **« Critères texte »** est un `d:mltext` dont le contrôle
+occupait **58 px** de haut (champ + bouton « 1 autre(s) langue(s) » empilés). La règle CSS
+qui écrase les `textarea` dans la grille ne l'atteignait pas — la hauteur n'était pas celle
+du contrôle mais celle de la **pile**.
 
-C'est **une amélioration réelle** (95 → 65) mais l'objectif Share n'est pas atteint sur
-toute liste comportant une colonne multilingue.
+Correctif : le premier champ et le bouton partagent désormais un conteneur
+`.becpg-ml-primary` ; `app/globals.css` en fait une **ligne** dans `.becpg-grid` et réduit
+le bouton à l'icône de 26 px de la grille. Le nom accessible survit (`aria-label` sur le
+bouton, `title`, et la langue reste annoncée par l'`aria-label` du champ).
+
+| liste | avant | après |
+|---|---|---|
+| `microbioList` (4 lignes) | **65 px** — cellule mltext 58 px | **34 px** — cellule mltext 26 px |
+| `organoList` (7 lignes) | **401 px** — voir 4.5 | **34 px** |
+| `nutList` / `allergenList` / `physicoChemList` / `labelClaimList` | 34 px | 34 px (inchangé) |
+
+Sous 768 px, rien ne change : `DataListEditor` n'y rend pas le tableau (`hidden md:block`),
+et le contrôle reprend sa colonne, sa pastille de langue et le libellé complet du bouton
+(`flex-direction: column`, mesuré à 390 px). Le bouton lui-même passe de 24 px à **40 px**
+sur pointeur grossier — il était **sous le plancher tactile avant ce tour**.
 
 ### 4.2 42 des 101 sujets de `/messages` sont des UUID
 
@@ -223,15 +238,63 @@ nœud. Inchangé depuis le tour précédent.
 discussion. L'API renvoie `"content": "<p>T1</p>"` ; rien ne le désérialise. Détecté par le
 balayage sur la route tâche à 1920 et 1280.
 
-### 4.4 `Entrée` sur un bouton de ligne valide la ligne au lieu d'activer le bouton
+### 4.4 ~~`Entrée` sur un bouton de ligne valide la ligne~~ — **corrigé et mesuré**
 
-`handleKeyDown` appelle `event.preventDefault()` pour **toute** touche `Entrée` dont la
-cible n'est pas un `<textarea>` — y compris quand le curseur est sur « Supprimer la ligne »
-ou sur le chevron de détail. Le clic n'est donc jamais émis.
+`handleKeyDown` appelait `event.preventDefault()` pour **toute** touche `Entrée` dont la
+cible n'était pas un `<textarea>` — y compris sur « Supprimer la ligne » ou le chevron de
+détail. Défaut **pré-existant** (`git show 97227fd` porte déjà le même `preventDefault`
+inconditionnel).
 
-**Défaut pré-existant**, présent avant le travail de ce tour (`git show 97227fd` porte déjà
-le même `preventDefault` inconditionnel). `Espace` continue de fonctionner. Non corrigé ici
-pour ne pas mêler une correction d'accessibilité à un tour de vérification.
+Correctif : `ownsEnterKey()` rend la touche à ce qui l'utilise déjà — `<button>`, `<a href>`,
+`role="button"|"link"|"menuitem"…` — et la garde partout ailleurs. Le `<select>` en est
+volontairement **absent** : `Entrée` n'y est pas une activation, donc « Entrée valide et
+descend d'une ligne » reste vrai depuis une cellule Unité comme depuis une cellule texte.
+
+Mesuré sur `microbioList`, curseur sur « Supprimer la ligne » :
+
+| | avant | après |
+|---|---|---|
+| événements `click` émis | **0** | **1** |
+| dialogue de confirmation | absent | ouvert, `aria-modal="true"`, focus sur « Annuler » |
+| focus après `Entrée` | descendu d'une ligne | resté sur le bouton |
+
+Et la saisie clavier déjà prouvée (§2.1) est intacte, re-mesurée : `Entrée` dans une cellule
+valeur descend d'une ligne dans la **même colonne**, `Maj+Entrée` remonte, `Ctrl+Entrée`
+ajoute une ligne et y place le curseur, `Ctrl+D` duplique, `Échap` restitue la valeur
+d'origine. `Entrée` sur « Monter » réordonne. `Échap` referme le dialogue et **rend le focus
+au bouton d'origine**. 22 arrêts de tabulation parcourus, **0 focus perdu**.
+
+### 4.5 `organoList` avait un pas de 401 px — **trouvé et corrigé ce tour**
+
+Non listé jusqu'ici parce que jamais mesuré : §2.5 ne couvrait que `nutList`,
+`allergenList` et `microbioList`. La colonne **« Rapports »** (`rep:reportKinds`) est une
+`LIST` répétable, que `SelectControl` rend en groupe de cases à cocher — le bon rendu dans
+un formulaire, impossible dans une cellule : **394 px** de haut pour huit valeurs, sur
+chacune des 7 lignes. Rien d'autre dans la ligne ne dépassait 26 px.
+
+Correctif, même idiome que le `textarea` : une ligne au repos, ouvert tant qu'il a le focus,
+avec deux différences qui comptent — les options **cochées passent en tête** (`data-checked`
++ `order`), donc la ligne visible est la réponse ; et l'état de repos **défile**
+(`overflow-y: auto`) au lieu d'être rogné, sinon un `Tab` porterait le focus sur une case
+invisible. Mesuré : 401 → **34 px** au repos, 209 px tant qu'une case a le focus, 34 px de
+nouveau après le blur, case cochée visible au repos.
+
+### 4.6 Sur un **écran large tactile**, le pas de grille reste à 51 px — arbitrage assumé
+
+Mesuré à 1920 px avec `pointer: coarse` : le pas est **51 px**, pas 34. Ce n'est ni le
+`mltext` (26 px) ni le groupe de cases (26 px) : ce sont les deux boutons du sélecteur
+(`.becpg-ac-button`), que `app/globals.css` porte à **44 px** dès que le pointeur est
+grossier, et dont la règle qui les ramène à 20 px est explicitement gardée par
+`(pointer: fine)`. C'est une décision écrite dans le fichier — « un doigt a besoin de la
+cible de 44 px » — pas une régression. Elle est notée ici parce qu'elle n'avait jamais été
+mesurée et qu'elle veut dire qu'une **tablette en paysage ne verra jamais la densité de
+Share**. Le choix inverse (densité contre cible tactile) reste à trancher par le produit.
+
+### 4.7 Les défauts encore ouverts
+
+`4.2` (sujets UUID de `/messages`) et `4.3` (HTML brut des commentaires) sont **inchangés** :
+hors du périmètre `components/datalist/`, `components/form/controls/`, `app/globals.css`,
+`e2e/` de ce tour, et non re-mesurés.
 
 ---
 

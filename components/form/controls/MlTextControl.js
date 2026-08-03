@@ -14,6 +14,13 @@
  * twenty multilingual fields readable on a 360px screen while never hiding the
  * fact that translations exist.
  *
+ * **In a datalist cell the same control is one line tall.** The first box and
+ * the disclosure share a `becpg-ml-primary` wrapper; `app/globals.css` lays
+ * that wrapper out as a row inside `.becpg-grid` and shrinks the disclosure to
+ * the grid's 26px icon, so a multilingual column costs the row nothing. Opening
+ * the other languages still grows the row — deliberately, and only while they
+ * are open, which is the idiom the grid already uses for a focused textarea.
+ *
  * Value in: a `{ locale: text }` map, or a plain string — which is read as the
  * current language, because that is what a repository upgrade or a legacy
  * import produces. Value out: **always** a map, which
@@ -148,9 +155,18 @@ function LocaleInput({ locale, lang, text, rows, maxLength, invalid, onChange, i
         autoFocus,
     };
     return (
-        <div className="flex items-start gap-2">
+        <div className="becpg-ml-locale flex items-start gap-2">
+            {/*
+              * The language of the box, as a chip.
+              *
+              * It is hidden inside a datalist cell (`app/globals.css`), where the
+              * column header already names the field and only one box is shown at
+              * rest — but never removed from the accessibility tree: the input
+              * carries `aria-label={name}`, so the language is announced whether
+              * or not the chip is painted.
+              */}
             <span
-                className="mt-2 w-9 shrink-0 text-xs font-medium uppercase text-[var(--becpg-dark-grey)]"
+                className="becpg-ml-tag mt-2 w-9 shrink-0 text-xs font-medium uppercase text-[var(--becpg-dark-grey)]"
                 title={name}
             >
                 {String(locale).slice(0, 2)}
@@ -214,56 +230,79 @@ export function MlTextControl({
         onChange(next);
     };
 
-    return (
-        <div id={`${id}-group`} className="flex flex-col gap-2" {...rest}>
-            {primary ? (
-                <LocaleInput
-                    id={id}
-                    locale={primary}
-                    lang={lang}
-                    text={map[primary] || ''}
-                    rows={rows}
-                    maxLength={maxLength === null ? undefined : maxLength}
-                    invalid={Boolean(error) || invalid}
-                    onChange={(text) => setLocale(primary, text)}
-                />
-            ) : null}
+    const toggleLabel = expanded
+        ? labels.less
+        : labels.more.replace('{count}', String(others.length));
 
-            {others.length > 0 ? (
-                <>
-                    {expanded
-                        ? others.map((locale) => (
-                              <LocaleInput
-                                  key={locale}
-                                  id={`${id}-${locale}`}
-                                  locale={locale}
-                                  lang={lang}
-                                  text={map[locale] || ''}
-                                  rows={rows}
-                                  maxLength={maxLength === null ? undefined : maxLength}
-                                  invalid={false}
-                                  onChange={(text) => setLocale(locale, text)}
-                              />
-                          ))
-                        : null}
+    /*
+     * The disclosure sits **with** the first box, not under the whole stack.
+     *
+     * `becpg-ml-primary` is a column by default, so a full-page form renders
+     * exactly what it always did: the current language, then the button, then
+     * the other languages once they are opened. Inside a datalist cell
+     * `app/globals.css` turns that one wrapper into a row and folds the button
+     * down to the grid's 26px icon size — which is the whole of the fix for the
+     * 65px row pitch a multilingual column used to impose (see §4.1 of
+     * `doc/implementation-status.md`). The rule lives under `min-width: 768px`
+     * and under `.becpg-grid`, so the phone layout — where a row is a card and
+     * every target is 40px — is untouched by construction.
+     */
+    return (
+        <div id={`${id}-group`} className="becpg-ml flex flex-col gap-2" {...rest}>
+            <div className="becpg-ml-primary">
+                {primary ? (
+                    <LocaleInput
+                        id={id}
+                        locale={primary}
+                        lang={lang}
+                        text={map[primary] || ''}
+                        rows={rows}
+                        maxLength={maxLength === null ? undefined : maxLength}
+                        invalid={Boolean(error) || invalid}
+                        onChange={(text) => setLocale(primary, text)}
+                    />
+                ) : null}
+
+                {others.length > 0 ? (
                     <button
                         type="button"
                         onClick={() => setExpanded((open) => !open)}
                         aria-expanded={expanded}
-                        className="inline-flex items-center gap-1 self-start rounded-md px-1 py-1 text-xs text-[var(--becpg-blue-light)] hover:text-[var(--becpg-orange)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                        // The sentence is on the button itself, not only in the
+                        // span: the grid hides the visible text to buy back its
+                        // row height, and a `display: none` label is gone from
+                        // the accessibility tree too. `title` gives the pointer
+                        // user the same sentence as the tooltip.
+                        aria-label={toggleLabel}
+                        title={toggleLabel}
+                        className="becpg-ml-toggle inline-flex items-center gap-1 self-start rounded-md px-1 py-1 text-xs text-[var(--becpg-blue-light)] hover:text-[var(--becpg-orange)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
                     >
                         <Icon name={expanded ? 'expand_less' : 'translate'} size={14} />
-                        {expanded
-                            ? labels.less
-                            : labels.more.replace('{count}', String(others.length))}
+                        <span className="becpg-ml-toggle-text">{toggleLabel}</span>
                         {!expanded && filledOthers > 0 ? (
-                            <span className="rounded-full bg-[var(--becpg-blue-lighter)] px-1.5 text-[10px] text-[var(--becpg-blue)]">
+                            <span className="becpg-ml-toggle-count rounded-full bg-[var(--becpg-blue-lighter)] px-1.5 text-[10px] text-[var(--becpg-blue)]">
                                 {filledOthers}
                             </span>
                         ) : null}
                     </button>
-                </>
-            ) : null}
+                ) : null}
+            </div>
+
+            {others.length > 0 && expanded
+                ? others.map((locale) => (
+                      <LocaleInput
+                          key={locale}
+                          id={`${id}-${locale}`}
+                          locale={locale}
+                          lang={lang}
+                          text={map[locale] || ''}
+                          rows={rows}
+                          maxLength={maxLength === null ? undefined : maxLength}
+                          invalid={false}
+                          onChange={(text) => setLocale(locale, text)}
+                      />
+                  ))
+                : null}
         </div>
     );
 }
