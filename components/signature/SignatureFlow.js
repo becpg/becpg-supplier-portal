@@ -679,12 +679,29 @@ export function SignatureFlow({
 
     /* ------------------------------------------------------------- branches */
 
+    // `code — name`, whichever of the two beCPG knows. Empty when the task carries
+    // no entity at all, in which case the line is simply not drawn.
+    const productLabel = task && task.entity
+        ? [task.entity.code, task.entity.name].filter(Boolean).join(' — ')
+        : '';
+
     const header = (
         <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
                 <h1 className="truncate text-lg font-medium text-[var(--becpg-blue)]">
                     {(task && task.name) || (view.data && view.data.task && view.data.task.name) || labels.title}
                 </h1>
+                {/* The product, not just the PDF. A signature task is called
+                    "Signature de documents" on every project of the instance, so
+                    without this line the screen never says *what* is being signed —
+                    the deliverable carries the document's nodeRef and nothing else,
+                    and `lib/adapters/tasks.js` is what recovers the product. */}
+                {productLabel ? (
+                    <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-[var(--becpg-blue)]">
+                        <Icon name="inventory_2" size={14} />
+                        <span className="truncate">{productLabel}</span>
+                    </p>
+                ) : null}
                 {document_ && document_.name ? (
                     <p className="mt-0.5 flex items-center gap-1 text-xs text-[var(--becpg-dark-grey)]">
                         <Icon name="picture_as_pdf" size={14} />
