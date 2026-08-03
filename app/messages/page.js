@@ -30,6 +30,7 @@ import { Card } from '@/components/ui/Card';
 import { Textarea, SearchInput } from '@/components/ui/Field';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonList } from '@/components/ui/Skeleton';
+import { RichText } from '@/components/ui/RichText';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useSession } from '@/components/providers/SessionProvider';
 import { formatDateTime } from '@/lib/format';
@@ -154,15 +155,19 @@ function Message({ message, mine, labels, lang, index }) {
                         </span>
                     </span>
                 ) : null}
-                <div
-                    className={`mt-1 inline-block whitespace-pre-wrap break-words rounded-xl px-3 py-2 text-left text-sm ${
+                {/*
+                 * beCPG stores a message body as HTML — Alfresco's editor wraps it
+                 * in `<p>`. Put straight into a text node it reached the bubble as
+                 * the literal `<p>test</p>`.
+                 */}
+                <RichText
+                    value={message.content}
+                    className={`mt-1 inline-block space-y-1 break-words rounded-xl px-3 py-2 text-left text-sm ${
                         mine
                             ? 'bg-[var(--becpg-blue-lighter)] text-[var(--becpg-blue)]'
                             : 'bg-white text-[var(--becpg-blue)] ring-1 ring-[var(--becpg-grey)]'
                     }`}
-                >
-                    {message.content}
-                </div>
+                />
             </div>
         </motion.li>
     );

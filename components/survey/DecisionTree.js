@@ -47,6 +47,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '@/components/ui/Button';
 import { Input, Select, Textarea } from '@/components/ui/Field';
+import { RichText } from '@/components/ui/RichText';
 import { useMessages } from '@/lib/messages';
 import {
     COMMENT_INPUT_TYPES,
@@ -61,7 +62,6 @@ import {
     plainText,
     questionLegend,
     questionUrls,
-    richTextLines,
     selectedOptions,
     serialiseAnswers,
     surveyProgress,
@@ -120,39 +120,6 @@ const REQUIREMENT_STYLE = Object.freeze({
  */
 export function questionDomId(prefix, questionId) {
     return `${prefix}-q-${questionId}`;
-}
-
-/* -------------------------------------------------------------------------- */
-/* Text                                                                        */
-/* -------------------------------------------------------------------------- */
-
-/**
- * A note, a label or a requirement message: authored in Share with light markup,
- * rendered here as lines and bullets, never as HTML.
- *
- * @param {Object} props
- * @param {string} props.value
- * @param {string} [props.className]
- */
-function RichText({ value, className = '' }) {
-    const lines = useMemo(() => richTextLines(value), [value]);
-    if (lines.length === 0) {
-        return null;
-    }
-    return (
-        <div className={className}>
-            {lines.map((line, index) =>
-                line.bullet ? (
-                    <p key={index} className="flex gap-1.5">
-                        <span aria-hidden="true">•</span>
-                        <span className="min-w-0">{line.text}</span>
-                    </p>
-                ) : (
-                    <p key={index}>{line.text}</p>
-                ),
-            )}
-        </div>
-    );
 }
 
 /* -------------------------------------------------------------------------- */

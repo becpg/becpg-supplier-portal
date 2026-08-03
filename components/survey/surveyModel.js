@@ -64,12 +64,13 @@
  * `saveSurveyData` would log a `NumberFormatException` per save.
  */
 
-/**
- * Sentinel marking the lines that came out of a `<li>`, so {@link richTextLines}
- * can hand them back as bullets. A private-use code point: authored text cannot
- * contain it, and it never survives into what is rendered.
- */
-const BULLET_MARK = '';
+// `richTextLines` / `plainText` used to live here. They turned out to describe
+// *any* text authored in Share, not just a survey's — a comment body hits the
+// same `<p>`-wrapped HTML — so they moved to `@/lib/format` and there is one
+// implementation. Re-exported because the survey screens import them from here.
+import { plainText, richTextLines } from '@/lib/format';
+
+export { plainText, richTextLines };
 
 /** Comment control types beCPG can ask for, mapped to an `<input type>`. */
 export const COMMENT_INPUT_TYPES = Object.freeze({
@@ -620,19 +621,6 @@ export function questionLegend(question) {
 }
 
 /**
- * The same markup handling as {@link richTextLines}, flattened to one string.
- * Used wherever HTML would be invalid — a `<label>`, a `<legend>`, a `title`.
- *
- * @param {string|null} value
- * @returns {string}
- */
-export function plainText(value) {
-    return richTextLines(value)
-        .map((line) => line.text)
-        .join(' ');
-}
-
-/**
  * beCPG's `url` is a string or an array of strings, and only `http(s)` and
  * `mailto` are ever rendered as links.
  *
@@ -646,42 +634,3 @@ export function questionUrls(url) {
         .filter((value) => /^(https?:\/\/|mailto:)/i.test(value));
 }
 
-/**
- * Notes and labels authored in Share carry light HTML (`<br>`, `<b>`, `<ul>`).
- * The portal renders **no** HTML — there is no `dangerouslySetInnerHTML` in this
- * codebase and a supplier-facing screen is not the place to introduce one — so
- * the markup is turned into the structure it described: lines, and bullets.
- *
- * @param {string|null} value
- * @returns {Array<{bullet: boolean, text: string}>} empty when there is nothing to show
- */
-export function richTextLines(value) {
-    const raw = String(value ?? '');
-    if (!raw.trim()) {
-        return [];
-    }
-    const marked = raw
-        // Every block-level end is a line break…
-        .replace(/<\s*br\s*\/?\s*>/gi, '\n')
-        .replace(/<\s*\/\s*(?:p|div|tr|h[1-6])\s*>/gi, '\n')
-        // …and a list item is a line that gets a bullet.
-        .replace(/<\s*li[^>]*>/gi, `\n${BULLET_MARK}`)
-        .replace(/<\s*\/\s*li\s*>/gi, '\n')
-        // Everything else goes, tags and entities alike. Nothing here is ever
-        // handed to React as markup: these end up as plain text nodes.
-        .replace(/<[^>]*>/g, '')
-        .replace(/&nbsp;/gi, ' ')
-        .replace(/&amp;/gi, '&')
-        .replace(/&lt;/gi, '<')
-        .replace(/&gt;/gi, '>')
-        .replace(/&quot;/gi, '"')
-        .replace(/&#0?39;/gi, "'");
-
-    return marked
-        .split('\n')
-        .map((line) => ({
-            bullet: line.startsWith(BULLET_MARK),
-            text: line.split(BULLET_MARK).join('').trim(),
-        }))
-        .filter((line) => line.text !== '');
-}

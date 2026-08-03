@@ -31,6 +31,7 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { Select, Textarea } from '@/components/ui/Field';
 import { SkeletonList } from '@/components/ui/Skeleton';
+import { RichText } from '@/components/ui/RichText';
 import { formatDateTime } from '@/lib/format';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
@@ -221,9 +222,15 @@ function MessageItem({ message, index, lang, labels }) {
                     {fill(labels.anchored, { label: message.field })}
                 </span>
             ) : null}
-            <p className="mt-1.5 whitespace-pre-wrap break-words text-sm text-[var(--becpg-blue)]/90">
-                {message.content}
-            </p>
+            {/*
+             * The body is HTML in the repository — Alfresco's editor wraps every
+             * comment in `<p>`. Printed as a text node it showed as the literal
+             * `<p>T1</p>`; `RichText` renders the lines and bullets it described.
+             */}
+            <RichText
+                value={message.content}
+                className="mt-1.5 space-y-1 text-sm text-[var(--becpg-blue)]/90"
+            />
         </motion.li>
     );
 }

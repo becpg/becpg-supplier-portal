@@ -33,7 +33,7 @@ import { Card } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { SkeletonText } from '@/components/ui/Skeleton';
 import { SpecPanel } from '@/components/specs/SpecPanel';
-import { formatDate, formatDateTime } from '@/lib/format';
+import { formatDate, formatDateTime, plainText } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
@@ -233,8 +233,16 @@ export function HelpPanel({
                                         <span>{fill(labels.onField, { field: message.field })}</span>
                                     ) : null}
                                 </p>
-                                <p className="mt-0.5 line-clamp-3 whitespace-pre-wrap break-words text-sm text-[var(--becpg-blue)]/90">
-                                    {message.content}
+                                {/*
+                                 * A three-line preview, so the body is flattened
+                                 * rather than rendered as blocks: `line-clamp`
+                                 * counts lines inside one element and cannot clamp
+                                 * across sibling paragraphs. `plainText` also
+                                 * strips the `<p>` Alfresco wraps every comment in,
+                                 * which used to be printed literally here.
+                                 */}
+                                <p className="mt-0.5 line-clamp-3 break-words text-sm text-[var(--becpg-blue)]/90">
+                                    {plainText(message.content)}
                                 </p>
                             </li>
                         ))}
