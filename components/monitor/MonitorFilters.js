@@ -82,6 +82,9 @@ export const SUPPLIER_STATES = Object.freeze([
     { value: 'Stopped', fr: 'Arrêté', en: 'Stopped' },
 ]);
 
+/** `workspace://SpacesStore/<uuid>` — un identifiant de nœud, jamais un libellé. */
+const NODEREF_RE = /^workspace:\/\/SpacesStore\/[0-9a-f-]{36}$/i;
+
 const LABELS = {
     fr: {
         search: 'Rechercher un fournisseur, un code, une raison sociale…',
@@ -268,6 +271,7 @@ export function mergeFilterOptions(previous, items) {
         }
     }
 
+    /** `workspace://SpacesStore/<uuid>` — un identifiant, jamais un libellé. */
     const put = (key, value, label) => {
         if (!value) {
             return;
@@ -275,7 +279,17 @@ export function mergeFilterOptions(previous, items) {
         const existing = known[key].get(value);
         // A later row may carry the label an earlier one did not resolve.
         if (!existing || (!existing.label && label)) {
-            known[key].set(value, { value, label: label || value });
+            // `value` is a readable string for most filters (site, buyer) and a
+            // **nodeRef** for the hierarchies — falling back to it there put
+            // `workspace://SpacesStore/…` in the dropdown. An option with no
+            // label is dropped rather than shown as an identifier: the server
+            // resolves these labels, and an unresolved one is a gap, not a value
+            // to pick from.
+            const readable = label || (NODEREF_RE.test(value) ? '' : value);
+            if (!readable) {
+                return;
+            }
+            known[key].set(value, { value, label: readable });
         }
     };
 

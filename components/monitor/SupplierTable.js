@@ -350,7 +350,7 @@ export function buildSupplierColumns(local, lang) {
         ),
         {
             id: 'family',
-            accessorFn: (row) => (row.family ? row.family.label || row.family.nodeRef : ''),
+            accessorFn: (row) => (row.family ? row.family.label || '' : ''),
             header: columns.family,
             meta: { label: columns.family, width: '10rem' },
             cell: ({ getValue }) => (
@@ -477,7 +477,7 @@ function compareRows(local, lang) {
             label: rows.family,
             render: (item) => (
                 <span className="text-xs">
-                    {item.family ? item.family.label || item.family.nodeRef : local.none}
+                    {(item.family && item.family.label) || local.none}
                 </span>
             ),
         },

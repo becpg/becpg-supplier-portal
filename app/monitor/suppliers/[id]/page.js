@@ -632,12 +632,12 @@ export default function MonitorSupplierSheetPage() {
                                     </Definition>
                                     <Definition label={identity.family}>
                                         {supplier.family
-                                            ? supplier.family.label || supplier.family.nodeRef
+                                            ? supplier.family.label || null
                                             : identity.none}
                                     </Definition>
                                     <Definition label={identity.subFamily}>
                                         {supplier.subFamily
-                                            ? supplier.subFamily.label || supplier.subFamily.nodeRef
+                                            ? supplier.subFamily.label || null
                                             : identity.none}
                                     </Definition>
                                     <Definition label={identity.buyer}>
