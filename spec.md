@@ -464,6 +464,7 @@ l'utilisateur (`ExternalUser` → espace fournisseur ; `QualityMgr` / `Purchasin
 /                          → Mon tableau de bord (§4.3)
 /login                     → sélection tenant (si non porté par l'URL) + SSO IDS
 /tasks                     → Mes tâches (liste + filtres : type, échéance, priorité, produit)
+/products/[id]/import      → reprise d'une MP depuis un autre tenant (§4.7)
 /tasks/[id]                → routage par type de tâche :
      · wizard              → assistant de saisie (§4.4)
      · signature           → visionneuse PDF + signature
@@ -708,6 +709,139 @@ actions qui passent par les mécanismes existants (création de projet, ouvertur
 notification). Les données restent filtrées par les ACL beCPG de l'utilisateur — un acheteur ne
 voit que son périmètre.
 
+### 4.7 Reprise d'une matière première depuis un autre tenant
+
+**Le problème.** Un fournisseur vend souvent la même matière première à plusieurs clients beCPG.
+Chaque client a son tenant — un realm Keycloak, une instance beCPG, un référentiel séparé (§5.3).
+Le fournisseur ressaisit donc *la même* fiche technique autant de fois qu'il a de clients : mêmes
+ingrédients, mêmes allergènes, mêmes analyses, mêmes certificats. C'est le premier poste de
+ressaisie du portail, et celui que le fournisseur vit le plus mal, parce qu'il sait que la donnée
+existe déjà.
+
+**Ce qui rend l'exercice non trivial** : les deux tenants ne demandent pas la même chose. Le
+wizard, les catalogues de conformité, les questionnaires et les types de documents sont
+configurés par *chaque* client (Aryzta a 4 questionnaires sur la MP, Bridor un seul, Upfield
+aucun — §2ter). Une copie nœud à nœud n'a donc aucun sens : ce qui se transporte, ce sont des
+**valeurs de propriétés**, pas une structure.
+
+#### 4.7.1 Ce qui rend la chose possible : le modèle est commun
+
+Les deux instances tournent sur le **même modèle beCPG**. `bcpg:nutListValue` désigne la même
+grandeur chez Aryzta et chez Bridor, `bcpg:allergenListInVoluntary` la même déclaration. Le
+mapping est donc, pour l'essentiel, **l'identité sur les QName** — et c'est ce qui distingue cette
+fonctionnalité d'un import ERP, qui demanderait une table de correspondance par client.
+
+Ce qui diffère n'est pas le sens des champs, c'est **lesquels sont demandés** :
+
+| Cas | Traitement |
+|---|---|
+| Le champ existe des deux côtés | valeur reprise |
+| Demandé par la cible, absent de la source | laissé vide, **signalé** comme restant à saisir |
+| Présent dans la source, non demandé par la cible | **ignoré** — il n'a pas de place où aller |
+| Caractéristique absente du référentiel cible (un ingrédient, un allergène) | ligne **non reprise**, listée à part : créer une caractéristique dans le référentiel du client est une décision du client, pas du fournisseur |
+
+Le dernier cas est le plus fréquent en pratique et ne doit surtout pas être « résolu » par une
+création automatique : les référentiels de caractéristiques sont la propriété du client.
+
+#### 4.7.2 Ce qui ne se transporte jamais
+
+**Deux clients d'un même fournisseur sont souvent concurrents.** La liste de ce qui traverse est
+donc une **liste blanche**, jamais une liste d'exclusions — un champ nouveau dans le modèle beCPG
+doit être invisible à la reprise tant que personne ne l'a explicitement autorisé.
+
+Ne traversent pas, et la raison :
+
+- **`bcpg:costList`, prix, remises, conditions commerciales** — ce sont les conditions négociées
+  avec l'autre client. Une fuite ici est la pire que le portail puisse produire.
+- **Les données de jugement du client source** : `bcpg:reqCtrlList`, `bcpg:aiValidationState`,
+  `pjt:scoreList`, états de validation, gel de listes. C'est l'avis du client A sur le
+  fournisseur ; il n'a aucune valeur — et aucune légitimité — chez le client B.
+- **Les cahiers des charges, les projets, les tâches, les discussions, les commentaires.** Ce sont
+  les documents et les échanges du client A.
+- **Tout ce qui identifie le client A** : codes internes, `bcpg:clients`, hiérarchies produit,
+  arborescences de classement.
+
+Traversent, parce que ce sont les données que le fournisseur produit sur son propre produit :
+
+- les propriétés de la fiche (nom légal, unité, durée de vie, conditions de stockage) ;
+- `bcpg:ingList`, `bcpg:allergenList`, `bcpg:nutList`, `bcpg:physicoChemList`,
+  `bcpg:microbioList`, `bcpg:organoList`, `bcpg:labelClaimList` ;
+- les réponses de questionnaire, **question par question**, quand la même question existe des deux
+  côtés (rapprochement sur `bcpg:code` de `survey:surveyQuestion`, cf. §4.7.4) ;
+- les **documents** déposés par le fournisseur et leurs dates d'effectivité — un certificat IFS
+  est le certificat du fournisseur, pas celui du client.
+
+#### 4.7.3 Le modèle de confiance
+
+**Le fournisseur est le seul à pouvoir déclencher la reprise, et il doit être authentifié des deux
+côtés.** Le tenant cible n'obtient jamais d'accès au tenant source : il ne reçoit que le paquet
+que le fournisseur a explicitement approuvé.
+
+```
+   Portail (tenant CIBLE)                          Tenant SOURCE
+   ─────────────────────                           ──────────────
+   1. « Reprendre une MP d'un autre client »
+   2. choix du tenant source  ────── OIDC ──────►  realm de la source
+                                                   le fournisseur s'authentifie
+   3. ◄──── ticket Alfresco source (serveur) ─────
+   4. lecture des MP du fournisseur sur la source
+      (ACL de la source, donc son propre périmètre)
+   5. le fournisseur choisit LA MP et voit le
+      détail champ par champ de ce qui sera repris
+   6. il approuve  ───► écriture sur la CIBLE
+```
+
+Points non négociables :
+
+1. **Le ticket source ne quitte jamais le serveur du portail** et n'est pas persisté au-delà de la
+   session de reprise — même règle qu'au §5.3 pour le ticket courant.
+2. **Le client cible ne voit jamais le nom du tenant source.** Il voit qu'une valeur a été reprise
+   d'un autre dossier, pas de chez qui. Révéler que son fournisseur travaille pour tel concurrent
+   est une information commerciale qui ne lui appartient pas.
+3. **Rien n'est écrit sans approbation explicite, champ par champ.** La reprise emprunte le canal
+   des **suggestions** (§4.4) : chaque valeur arrive comme une proposition que le fournisseur
+   applique ou écarte. Aucun nouveau mécanisme d'écriture, aucun nouveau chemin de confiance — et
+   le fournisseur voit ce qu'il transfère avant qu'il ne parte.
+4. **Traçabilité côté client.** Une valeur reprise est marquée comme telle dans
+   `bcpg:activityList` : le qualiticien doit pouvoir distinguer une donnée saisie pour lui d'une
+   donnée recopiée d'un autre dossier — cela change la lecture qu'il en fait.
+
+#### 4.7.4 Rapprochement des questionnaires
+
+Le cas des questionnaires est le plus délicat, parce que le rapprochement se fait sur
+`bcpg:code` de `survey:surveyQuestion`, et que ce code n'est **garanti stable que pour les
+questions livrées en standard** (banque `becpg-data`, plages réservées). Une question créée à la
+main par un client porte un code arbitraire qui ne veut rien dire ailleurs.
+
+Règle : on ne reprend une réponse que si **le code *et* le libellé** concordent. Une correspondance
+de code seule, sur deux libellés différents, est un faux ami — répondre « Oui » à la mauvaise
+question dans un dossier d'agrément est pire que ne pas répondre. Les questions non rapprochées
+sont listées comme restant à saisir.
+
+#### 4.7.5 Ce que ça demande à beCPG
+
+Rien de nouveau côté écriture : la reprise écrit par le chemin habituel du wizard. Côté lecture,
+un seul besoin, sur l'instance **source** :
+
+- un webscript d'export « ma fiche, périmètre fournisseur » qui renvoie les listes autorisées
+  ci-dessus pour une entité dont l'appelant est le fournisseur, en refusant tout le reste.
+  L'alternative — laisser le portail composer l'export depuis `becpg/remote/entity` — mettrait la
+  liste blanche dans le portail, donc du côté qui ne fait pas autorité (règle R1, §5.1.1). **La
+  liste de ce qui a le droit de sortir doit être dans beCPG.**
+
+#### 4.7.6 Limites assumées
+
+- **Deux tenants sur des versions de modèle différentes** : le rapprochement par QName dégrade
+  proprement (le champ inconnu est ignoré), mais une propriété dont la *sémantique* a changé entre
+  deux versions majeures passerait inaperçue. À couvrir par un contrôle de version du modèle dans
+  l'export.
+- **Le fournisseur peut ne pas avoir de compte sur la source** au moment où il en a besoin (compte
+  désactivé après la fin d'un référencement, cf. §6.5). La reprise devient alors impossible ; il
+  n'y a pas de contournement acceptable, et il ne faut pas en inventer un.
+- **Ce n'est pas une synchronisation.** La reprise est ponctuelle et unidirectionnelle : une
+  correction faite ensuite chez la source ne se propage pas. Un lien vivant entre deux dossiers
+  clients concurrents serait un tout autre sujet, avec un tout autre modèle de confiance.
+
 ---
 
 ## 5. Architecture technique
@@ -856,6 +990,7 @@ plusieurs appels existants agrégés dans le route handler ; **additif** = ajout
 | `/entities/{id}` | GET | fiche produit | proxy `becpg/remote/entity` |
 | `/entities/{id}/catalogs` | GET | complétion / champs manquants | proxy `becpg/entity/entityCatalog` |
 | `/entities/{id}/specs` | GET | cahiers des charges applicables | proxy (assoc spécification) |
+| `/entities/{id}/import` | POST | reprise d'une MP depuis un autre tenant — renvoie des **suggestions**, n'écrit rien (§4.7) | OIDC sur le tenant source + webscript d'export |
 | `/documents` | GET | mes documents + `cm:effectivity` + `bcpg:aiValidationState` | proxy (`bcpg:documentAspect`) |
 | `/documents` | POST | dépôt / nouvelle version | proxy (upload Alfresco) |
 | `/documents/requirements` | GET | ce que je dois fournir et pour quand | **proxy** — cf. §5.4.2, la donnée est déjà matérialisée |
@@ -967,6 +1102,10 @@ une session mémoire. Scalabilité horizontale sans sticky session.
    disparaît — comportement à conserver.
 6. `protectedFields` des catalogues → ré-authentification requise, à porter dans le nouveau front.
 7. Journalisation : toute action fournisseur reste tracée dans `bcpg:activityList`.
+8. **Reprise inter-tenant (§4.7)** : liste blanche côté beCPG, jamais côté portail ; coûts et
+   données de jugement du client source exclus par construction ; le ticket du tenant source ne
+   quitte pas le serveur et n'est pas persisté ; le client cible n'apprend jamais l'identité du
+   tenant source.
 
 ---
 
