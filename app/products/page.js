@@ -26,6 +26,7 @@ import { Icon } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { entityTypeLabel } from '@/components/products/ProductHeader';
 import { formatDate, formatTotal } from '@/lib/format';
+import { useSession } from '@/components/providers/SessionProvider';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
@@ -42,10 +43,11 @@ const LABELS = {
         search: 'Rechercher un produit',
         allStates: 'Tous les états',
         allTypes: 'Tous les types',
+        scope: 'Périmètre',
+        scopeCurrent: 'Fiche courante',
+        scopeAll: 'Toutes mes fiches',
         branch: 'MAJ',
         branchFrom: 'Mise à jour de la version {version}',
-        branch: 'Update',
-        branchFrom: 'Update of version {version}',
         columns: {
             name: 'Produit',
             code: 'Code',
@@ -71,6 +73,11 @@ const LABELS = {
         search: 'Search a product',
         allStates: 'All states',
         allTypes: 'All types',
+        scope: 'Scope',
+        scopeCurrent: 'Current record',
+        scopeAll: 'All my records',
+        branch: 'Update',
+        branchFrom: 'Update of version {version}',
         columns: {
             name: 'Product',
             code: 'Code',
@@ -108,10 +115,34 @@ export default function ProductsPage() {
     // and an option must not disappear from under the user's cursor.
     const [seenTypes, setSeenTypes] = useState([]);
 
-    // Filtering happens upstream (one db-afts query), not in the browser: the
-    // list is ACL-filtered by beCPG and can legitimately be long.
+    const { supplier, suppliers } = useSession();
+    // Only meaningful for an account acting for several records; a single-record
+    // account is already looking at everything it has.
+    const canScope = suppliers.length > 1;
+    const [scopeAll, setScopeAll] = useState(false);
+
+    /*
+     * Scoped on the supplier record currently selected in the header.
+     *
+     * The scope is a query clause — `ANCESTOR:` on the supplier's own space,
+     * resolved server-side — not a filter applied to a list already fetched, so
+     * the repository returns only what is asked for.
+     *
+     * **It can hide products, and that is why "toutes mes fiches" exists.**
+     * Measured on dev with an account acting for 14 records: the records account
+     * for 50 of the 58 products the account can read, because 8 are filed outside
+     * any supplier space (`bcpg:suppliers` points at them, but filing is what
+     * `ANCESTOR:` sees). Without a way back to the unscoped list those 8 would be
+     * unreachable from this screen whichever record is selected.
+     */
     const products = useApi('entities', {
-        params: { pageSize: 100, withProjects: 1, state: state || undefined, type: type || undefined },
+        params: {
+            pageSize: 100,
+            withProjects: 1,
+            state: state || undefined,
+            type: type || undefined,
+            supplier: scopeAll ? undefined : (supplier ? supplier.nodeRef : undefined),
+        },
     });
 
     const items = useMemo(() => (products.data && products.data.items) || [], [products.data]);
@@ -348,6 +379,26 @@ export default function ProductsPage() {
                                 placeholder={labels.allTypes}
                             />
                         </div>
+                        {/*
+                         * The scope is shown, not implied. An account acting for
+                         * several records is otherwise looking at a filtered list
+                         * with nothing on screen saying so — and 8 of this account's
+                         * 58 products sit under no record at all, reachable only
+                         * from here.
+                         */}
+                        {canScope ? (
+                            <div className="w-64">
+                                <Select
+                                    value={scopeAll ? '' : 'current'}
+                                    onChange={(event) => setScopeAll(event.target.value === '')}
+                                    aria-label={labels.scope}
+                                    options={[
+                                        { value: 'current', label: supplier ? supplier.name : labels.scopeCurrent },
+                                        { value: '', label: labels.scopeAll },
+                                    ]}
+                                />
+                            </div>
+                        ) : null}
                     </div>
                 }
             />

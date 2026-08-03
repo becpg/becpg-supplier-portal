@@ -278,12 +278,13 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                                              * the profile, its approval status, its document
                                              * checklist — not one page's content.
                                              *
-                                             * It deliberately does **not** narrow *Mes produits*:
-                                             * the catalogue a supplier sees is decided by Alfresco
-                                             * ACLs, and filtering it here would hide products the
-                                             * account is legitimately working on. Switching record
-                                             * changes whose *fiche* you are looking at, not what
-                                             * you may work on.
+                                             * *Mes produits* is scoped on the selection too
+                                             * (`ANCESTOR:` on the record's space, server-side).
+                                             * That scope can hide products — measured on dev, 8 of
+                                             * the account's 58 are filed under no record at all —
+                                             * so `/products` carries an explicit "toutes mes fiches"
+                                             * option. Scoping silently would make those 8
+                                             * unreachable.
                                              */}
                                             {session.suppliers.length > 1 ? (
                                                 <>
