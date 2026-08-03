@@ -58,6 +58,7 @@ export const messages = {
         'account.login': 'Se connecter',
         'account.logout': 'Se déconnecter',
         'account.tenant': 'Client',
+        'account.suppliers': 'Mes fiches fournisseur',
 
         // --- Actions ---
         'action.save': 'Enregistrer',
@@ -154,6 +155,7 @@ export const messages = {
         'account.login': 'Sign in',
         'account.logout': 'Sign out',
         'account.tenant': 'Customer',
+        'account.suppliers': 'My supplier records',
 
         // --- Actions ---
         'action.save': 'Save',

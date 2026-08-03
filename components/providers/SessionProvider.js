@@ -57,6 +57,38 @@ const EMPTY_CAPABILITIES = Object.freeze({ isExternalUser: false, canMonitor: fa
 /** sessionStorage key holding the recent re-login attempts, so the guard survives a reload. */
 const RELOGIN_KEY = 'becpg_portal_relogin_attempts';
 
+/**
+ * localStorage key holding the supplier record the user is currently working on.
+ *
+ * **Why a choice exists at all.** One contact can act for several supplier
+ * records — a group and its subsidiaries, a parent and its plants. The session
+ * already resolves them all (`suppliers[]`; measured on dev: **13** for
+ * `supplier-test@becpg.fr`), but the payload's `supplier` was simply
+ * `suppliers[0]`. So *Ma fiche*, the approval banner and the document checklist
+ * all described **one arbitrary record**, and the other twelve were unreachable
+ * from the UI — not hidden behind a filter, absent.
+ *
+ * Persisted, and per user: which company I am working on is not a property of one
+ * page, and re-picking it on every navigation would make it a chore rather than a
+ * setting. Stored per `sub` so two accounts on the same browser do not inherit
+ * each other's choice.
+ */
+const SUPPLIER_KEY = 'becpg_portal_active_supplier';
+
+/** Reads the stored supplier nodeRef for a user, or `null`. */
+function readStoredSupplier(sub) {
+    if (!sub || typeof window === 'undefined') {
+        return null;
+    }
+    try {
+        const raw = JSON.parse(window.localStorage.getItem(SUPPLIER_KEY) || '{}');
+        return raw[sub] || null;
+    }
+    catch {
+        return null;
+    }
+}
+
 /** Re-login attempts tolerated inside {@link RELOGIN_WINDOW_MS} before giving up. */
 const RELOGIN_MAX = 2;
 
@@ -245,6 +277,53 @@ export function SessionProvider({ initialIdentity = null, children }) {
 
     const refresh = useCallback(() => setNonce((value) => value + 1), []);
 
+    /* ---------------------------------------------------------------- supplier */
+
+    const sub = (session && session.user && session.user.sub) || null;
+    const suppliers = useMemo(() => (session && session.suppliers) || [], [session]);
+
+    // Read during render, not in an effect: an effect would paint one frame of the
+    // wrong company — and on `/company` that frame is a whole supplier record.
+    const [chosenRef, setChosenRef] = useState(null);
+    const [chosenFor, setChosenFor] = useState(null);
+    if (sub && chosenFor !== sub) {
+        setChosenFor(sub);
+        setChosenRef(readStoredSupplier(sub));
+    }
+
+    /**
+     * The record being worked on. Falls back to the first one, so a single-record
+     * account behaves exactly as before and a stale stored ref — a supplier the
+     * user no longer acts for — cannot leave the shell pointing at nothing.
+     */
+    const supplier = useMemo(() => {
+        if (suppliers.length === 0) {
+            return (session && session.supplier) || null;
+        }
+        const chosen = chosenRef
+            ? suppliers.find((entry) => entry.nodeRef === chosenRef || entry.uuid === chosenRef)
+            : null;
+        return chosen || suppliers[0];
+    }, [suppliers, chosenRef, session]);
+
+    const selectSupplier = useCallback(
+        (value) => {
+            const ref = typeof value === 'string' ? value : (value && (value.nodeRef || value.uuid)) || null;
+            setChosenRef(ref);
+            if (!sub || typeof window === 'undefined') {
+                return;
+            }
+            try {
+                const raw = JSON.parse(window.localStorage.getItem(SUPPLIER_KEY) || '{}');
+                window.localStorage.setItem(SUPPLIER_KEY, JSON.stringify({ ...raw, [sub]: ref }));
+            }
+            catch {
+                // Private browsing: the choice still holds for this page's lifetime.
+            }
+        },
+        [sub],
+    );
+
     const signOut = useCallback((options = {}) => {
         const params = new URLSearchParams();
         if (options.next) {
@@ -265,8 +344,9 @@ export function SessionProvider({ initialIdentity = null, children }) {
             isTest: Boolean(session && session.isTest),
             space: (session && session.space) || 'unknown',
             groups: (session && session.groups) || [],
-            suppliers: (session && session.suppliers) || [],
-            supplier: (session && session.supplier) || null,
+            suppliers,
+            supplier,
+            selectSupplier,
             capabilities: (session && session.capabilities) || EMPTY_CAPABILITIES,
             loading,
             error,
@@ -274,7 +354,7 @@ export function SessionProvider({ initialIdentity = null, children }) {
             refresh,
             signOut,
         }),
-        [session, loading, error, refresh, signOut],
+        [session, suppliers, supplier, selectSupplier, loading, error, refresh, signOut],
     );
 
     return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

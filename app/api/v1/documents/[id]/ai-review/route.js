@@ -35,7 +35,13 @@
  * | Suggestion | Applied without asking | Why |
  * |---|---|---|
  * | `DocumentReview` | **yes** | it writes the machine's *own* verdict fields (`bcpg:aiValidation*`), which is precisely the value beCPG would have written itself had it called the AI. Nothing the supplier typed is touched. |
- * | anything else (`DocumentClassification`, extractions…) | **no** | those change the supplier's data — a document type, a validity date. Spec §4.4: a suggestion is applied only on an explicit user action, and a high confidence buys optimistic application in the UI, not silent application on the server. |
+ * | `DocumentClassification` | **only `bcpg:documentTypeRef`, and only at confidence ≥ 90** | typing a document is what makes everything else possible: an untyped deposit cannot be reviewed at all (`resolveValidationCriteria` returns null → `reviewed: false`) and cannot be extracted from. The plugin caps an *inferred* type at 89 and keeps the model's score only when the label appears verbatim in the file, so the threshold is exactly the line between read and guessed. A guess is returned for the supplier to confirm. |
+ * | anything else (extractions, dates, values…) | **no** | those change the supplier's data. Spec §4.4: a suggestion is applied only on an explicit user action, and a high confidence buys optimistic application in the UI, not silent application on the server. |
+ *
+ * The classification patch is **narrowed to that one property on that one node**
+ * before being applied — see {@link narrowClassification}, and the reason it is
+ * not optional: on a document with no `bcpg:documentEntityRef`, becpg-ai proposes
+ * *product* properties on a `cm:content` node at confidence 100.
  *
  * The unapplied ones are still returned, normalised and bucketed, so the caller
  * can offer them.
@@ -63,6 +69,34 @@ export const dynamic = 'force-dynamic';
 
 /** becpg-ai `SuggestionType` carrying a document verdict. */
 const REVIEW_TYPE = 'DocumentReview';
+
+/** becpg-ai `SuggestionType` proposing what kind of document this is. */
+const CLASSIFICATION_TYPE = 'DocumentClassification';
+
+/**
+ * The one property the classification is allowed to write by itself.
+ *
+ * Typing a document is a **prerequisite**, not a convenience:
+ * `DocumentReviewSuggestionPlugin.resolveValidationCriteria` returns null when the
+ * document carries no `documentTypeRef` with `bcpg:aiValidationCriteria`, so an
+ * untyped deposit answers `reviewed: false, reason: "noReview"` — correctly, and
+ * uselessly. Measured on a freshly uploaded, untyped certificate on dev. Until a
+ * document is typed there is nothing to review and nothing to extract, which is
+ * why this is applied and the rest of the patch is not.
+ */
+const CLASSIFICATION_PROPERTY = 'bcpg:documentTypeRef';
+
+/**
+ * Minimum confidence for the type to be written without asking.
+ *
+ * The plugin caps an *inferred* type at 89 and keeps the model's score only when
+ * the type label appears verbatim in the document, so 90 is exactly the line
+ * between "read on the page" and "guessed". Measured on dev: three byte-identical
+ * spreadsheets classified `Autre`@70, `Autre`@70 and `Extraction AI`@80 — all
+ * below this line, all left for the supplier to confirm, which is the right
+ * outcome for a filing category that decides which checks then run.
+ */
+const CLASSIFICATION_MIN_CONFIDENCE = 90;
 
 /**
  * How long the review may take upstream. becpg-ai cuts a silent plugin off at
@@ -130,6 +164,68 @@ export function extractValidation(suggestedChanges, documentId) {
 }
 
 /**
+ * Narrows a classification patch to `bcpg:documentTypeRef` **on the uploaded
+ * document itself**, or returns `null`.
+ *
+ * Two independent reasons this cannot just forward `suggestedChanges`:
+ *
+ *  1. **The patch may not be about this node.** becpg-ai builds an entity-shaped
+ *     tree and, on a document with no `bcpg:documentEntityRef` — which is what a
+ *     free deposit into *Documents fournisseur* produces — `createSuggestionContext`
+ *     cannot resolve the owning entity, keeps the *document* as `currentEntity`,
+ *     and the extraction plugin then proposes **product** properties
+ *     (`bcpg:legalName`, `bcpg:productHierarchy1`) on a `cm:content` node, at
+ *     `confidence: 100`. Observed on dev. Applying that would corrupt the node.
+ *  2. **Only one property is wanted.** Everything else a classification carries is
+ *     the supplier's data and belongs behind an explicit action (spec §4.4).
+ *
+ * So the tree is walked, the node whose `id` is the uploaded document is found,
+ * and a patch is rebuilt carrying that single property and nothing else.
+ *
+ * @param {Object|null} suggestedChanges
+ * @param {string} documentId
+ * @returns {Object|null} a minimal patch, or `null` when there is nothing safe to apply
+ */
+export function narrowClassification(suggestedChanges, documentId) {
+    if (!suggestedChanges || typeof suggestedChanges !== 'object' || !documentId) {
+        return null;
+    }
+
+    const stack = [suggestedChanges];
+    const seen = new Set();
+    while (stack.length > 0) {
+        const node = stack.pop();
+        if (!node || typeof node !== 'object' || seen.has(node)) {
+            continue;
+        }
+        seen.add(node);
+
+        const attributes = node.attributes;
+        if (attributes && typeof attributes === 'object') {
+            const value = attributes[CLASSIFICATION_PROPERTY];
+            if (node.id === documentId && value !== undefined && value !== null && value !== '') {
+                return { id: documentId, attributes: { [CLASSIFICATION_PROPERTY]: value } };
+            }
+            stack.push(attributes);
+        }
+
+        for (const value of Object.values(node)) {
+            if (Array.isArray(value)) {
+                for (const item of value) {
+                    if (item && typeof item === 'object') {
+                        stack.push(item);
+                    }
+                }
+            }
+            else if (value && typeof value === 'object') {
+                stack.push(value);
+            }
+        }
+    }
+    return null;
+}
+
+/**
  * @param {Request} request
  * @param {{ params: Promise<{ id: string }> }} context
  * @returns {Promise<Response>}
@@ -183,11 +279,49 @@ export async function POST(request, context) {
         // `getSuggestions` has already dropped becpg-ai's progress envelopes
         // (`Loading`, `Closing`, `Billing`…), so everything left is a proposal.
         const review = suggestions.find((item) => item.type === REVIEW_TYPE) || null;
-        const others = suggestions.filter((item) => item.type !== REVIEW_TYPE);
+        const classification = suggestions.find((item) => item.type === CLASSIFICATION_TYPE) || null;
+        const others = suggestions.filter(
+            (item) => item.type !== REVIEW_TYPE && item.type !== CLASSIFICATION_TYPE,
+        );
+
+        // The type first: a document with none cannot be reviewed at all, so
+        // writing it is what makes everything downstream possible. Only when the
+        // plugin read the type off the page (see CLASSIFICATION_MIN_CONFIDENCE);
+        // a guess is returned for the supplier to confirm instead.
+        let documentType = null;
+        if (classification) {
+            const patch = narrowClassification(classification.suggestedChanges, id);
+            const confident = Number(classification.confidence) >= CLASSIFICATION_MIN_CONFIDENCE;
+            documentType = {
+                proposed: classification.title || null,
+                confidence: classification.confidence ?? null,
+                confidenceLevel: classification.confidenceLevel || null,
+                applied: false,
+                ...(patch ? {} : { reason: 'notOnThisDocument' }),
+            };
+            if (patch && confident && body.apply !== false) {
+                try {
+                    await applySuggestion({ suggestedChanges: patch, session });
+                    documentType.applied = true;
+                }
+                catch (cause) {
+                    documentType.error = cause?.code || 'applyFailed';
+                }
+            }
+            else if (patch && !confident) {
+                documentType.reason = 'lowConfidence';
+            }
+        }
 
         if (!review) {
             return NextResponse.json(
-                { reviewed: false, reason: 'noReview', documentId: id, suggestions: others },
+                {
+                    reviewed: false,
+                    reason: 'noReview',
+                    documentId: id,
+                    suggestions: classification ? [classification, ...others] : others,
+                    ...(documentType ? { documentType } : {}),
+                },
                 { headers: { 'Cache-Control': 'no-store' } },
             );
         }
@@ -219,6 +353,7 @@ export async function POST(request, context) {
                 confidenceLevel: review.confidenceLevel,
                 applied,
                 ...(applyError ? { applyError } : {}),
+                ...(documentType ? { documentType } : {}),
                 suggestions: others,
                 reviewedAt: new Date().toISOString(),
             },

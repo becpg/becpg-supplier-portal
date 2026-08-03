@@ -75,6 +75,9 @@ const LABELS = {
         empty: 'Aucune suggestion',
         emptyHint:
             'Déposez vos documents à l’étape précédente : l’extraction automatique vous proposera les valeurs qu’elle y trouve.',
+        emptyEntityLevel:
+            'L’analyse a bien tourné, mais elle n’a produit que des déductions faites sur la fiche '
+            + 'elle-même, sans document à l’appui : elles ne vous sont pas proposées.',
         refresh: 'Relancer l’analyse',
         readOnly: 'Cette fiche est en lecture seule : les suggestions ne peuvent pas être appliquées.',
         source: 'Source',
@@ -107,6 +110,9 @@ const LABELS = {
         empty: 'No suggestion',
         emptyHint:
             'Deposit your documents at the previous step: the automatic extraction will propose the values it finds.',
+        emptyEntityLevel:
+            'The analysis did run, but it only produced deductions made from the sheet itself, '
+            + 'with no document backing them: they are not offered to you.',
         refresh: 'Run the analysis again',
         readOnly: 'This sheet is read-only: suggestions cannot be applied.',
         source: 'Source',
@@ -364,6 +370,7 @@ export function SuggestionsStep({
     entityType,
     suggestions = [],
     summary = null,
+    entityLevelDropped = 0,
     loading = false,
     error = null,
     onRefresh,
@@ -598,7 +605,16 @@ export function SuggestionsStep({
             ) : null}
 
             {sections.length === 0 ? (
-                <EmptyState variant="empty" icon="auto_awesome" title={labels.empty} message={labels.emptyHint} />
+                <EmptyState
+                    variant="empty"
+                    icon="auto_awesome"
+                    title={labels.empty}
+                    message={
+                        entityLevelDropped > 0
+                            ? `${labels.emptyHint} ${labels.emptyEntityLevel}`
+                            : labels.emptyHint
+                    }
+                />
             ) : (
                 <div className="flex flex-col gap-4">
                     {sections.map((section) => (

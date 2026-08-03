@@ -243,7 +243,7 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                                                     {user.email}
                                                 </p>
                                             ) : null}
-                                            {session.supplier ? (
+                                            {session.supplier && session.suppliers.length <= 1 ? (
                                                 <p className="mt-1 truncate text-xs text-[var(--becpg-dark-grey)]">
                                                     <Icon
                                                         name="apartment"
@@ -267,6 +267,73 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                                         </div>
 
                                         <div className="p-1">
+                                            {/*
+                                             * One contact, several supplier records — a group and
+                                             * its subsidiaries. Before this, the shell showed
+                                             * `suppliers[0]` and the other twelve (measured on dev)
+                                             * were unreachable from the UI.
+                                             *
+                                             * It lives in the header rather than on `/company`
+                                             * because it changes what several screens describe —
+                                             * the profile, its approval status, its document
+                                             * checklist — not one page's content.
+                                             *
+                                             * It deliberately does **not** narrow *Mes produits*:
+                                             * the catalogue a supplier sees is decided by Alfresco
+                                             * ACLs, and filtering it here would hide products the
+                                             * account is legitimately working on. Switching record
+                                             * changes whose *fiche* you are looking at, not what
+                                             * you may work on.
+                                             */}
+                                            {session.suppliers.length > 1 ? (
+                                                <>
+                                                    <div className="px-3 pb-1 pt-1 text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">
+                                                        {t('account.suppliers')}
+                                                    </div>
+                                                    <div
+                                                        role="group"
+                                                        aria-label={t('account.suppliers')}
+                                                        className="max-h-56 overflow-y-auto"
+                                                    >
+                                                        {session.suppliers.map((entry) => {
+                                                            const active = session.supplier
+                                                                && entry.nodeRef === session.supplier.nodeRef;
+                                                            return (
+                                                                <button
+                                                                    key={entry.nodeRef}
+                                                                    type="button"
+                                                                    role="menuitemradio"
+                                                                    aria-checked={Boolean(active)}
+                                                                    onClick={() => {
+                                                                        session.selectSupplier(entry);
+                                                                        setOpen(false);
+                                                                    }}
+                                                                    className={[
+                                                                        'flex w-full touch-target items-center gap-2 rounded-lg px-3 py-2 text-left text-sm',
+                                                                        active
+                                                                            ? 'bg-[var(--becpg-blue-lighter)] font-medium'
+                                                                            : 'hover:bg-[var(--becpg-grey)]',
+                                                                    ].join(' ')}
+                                                                >
+                                                                    <Icon
+                                                                        name={active ? 'radio_button_checked' : 'apartment'}
+                                                                        size={18}
+                                                                        className="shrink-0"
+                                                                    />
+                                                                    <span className="min-w-0 flex-1 truncate">{entry.name}</span>
+                                                                    {entry.code ? (
+                                                                        <span className="shrink-0 text-[11px] text-[var(--becpg-dark-grey)]">
+                                                                            {entry.code}
+                                                                        </span>
+                                                                    ) : null}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                    <div className="my-1 border-t border-[var(--becpg-grey)]" />
+                                                </>
+                                            ) : null}
+
                                             <Link
                                                 href="/company"
                                                 role="menuitem"

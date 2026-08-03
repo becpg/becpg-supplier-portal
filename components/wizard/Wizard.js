@@ -760,6 +760,7 @@ export function Wizard({
             entityType={entity.type}
             suggestions={suggestions}
             summary={suggestionsCall.data ? suggestionsCall.data.summary : null}
+            entityLevelDropped={suggestionsCall.data ? suggestionsCall.data.entityLevelDropped || 0 : 0}
             loading={suggestionsCall.loading}
             error={suggestionsCall.error}
             onRefresh={suggestionsCall.refresh}
