@@ -167,9 +167,20 @@ export async function PUT(request, context) {
 }
 
 /**
- * Row actions of a datalist step. Only `reorder` today; the verb exists so a
- * future action does not need another route — and, more importantly, so that it
- * inherits the read-only gate for free.
+ * Actions on a step: `reorder` (datalist rows) and `nextStep`.
+ *
+ * **Why `nextStep` exists.** A step can declare a `nextStepWebScript` that beCPG
+ * expects to run when the supplier leaves it — either
+ * `becpg/remote/formulate?…` or `becpg/project/path?…&path=SupplierDocuments`,
+ * which resolves (and creates) the folder the *documents* step then writes into.
+ * `PUT` already runs it, but only when something was saved; a supplier who reads
+ * a step and moves on saves nothing, and the script never ran. The wizard filled
+ * that hole client-side by calling `POST …/formulate` on every step change —
+ * which runs a formulation *whatever the step declared*, so the folder resolution
+ * never happened and every navigation cost an extra formulation it had not been
+ * asked for.
+ *
+ * This action runs **the script the configuration declared**, and nothing else.
  *
  * @param {Request} request
  * @param {{ params: Promise<{ entityId: string, stepId: string }> }} context
@@ -181,6 +192,31 @@ export async function POST(request, context) {
         const session = await requireSession();
         const options = readOptions(request);
         const body = await readJsonObject(request);
+
+        if (body.action === 'nextStep') {
+            const state = await getWizardState(entityId, { ...options, session });
+            // A read-only wizard triggers nothing: both templates write to the
+            // repository (a formulation recomputes and stores, a path resolution
+            // creates the folder), and neither belongs on a sheet the supplier is
+            // only allowed to read.
+            if (state.readOnly) {
+                const denied = NextResponse.json({ nextStep: null, skipped: 'readOnly' });
+                denied.headers.set('Cache-Control', 'no-store');
+                return denied;
+            }
+            let nextStep = null;
+            try {
+                nextStep = await runNextStepWebScript(findStep(state, stepId), state.entity.nodeRef, { session });
+            }
+            catch (error) {
+                // Same rule as on save: a background step hook must never be the
+                // reason a supplier cannot move to the next step.
+                nextStep = { error: error?.code || 'upstream' };
+            }
+            const response = NextResponse.json({ nextStep });
+            response.headers.set('Cache-Control', 'no-store');
+            return response;
+        }
 
         if (body.action !== 'reorder') {
             throw new BadRequestError('Unsupported action', { details: { action: body.action || null } });

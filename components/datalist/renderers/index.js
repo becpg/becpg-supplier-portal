@@ -122,6 +122,21 @@ import { EmptyCell } from '@/components/datalist/renderers/cells';
 export const RENDERERS = Object.freeze({
     /* --- level 1: datatype- or target-scoped ----------------------------- */
     'bcpg:ing_bcpg:ingListIng': characteristic,
+    // The other multi-level lists Share indents from the same `bcpg:depthLevel`
+    // (product-columnRenderers.js:27-42). `bcpg:ingList` was covered and these
+    // were not, so a composition or a packaging list — both hierarchies — read as
+    // a flat list of unrelated components, which is not merely plainer: it says
+    // something false about the product.
+    //
+    // Deliberately type-scoped, exactly as Share registers them. Share also lists
+    // the bare target classes `bcpg:product` / `bcpg:entityV2`, which would catch
+    // every association pointing at a product anywhere in the portal; that is a
+    // much wider blast radius than the reported problem, so it is left out until
+    // a case actually needs it.
+    'bcpg:product_bcpg:compoListProduct': characteristic,
+    'bcpg:product_bcpg:packagingListProduct': characteristic,
+    'bcpg:product_bcpg:productListProduct': characteristic,
+    'bcpg:product_bcpg:nutListSources': characteristic,
     'mltext_survey:questionLabel': questionLabel,
     'boolean_bcpg:allergenListVoluntary': flaggedBoolean,
     'boolean_bcpg:allergenListInVoluntary': flaggedBoolean,

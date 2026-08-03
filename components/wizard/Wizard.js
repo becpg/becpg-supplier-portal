@@ -39,9 +39,13 @@
  *
  * ## Reformulation
  *
- * A step that declares `nextStepWebScript` triggers
- * `POST /api/v1/wizard/{entityId}/formulate` **when it is left** — once, in the
- * background, never blocking the UI, with a thin hint in the footer (spec §4.4).
+ * A step that declares `nextStepWebScript` runs **that script** when it is left
+ * (`POST /api/v1/wizard/{entityId}/step/{stepId}` with `action: "nextStep"`) —
+ * once, in the background, never blocking the UI, with a thin hint in the footer
+ * (spec §4.4). Two templates exist: a reformulation, and the resolution of the
+ * `SupplierDocuments` folder the documents step writes into. The wizard used to
+ * call the reformulation for both, which meant the folder resolution never
+ * happened and every navigation paid for a formulation it had not been asked for.
  * Per-keystroke saves always send `formulate: false`.
  *
  * ## Mobile
@@ -537,30 +541,41 @@ export function Wizard({
         [entityId],
     );
 
-    /** Reformulation between two steps — background, non-blocking (spec §4.4). */
-    const runFormulation = useCallback(() => {
-        if (formulatingRef.current || !entityId || (wizardState && wizardState.readOnly)) {
-            return;
-        }
-        formulatingRef.current = true;
-        setFormulating(true);
-        api.post(`wizard/${encodeURIComponent(entityId)}/formulate`, null, { params })
-            .then(() => {
-                // The score and the computed characteristics moved.
-                if (complianceTouched) {
-                    catalogs.refresh();
-                }
-            })
-            .catch(() => {
-                // Deliberately silent: a background reformulation that fails must
-                // not interrupt a supplier who is typing. The values are saved;
-                // beCPG reformulates again on validation.
-            })
-            .finally(() => {
-                formulatingRef.current = false;
-                setFormulating(false);
-            });
-    }, [entityId, params, wizardState, complianceTouched, catalogs]);
+
+    /**
+     * Runs a step's declared `nextStepWebScript` server-side, in the background.
+     *
+     * Never blocking, never fatal — a background hook, as in Share. The
+     * route decides *which* script — the wizard only says which step was left.
+     */
+    const runNextStep = useCallback(
+        (stepId) => {
+            if (formulatingRef.current || !entityId || !stepId || (wizardState && wizardState.readOnly)) {
+                return;
+            }
+            formulatingRef.current = true;
+            setFormulating(true);
+            api.post(`wizard/${encodeURIComponent(entityId)}/step/${encodeURIComponent(stepId)}`,
+                { action: 'nextStep' }, { params })
+                .then(() => {
+                    // A formulation moves the score and the computed characteristics;
+                    // a folder resolution does not. Refreshing when the compliance
+                    // panel has been opened is cheap and correct in both cases.
+                    if (complianceTouched) {
+                        catalogs.refresh();
+                    }
+                })
+                .catch(() => {
+                    // Deliberately silent, exactly as before: a background hook that
+                    // fails must not interrupt a supplier who is moving on.
+                })
+                .finally(() => {
+                    formulatingRef.current = false;
+                    setFormulating(false);
+                });
+        },
+        [entityId, params, wizardState, complianceTouched, catalogs],
+    );
 
     const goTo = useCallback(
         async (stepId, options = {}) => {
@@ -575,8 +590,17 @@ export function Wizard({
             // Nothing is ever left behind: whatever is pending goes out first.
             await autoSave.flush();
 
+            // Run **the script the step declared**, not a formulation regardless.
+            //
+            // Two templates exist in the configuration: `becpg/remote/formulate…`
+            // and `becpg/project/path…&path=SupplierDocuments`, which resolves and
+            // creates the folder the documents step then writes into. This branch
+            // used to call a blanket formulation for both, so on a step declaring
+            // SupplierDocuments (organoList, contactList, packMaterialList, the
+            // `supplier-nc` form step) the folder resolution never ran — and every
+            // navigation paid for a formulation nobody asked for.
             if (leaving && leaving.nextStepWebScript) {
-                runFormulation();
+                runNextStep(leaving.id);
             }
 
             setNav((current) => ({
@@ -594,7 +618,7 @@ export function Wizard({
                 window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
             }
         },
-        [currentId, steps, autoSave, runFormulation, persist, reduceMotion],
+        [currentId, steps, autoSave, runNextStep, persist, reduceMotion],
     );
 
     const goToField = useCallback(

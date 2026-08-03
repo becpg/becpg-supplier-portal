@@ -64,8 +64,15 @@ export const COMPANION_FIELDS = Object.freeze({
     'bcpg:nutListReferenceValue': ['bcpg:nutListUnit'],
 
     // --- the indent of a multi-level list -----------------------------------
+    // Every column Share indents needs `bcpg:depthLevel` alongside it: the level
+    // is a hidden column, so without this the renderer is registered, the row
+    // arrives, and the hierarchy is silently flat.
     'bcpg:ingListIng': ['bcpg:depthLevel'],
     'bcpg:allergenListAllergen': ['bcpg:depthLevel'],
+    'bcpg:compoListProduct': ['bcpg:depthLevel'],
+    'bcpg:packagingListProduct': ['bcpg:depthLevel'],
+    'bcpg:productListProduct': ['bcpg:depthLevel'],
+    'bcpg:nutListSources': ['bcpg:depthLevel'],
     'survey:questionLabel': ['bcpg:depthLevel'],
     'survey:slQuestion': ['bcpg:depthLevel'],
 });
