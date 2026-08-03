@@ -133,6 +133,40 @@ export const DATALIST_LABELS = {
         emptyReadOnly: 'Votre client n’attend aucune ligne dans cette liste.',
         mandatory: 'Champ obligatoire',
         detail: 'Détail',
+        duplicate: 'Dupliquer cette ligne',
+        saveAll: 'Tout enregistrer',
+        pending: '{count} ligne(s) non enregistrée(s)',
+        allSaved: 'Tout est enregistré',
+        shortcuts: 'Raccourcis clavier',
+        shortcutsTitle: 'Saisir au clavier',
+        shortcutList: [
+            ['Tab / Maj+Tab', 'cellule suivante / précédente'],
+            ['Entrée', 'enregistre la ligne et descend dans la même colonne'],
+            ['Entrée sur la dernière ligne', 'ajoute une ligne'],
+            ['↑ / ↓', 'même colonne, ligne du dessus / dessous'],
+            ['Échap', 'annule les modifications de la ligne'],
+            ['Ctrl+Entrée', 'ajoute une ligne'],
+            ['Ctrl+D', 'duplique la ligne courante'],
+            ['Ctrl+V', 'colle un bloc de cellules depuis un tableur'],
+        ],
+        pasteTitle: 'Collage depuis un tableur',
+        pasteApplied: '{cells} valeur(s) collée(s) sur {rows} ligne(s), dont {created} nouvelle(s).',
+        pasteNothing: 'Rien n’a pu être collé.',
+        pasteUndo: 'Annuler le collage',
+        pasteResolving: 'Recherche des libellés…',
+        pasteUnmatched: '{count} valeur(s) non reprise(s) — corrigez-les à la main :',
+        pasteExtraColumns: '{count} colonne(s) collée(s) au-delà de la dernière colonne de la liste : ignorée(s).',
+        pasteRefusedRows: '{count} ligne(s) au-delà de la liste : cette liste n’accepte pas de nouvelle ligne.',
+        pasteLine: 'ligne {line}',
+        pasteReasons: {
+            number: 'nombre attendu',
+            integer: 'nombre entier attendu',
+            boolean: 'oui / non attendu',
+            date: 'date attendue (jj/mm/aaaa)',
+            list: 'valeur hors de la liste proposée',
+            readonly: 'colonne non modifiable',
+            association: 'aucune correspondance exacte dans le référentiel',
+        },
     },
     en: {
         rows: '{count} row(s)',
@@ -179,6 +213,40 @@ export const DATALIST_LABELS = {
         emptyReadOnly: 'Your customer expects no row in this list.',
         mandatory: 'Required field',
         detail: 'Detail',
+        duplicate: 'Duplicate this row',
+        saveAll: 'Save everything',
+        pending: '{count} unsaved row(s)',
+        allSaved: 'Everything is saved',
+        shortcuts: 'Keyboard shortcuts',
+        shortcutsTitle: 'Typing with the keyboard',
+        shortcutList: [
+            ['Tab / Shift+Tab', 'next / previous cell'],
+            ['Enter', 'saves the row and moves down in the same column'],
+            ['Enter on the last row', 'adds a row'],
+            ['↑ / ↓', 'same column, row above / below'],
+            ['Esc', 'discards the row’s changes'],
+            ['Ctrl+Enter', 'adds a row'],
+            ['Ctrl+D', 'duplicates the current row'],
+            ['Ctrl+V', 'pastes a block of cells from a spreadsheet'],
+        ],
+        pasteTitle: 'Pasted from a spreadsheet',
+        pasteApplied: '{cells} value(s) pasted over {rows} row(s), {created} of them new.',
+        pasteNothing: 'Nothing could be pasted.',
+        pasteUndo: 'Undo the paste',
+        pasteResolving: 'Looking the labels up…',
+        pasteUnmatched: '{count} value(s) not taken — fix them by hand:',
+        pasteExtraColumns: '{count} pasted column(s) past the last column of the list: ignored.',
+        pasteRefusedRows: '{count} row(s) past the end of the list: this list accepts no new row.',
+        pasteLine: 'line {line}',
+        pasteReasons: {
+            number: 'a number was expected',
+            integer: 'a whole number was expected',
+            boolean: 'yes / no was expected',
+            date: 'a date was expected (dd/mm/yyyy)',
+            list: 'value outside the offered list',
+            readonly: 'column cannot be changed',
+            association: 'no exact match in the reference data',
+        },
     },
 };
 
@@ -193,7 +261,9 @@ export function useDataListLabels() {
         (key, vars) => {
             const dict = DATALIST_LABELS[lang] || DATALIST_LABELS.fr;
             const value = dict[key] ?? DATALIST_LABELS.fr[key] ?? key;
-            if (!vars) {
+            // A few entries are a table rather than a sentence (the shortcut
+            // list, the paste reasons); they are handed back untouched.
+            if (!vars || typeof value !== 'string') {
                 return value;
             }
             return value.replace(/\{(\w+)\}/g, (match, name) => (
@@ -414,6 +484,10 @@ export function useDataList(options = {}) {
     const alive = useRef(true);
     const handlers = useRef({ onSaved, onError });
     const paramsRef = useRef(params);
+    // The rows as of the last committed render. `commitAll` walks whatever is
+    // dirty at the moment it is called, and needs the row objects behind those
+    // keys without becoming a dependency of every callback that touches them.
+    const rowsRef = useRef([]);
 
     // `dirty` is mirrored in a ref because a picker commits in the very tick it
     // changes: `commitRow` must see the edit `setCell` just recorded, and React
@@ -613,6 +687,10 @@ export function useDataList(options = {}) {
      * of the card layout and of every consumer of the hook, and not only of the
      * one table that happens to render a `<tfoot>`.
      */
+    useEffect(() => {
+        rowsRef.current = rows;
+    });
+
     const dataRows = useMemo(() => rows.filter((row) => !isTotalRow(row)), [rows]);
 
     /**
@@ -741,6 +819,32 @@ export function useDataList(options = {}) {
         ));
     }, [updateDirty]);
 
+    /**
+     * Several cells of one row, in a single update.
+     *
+     * Not a convenience: a paste writes ten columns of forty rows, and calling
+     * `setCell` four hundred times would queue four hundred updates of a map
+     * that is copied whole each time. It also has to be atomic for the caller —
+     * a row must never be committed with half of a pasted line in it.
+     *
+     * @param {Object} row
+     * @param {Object<string, *>} entries keyed by **column name**, as `dirty` is
+     */
+    const setCells = useCallback((row, entries) => {
+        if (!entries || Object.keys(entries).length === 0) {
+            return;
+        }
+        updateDirty((previous) => ({
+            ...previous,
+            [row.key]: { ...(previous[row.key] || {}), ...entries },
+        }));
+        setStatus((previous) => (
+            previous[row.key]?.state === ROW_STATUS.SAVING
+                ? previous
+                : { ...previous, [row.key]: { state: ROW_STATUS.DIRTY } }
+        ));
+    }, [updateDirty]);
+
     const isRowDirty = useCallback(
         (rowKey) => Object.keys(dirty[rowKey] || {}).length > 0,
         [dirty],
@@ -768,6 +872,66 @@ export function useDataList(options = {}) {
             return draft;
         },
         [payload.itemType, setRowStatus, updateDirty],
+    );
+
+    /**
+     * A new line pre-filled from an existing one — the "same thing, one value
+     * different" case, which is most of a nutrient or an allergen list.
+     *
+     * Only what the supplier may write is copied: a computed column, a protected
+     * column and a nested sub-list are left to the server. Associations are
+     * copied as their nodeRefs, which is the shape the picker itself emits.
+     *
+     * @param {Object} source the row to copy
+     * @returns {Object|null} the draft, or null when the list refuses new rows
+     */
+    const duplicateRow = useCallback(
+        (source) => {
+            if (!canCreate || !source || isTotalRow(source)) {
+                return null;
+            }
+            const initial = {};
+            for (const column of columns) {
+                if (column.readOnly || column.protectedField || isNestedColumn(column)) {
+                    continue;
+                }
+                const pending = dirtyRef.current[source.key];
+                const value = pending && Object.prototype.hasOwnProperty.call(pending, column.name)
+                    ? pending[column.name]
+                    : source.values?.[column.formsName];
+                if (value === null || value === undefined || value === '') {
+                    continue;
+                }
+                if (column.type === 'association') {
+                    /*
+                     * Copied as the **cells** the repository sent —
+                     * `[{ value: nodeRef, displayValue: "E. coli O157" }]` — and
+                     * not as bare nodeRefs.
+                     *
+                     * All three consumers need it that way and only this shape
+                     * satisfies all three: `localDisplay` prints the label (a
+                     * bare nodeRef put `workspace://SpacesStore/559164c2…` in the
+                     * cell — measured), the picker resolves its own label from
+                     * it, and `toFormValue` unwraps `{value}` back to the nodeRef
+                     * for the PUT. Nothing is invented: the label is the one
+                     * beCPG already computed for the row being copied.
+                     */
+                    const cells = (Array.isArray(value) ? value : [value])
+                        .map((cell) => (cell && typeof cell === 'object'
+                            ? { value: cell.value ?? cell.nodeRef ?? null, displayValue: cell.displayValue ?? null }
+                            : { value: String(cell), displayValue: null }))
+                        .filter((cell) => cell.value);
+                    if (cells.length === 0) {
+                        continue;
+                    }
+                    initial[column.name] = cells;
+                    continue;
+                }
+                initial[column.name] = value;
+            }
+            return addRow(initial);
+        },
+        [canCreate, columns, addRow],
     );
 
     /** Drops the pending edits of a row (and the row itself when it is a draft). */
@@ -956,6 +1120,60 @@ export function useDataList(options = {}) {
     );
 
     /**
+     * Persists **every** row that holds pending edits, oldest first.
+     *
+     * Sequential, not parallel, and that is the point: a paste can leave forty
+     * dirty lines, and forty concurrent PUTs on the same datalist would race the
+     * repository's own sort index. It also means the caller can report progress
+     * honestly — the count only goes down when a row really was accepted.
+     *
+     * @returns {Promise<{saved: number, failed: number}>}
+     */
+    const commitAll = useCallback(async () => {
+        const keys = Object.keys(dirtyRef.current);
+        const byKey = new Map(rowsRef.current.map((row) => [row.key, row]));
+        let saved = 0;
+        let failed = 0;
+        for (const key of keys) {
+            const row = byKey.get(key);
+            if (!row) {
+                continue;
+            }
+            const result = await commitRow(row);
+            if (result) {
+                saved += 1;
+            }
+            else if (dirtyRef.current[key]) {
+                failed += 1;
+            }
+        }
+        return { saved, failed };
+    }, [commitRow]);
+
+    /**
+     * Throws away pending edits by row key — the undo of a paste.
+     *
+     * @param {string[]} keys
+     */
+    const discardRows = useCallback((keys) => {
+        const set = new Set(keys || []);
+        if (set.size === 0) {
+            return;
+        }
+        updateDirty((previous) => {
+            const next = { ...previous };
+            set.forEach((key) => delete next[key]);
+            return next;
+        });
+        setStatus((previous) => {
+            const next = { ...previous };
+            set.forEach((key) => delete next[key]);
+            return next;
+        });
+        setDrafts((previous) => previous.filter((entry) => !set.has(entry.key)));
+    }, [updateDirty]);
+
+    /**
      * Deletes a row. Optimistic too: the line disappears immediately and comes
      * back, in place, if the repository refuses.
      *
@@ -1136,12 +1354,19 @@ export function useDataList(options = {}) {
 
         /* editing */
         setCell,
+        setCells,
         commitRow,
+        commitAll,
         discardRow,
+        discardRows,
         addRow,
+        duplicateRow,
         deleteRow,
         moveRow,
         isRowDirty,
+        // How many rows are waiting to be written. The toolbar shows it, and it
+        // is the only number that can honestly answer "is my work saved?".
+        pendingCount: Object.keys(dirty).length,
         statusOf: (rowKey) => status[rowKey] || { state: ROW_STATUS.IDLE },
 
         /* protected fields */

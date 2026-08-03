@@ -1062,6 +1062,21 @@ body {
   padding-block: 1rem;
 }
 
+/*
+ * The opt-out, expressed here rather than as a Tailwind utility.
+ *
+ * `AppShell` used to drop the cap with `max-w-none`, and that never worked once:
+ * this rule is **unlayered** and a Tailwind utility lives in `@layer utilities`,
+ * which loses to any unlayered declaration whatever its specificity. Measured on
+ * the wizard's allergen step at 1920 — a screen that asks for `fullWidth` — the
+ * column was still 1400px wide with 132px of dead margin on each side. An
+ * attribute selector on the same unlayered rule wins by specificity, which is
+ * the only comparison that means anything here.
+ */
+.page-container[data-full='true'] {
+  max-width: none;
+}
+
 @media (min-width: 640px) {
   .page-container {
     padding-inline: 1.5rem;
@@ -1271,6 +1286,19 @@ body {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  /*
+   * `position: relative` is what makes the clip above actually hold.
+   *
+   * An `overflow` ancestor does not clip an absolutely-positioned descendant
+   * whose containing block is further up the tree, and a static `.table-scroll`
+   * is never anyone's containing block. Measured at 1280 on a grid 1251px wide
+   * inside a 398px scroller: the accessible name of the actions column
+   * (`<span class="sr-only-text">`, absolutely positioned, 1px) escaped the
+   * scroller at x = 1699 and took `document.scrollingElement.scrollWidth` to
+   * **1700** — the whole page scrolled sideways because of a 1px span nobody can
+   * see. Positioning the scroller pulls every such descendant back inside it.
+   */
+  position: relative;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1536,6 +1564,29 @@ body {
     padding-inline-end: 30px;
   }
 
+  /*
+   * The row chrome, at the grid's own scale.
+   *
+   * `IconButton` is 40px because that is the portal's minimum target for a
+   * finger, and it is right everywhere except inside a table that only exists
+   * from `md` up on a pointer device. Two of them stacked in the reorder cell
+   * measured **88px**, which set the pitch of every editable row to 95px
+   * against Share's 33 — the single worst density defect in the portal, and it
+   * came from the row's furniture, never from its data.
+   *
+   * 26px is the height of the controls beside them, so the reorder pair, the
+   * save / undo pair and the delete button now all fit the same 26px band. The
+   * rule lives here, under the same `min-width: 768px` guard as everything else
+   * in this block, so a phone (`DataListCardRow`) keeps its 40px buttons
+   * untouched — that is a guarantee of the media query, not a convention.
+   */
+  .becpg-grid .becpg-grid-icon {
+    min-height: 26px;
+    min-width: 26px;
+    padding: 2px;
+    border-radius: 4px;
+  }
+
   /* A three-row textarea is 60px tall and breaks the pitch for the whole
      grid; it opens to a readable height only while it has the focus. */
   .becpg-grid textarea {
@@ -1622,6 +1673,21 @@ body {
   .becpg-ac-button {
     width: 44px;
     height: 44px;
+  }
+}
+
+/*
+ * Inside a grid cell the two affordances are pure overhead: the field opens its
+ * list on focus, so the caret is redundant, and the cross duplicates what
+ * Ctrl+A / Delete already do. At 26px each they were eating 52 of a 96px
+ * column and squeezing the input — the thing being read — down to 20px.
+ * 20px each gives 12px back to the name. Only on a fine pointer: a tablet
+ * keeps the target the rule above gives it.
+ */
+@media (min-width: 768px) and (pointer: fine) {
+  .becpg-grid .becpg-ac-button {
+    width: 20px;
+    height: 20px;
   }
 }
 

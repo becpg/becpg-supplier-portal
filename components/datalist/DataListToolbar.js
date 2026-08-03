@@ -21,6 +21,9 @@ import { useDataListLabels } from '@/components/datalist/useDataList';
  * @param {React.ReactNode} [props.title] falls back to the step title from beCPG
  * @param {React.ReactNode} [props.description]
  * @param {Function} [props.onAdd] `() => void`; omitted ⇒ no add button
+ * @param {Function} [props.onSaveAll] `() => Promise<void>` — flushes every dirty row
+ * @param {boolean} [props.savingAll]
+ * @param {Function} [props.onShowShortcuts] opens the keyboard help
  * @param {React.ReactNode} [props.actions] extra buttons (export, AI suggestions…)
  * @param {boolean} [props.showSearch=true]
  */
@@ -29,11 +32,15 @@ export function DataListToolbar({
     title,
     description,
     onAdd,
+    onSaveAll,
+    savingAll = false,
+    onShowShortcuts,
     actions,
     showSearch = true,
 }) {
     const label = useDataListLabels();
     const heading = title ?? list.title;
+    const pending = list.pendingCount || 0;
 
     return (
         <div className="mb-3 flex flex-col gap-2">
@@ -73,8 +80,41 @@ export function DataListToolbar({
                     {label('rows', { count: list.total })}
                 </span>
 
+                {/*
+                  * What is actually saved, said out loud.
+                  *
+                  * The per-row tick is the truth for one line; this is the truth
+                  * for the grid, and it is the only thing that can answer "can I
+                  * leave this page?" after a paste has filled forty lines at
+                  * once. It is absent — not "0 unsaved" — when there is nothing
+                  * pending, so it never becomes furniture.
+                  */}
+                {onSaveAll && pending > 0 ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--status-warn-border)] bg-[var(--status-warn-bg)] px-2 py-1 text-xs text-[var(--becpg-dark-grey-deep)]">
+                        <Icon name="edit_note" size={14} />
+                        {label('pending', { count: pending })}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            icon="save"
+                            loading={savingAll}
+                            onClick={onSaveAll}
+                        >
+                            {label('saveAll')}
+                        </Button>
+                    </span>
+                ) : null}
+
                 <div className="ml-auto flex items-center gap-2">
                     {actions}
+                    {onShowShortcuts ? (
+                        <IconButton
+                            icon="keyboard"
+                            label={label('shortcuts')}
+                            variant="outline"
+                            onClick={onShowShortcuts}
+                        />
+                    ) : null}
                     <IconButton
                         icon="refresh"
                         label={label('retry')}

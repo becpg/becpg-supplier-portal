@@ -100,6 +100,10 @@ const LABELS = {
         delegated: 'Vous saisissez au nom de {supplier}',
         due: 'À rendre le {date}',
         step: 'Étape',
+        widen: 'Élargir la saisie',
+        widenHint: 'Masque les panneaux latéraux et réduit les étapes à leurs icônes.',
+        restore: 'Rétablir les panneaux',
+        steps: 'Étapes',
     },
     en: {
         context: 'Context',
@@ -124,6 +128,10 @@ const LABELS = {
         delegated: 'You are filling in on behalf of {supplier}',
         due: 'Due on {date}',
         step: 'Step',
+        widen: 'Widen the entry area',
+        widenHint: 'Hides the side panels and reduces the steps to their icons.',
+        restore: 'Restore the panels',
+        steps: 'Steps',
     },
 };
 
@@ -138,6 +146,16 @@ const SYNTHETIC = Object.freeze({
 function resumeKey(entityId) {
     return `becpg.portal.wizard.${entityId}`;
 }
+
+/**
+ * localStorage key of the entry-width preference.
+ *
+ * Deliberately **not** per entity: "I type with the panels out of the way" is a
+ * way of working, not a property of one raw material. It has to survive a step
+ * change, a reload and the next task, or it is not a preference at all — it is a
+ * button you press twelve times an afternoon.
+ */
+const WIDE_KEY = 'becpg.portal.wizard.wide';
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
@@ -405,6 +423,48 @@ export function Wizard({
     /* ------------------------------------------------------- side panel state */
 
     const [sheet, setSheet] = useState(null); // 'context' | 'comments' | null
+    /*
+     * "Élargir la saisie" — the answer to the grid being starved of width.
+     *
+     * Measured on the allergen step of a real task, at 1920: the usable grid was
+     * **774px** for a table that needs 984, i.e. three columns permanently off
+     * screen, while 320px went to the context panel, 208px to the step rail and
+     * 264px to the readable-width cap. None of those three is wrong on a form
+     * step; all three are wrong on a step whose content *is* a table.
+     *
+     * So the cap is released automatically on a grid step (that is the rule
+     * `AppShell` already documents — "a screen whose content is a grid goes full
+     * width" — applied per step rather than per route), and this flag is the
+     * supplier's own decision about the other two: panels out, rail reduced to
+     * its icons. Read once, in a lazy initialiser, because it is an entry
+     * condition and not a value that changes while the wizard is open.
+     */
+    const [wide, setWide] = useState(() => {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+        try {
+            return window.localStorage.getItem(WIDE_KEY) === '1';
+        }
+        catch {
+            return false;
+        }
+    });
+
+    const toggleWide = useCallback(() => {
+        setWide((current) => {
+            const next = !current;
+            try {
+                window.localStorage.setItem(WIDE_KEY, next ? '1' : '0');
+            }
+            catch {
+                // No storage (private window): the mode still works, it just
+                // does not survive the reload.
+            }
+            return next;
+        });
+    }, []);
+
     const [anchor, setAnchor] = useState(null);
     const [commentTargets, setCommentTargets] = useState([]);
     const [focusField, setFocusField] = useState(null);
@@ -758,14 +818,27 @@ export function Wizard({
     // happened.
     const canFinish = Boolean(task) && task.isOpen !== false && !wizardState.readOnly;
 
+    /*
+     * A step whose content is a table opts out of the readable-width cap, and
+     * only that step: a form step at 1664px would put a label 900px from its
+     * value, which is the defect the cap exists to prevent. The width therefore
+     * follows what is on screen, which is also what makes the change legible —
+     * you moved to a different kind of content, so the page changed shape.
+     */
+    const gridStep = Boolean(currentStep) && currentStep.kind !== 'form'
+        && currentStep.kind !== 'compliance' && currentStep.kind !== 'suggestions';
+
     return (
         <AppShell
             title={entity.name || labels.step}
+            fullWidth={gridStep}
             aside={
-                <div className="hidden flex-col gap-4 lg:flex">
-                    {helpPanel}
-                    {commentsPanel}
-                </div>
+                wide ? null : (
+                    <div className="hidden flex-col gap-4 lg:flex">
+                        {helpPanel}
+                        {commentsPanel}
+                    </div>
+                )
             }
             className={className}
         >
@@ -791,6 +864,47 @@ export function Wizard({
                         {wizardState.readOnly ? (
                             <StatusPill status="readonly" tone="neutral" icon="lock" size="sm" label={labels.readOnly} />
                         ) : null}
+                        {/*
+                          * Only from `lg` up: below it there is no side panel and
+                          * no rail to put away — the layout is already the one
+                          * this button produces.
+                          */}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            icon={wide ? 'width_normal' : 'width_wide'}
+                            onClick={toggleWide}
+                            title={wide ? labels.restore : labels.widenHint}
+                            aria-pressed={wide}
+                            className="hidden lg:inline-flex"
+                        >
+                            {wide ? labels.restore : labels.widen}
+                        </Button>
+                        {/* With the panels away, they stay one click away. */}
+                        {wide ? (
+                            <div className="hidden items-center gap-1 lg:flex">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    icon="lightbulb"
+                                    onClick={() => setSheet('context')}
+                                    label={labels.context}
+                                />
+                                {commentsEnabled ? (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        icon="forum"
+                                        onClick={() => setSheet('comments')}
+                                        label={
+                                            discussion.total > 0
+                                                ? `${labels.discussion} (${discussion.total})`
+                                                : labels.discussion
+                                        }
+                                    />
+                                ) : null}
+                            </div>
+                        ) : null}
                         <Button
                             variant="ghost"
                             size="icon"
@@ -809,7 +923,7 @@ export function Wizard({
                 ) : null}
             </Card>
 
-            <div className="grid min-w-0 gap-4 xl:grid-cols-[13rem_1fr]">
+            <div className={`grid min-w-0 gap-4 ${wide ? 'xl:grid-cols-[3.25rem_1fr]' : 'xl:grid-cols-[13rem_1fr]'}`}>
                 <WizardStepper
                     steps={visitedSteps}
                     currentId={currentId}
@@ -819,6 +933,18 @@ export function Wizard({
                     isSelectable={(step, index) =>
                         step.visited || index <= currentIndex + 1 || Boolean(wizardState.allSteps)}
                     variant="rail"
+                    collapsed={wide}
+                    footer={wide ? (
+                        <button
+                            type="button"
+                            onClick={toggleWide}
+                            title={labels.restore}
+                            aria-label={labels.restore}
+                            className="mt-1 flex w-full items-center justify-center rounded-xl py-1.5 text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)]/50 hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                        >
+                            <Icon name="chevron_right" size={18} />
+                        </button>
+                    ) : null}
                     className="hidden xl:sticky xl:top-24 xl:block xl:self-start"
                 />
 

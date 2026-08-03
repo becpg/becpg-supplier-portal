@@ -166,9 +166,11 @@ export function AppShell({
                         initial={reduceMotion ? false : { opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: reduceMotion ? 0 : 0.18, ease: 'easeOut' }}
-                        className={
-                            noPadding ? '' : `page-container ${fullWidth ? 'max-w-none' : ''}`
-                        }
+                        className={noPadding ? '' : 'page-container'}
+                        // Not `max-w-none`: `.page-container` is unlayered CSS
+                        // and beats any Tailwind utility, so the class did
+                        // nothing. See the rule in globals.css.
+                        data-full={!noPadding && fullWidth ? 'true' : undefined}
                     >
                         {breadcrumb ? <div className="mb-2 text-xs">{breadcrumb}</div> : null}
                         {subtitle ? (

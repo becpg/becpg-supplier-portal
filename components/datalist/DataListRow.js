@@ -352,6 +352,7 @@ export function RowStatus({ row, list, compact = false }) {
                     label={label('retry')}
                     variant="ghost"
                     size="icon"
+                    className="becpg-grid-icon"
                     onClick={() => list.commitRow(row)}
                 />
             </span>
@@ -379,6 +380,7 @@ export function RowStatus({ row, list, compact = false }) {
                     label={label('saveRow')}
                     variant="ghost"
                     size="icon"
+                    className="becpg-grid-icon"
                     onClick={() => list.commitRow(row)}
                 />
                 <IconButton
@@ -386,6 +388,7 @@ export function RowStatus({ row, list, compact = false }) {
                     label={label('discard')}
                     variant="ghost"
                     size="icon"
+                    className="becpg-grid-icon"
                     onClick={() => list.discardRow(row)}
                 />
             </span>
@@ -473,13 +476,74 @@ export function NestedSection({ row, column, list }) {
 }
 
 /** What a supplier can put the focus into, inside a cell. */
-const FOCUSABLE = [
+export const FOCUSABLE = [
     'input:not([type="hidden"]):not([disabled])',
     'select:not([disabled])',
     'textarea:not([disabled])',
     'button:not([disabled])',
     '[tabindex]:not([tabindex="-1"])',
 ].join(',');
+
+/**
+ * How much room a column is given **as a floor**, from what the server said it
+ * holds.
+ *
+ * The table keeps `table-layout: auto`, so this is a minimum and never a width:
+ * a column with room to spare still grows to its content. What it fixes is the
+ * opposite case. Every column used to declare the same `6rem`, so on a
+ * ten-column list at 1920 the browser resolved *all ten* to exactly 96px — and
+ * 96px is generous for « Sur ligne » (a checkbox) and catastrophic for
+ * « Nutriment », whose picker holds an input plus a clear cross plus a caret and
+ * collapsed to a **20px** field showing nothing of « Lipides ajoutées ». The
+ * name the supplier is editing was the one thing invisible.
+ *
+ * This is not a per-list rule and carries no field name: it reads `type`,
+ * `dataType` and the resolved control — the three things `lib/adapters/datalists.js`
+ * normalises for every column of every list. A new list gets sensible widths
+ * without a line changing here.
+ *
+ * @param {Object} column normalised column
+ * @returns {string} a CSS length
+ */
+export function columnFloor(column) {
+    /*
+     * A picker: a name, a code in the metadata, and two affordances beside the
+     * field. This is the column a supplier actually reads while typing.
+     *
+     * A **mandatory** association gets more again, and that is not a special
+     * case for one list: in every beCPG characteristic list the mandatory
+     * association *is* the row — `bcpg:nutListNut`, `bcpg:allergenListAllergen`,
+     * `bcpg:mblMicrobio`. Its values are also the longest ones on screen
+     * («Anhydride sulfureux et sulfites», «Céréales contenant du gluten»), while
+     * the optional associations beside it are usually empty. Sizing by "is this
+     * column required" is a property of the column the server described, not a
+     * name this file knows.
+     */
+    if (column.type === 'association') {
+        if (column.mandatory) {
+            return '18rem';
+        }
+        return column.repeating ? '14rem' : '12rem';
+    }
+    const control = column.control?.name || '';
+    if (control === 'checkbox' || column.dataType === 'd:boolean') {
+        return '3.5rem';
+    }
+    if (control === 'date' || column.dataType === 'd:date' || column.dataType === 'd:datetime') {
+        return '8rem';
+    }
+    if (control === 'number' || control === 'number-unit'
+        || ['d:int', 'd:long', 'd:float', 'd:double'].includes(column.dataType)) {
+        return '5.5rem';
+    }
+    if (control === 'textarea' || control === 'mltext' || column.dataType === 'd:mltext') {
+        return '12rem';
+    }
+    if (control === 'select' || control === 'multiselect' || control === 'checkbox-group') {
+        return '9rem';
+    }
+    return '8rem';
+}
 
 /**
  * Controls for which the up/down arrows belong to the control, not to the grid:
@@ -529,6 +593,43 @@ function moveFocusVertically(rowEl, cellIndex, direction) {
         const target = next.children[index].querySelector(FOCUSABLE);
         if (target) {
             target.focus();
+            if (typeof target.select === 'function' && target.tagName === 'INPUT') {
+                // Landing on a cell selects what is in it, so the next keystroke
+                // replaces the value instead of appending to it. That is what
+                // makes "arrow down, type, arrow down, type" work at the speed of
+                // a spreadsheet, and it is why nothing here needs a double-click
+                // to start editing.
+                target.select();
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Moves the focus to the next / previous focusable cell **of the same row**.
+ *
+ * Used after a picker has chosen a value: the natural continuation of "type,
+ * arrow, Enter" is the cell beside it, not the row below.
+ *
+ * @param {Element} rowEl
+ * @param {number} cellIndex
+ * @param {number} direction -1 or 1
+ * @returns {boolean}
+ */
+function moveFocusHorizontally(rowEl, cellIndex, direction) {
+    for (
+        let index = cellIndex + direction;
+        index >= 0 && index < rowEl.children.length;
+        index += direction
+    ) {
+        const target = rowEl.children[index].querySelector(FOCUSABLE);
+        if (target) {
+            target.focus();
+            if (typeof target.select === 'function' && target.tagName === 'INPUT') {
+                target.select();
+            }
             return true;
         }
     }
@@ -576,18 +677,22 @@ export function DataListRow({
     list,
     context,
     onDelete,
+    onAddRow,
+    onDuplicate,
     showOrder = false,
     showActions = true,
     dense = false,
     zebra = false,
     autoFocus = false,
+    autoFocusColumn = 0,
 }) {
     const label = useDataListLabels();
     const [expanded, setExpanded] = useState(false);
     const containerRef = useRef(null);
     const status = list.statusOf(row.key);
     const hasNested = nestedColumns.length > 0;
-    const columnCount = columns.length + (showOrder ? 1 : 0) + (hasNested ? 1 : 0) + (showActions ? 1 : 0);
+    const columnCount = columns.length + (showOrder ? 1 : 0) + (hasNested ? 1 : 0)
+        + (showActions ? 1 : 0);
 
     /*
      * The computed total row (`itemType: "total"`).
@@ -617,15 +722,64 @@ export function DataListRow({
 
     const handleKeyDown = useCallback(
         (event) => {
-            // Enter is also how a picker validates its highlighted option — the
-            // event bubbles here from the combobox. On a **draft** that meant the
-            // row was created from the association alone, while the local row kept
-            // `nodeRef: null`; whatever the user typed next was then committed as a
-            // *second* create and refused. See the comment on `instant` above: a
-            // draft is committed by leaving the row, once, with everything in it.
-            if (event.key === 'Enter' && event.target.tagName !== 'TEXTAREA' && !row.draft) {
+            const target = event.target;
+            const cell = target && typeof target.closest === 'function' ? target.closest('td') : null;
+            const rowEl = containerRef.current;
+            const inThisRow = Boolean(cell && rowEl && cell.parentElement === rowEl);
+            const cellIndex = inThisRow
+                ? Array.prototype.indexOf.call(rowEl.children, cell)
+                : -1;
+            const modified = event.ctrlKey || event.metaKey;
+
+            /*
+             * Add / duplicate, from the keyboard, without leaving the row.
+             *
+             * Both are the same gesture from the supplier's side — "another line
+             * like this one" — and both are answered by the editor, which owns
+             * the drafts and the focus. Ctrl+D is browsers' bookmark shortcut, so
+             * it is only taken while the focus is inside a row of the grid.
+             */
+            if (modified && event.key === 'Enter' && onAddRow) {
+                event.preventDefault();
+                onAddRow();
+                return;
+            }
+            if (modified && (event.key === 'd' || event.key === 'D') && onDuplicate && !summary) {
+                event.preventDefault();
+                onDuplicate(row);
+                return;
+            }
+
+            if (event.key === 'Enter' && target.tagName !== 'TEXTAREA') {
+                /*
+                 * A picker that has just chosen an option `preventDefault`s the
+                 * key on its way up (`DatasourcePicker.onKeyDown`), and that is
+                 * the only signal that survives bubbling. It means "this Enter
+                 * was a selection", so the caret belongs in the **next cell** —
+                 * type, ↓, ↵, and you are on the value, which is the whole flow
+                 * of an ingredient line.
+                 *
+                 * It is also what keeps the draft bug closed: that Enter no
+                 * longer commits anything, so a new row can never be created
+                 * from its association alone while the rest is still being
+                 * typed (see the comment on `instant` above).
+                 */
+                if (event.defaultPrevented) {
+                    if (inThisRow) {
+                        moveFocusHorizontally(rowEl, cellIndex, 1);
+                    }
+                    return;
+                }
                 event.preventDefault();
                 list.commitRow(row);
+                // Commit **and go on**: the same column of the row below, which
+                // is how a column of forty values is typed. At the bottom of the
+                // list it asks for one more line rather than stopping.
+                if (inThisRow && !moveFocusVertically(rowEl, cellIndex, event.shiftKey ? -1 : 1)) {
+                    if (!event.shiftKey && onAddRow) {
+                        onAddRow();
+                    }
+                }
                 return;
             }
             if (event.key === 'Escape' && list.isRowDirty(row.key)) {
@@ -641,33 +795,30 @@ export function DataListRow({
             if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
                 return;
             }
-            const target = event.target;
-            if (!target || typeof target.closest !== 'function') {
-                return;
-            }
-            const tag = target.tagName;
+            const tag = target ? target.tagName : '';
             if (tag === 'TEXTAREA' || tag === 'SELECT') {
                 return;
             }
             if (tag === 'INPUT' && ARROWS_OWNED_BY_CONTROL.has(target.type)) {
                 return;
             }
-            const cell = target.closest('td');
-            const rowEl = containerRef.current;
-            if (!cell || !rowEl || cell.parentElement !== rowEl) {
+            if (!inThisRow || cellIndex < 0) {
                 return;
             }
-            const cellIndex = Array.prototype.indexOf.call(rowEl.children, cell);
-            if (cellIndex < 0) {
-                return;
-            }
-            if (moveFocusVertically(rowEl, cellIndex, event.key === 'ArrowDown' ? 1 : -1)) {
+            const down = event.key === 'ArrowDown';
+            if (moveFocusVertically(rowEl, cellIndex, down ? 1 : -1)) {
                 // Only once the move succeeded: at the top and at the bottom of
                 // the grid the key keeps its usual meaning.
                 event.preventDefault();
             }
+            else if (down && onAddRow) {
+                // The bottom of the list is where a supplier keeps typing, not
+                // where he stops. ↓ on the last line asks for the next one.
+                event.preventDefault();
+                onAddRow();
+            }
         },
-        [list, row],
+        [list, row, onAddRow, onDuplicate, summary],
     );
 
     const rowState = status.state === ROW_STATUS.ERROR
@@ -683,6 +834,8 @@ export function DataListRow({
                 onBlur={summary ? undefined : handleBlur}
                 onKeyDown={summary ? undefined : handleKeyDown}
                 aria-label={summary ? label('totalRow') : row.draft ? label('newRow') : label('row', { index })}
+                // How a paste finds which line it was dropped on.
+                data-row-key={row.key}
                 data-total={summary ? 'true' : undefined}
                 data-zebra={zebra && !summary ? 'true' : undefined}
                 data-state={rowState}
@@ -690,14 +843,27 @@ export function DataListRow({
                 data-dense={dense ? 'true' : undefined}
             >
                 {showOrder ? (
-                    <td className="w-10 px-1">
+                    /*
+                     * Side by side, not stacked — and that single change is worth
+                     * 62px of row.
+                     *
+                     * Two `size="icon"` buttons are 44px each; stacked they made
+                     * the tallest cell of every editable row 88px, and the row
+                     * pitch 95px against Share's 33px. Measured on
+                     * `bcpg:allergenList`: 95px on all seventeen rows, nothing
+                     * else in the row taller than 26px. Laid out horizontally at
+                     * the grid's own compact size the cell is 26px and the row
+                     * goes back to the pitch the rest of this file is built for.
+                     */
+                    <td className="px-1" style={{ width: '3.5rem' }}>
                         {summary ? null : (
-                            <div className="flex flex-col">
+                            <div className="flex items-center">
                                 <IconButton
                                     icon="keyboard_arrow_up"
                                     label={label('moveUp')}
                                     variant="ghost"
                                     size="icon"
+                                    className="becpg-grid-icon"
                                     disabled={!list.canReorder || row.draft}
                                     onClick={() => list.moveRow(row, 'up')}
                                 />
@@ -706,6 +872,7 @@ export function DataListRow({
                                     label={label('moveDown')}
                                     variant="ghost"
                                     size="icon"
+                                    className="becpg-grid-icon"
                                     disabled={!list.canReorder || row.draft}
                                     onClick={() => list.moveRow(row, 'down')}
                                 />
@@ -722,6 +889,7 @@ export function DataListRow({
                                 label={expanded ? label('collapse') : label('expand')}
                                 variant="ghost"
                                 size="icon"
+                                className="becpg-grid-icon"
                                 aria-expanded={expanded}
                                 onClick={() => setExpanded((value) => !value)}
                             />
@@ -731,20 +899,27 @@ export function DataListRow({
 
                 {columns.map((column, position) => (
                     /*
-                     * A floor, not a width: the table keeps `table-layout: auto`,
-                     * so a characteristic name still takes the room it needs
-                     * while a `Mini` column stops at this. It used to be 8rem,
-                     * which on the twelve-column product sheet reserved 1536px
-                     * of minimum width and put the last three columns behind a
-                     * horizontal scrollbar on every laptop.
+                     * A floor, not a width — see {@link columnFloor}. The table
+                     * keeps `table-layout: auto`, so a characteristic name still
+                     * takes the room it needs; what the floor decides is what
+                     * happens when there is not enough room for everyone, and
+                     * that is the case this grid lives in.
+                     *
+                     * `data-column` is how a paste finds where it was dropped:
+                     * the anchor cell names its own column index, and the plan is
+                     * built from there rightwards.
                      */
-                    <td key={column.formsName} style={{ minWidth: '6rem' }}>
+                    <td
+                        key={column.formsName}
+                        data-column={position}
+                        style={{ minWidth: columnFloor(column) }}
+                    >
                         <DataListCell
                             row={row}
                             column={column}
                             list={list}
                             context={context}
-                            autoFocus={autoFocus && position === 0}
+                            autoFocus={autoFocus && position === autoFocusColumn}
                         />
                     </td>
                 ))}
@@ -754,12 +929,23 @@ export function DataListRow({
                         {summary ? null : (
                             <div className="inline-flex items-center gap-1">
                                 <RowStatus row={row} list={list} compact />
+                                {onDuplicate && list.canCreate && !row.draft ? (
+                                    <IconButton
+                                        icon="content_copy"
+                                        label={label('duplicate')}
+                                        variant="ghost"
+                                        size="icon"
+                                        className="becpg-grid-icon"
+                                        onClick={() => onDuplicate(row)}
+                                    />
+                                ) : null}
                                 {list.canDeleteRow(row) && onDelete ? (
                                     <IconButton
                                         icon="delete_outline"
                                         label={label('deleteRow')}
                                         variant="ghost"
                                         size="icon"
+                                        className="becpg-grid-icon"
                                         onClick={() => onDelete(row)}
                                     />
                                 ) : null}

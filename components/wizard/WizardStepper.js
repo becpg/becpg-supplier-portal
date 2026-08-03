@@ -76,9 +76,78 @@ function fill(template, vars) {
 }
 
 /**
+ * One entry of the list, collapsed to its bullet.
+ *
+ * The rail costs 208px of a grid the supplier is typing into, and on a datalist
+ * step that is three columns. Collapsed it costs 52px — but the label may not
+ * simply disappear: these are **beCPG's own translated labels**, they are how a
+ * supplier knows which list he is on, and « Allergènes » and « Allégations »
+ * are two letters apart.
+ *
+ * So the label is kept three ways over: as the button's accessible name, as its
+ * native `title` (which is also what a long press shows on a touch screen), and
+ * as a flyout that opens on hover **and on keyboard focus** — the last one being
+ * the reason it is drawn here rather than left to `title` alone, since a
+ * keyboard user never gets a native tooltip.
+ */
+function CollapsedStepButton({ step, index, total, active, selectable, onSelect, labels, state, icon, listIconType }) {
+    const name = `${step.label} · ${fill(labels.step, { index, total })} · ${state}`;
+    return (
+        <li>
+            <button
+                type="button"
+                disabled={!selectable}
+                aria-current={active ? 'step' : undefined}
+                aria-label={name}
+                title={name}
+                onClick={() => onSelect(step.id)}
+                className={[
+                    'group relative flex w-full items-center justify-center rounded-xl py-1.5 transition-colors',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]',
+                    active
+                        ? 'bg-[var(--becpg-blue)]/8'
+                        : selectable
+                          ? 'hover:bg-[var(--becpg-grey)]/50'
+                          : 'cursor-not-allowed opacity-60',
+                ].join(' ')}
+            >
+                <span
+                    aria-hidden="true"
+                    className={[
+                        'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-medium',
+                        active
+                            ? 'border-[var(--becpg-blue)] bg-[var(--becpg-blue)] text-white'
+                            : step.visited
+                              ? 'border-[var(--becpg-green)] bg-[var(--becpg-green)]/25 text-[var(--becpg-blue)]'
+                              : 'border-[var(--becpg-grey)] bg-white text-[var(--becpg-dark-grey)]',
+                    ].join(' ')}
+                >
+                    {step.visited || step.frozen || active ? <Icon name={icon} size={15} /> : index}
+                </span>
+                {/*
+                  * The label, on hover and on focus. `pointer-events-none` so it
+                  * can never sit between the pointer and the next step, and
+                  * `aria-hidden` because the button already carries the same text
+                  * as its accessible name — a screen reader must not read it twice.
+                  */}
+                <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-full top-1/2 z-40 ml-1 hidden -translate-y-1/2 whitespace-nowrap rounded-lg border border-[var(--becpg-grey)] bg-white px-2 py-1 text-xs text-[var(--becpg-blue)] shadow-[var(--becpg-shadow-overlay)] group-hover:block group-focus-visible:block"
+                >
+                    <span className="inline-flex items-center gap-1.5">
+                        {listIconType ? <ListIcon type={listIconType} size={14} /> : null}
+                        {step.label}
+                    </span>
+                </span>
+            </button>
+        </li>
+    );
+}
+
+/**
  * One entry of the list, shared by the rail and the sheet.
  */
-function StepButton({ step, index, total, active, selectable, onSelect, labels, dense = false }) {
+function StepButton({ step, index, total, active, selectable, onSelect, labels, dense = false, collapsed = false }) {
     const reduceMotion = useReducedMotion();
     const done = step.visited && !active;
     const icon = step.frozen
@@ -120,6 +189,23 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
               : selectable
                 ? labels.todo
                 : labels.locked;
+
+    if (collapsed) {
+        return (
+            <CollapsedStepButton
+                step={step}
+                index={index}
+                total={total}
+                active={active}
+                selectable={selectable}
+                onSelect={onSelect}
+                labels={labels}
+                state={state}
+                icon={icon}
+                listIconType={listIconType}
+            />
+        );
+    }
 
     return (
         <li>
@@ -193,6 +279,9 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
  * @param {(stepId: string) => void} props.onSelect
  * @param {(step: Object, index: number) => boolean} [props.isSelectable] defaults to "visited or current"
  * @param {'rail'|'compact'} [props.variant='rail']
+ * @param {boolean} [props.collapsed=false] rail reduced to its bullets — see
+ *   {@link CollapsedStepButton} for how the labels stay reachable
+ * @param {React.ReactNode} [props.footer] rendered under the rail (the expand button)
  * @param {string} [props.className]
  */
 export function WizardStepper({
@@ -201,6 +290,8 @@ export function WizardStepper({
     onSelect,
     isSelectable,
     variant = 'rail',
+    collapsed = false,
+    footer = null,
     className = '',
 }) {
     const { lang } = useMessages();
@@ -286,7 +377,20 @@ export function WizardStepper({
     }
 
     return (
-        <nav aria-label={labels.title} className={`min-w-0 ${className}`}>
+        /*
+          * `z-30` is what lets the collapsed rail's labels be read.
+          *
+          * The flyout is absolutely positioned outside the 52px column, and the
+          * step content beside it is a card on a white surface that comes later
+          * in the document: measured, the label was drawn *under* it and only a
+          * 4px sliver showed. Raising the rail — the whole rail, so the labels of
+          * every step behave the same — puts it above the column it overlaps
+          * without touching the panel or the header, which are higher still.
+          */
+        <nav
+            aria-label={labels.title}
+            className={`relative z-30 min-w-0 ${className}`}
+        >
             <ol className="flex flex-col gap-0.5">
                 {list.map((step, index) => (
                     <StepButton
@@ -298,9 +402,11 @@ export function WizardStepper({
                         selectable={selectable(step, index)}
                         onSelect={select}
                         labels={labels}
+                        collapsed={collapsed}
                     />
                 ))}
             </ol>
+            {footer}
         </nav>
     );
 }

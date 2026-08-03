@@ -37,6 +37,7 @@ import { useMessages } from '@/lib/messages';
  * @param {Object} props.list the `useDataList` instance
  * @param {Object} [props.context] `{ entityNodeRef, itemType, formId }`
  * @param {Function} [props.onDelete] `(row) => void`
+ * @param {Function} [props.onDuplicate] `(row) => void` — a new card pre-filled from this one
  * @param {boolean} [props.showOrder] renders the reorder buttons
  * @param {boolean} [props.autoFocus] focus the first editable field (a new row)
  */
@@ -48,6 +49,7 @@ export function DataListCardRow({
     list,
     context,
     onDelete,
+    onDuplicate,
     showOrder = false,
     autoFocus = false,
 }) {
@@ -115,6 +117,9 @@ export function DataListCardRow({
                 ref={containerRef}
                 onBlur={summary ? undefined : handleBlur}
                 aria-label={summary ? label('totalRow') : row.draft ? label('newRow') : label('row', { index })}
+                // The editor focuses a new card through this, exactly as it does
+                // a new table row — one mechanism for both layouts.
+                data-row-key={row.key}
                 data-total={summary ? 'true' : undefined}
                 className={
                     summary
@@ -153,6 +158,18 @@ export function DataListCardRow({
                                     onClick={() => list.moveRow(row, 'down')}
                                 />
                             </>
+                        ) : null}
+                        {/* The phone gets the same shortcut the grid does — one
+                            tap for "another line like this one" is worth more on
+                            a 360px screen than anywhere else. */}
+                        {onDuplicate && list.canCreate && !row.draft && !summary ? (
+                            <IconButton
+                                icon="content_copy"
+                                label={label('duplicate')}
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => onDuplicate(row)}
+                            />
                         ) : null}
                         {list.canDeleteRow(row) && onDelete ? (
                             <IconButton
