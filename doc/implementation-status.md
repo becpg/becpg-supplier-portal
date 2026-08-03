@@ -1,12 +1,14 @@
 # État d'implémentation — Portail Fournisseur V2
 
-> Arrêté au **2026-08-03**, après un tour de **vérification en direct** sur
-> `https://dev.becpg.fr` (OIDC réel, compte `supplier-test@becpg.fr`, Chromium piloté).
+> Arrêté au **2026-08-03**, après un tour de **consolidation** : cinq chantiers menés en
+> parallèle (signature, formulaires/`d:noderef`, pilotage, défauts d'interface, performance)
+> ont été **re-joués un par un** sur `https://dev.becpg.fr`, sans rien croire de leurs
+> rapports.
 >
-> **Ce document vaut par une seule distinction** : ce qui a été **mesuré** ce tour, et ce qui
-> est seulement **cru** parce que lu dans le code. Les quatre tours précédents ont été menés
-> à l'aveugle — sans navigateur — et leurs conclusions ne sont reprises ici *que* lorsqu'elles
-> ont été re-mesurées. Tout ce qui n'a pas pu l'être est dit tel quel, avec la raison.
+> **Ce document vaut par une seule distinction** : ce qui a été **mesuré**, et ce qui
+> est seulement **cru** parce que lu dans le code. Une correction annoncée « prouvée » mais
+> non re-mesurée est **requalifiée** ici, nommément. Tout ce qui n'a pas pu être vérifié est
+> dit tel quel, avec la raison.
 
 ---
 
@@ -15,12 +17,17 @@
 | Élément | État |
 |---|---|
 | Application | Next.js 16.2.12 (App Router, Turbopack), React 18, Tailwind 4, **JavaScript** |
-| `npx next build` | ✅ **0 erreur, 0 avertissement** — 57 routes (18 pages + 39 route handlers), compilation 4,2 s |
+| `npx next build` | ✅ **0 erreur, 0 avertissement** — **59 routes**, compilation 2,7 s |
 | `npx eslint .` | ✅ **0 erreur, 1 avertissement** assumé — voir §6 |
 | Fichiers | 101 composants, 28 modules `lib/`, 14 specs E2E |
 | Backend | `https://dev.becpg.fr` (Alfresco + Share), tenant `dev`, `authMode: oidc` |
 | Portail | port **3100**, `.env.supplier`, `DEV_FAKE_AUTH=false` |
 | Gestion de version | git, branche `main` |
+
+> **`AGENTS.md` affirme que ce dépôt n'est pas sous gestion de version.** C'est faux depuis
+> plusieurs tours : `.git` existe, `main` est la branche courante et les corrections de ce
+> tour y sont commitées. Le paragraphe « Read this first » d'`AGENTS.md` et la note finale de
+> sa section « How to run » sont donc périmés.
 
 > Le build tourne dans une **copie** du dépôt (`git archive HEAD` + `cp -al node_modules`)
 > pour ne pas écraser le `.next` du serveur de développement en cours. La copie doit être sur
@@ -29,7 +36,68 @@
 
 ---
 
-## 2. Vérifié **en direct** ce tour — 2026-08-03
+## 2. Tour de consolidation — les cinq chantiers re-joués
+
+Méthode : deux serveurs, deux comptes réels. `:3131` (copie isolée hors arbre,
+`DEV_FAKE_AUTH`, `supplier-test@becpg.fr`) pour l'espace fournisseur, `:3100`
+(`purchasingmgr.test.user`) pour le pilotage. Les adaptateurs ont en outre été sondés
+**depuis l'intérieur du runtime** par une route de contrôle temporaire, présente uniquement
+dans la copie et **jamais** dans le dépôt — c'est le seul moyen d'exercer une fonction
+serveur avec le vrai client, la vraie session et les vraies ACL.
+
+### 2.0.1 Ce qui est confirmé par re-mesure
+
+| Affirmation d'origine | Re-mesure |
+|---|---|
+| **Signature** — la marche d'ancêtres nomme le produit d'une tâche de signature | ✅ `resolveEntityFromDocument(client, 0d1b33f4-9cc8-426d-9b33-f49cc8426daa)` → `{fa5a9dfa-…, "PORTALTEST 35846 Nougat… - UPDATE - 2026", MP96843, bcpg:rawMaterial}`, **2 sauts, 400 ms**. Nœud inexistant → `null` en 163 ms, sans exception |
+| **Formulaires** — `bcpg:hierarchy1` n'existe pas | ✅ `fields=cm:name,bcpg:hierarchy1,bcpg:hierarchy2` → attributs rendus : `['cm:name']`. Avec `bcpg:productHierarchy1/2` → les deux valeurs |
+| **Formulaires** — la valeur est un objet déplié, pas un nodeRef | ✅ `{path:'/app:company_home/cm:System/cm:ProductHierarchy/…', 'bcpg:lkvValue':'Ingrédients de base', type:'bcpg:linkedValue'}` |
+| **Formulaires** — la fiche affiche les libellés | ✅ `/products/758f899e-…?tab=sheet` : « Ingrédients de base » et « Sucres et édulcorants » rendus ; **0** `path`, **0** nodeRef, **0** uuid, **0** doublon `_fr` à l'écran |
+| **Formulaires** — corps vide sur cible illisible | ✅ `fields=cm:name,bcpg:productHierarchy2` → corps vide → `null`. `GET /api/v1/wizard/105894c8-…` → **200** (c'était 404) |
+| **Formulaires** — la fuite de nodeRef de l'onglet Conformité | ✅ sur la fixture même du rapport (`035ea545-…`, code ERP `MP-EPI-001` en double avec `372029fb-…`) : l'écran dit « Valeurs déjà utilisées » et **nomme** « Poivre noir de chez Élodie - UPDATE - 2026 ». 0 nodeRef, 0 uuid |
+| **Pilotage** — compteur de campagnes restreint au parc | ✅ `q=Maxime` : tuile `open:10` **=** 10 lignes, `parkScoped:true`, `scope.suppliers:5`. Sans filtre : 248/248, `parkScoped:false` |
+| **Pilotage** — 100 % de réponse sur zéro campagne | ✅ périmètre vide : `responseRate: null` + `scope.empty.reason:'emptyPark'` avec sa phrase d'explication |
+| **Pilotage** — `truncated` ne se déclenche plus à tort | ✅ `truncated:false` dans les trois cas, `scanned:248` rapporté **à côté** de `count`, jamais à sa place |
+| **Pilotage** — un seul score de risque | ✅ les **10 lignes** du top 10 identiques entre `/api/v1/monitor/overview` et `/api/v1/monitor/suppliers` : même score, même niveau, **mêmes motifs**, **même ordre**. `campaignNoAnswer` est bien présent côté liste |
+| **Pilotage** — `/monitor/documents` ne défile plus | ✅ 0 px de débordement et `window.scrollTo(600,0)` déplace de **0** px, à 1920/1280/360 |
+| **Défauts** — `microbioList` 65 → 34 px | ✅ 4 lignes, **34 px** chacune, toutes cellules à 34 px |
+| **Défauts** — `organoList` 401 → 34 px | ✅ 7 lignes, **34 px** chacune (colonne « Rapports » rendue) ; `nutList` 22 lignes à 34 px, inchangé |
+| **Défauts** — `Entrée` rendu aux boutons de ligne | ✅ vrai clavier sur « Supprimer la ligne » : le **dialogue s'ouvre** et le focus passe dans le dialogue. (Un `KeyboardEvent` synthétique ne l'active pas — c'est une limite de la sonde, pas du correctif) |
+| **Perf** — la taille de page coûte sur `/api/v1/entities` | ✅ A/B entrelacé ×3 : `pageSize=25` **0,61–0,70 s**, `pageSize=100` **1,72–1,78 s**. Rapport 2,6× (le rapport annonçait 3,1× ; l'instance est partagée) |
+| **Perf** — la pagination de `/messages` ne perd rien | ✅ 6 pages de 25 : **141 sujets uniques, 0 doublon**, `hasMoreItems:false` en fin, page 6 en 2,35 s |
+| **Perf** — la recherche part au serveur | ✅ `q=Poivre` → 2 lignes en 173 ms sur un catalogue de 141, pas un filtre de fenêtre |
+| **Perf** — `POST /api/v1/config/refresh` est gardé | ✅ fournisseur `scope:"tenant"` → **403** `forbidden` (message de `requireMonitorAccess`) ; portée par défaut → 200 `{scope:"user",entries:1}` ; sans session → **401** |
+
+### 2.0.2 Ce qui est **requalifié** — annoncé prouvé, ne l'est pas
+
+| Affirmation | Ce que la mesure donne |
+|---|---|
+| « **16/16 tâches nommées** », marche d'ancêtres comprise | Le compte porte aujourd'hui **15 tâches ouvertes + 4 terminées, toutes nommées** — mais **aucune n'est de type `signature`** : celle du rapport a été menée à son terme. La marche n'est donc **pas exercée** par la liste de tâches actuelle ; elle est prouvée par sonde directe (§2.0.1), pas par le parcours |
+| « Écran de signature : produit affiché, jauge, pad, consentement » | **Non re-vérifiable** : plus aucune tâche de signature n'existe sur dev pour ce compte. Aucune ligne de l'écran de signature n'est re-mesurée ce tour |
+| « `process/start` répond 403 et non 502 » | **Non re-mesuré** : le prouver demande de re-tenter un démarrage de processus refusé, c'est-à-dire une écriture sur une instance partagée. La lecture du diff est correcte (`PortalError` 4xx propagée), mais c'est du **cru**, pas du mesuré |
+| « `getEntityJson` dégrade **explicitement** avec `partial: true` » | **Faux au moment du rapport.** Le drapeau était **produit et jamais lu** : aucun adaptateur, aucune route, aucun composant ne le consommait. La fiche s'ouvrait avec des champs manquants **sans rien dire** — exactement le « vide présenté comme normal alors que c'est un refus de droits ». Corrigé ce tour, voir §7 |
+| « `/monitor/suppliers` à froid : 2,5 s → 9,2 s » | **Non reproduit tel quel** : le mémo de campagnes était déjà chaud. Mesuré à la place : le **premier** appel du process paie le scan (`/monitor/overview` **10,9 s**), le suivant en profite (`/monitor/suppliers` **1,4 s**). L'ordre de grandeur du surcoût est confirmé, sa répartition dépend de qui appelle en premier |
+| « 21 → 20 requêtes amont sur `/api/v1/tasks` » | **Non re-mesuré** : demanderait d'instrumenter les appels amont. `/api/v1/tasks?pageSize=100` répond en **1,56 s** à froid et **0,89 s** ensuite ; le gain annoncé n'est ni confirmé ni infirmé |
+
+### 2.0.3 Balayage de non-régression — 39 chargements
+
+**Espace fournisseur** (`/`, `/products`, `/tasks`, `/documents`, `/specs`, `/messages`,
+`/company`, `/help`) puis **espace pilotage** (`/monitor`, `/suppliers`, `/documents`,
+`/campaigns`, `/quality`), à **1920 / 1280 / 360**, comptes réels :
+
+- **39/39 en HTTP 200** ;
+- **0** erreur de page, **0** erreur console, **0** réponse 4xx/5xx ;
+- **0 défilement horizontal** — et `window.scrollTo(600,0)` ne déplace la page nulle part ;
+- **0** nodeRef, **0** uuid nu, **0** chemin `/app:company_home`, **0** `[object Object]`,
+  **0** horodatage ISO brut, **0** enveloppe JSON dans le texte rendu ;
+- toutes les pages rendent du contenu réel (le minimum relevé est 607 caractères de texte).
+
+Seule erreur console rencontrée, et uniquement sur la route tâche : le **502 de
+`dev-ai.becpg.fr`**, déjà documenté au §3.
+
+---
+
+## 2bis. Vérifié **en direct** au tour précédent — 2026-08-03
 
 Tout ce qui suit a été mesuré dans un navigateur réel contre `dev.becpg.fr`. Aucune de ces
 lignes ne repose sur une lecture de code.
@@ -227,16 +295,49 @@ et le contrôle reprend sa colonne, sa pastille de langue et le libellé complet
 (`flex-direction: column`, mesuré à 390 px). Le bouton lui-même passe de 24 px à **40 px**
 sur pointeur grossier — il était **sous le plancher tactile avant ce tour**.
 
-### 4.2 42 des 101 sujets de `/messages` sont des UUID
+### 4.2 ~~42 des 101 sujets de `/messages` sont des UUID~~ — **fermé, mesuré**
 
-Reproduit aux trois largeurs. La résolution du nom d'entité retombe sur l'identifiant du
-nœud. Inchangé depuis le tour précédent.
+Fermé **par effet de bord** du repaginage de `/messages` : la liste des sujets vient
+maintenant de `/api/v1/entities` (nom du produit), page par page. Re-mesuré sur la
+**totalité** du catalogue de ce compte — les 6 pages, 141 sujets : **0 sujet nommé par un
+uuid, 0 sujet sans nom**. L'ancienne fenêtre unique de 100 n'en montrait que 99, sans le dire.
 
-### 4.3 Les commentaires s'affichent en HTML brut
+### 4.3 ~~Les commentaires s'affichent en HTML brut~~ — **fermé, mesuré**
 
-`<p>T1</p>` imprimé littéralement dans le panneau « Remarques de votre client » et dans la
-discussion. L'API renvoie `"content": "<p>T1</p>"` ; rien ne le désérialise. Détecté par le
-balayage sur la route tâche à 1920 et 1280.
+L'API renvoie toujours `"content": "<p>T1</p>"` — c'est sa forme de stockage et c'est
+normal. Ce qui a changé est le rendu : `app/messages/page.js` et
+`components/wizard/panels/CommentsPanel.js` passent tous deux par `RichText`. Mesuré à
+l'écran sur l'entité `4280dddb-…` : le message s'affiche **« T1 »**, et le balisage
+`<p>`/`</p>` **n'apparaît nulle part** dans le texte rendu.
+
+### 4.3bis « Conformité 100 % » sur un fournisseur qui a un document manquant — **ouvert**
+
+`summarizeDocuments` (`lib/adapters/documents.js:812`) renvoie
+`completeness: mandatory === 0 ? 100 : …`. Une note parfaite pour l'ensemble vide, même
+motif que le « 100 % de réponse sur zéro campagne » corrigé au §2.0.1 — mais celui-ci
+atteint un **livrable** : l'export CSV d'audit du pilotage.
+
+Mesuré sur l'export réel (`/api/v1/monitor/documents?format=csv`, 86 lignes) :
+**4 lignes annoncent « Conformité 100 » tout en portant une cellule `missing`** —
+`F6 Chez Maxime – Huiles essentielles` (BAT), `F95 Chez Valentin – Filtres solaires` (BAT),
+`F154 Chez Camille – Farines et céréales` (halal fournisseur 2),
+`F173 Chez Pamela – Sucres biologiques` (BAT).
+
+**Non corrigé, et volontairement.** Le défaut n'est pas seulement le `100` de l'ensemble
+vide : une exigence qui produit une cellule `missing` dans la matrice n'est **pas** comptée
+`isMandatory` par `summarizeDocuments`. Ce sont deux définitions de « obligatoire » qui
+divergent, dans deux fonctions, partagées par l'espace fournisseur (jauge de `/documents`,
+`RequirementChecklist`) et par le pilotage (matrice + CSV). Aligner les deux est un choix
+métier, pas un correctif d'affichage — et le faire en fin de tour sans pouvoir re-mesurer
+chaque écran ferait plus de mal que le défaut. Les deux sites sont
+`lib/adapters/documents.js:812` et `lib/adapters/monitor.js:3989`.
+
+### 4.3ter Un `d:noderef` illisible fait aussi disparaître les références **lisibles**
+
+Le repli de `getEntityJson` est restreint aux propriétés scalaires : sur la fixture
+dégradée, Famille reste absente **alors qu'elle est lisible**. C'est assumé (distinguer la
+référence fautive coûterait un appel par propriété), mais depuis le §7 l'écran le **dit**,
+au lieu de laisser croire à un produit sans famille.
 
 ### 4.4 ~~`Entrée` sur un bouton de ligne valide la ligne~~ — **corrigé et mesuré**
 
@@ -290,11 +391,17 @@ cible de 44 px » — pas une régression. Elle est notée ici parce qu'elle n'a
 mesurée et qu'elle veut dire qu'une **tablette en paysage ne verra jamais la densité de
 Share**. Le choix inverse (densité contre cible tactile) reste à trancher par le produit.
 
-### 4.7 Les défauts encore ouverts
+### 4.7 Les défauts encore ouverts, au 2026-08-03 après consolidation
 
-`4.2` (sujets UUID de `/messages`) et `4.3` (HTML brut des commentaires) sont **inchangés** :
-hors du périmètre `components/datalist/`, `components/form/controls/`, `app/globals.css`,
-`e2e/` de ce tour, et non re-mesurés.
+| # | Défaut | État |
+|---|---|---|
+| 4.3bis | « Conformité 100 % » avec un document manquant — 4 lignes sur 86 dans le CSV d'audit | **ouvert**, mesuré, non corrigé (arbitrage métier, deux sites nommés) |
+| 4.6 | Pas de grille à 51 px sur écran large **tactile** | **ouvert**, décision assumée dans `app/globals.css`, à trancher par le produit |
+| — | `Checkbox` (`components/ui/Field.js`) : cible de **20 px** sur téléphone, `<label>` non enveloppant | **ouvert**, signalé par le tour « défauts », non corrigé (composant partagé par tous les écrans) |
+| — | Lien logo de l'en-tête à **38 px** (2 px sous le plancher tactile) | **ouvert**, `components/shell/` |
+| 4.3ter | Un `d:noderef` illisible masque aussi les références lisibles | **assumé**, désormais **annoncé à l'écran** (§7) |
+
+`4.1`, `4.2`, `4.3`, `4.4`, `4.5` sont **fermés et re-mesurés** ce tour.
 
 ---
 
@@ -319,6 +426,25 @@ labelClaimList 13 · microbioList 4 · organoList 7
 **Rien d'autre n'a été écrit** : aucune suggestion appliquée, aucun dépôt de document,
 aucune tâche terminée, aucune écriture administrative, aucune modification de configuration.
 Le collage a été exercé **sans jamais valider** (0 requête d'écriture mesurée).
+
+### 5bis. Audit complet de ce qui vit sur `dev.becpg.fr` du fait de ces tours
+
+Tout est vérifié présent au 2026-08-03. **Rien n'a été supprimé**, ni par les tours
+précédents, ni par le tour de consolidation.
+
+| Nœud | Quoi | Créé par | Sort |
+|---|---|---|---|
+| `6e3d73a0-135e-49ea-bd73-a0135ed9eac7` | `bcpg:rawMaterial` « PORTALTEST 35846 Nougat de chez Remi », **MP96842**, sous *Chez Rémi – Confiserie et pâtes à tartiner / SupplierEntities* | tour signature, `purchasingmgr` | **conservé** |
+| `fa5a9dfa-7afc-401d-9a9d-fa7afc601d09` | la branche fournisseur créée par beCPG, **MP96843** | beCPG, sur le référencement ci-dessus | **conservé** |
+| `bb82cde1-46ef-444b-82cd-e146ef944b41` | le projet de référencement + ses tâches / livrables | tour signature | **conservé**, tâche `Clôture` restée `InProgress` |
+| `0d1b33f4-9cc8-426d-9b33-f49cc8426daa` | la Fiche Technique copiée puis **signée** (PDF `/ByteRange`, `adbe.pkcs7.detached`) | tour signature, depuis l'UI fournisseur | **conservé** — c'est la seule preuve du parcours de signature |
+| `105894c8-5f0f-4f26-9894-c85f0fdf265a` | `bcpg:rawMaterial` « PORTALTEST-35846-NODEREF », **MP96844**, avec `bcpg:productHierarchy2` **volontairement illisible** par `supplier-test` | tour formulaires, `purchasingmgr` | **conservé** — seule reproduction connue du corps vide de `becpg/remote/entity`, et fixture du correctif §7 |
+| 5 lignes de `bcpg:microbioList` sur MP96504 | saisie de datalist | tour clavier | **supprimées**, état d'entrée restauré et re-vérifié |
+
+Le tour de consolidation, lui, **n'a écrit rigoureusement rien** : uniquement des `GET`, plus
+les `POST /alfresco/service/api/login` du ticket. Le seul `POST` d'API émis est
+`/api/v1/config/refresh`, qui ne touche qu'un cache mémoire du portail. Aucune tâche
+franchie, aucun document déposé, aucun commentaire publié, aucune configuration modifiée.
 
 ---
 
@@ -354,6 +480,34 @@ Vérifié après correction : `file -bi` → `application/javascript; charset=ut
 `npx eslint` 0 erreur ; `npx next build` ✅ ; et le collage rejoué en direct produit le
 **rapport identique au caractère près** (§2.2).
 
+### 7bis. Correction du tour de consolidation — le refus de droits se disait à personne
+
+`getEntityJson` posait `entity.partial = true` quand `becpg/remote/entity` répond un corps
+vide et que seule la relecture restreinte aboutit. **Aucun consommateur n'existait** :
+`grep -rn "partial" lib/ app/ components/` ne trouvait que le producteur. Conséquence
+mesurée sur la fixture `105894c8-…` : la fiche s'ouvrait (bien), la Famille et la
+Sous-famille en étaient absentes (assumé), et **l'écran ne disait rien** — un refus d'ACL
+rendu comme un produit sans famille. C'est le défaut que le drapeau était censé empêcher.
+
+Le drapeau est maintenant porté jusqu'à l'écran, et **seulement quand il est vrai** :
+
+- `lib/adapters/entities.js` — `normalizeEntity` ajoute `partial: true` **uniquement** si la
+  lecture l'a posé ; toute autre charge utile est inchangée à l'octet près (vérifié : le
+  produit sain n'a pas la clé) ;
+- `lib/adapters/wizard.js` — `getEntity` le remonte, et le résumé d'entité de l'état du
+  wizard le publie de la même façon conditionnelle ;
+- `app/products/[id]/page.js` — une bannière `role="status"` au-dessus des onglets, qui dit
+  ce qui se passe (« au moins une donnée que votre compte n'est pas autorisé à lire », « les
+  champs concernés sont absents — ils ne sont pas vides pour autant ») **sans** nommer le
+  nœud refusé.
+
+Mesuré après correction, à 1280 px :
+
+| | `/api/v1/entities/{id}` | `/api/v1/wizard/{id}` | Écran |
+|---|---|---|---|
+| fixture dégradée `105894c8-…` | `partial: true` | `entity.partial: true` | bannière rendue, 0 erreur console, 0 débordement, 0 nodeRef |
+| produit sain `758f899e-…` | **pas de clé `partial`** | — | pas de bannière, écran identique |
+
 ---
 
 ## 8. Les pièges à connaître
@@ -374,6 +528,15 @@ Vérifié après correction : `file -bi` → `application/javascript; charset=ut
    pas un défaut du produit.
 6. **Ce compte agit pour 13 fournisseurs** (et le périmètre documentaire en voit 14).
    Toute assertion de cloisonnement est ambiguë par construction sur cette instance.
+7. **Un dossier `app/api/_xxx/` n'est jamais routé.** Next traite un préfixe `_` comme un
+   dossier privé : une route de contrôle posée là répond la page 404, pas le handler. Piège
+   coûteux quand on croit déboguer une session.
+8. **Ne jamais compléter un nodeRef tronqué dans un rapport.** Deux uuid « reconstitués » à
+   partir d'un `0d1b33f4-…` de rapport ont donné deux 404 franches, et failli faire conclure
+   à une régression. Retrouver le nœud par une requête nommée coûte dix secondes.
+9. **Les tuiles de campagne sont chères au premier appel du process.** Le scan de campagnes
+   est mémoïsé par process : `/monitor/overview` à froid met **11 s**, `/monitor/suppliers`
+   ensuite **1,4 s**. Une mesure « à chaud » ne dit rien du coût réel.
 
 ---
 
@@ -386,4 +549,8 @@ Vérifié après correction : `file -bi` → `application/javascript; charset=ut
 | Étapes en lecture seule | `step1` (formulaire), `step2` (ingList), `step9` (surveyList) |
 | Produit en lecture seule | `758f899e-c492-4793-b8fc-f8a8fceb7e3f` (MP93981) |
 | Questionnaire **modifiable** | tâche `62116aaa-bed9-423c-916a-aabed9123ca2`, entité fournisseur F208 |
-| Tâche de signature | **aucune n'existe** |
+| Tâche de signature | **aucune n'existe** — celle du tour signature a été menée à son terme |
+| Produit portant les deux hiérarchies | `758f899e-c492-4793-b8fc-f8a8fceb7e3f` → « Ingrédients de base » / « Sucres et édulcorants » |
+| Doublon de code ERP (onglet Conformité) | `035ea545-381c-42fd-9ea5-45381cd2fd8a` ↔ `372029fb-f1bb-4954-a029-fbf1bb3954b6`, tous deux `MP-EPI-001` |
+| **Entité à référence illisible** (corps vide de `becpg/remote/entity`) | `105894c8-5f0f-4f26-9894-c85f0fdf265a` (MP96844) |
+| Document signé, pour la marche d'ancêtres | `0d1b33f4-9cc8-426d-9b33-f49cc8426daa` → remonte à `fa5a9dfa-7afc-401d-9a9d-fa7afc601d09` (MP96843) |
