@@ -3,7 +3,7 @@
  * (spec §4.6.6), read from the OLAP cube through beCPG's own proxy.
  *
  * Query:
- *   - `series`   `taskQuality` | `completion` | `comparison` (default: `taskQuality`)
+ *   - `series`   `taskTrend` | `taskStates` | `completion` | `incidents` (default: `taskTrend`)
  *   - `supplier` a supplier nodeRef, to restrict the series to it
  *
  * ## What this route deliberately does not accept
@@ -41,9 +41,10 @@ export const dynamic = 'force-dynamic';
 
 /** `series` → the catalogued query it selects. Anything else is a 400. */
 const SERIES = {
-    taskQuality: 'supplierTaskQuality',
-    completion: 'supplierCompletion',
-    comparison: 'supplierComparison',
+    taskTrend: 'taskTrend',
+    taskStates: 'taskStates',
+    completion: 'completion',
+    incidents: 'supplierIncidents',
 };
 
 /**
@@ -59,7 +60,7 @@ export async function GET(request) {
         await requireMonitorAccess(session);
 
         const params = new URL(request.url).searchParams;
-        const series = params.get('series') || 'taskQuality';
+        const series = params.get('series') || 'taskTrend';
         const queryId = SERIES[series];
         if (!queryId) {
             throw new BadRequestError(`Unknown series: ${series}`);

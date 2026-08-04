@@ -710,11 +710,28 @@ Même donnée, quatre lectures — sélecteur de profil, pas quatre applications
   proxy exposé au navigateur répond 403 — et la seule voie est `GET /api/v1/monitor/history`,
   qui choisit une requête dans un catalogue fermé (`lib/adapters/olap.js`) à partir d'un
   identifiant de série. Le client n'envoie ni MDX, ni cube, ni dimension.
-- Le portail dégrade proprement : sans cube, on perd les vues historiques, pas les vues
-  courantes. `becpg.olap.enabled=false` étant le défaut, la route répond **200** avec
-  `available: false` et un `reason` (`noCube` / `denied` / `unreachable`), jamais une erreur.
-  Attention : le webscript renvoie 200 avec un corps vide quand Saiku est absent — « pas de
-  colonne » vaut « pas de cube », et non « zéro ligne ».
+- Le portail dégrade proprement : la route répond **200** avec `available: false` et un
+  `reason`, jamais une erreur. Séries vérifiées sur dev (cube actif) : `taskTrend` 11 lignes,
+  `taskStates` 6, `completion` 3, `incidents` 18 fournisseurs, et le filtre par fournisseur
+  ramène bien les 2 NC de « Chez Philippe ».
+
+**Trois pièges mesurés sur le cube de dev**, tous documentés dans `lib/adapters/olap.js` :
+
+1. **Un MDX en échec est indiscernable d'un cube absent.** Saiku renvoie `{"cellset": null}`,
+   `OlapServiceImpl` logue `Incorrect data return by saiku` et le webscript répond **200 avec un
+   corps vide**. Le portail dit donc `noData` et pas « pas de cube » — seul le log beCPG sait
+   lequel des deux c'était. Toutes les requêtes du catalogue ont été exécutées contre le cube
+   réel avant d'être livrées.
+2. **Pas de crossjoin en lignes.** `shiftMetadata()` supprime le niveau *extérieur* : un
+   `CROSSJOIN(année, état)` revient avec l'état et les mesures, l'année disparue sans erreur.
+   Une seule dimension en lignes.
+3. **Les nombres reviennent formatés, ce qui les fausse.** beCPG lit la valeur d'affichage de
+   Saiku (`/result/cheat` → `"1.148"`) et `OlapUtils.convert` la passe à `Double.parseDouble` :
+   1 148 tâches deviennent **1,148**. Tout compte ≥ 1000 est faux, et rien ne permet de le
+   détecter après coup — `19.468` est réellement une durée moyenne. Le portail publie donc
+   `values.reliable: false` et **ne dérive aucun chiffre** de ces lignes : le taux de refus
+   calculé dessus affichait 97 % au lieu d'environ 3,5 %. **À corriger dans beCPG** (lire la
+   valeur brute de Saiku plutôt que la formatée), pas par une heuristique côté portail.
 
 **Contrainte connue, découverte à l'implémentation** : `beCPG.remote.maxResults.limit` vaut
 **256** (`becpg-config-core.properties`) et borne toute liste de la remote API demandant des
