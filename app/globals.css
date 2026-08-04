@@ -1123,6 +1123,30 @@ body {
   min-width: 44px;
 }
 
+/*
+ * A checkbox is the one control that cannot simply be grown: a 44px box would be
+ * a design defect, and `min-width` on the input enlarges what is drawn. The box
+ * therefore keeps its 20px, and the **label** carries the target — it toggles the
+ * same input through `htmlFor`, so the whole row becomes tappable.
+ *
+ * Coarse pointers only: on a mouse a 20px box is already comfortable, and forcing
+ * 44px rows would loosen every dense form on desktop. `min-height` alone, so a
+ * two-line label with its description keeps growing normally.
+ */
+@media (pointer: coarse) {
+  .checkbox-row {
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .checkbox-row > label {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 44px;
+  }
+}
+
 /* Horizontal filter chips / step indicators that scroll instead of wrapping */
 .scroll-x {
   display: flex;

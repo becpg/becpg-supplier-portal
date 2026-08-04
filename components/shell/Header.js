@@ -152,10 +152,15 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                         the fold on every single screen, and a late-loading logo is
                         exactly what makes a branded portal look unbranded.
                     */}
+                    {/* `touch-target` (44×44, globals.css): on a phone the compact
+                        mark is 24px tall and the padding brought the link to 38px —
+                        under the minimum, on the one control that is on every screen.
+                        The wordmark already exceeds 44px on desktop, so the floor
+                        changes nothing there. */}
                     <Link
                         href="/"
                         aria-label={local.home}
-                        className="brand-link flex shrink-0 items-center rounded-[0.625rem] p-1"
+                        className="brand-link touch-target flex shrink-0 items-center justify-center rounded-[0.625rem] p-1"
                     >
                         <span className="becpg-brand-plate">
                             <Image

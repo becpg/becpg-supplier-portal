@@ -323,7 +323,9 @@ export const Checkbox = forwardRef(function Checkbox(
     const generatedId = useId();
     const id = rest.id || `check-${generatedId}`;
     return (
-        <div className={`flex items-start gap-2 ${className}`}>
+        // `checkbox-row` (globals.css) gives the label a 44px tap band on touch
+        // devices, without growing the box or touching the desktop layout.
+        <div className={`checkbox-row flex items-start gap-2 ${className}`}>
             <input
                 ref={ref}
                 id={id}
