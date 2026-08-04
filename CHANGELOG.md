@@ -48,3 +48,10 @@
 * InProgress #35846 - [Feature] Port Share datalist column renderers: labelled nutrient values, formulated values, percentages and states
 * InProgress #35846 - [Feature] Portail fournisseur V2 : app Next.js, proxy beCPG, wizard, pilotage et tests E2E
 * InProgress #35846 - [Feature] Portail fournisseur V2 : app Next.js, proxy beCPG, wizard, pilotage et tests E2E
+## [ 0.0.2 ] - 2026-08-04 17:48:49
+
+* InProgress #35846 - [Bug] Show every configured tenant on the login page, and ask an out-of-scope project once instead of on every load
+* InProgress #35846 - [Bug] Stop announcing a beCPG error as a lost connection, and say which one it is
+* InProgress #35846 - [Cleanup] Move the portal network policy to the cluster manifest and use the core backend config
+* InProgress #35846 - [Bug] Ship the NetworkPolicy the portal needs: default-deny-all was hiding it from the health checker
+* [skip ci][Release]: Bump _VERSION to 0.0.2
