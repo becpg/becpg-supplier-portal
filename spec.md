@@ -681,10 +681,24 @@ Même donnée, quatre lectures — sélecteur de profil, pas quatre applications
   les compteurs, les listes et la matrice documentaire.
 - **Cube OLAP en complément, quand il est présent** (`becpg-olap`) : évolution dans le temps,
   comparaisons multi-fournisseurs, agrégats lourds sur de gros parcs.
-- Dimensions et mesures à créer côté OLAP : dimensions **fournisseur**, **type de document**,
-  **statut d'agrément**, **filiale** ; mesures **documents expirants**, **délai de réponse aux
-  tâches**, **taux de refus**, **complétude**. Le schéma OLAP expose déjà les dimensions
-  fournisseur (`jsolap.supplier*`), il s'agit de les compléter.
+- Dimensions et mesures côté OLAP — **fait** (`olapSchema_4_0.get.xml.ftl`) : la dimension
+  partagée `suppliersDimension` est branchée sur les cubes `projects` et `projectsSteps`, ce qui
+  apporte d'un coup **fournisseur**, **statut d'agrément** (`bcpg:supplierState`) et **filiale**
+  (`supplierHierarchy1/2`) ; s'y ajoutent les mesures **taux de refus** (`refusalRate`, rapporté
+  aux tâches répondues et non à toutes) et **délai de réponse** (`avgResponseDelay`,
+  `DATEDIFF(tlEnd, tlTargetEnd)`, NULL tant que la tâche est ouverte). La **complétude** était
+  déjà là (`averageProgress` sur `pjt:completionPercent`) ; il lui manquait seulement l'axe
+  fournisseur.
+- **Les documents restent hors OLAP** — décision assumée, pas un oubli. Le connecteur
+  (`becpg-olap-connector`) crée ses tables à partir de trois listes de configuration
+  (`entitiesToExtract` / `dataListsToExtract` / `assocsToExtract`), et un document n'est ni une
+  entité déclarée, ni une datalist, ni une association : `cm:contains` ne sérialise que les
+  **dossiers**, sur un seul niveau. La voie technique existe — `becpg/remote/entity` répond sur
+  un `cm:content` porteur de `bcpg:documentAspect`, et `bcpg:documentEntityRef` fournit la clé
+  de jointure vers le produit, donc vers le fournisseur — mais elle suppose d'extraire des
+  `cm:content` dans le canal de publication, ce qui n'est pas arbitré. Conséquence : la
+  dimension **type de document** et la mesure **documents expirants** n'existent pas côté cube,
+  et **l'axe documentaire du pilotage reste servi par db-afts uniquement**.
 - Le portail dégrade proprement : sans cube, on perd les vues historiques, pas les vues
   courantes.
 
@@ -1203,7 +1217,7 @@ plus les livraisons additives d'`init-repo` (lot 0).
   classement des fournisseurs, email de création de compte multilingue.
 - **La seule addition beCPG** : la vue JSON du wizard (§5.4.1).
 - Portée par filiale sur les questions de questionnaire (DEV-813, #25461).
-- Dimensions et mesures OLAP fournisseur (§4.6.6).
+- Dimensions et mesures OLAP fournisseur (§4.6.6) — livrées, hors axe documentaire.
 
 Tout dans ce lot est **strictement additif** : nouveaux modèles et nouveaux fichiers, aucune
 modification d'un modèle, d'un script ou d'un webscript existant (§7.2). Ce lot n'est pas un
@@ -1277,9 +1291,9 @@ Par ordre de valeur :
   démarre à la racine.
 - **Source des dashboards de pilotage** : **db-afts** en premier (temps réel, sécurité et
   tenant hérités), **plus le cube OLAP** quand il est présent pour les analyses historiques et
-  les agrégats lourds. Les dimensions et mesures manquantes sont à créer dans `becpg-olap`
-  (dimensions fournisseur / type de document / statut d'agrément / filiale ; mesures documents
-  expirants, délai de réponse, taux de refus).
+  les agrégats lourds. Les axes fournisseur / statut d'agrément / filiale, le taux de refus et
+  le délai de réponse sont livrés dans le schéma OLAP ; **l'axe documentaire reste db-afts**
+  (§4.6.6).
 
 - **Statut d'agrément** : **calculé à la volée**, jamais persisté (§5.4.3). Exprimé comme des
   requêtes db-afts sur le parc, pas comme un calcul par fournisseur. L'ERP l'obtient via
