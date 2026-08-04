@@ -699,8 +699,22 @@ Même donnée, quatre lectures — sélecteur de profil, pas quatre applications
   `cm:content` dans le canal de publication, ce qui n'est pas arbitré. Conséquence : la
   dimension **type de document** et la mesure **documents expirants** n'existent pas côté cube,
   et **l'axe documentaire du pilotage reste servi par db-afts uniquement**.
+- **Aucune URL OLAP côté portail.** Le dépôt proxie déjà le cube :
+  `becpg/olap/chart` (`<authentication>user</authentication>`) garde l'adresse Saiku
+  côté serveur dans `becpg.olap.url.internal`. Le portail n'a donc besoin que de l'URL beCPG
+  qu'il connaît déjà et de son ticket — rien à configurer par tenant, et l'authentification du
+  cube est celle de beCPG, pas une seconde.
+- **Le MDX est construit côté serveur, jamais reçu.** `becpg/olap/chart` exécute du MDX
+  arbitraire sur un cube sans sécurité par ligne : une requête forgée lit tout le parc. Le
+  préfixe `becpg/olap/` est donc **volontairement absent de `ALLOWED_BECPG_PATH_PREFIXES`** — le
+  proxy exposé au navigateur répond 403 — et la seule voie est `GET /api/v1/monitor/history`,
+  qui choisit une requête dans un catalogue fermé (`lib/adapters/olap.js`) à partir d'un
+  identifiant de série. Le client n'envoie ni MDX, ni cube, ni dimension.
 - Le portail dégrade proprement : sans cube, on perd les vues historiques, pas les vues
-  courantes.
+  courantes. `becpg.olap.enabled=false` étant le défaut, la route répond **200** avec
+  `available: false` et un `reason` (`noCube` / `denied` / `unreachable`), jamais une erreur.
+  Attention : le webscript renvoie 200 avec un corps vide quand Saiku est absent — « pas de
+  colonne » vaut « pas de cube », et non « zéro ligne ».
 
 **Contrainte connue, découverte à l'implémentation** : `beCPG.remote.maxResults.limit` vaut
 **256** (`becpg-config-core.properties`) et borne toute liste de la remote API demandant des
