@@ -599,12 +599,10 @@ La valeur doit changer **à chaque rechargement de la configuration** : au déma
 `reloadConfig()` suffit ; l'exposer côté Share permet en plus d'y mêler le `config.scoped`
 de Surf.
 
-Côté portail c'est **déjà écrit et débrayé** : `BECPG_CONFIG_VERSION_ENDPOINT` pointe sur ce
-chemin, le jeton entre dans toutes les clés de cache, et `CONFIG_VERSION_TTL` (60 s) borne la
-fenêtre de péremption. Vérifié de bout en bout en branchant la sonde sur une ressource Share
-qui publie réellement un ETag : **cinq appels à chaud à 40–58 ms, changement de l'ETag, l'appel
-suivant repasse à 696 ms (résolution complète), puis de nouveau 42–55 ms.** L'invalidation est
-donc bien portée par la clé, et non par un délai.
+Côté portail, **aucun ajout beCPG n'est attendu** : le cache de configuration vit 5 minutes
+par tenant et par utilisateur (`WIZARD_CACHE_TTL`), et `POST /api/v1/config/refresh` le vide
+à la demande (`{"scope":"tenant"}` pour tout le tenant). Le décalage est borné et
+rattrapable sans redéploiement.
 
 En attendant, `POST /api/v1/config/refresh` vide le cache de l'appelant — mais **seulement sur
 le réplica qui répond**, ce qui n'est pas une procédure d'exploitation. C'est l'argument
