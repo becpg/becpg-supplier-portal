@@ -48,6 +48,7 @@ import { Wizard } from '@/components/wizard/Wizard';
 import { ReviewStep } from '@/components/wizard/steps/ReviewStep';
 import { DocumentsStep } from '@/components/wizard/steps/DocumentsStep';
 import { SignatureFlow } from '@/components/signature/SignatureFlow';
+import { TaskActions } from '@/components/tasks/TaskActions';
 import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
@@ -92,7 +93,7 @@ function fill(template, vars) {
  * The header shown above the screens that are not the wizard (the wizard draws
  * its own, with the step navigation).
  */
-function TaskHeader({ task, labels, lang }) {
+function TaskHeader({ task, labels, lang, onDone }) {
     return (
         <Card padding="md" className="mb-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
@@ -115,6 +116,12 @@ function TaskHeader({ task, labels, lang }) {
             {task.description ? (
                 <p className="mt-2 whitespace-pre-wrap text-sm text-[var(--becpg-blue)]/90">{task.description}</p>
             ) : null}
+            {/* The wizard and the signature flow close their task themselves; every
+                other screen goes through here — including the closure task, which
+                carries no deliverable at all. */}
+            <div className="mt-3 flex justify-end">
+                <TaskActions task={task} onDone={onDone} />
+            </div>
         </Card>
     );
 }
@@ -189,10 +196,13 @@ function TaskRouter() {
 
     /* ------------------------------------------------------------ no entity */
 
+    // A task can legitimately name no sheet — the empty state explains it, and
+    // the header above it still carries Terminer / Refuser, so the task remains
+    // actionable instead of being a dead end.
     if (!entityNodeRef) {
         return (
             <AppShell title={data.name || labels.loading}>
-                <TaskHeader task={data} labels={labels} lang={lang} />
+                <TaskHeader task={data} labels={labels} lang={lang} onDone={task.refresh} />
                 <EmptyState
                     variant="empty"
                     icon="link_off"
@@ -210,7 +220,7 @@ function TaskRouter() {
     if (data.type === 'document') {
         return (
             <AppShell title={data.name || labels.documents}>
-                <TaskHeader task={data} labels={labels} lang={lang} />
+                <TaskHeader task={data} labels={labels} lang={lang} onDone={task.refresh} />
                 <DocumentsStep
                     entityNodeRef={entityNodeRef}
                     step={{
@@ -233,7 +243,7 @@ function TaskRouter() {
 
     return (
         <AppShell title={data.name || labels.loading}>
-            <TaskHeader task={data} labels={labels} lang={lang} />
+            <TaskHeader task={data} labels={labels} lang={lang} onDone={task.refresh} />
             <ReviewStep entityId={entityNodeRef} wizardId={wizardId} />
         </AppShell>
     );

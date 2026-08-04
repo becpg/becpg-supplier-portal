@@ -489,7 +489,22 @@ function FormPanel({ entityId, attributes, step, params, lang, labels }) {
         { params },
     );
 
-    if (step && stepData.loading) {
+    const stepDefinition = stepData.data ? stepData.data.definition : null;
+    const stepHasFields = Boolean(
+        stepDefinition && Array.isArray(stepDefinition.fields) && stepDefinition.fields.length > 0,
+    );
+    // The Share form of the entity's own type, asked for only when the wizard
+    // gave nothing usable: no `form` step at all (`step === null`), or a step
+    // that answered without fields. Same endpoint Share renders from, so the
+    // sheet shows the client's configured fields, in its order, with the
+    // repository's translated labels — instead of the raw qnames.
+    const needsEntityForm = !step || (!stepData.loading && !stepHasFields);
+    const formData = useApi(
+        needsEntityForm ? `entities/${entityId}/form` : null,
+        { params: { locale: params?.locale } },
+    );
+
+    if ((step && stepData.loading) || (needsEntityForm && formData.loading)) {
         return <PanelSkeleton variant="form" />;
     }
 
@@ -497,7 +512,9 @@ function FormPanel({ entityId, attributes, step, params, lang, labels }) {
         return <ErrorState error={stepData.error} onRetry={stepData.refresh} />;
     }
 
-    const definition = stepData.data ? stepData.data.definition : null;
+    const definition = stepHasFields
+        ? stepDefinition
+        : (formData.data ? formData.data.definition : null);
     const hasFields = Boolean(definition && Array.isArray(definition.fields) && definition.fields.length > 0);
 
     if (hasFields) {
@@ -508,14 +525,14 @@ function FormPanel({ entityId, attributes, step, params, lang, labels }) {
     // form the supplier may not see): the raw attributes, and a notice saying so.
     return (
         <>
-            {step && (stepData.error || definition) ? (
+            {stepData.error || formData.error ? (
                 <p className="mb-3 text-xs text-[var(--becpg-dark-grey)]">
                     <Icon name="info" size={14} className="mr-1 align-text-bottom" />
                     {labels.configHint}
-                    {stepData.error ? (
+                    {stepData.error || formData.error ? (
                         <button
                             type="button"
-                            onClick={stepData.refresh}
+                            onClick={stepData.error ? stepData.refresh : formData.refresh}
                             className="ml-2 underline hover:text-[var(--becpg-blue)]"
                         >
                             {t('action.retry')}
