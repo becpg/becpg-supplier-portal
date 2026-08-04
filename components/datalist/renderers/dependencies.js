@@ -75,6 +75,12 @@ export const COMPANION_FIELDS = Object.freeze({
     'bcpg:nutListSources': ['bcpg:depthLevel'],
     'survey:questionLabel': ['bcpg:depthLevel'],
     'survey:slQuestion': ['bcpg:depthLevel'],
+    // The packaging component and supplier packaging lists (#34468) name their
+    // component with a text property rather than an association: the part they
+    // describe has no entity of its own. The indent is the only thing that says
+    // a cap belongs to the bottle above it.
+    'pack:pclComponent': ['bcpg:depthLevel'],
+    'pack:splComponent': ['bcpg:depthLevel'],
 });
 
 /**

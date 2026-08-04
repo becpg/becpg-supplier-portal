@@ -137,6 +137,12 @@ export const RENDERERS = Object.freeze({
     'bcpg:product_bcpg:packagingListProduct': characteristic,
     'bcpg:product_bcpg:productListProduct': characteristic,
     'bcpg:product_bcpg:nutListSources': characteristic,
+    // #34468 — the component of a packaging component / supplier packaging list is
+    // a constrained text, not an association, so this is a level-2 key: the
+    // property wherever it appears. `characteristic` finds no icon for a string
+    // and falls back to indenting alone, which is all these lists need.
+    'pack:pclComponent': characteristic,
+    'pack:splComponent': characteristic,
     'mltext_survey:questionLabel': questionLabel,
     'boolean_bcpg:allergenListVoluntary': flaggedBoolean,
     'boolean_bcpg:allergenListInVoluntary': flaggedBoolean,
