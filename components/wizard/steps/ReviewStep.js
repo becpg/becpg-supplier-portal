@@ -35,6 +35,7 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { CatalogPanel } from '@/components/products/CatalogPanel';
 import { RequirementChecklist } from '@/components/documents/RequirementChecklist';
+import { DepositedDocuments } from '@/components/documents/DepositedDocuments';
 import { FormStep } from '@/components/wizard/steps/FormStep';
 import { DataListStep } from '@/components/wizard/steps/DataListStep';
 import { SurveyStep } from '@/components/wizard/steps/SurveyStep';
@@ -325,16 +326,23 @@ export function ReviewStep({ entityId, state = null, wizardId, withCompliance = 
                         ) : step.type === 'survey' ? (
                             <SurveyStep entityId={entityNodeRef} step={step} params={params} autoSave={null} />
                         ) : step.type === 'documents' ? (
-                            <RequirementChecklist
-                                groups={requirements.data ? requirements.data.groups : undefined}
-                                requirements={requirements.data ? requirements.data.requirements : undefined}
-                                summary={requirements.data ? requirements.data.summary : null}
-                                loading={requirements.loading}
-                                error={requirements.error}
-                                onRetry={requirements.refresh}
-                                groupByEntity={false}
-                                compact
-                            />
+                            <>
+                                <RequirementChecklist
+                                    groups={requirements.data ? requirements.data.groups : undefined}
+                                    requirements={requirements.data ? requirements.data.requirements : undefined}
+                                    summary={requirements.data ? requirements.data.summary : null}
+                                    loading={requirements.loading}
+                                    error={requirements.error}
+                                    onRetry={requirements.refresh}
+                                    groupByEntity={false}
+                                    compact
+                                />
+                                {/* The check-list only knows the typed requirements. A
+                                    reviewer closing a project needs the folder itself —
+                                    the signed sheet has no document type and appears
+                                    nowhere else. */}
+                                <DepositedDocuments entityNodeRef={entityNodeRef} className="mt-3" />
+                            </>
                         ) : (
                             <DataListStep entityId={entityNodeRef} step={step} params={params} autoSave={null} />
                         )}

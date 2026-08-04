@@ -22,12 +22,13 @@
  * later.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { ListIcon } from '@/components/ui/ListIcon';
 import { DocumentUpload } from '@/components/documents/DocumentUpload';
 import { RequirementChecklist } from '@/components/documents/RequirementChecklist';
+import { DepositedDocuments } from '@/components/documents/DepositedDocuments';
 import { StepReadOnlyNotice } from '@/components/wizard/steps/FormStep';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
@@ -92,12 +93,16 @@ export function DocumentsStep({
         },
     });
 
+    // Bumped on every deposit so the folder listing re-reads: a file dropped
+    // through the check-list must appear below without a page reload.
+    const [depositCount, setDepositCount] = useState(0);
     const readOnly = Boolean(step && step.readOnly);
     const summary = requirements.data ? requirements.data.summary : null;
 
     const handleUploaded = useCallback(
         (result) => {
             requirements.refresh();
+            setDepositCount((count) => count + 1);
             if (autoSave) {
                 autoSave.markSaved();
             }
@@ -152,6 +157,12 @@ export function DocumentsStep({
                 onRetry={requirements.refresh}
                 onUploaded={handleUploaded}
                 groupByEntity={false}
+            />
+
+            <DepositedDocuments
+                entityNodeRef={entityNodeRef}
+                refreshKey={depositCount}
+                className="mt-4"
             />
 
             <Card
