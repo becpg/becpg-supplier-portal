@@ -63,3 +63,20 @@
 * InProgress #35846 - [Bug] Render the modification dates the API already served: risk cards, documents column, dead label removed
 * InProgress #35846 - [Bug] Read the doclib2 date and person shapes, which are objects and not strings
 * [skip ci][Release]: Bump _VERSION to 0.0.3
+## [ 0.0.4 ] - 2026-08-05 17:17:49
+
+* InProgress #35846 - [Feature] Open the wizard with the technical sheet instead of documents whose types are not computed yet
+* InProgress #35846 - [Bug] Answer null when nobody asked beCPG whether the user holds a task
+* InProgress #35846 - [Feature] Sign the e2e suite in through the real OIDC flow when the portal has no dev shortcut
+* InProgress #35846 - [Cleanup] Rewrite the questionnaire suite against the decision tree and assert the three closed gaps
+* InProgress #35846 - [Cleanup] Give the screen sweep a budget proportional to the number of screens it walks
+* InProgress #35846 - [Bug] Load pdf.js client-side only so a page carrying the viewer stops answering 500
+* InProgress #35846 - [Bug] Stop offering a wizard tab whose datalist the entity does not carry
+* InProgress #35846 - [Cleanup] Start the referencing through the portal now that the route works, and keep the journey re-runnable
+* InProgress #35846 - [Cleanup] Name the real cause when the supplier portal is not the one under test, and correct the survey step contract
+* InProgress #35846 - [Bug] Floor the day count in the display zone so an expiry is not announced a day early
+* InProgress #35846 - [Bug] Stop showing the raw type qname and drop the two tabs that ask nothing on a specification
+* InProgress #35846 - [Feature] Let a supplier read a deposited document without leaving the portal
+* InProgress #35846 - [Security] Refuse catalogs and documents of an entity the caller may not read
+* InProgress #35846 - [Bug] Only offer to download a specification that actually carries content
+* [skip ci][Release]: Bump _VERSION to 0.0.4
