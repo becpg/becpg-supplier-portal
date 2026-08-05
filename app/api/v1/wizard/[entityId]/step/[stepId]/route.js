@@ -7,9 +7,15 @@
  *
  * ```
  * form            { step, definition: { tabs, sets, fields } }   // values included
- * entityDataList  { step, columns, rows, total, page, pageSize } // survey too
+ * entityDataList  { step, columns, rows, total, page, pageSize }
+ * survey          { step, listId, questions, answers, disabled } // NOT a datalist
  * documents       { step, folderNodeRef, documents }
  * ```
+ *
+ * A `survey` step used to be served as one more `entityDataList`, one row per
+ * question. It is now the decision tree `becpg/survey` returns: the questions
+ * carry their own ordering and their `survey:nextQuestion` gates, which a flat
+ * row list cannot express. It therefore has no `columns`, `rows` or `total`.
  *
  * The `step` object is the one computed by `GET /api/v1/wizard/{entityId}`, with
  * the same `frozen` / `readOnly` values. It is echoed here so a deep link
