@@ -61,6 +61,7 @@ const LABELS = {
 
 /** Icon shown in a step's bullet, by step kind. */
 const KIND_ICONS = {
+    technicalSheet: 'description',
     documents: 'folder_open',
     suggestions: 'auto_awesome',
     form: 'edit_note',

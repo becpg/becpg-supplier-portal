@@ -6,20 +6,31 @@
  * ## The order is the feature
  *
  * ```
- * 0 · Contexte      permanent side panel: cahier des charges, remarques,
- *                   listes gelées, refus précédents      → HelpPanel
- * 1 · Documents     the expected document types, first   → DocumentsStep
- * 2 · Suggestions   what the AI read in them             → SuggestionsStep
- * 3..n · Sections   the wizard definition, as configured → Form / DataList / Survey
- * n+1 · Conformité  catalogue check, gates "Terminer"    → ComplianceStep
+ * 0 · Contexte         permanent side panel: cahier des charges, remarques,
+ *                      listes gelées, refus précédents      → HelpPanel
+ * 1 · Fiche technique  the one document always expected     → TechnicalSheetStep
+ * 2 · Suggestions      what the AI read IN THAT SHEET       → SuggestionsStep
+ * 3..n · Sections      the wizard definition, as configured → Form / DataList /
+ *                      Survey / Documents, in server order
+ * n+1 · Conformité     catalogue check, gates "Terminer"    → ComplianceStep
  * ```
  *
  * Steps 3..n are **not written here**: they are whatever
  * `GET /api/v1/wizard/{entityId}` returned, in the order Share resolved
- * (contracts §1, §8). The wizard only *hoists* the configured `documents` step
- * to position 1 — that hoist is the inversion the spec asks for — and appends
- * the two surfaces the configuration has no way to express (suggestions,
- * conformity). Add a list in Share and it appears here; nothing to write.
+ * (contracts §1, §8). The wizard adds only the three surfaces the configuration
+ * has no way to express — the technical sheet, the suggestions and the
+ * conformity. Add a list in Share and it appears here; nothing to write.
+ *
+ * ## Why the documents step is no longer pulled to the front
+ *
+ * It was, until the expected types were looked at closely: beCPG **computes
+ * them from the data entered** — a "GMO free" claim calls for its attestation,
+ * an organic label for its certificate (§4.5). Asked first, the list is empty or
+ * wrong. Only the *supplier technical sheet* is expected unconditionally, so it
+ * opens the wizard and it alone feeds the extraction suggestions; the documents
+ * step keeps the place the configuration gives it, usually near the end, where
+ * each upload gets its own AI help — its type and its dates, not the product's
+ * properties.
  *
  * ## The state, in one call
  *
@@ -74,6 +85,7 @@ import { FormStep } from '@/components/wizard/steps/FormStep';
 import { DataListStep } from '@/components/wizard/steps/DataListStep';
 import { SurveyStep } from '@/components/wizard/steps/SurveyStep';
 import { DocumentsStep } from '@/components/wizard/steps/DocumentsStep';
+import { TechnicalSheetStep } from '@/components/wizard/steps/TechnicalSheetStep';
 import { SuggestionsStep } from '@/components/wizard/steps/SuggestionsStep';
 import { ComplianceStep, blockingCatalogs } from '@/components/wizard/steps/ReviewStep';
 import { api, useApi } from '@/lib/client';
@@ -85,6 +97,7 @@ const LABELS = {
         context: 'Contexte',
         discussion: 'Discussion',
         documents: 'Documents',
+        technicalSheet: 'Fiche technique',
         suggestions: 'Suggestions',
         compliance: 'Conformité',
         properties: 'Propriétés',
@@ -113,6 +126,7 @@ const LABELS = {
         context: 'Context',
         discussion: 'Discussion',
         documents: 'Documents',
+        technicalSheet: 'Technical sheet',
         suggestions: 'Suggestions',
         compliance: 'Compliance',
         properties: 'Properties',
@@ -141,6 +155,7 @@ const LABELS = {
 
 /** Ids of the steps the portal adds on top of the configured ones. */
 const SYNTHETIC = Object.freeze({
+    TECHNICAL_SHEET: '__technicalSheet',
     DOCUMENTS: '__documents',
     SUGGESTIONS: '__suggestions',
     COMPLIANCE: '__compliance',
@@ -222,11 +237,25 @@ function stepLabel(step, labels) {
 }
 
 /**
- * Builds the wizard's step model: the configured steps, reordered, plus the two
- * the configuration cannot express.
+ * Builds the wizard's step model: the configured steps, in the order the server
+ * gave them, plus the ones the configuration cannot express.
  *
- * **The only reordering is the documents hoist.** Everything else keeps the
- * order Share returned.
+ * ## Why the documents are no longer hoisted to the front
+ *
+ * They used to be, so that the AI could read them before anything was typed. The
+ * order was wrong, and the reason is business rather than technical: **the
+ * expected document types are computed from the data entered** — a "GMO free"
+ * claim calls for a GMO certificate, an organic label for its certificate
+ * (`DocumentFormulationHandler`, spec §4.5). On the first step that list is empty
+ * or wrong, so the supplier was asked to guess what the system did not know yet.
+ *
+ * One document escapes that rule and now opens the wizard: the **supplier
+ * technical sheet**, asked for in every case, whatever the data says. It is
+ * therefore the entry point, and the only ground for extraction suggestions —
+ * it is the document that holds the values to reuse.
+ *
+ * Everything else keeps the order the configuration gave it, documents included,
+ * which most configurations place near the end.
  *
  * @param {Object} state the payload of `GET /api/v1/wizard/{entityId}`
  * @param {Object} options
@@ -245,29 +274,18 @@ export function buildStepModel(state, { hasSuggestions, labels }) {
         label: stepLabel(step, labels),
     }));
 
-    const documents = configured.filter((step) => step.type === 'documents');
-    const rest = configured.filter((step) => step.type !== 'documents');
-
     const model = [];
 
-    // Étape 1 — the documents come first. When the configuration declares no
-    // documents step (a wizard that never asked for any), the portal still shows
-    // the requirements: they are computed by beCPG on the entity, not by the
-    // wizard configuration (contracts §9).
-    if (documents.length > 0) {
-        model.push(...documents);
-    }
-    else {
-        model.push({
-            id: SYNTHETIC.DOCUMENTS,
-            type: 'documents',
-            kind: 'documents',
-            synthetic: true,
-            label: labels.documents,
-            readOnly: Boolean(state.readOnly),
-            frozen: false,
-        });
-    }
+    // Étape 1 — the technical sheet, always, and before anything else.
+    model.push({
+        id: SYNTHETIC.TECHNICAL_SHEET,
+        type: 'technicalSheet',
+        kind: 'technicalSheet',
+        synthetic: true,
+        label: labels.technicalSheet,
+        readOnly: Boolean(state.readOnly),
+        frozen: false,
+    });
 
     // Étape 2 — only when there is something to show; an instance without
     // becpg-ai must not grow an empty step.
@@ -283,7 +301,23 @@ export function buildStepModel(state, { hasSuggestions, labels }) {
         });
     }
 
-    model.push(...rest);
+    model.push(...configured);
+
+    // When the configuration declares no documents step at all, the portal still
+    // shows the requirements — they are computed by beCPG on the entity, not by
+    // the wizard configuration (contracts §9) — but at the END, where a
+    // configuration that declares one puts it, never at the front.
+    if (!configured.some((step) => step.type === 'documents')) {
+        model.push({
+            id: SYNTHETIC.DOCUMENTS,
+            type: 'documents',
+            kind: 'documents',
+            synthetic: true,
+            label: labels.documents,
+            readOnly: Boolean(state.readOnly),
+            frozen: false,
+        });
+    }
 
     // Étape n+1 — always read-only: it reports, it does not edit.
     model.push({
@@ -745,7 +779,15 @@ export function Wizard({
     const readOnlyReason = wizardState.readOnlyReason;
     const stepReadOnlyReason = currentStep && currentStep.frozen ? 'frozen' : readOnlyReason;
 
-    const stepContent = !currentStep ? null : currentStep.kind === 'documents' ? (
+    const stepContent = !currentStep ? null : currentStep.kind === 'technicalSheet' ? (
+        <TechnicalSheetStep
+            entityNodeRef={entityNodeRef}
+            step={currentStep}
+            readOnlyReason={stepReadOnlyReason}
+            autoSave={autoSave}
+            onUploaded={() => suggestionsCall.refresh()}
+        />
+    ) : currentStep.kind === 'documents' ? (
         <DocumentsStep
             entityNodeRef={entityNodeRef}
             step={currentStep}

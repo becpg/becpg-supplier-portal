@@ -415,7 +415,7 @@ En plus du §2bis.3 :
 | Dashboard : Mes tâches / Mes discussions / Mes produits / Mes documents | `specs.md` | ✅ bonne décomposition, à enrichir de la conformité |
 | Endpoints `/supplier/*` qui routent vers Alfresco | `specs.md` | ✅ **excellente idée** — n'expose jamais Alfresco au fournisseur. Réalisé par les route handlers Next.js, pas par un backend séparé (§5.1.1) |
 | Autocomplete côté backend avec le contexte du formulaire | `specs.md` | ✅ à aligner sur `becpg/autocomplete/...` existant |
-| Wizard : **documents → suggestion IA → complétion → catalogue → signature** | `SPEC_V2.md` | ✅✅ **c'est l'idée centrale**, et elle est déjà outillée (`DocumentExtractionSuggestionPlugin`) |
+| Wizard : **documents → suggestion IA → complétion → catalogue → signature** | `SPEC_V2.md` | ⚠️ l'idée est bonne mais l'ordre est faux : **les types de documents attendus sont calculés à partir des données saisies** (allégations, etc.), donc la liste n'existe pas encore en étape 1. Corrigé en §4.4 : une **fiche technique** en entrée, le reste des documents à leur place configurée |
 | Seuil de confiance IA pour décider ce qui est à vérifier | `SPEC_V2.md` | ✅ déjà implémenté : score par ligne (100 / 80-99 / 50-79 / <50) + moyenne dans `Suggestion.confidence` |
 | Volet d'aide affichant le cahier des charges | `specs.md` | ✅ répond directement à F9 |
 | Catalogues valident la conformité avant signature | `SPEC_V2.md` | ✅ le mécanisme existe (`entity-catalog`), à porter |
@@ -536,18 +536,18 @@ Règles UI transverses :
 - Animations sobres (framer-motion) : transitions d'étape, apparition des suggestions IA,
   progression des jauges.
 
-### 4.4 L'assistant (wizard) — inversion du flux
+### 4.4 L'assistant (wizard) — la fiche technique en entrée
 
 ```
 Étape 0 · Contexte           panneau latéral permanent :
                              cahier des charges applicable, commentaires du client,
                              listes déjà validées (gelées), historique des refus
 
-Étape 1 · Documents          dépôt drag & drop ; les types de documents attendus sont
-                             affichés explicitement (exigences documentaires §4.5),
-                             avec date de validité demandée par document
+Étape 1 · Fiche technique    dépôt d'UN document, toujours demandé, tagué comme fiche
+                             technique fournisseur. C'est le seul document du parcours
+                             dont le type est connu d'avance.
 
-Étape 2 · Suggestions IA     extraction automatique (becpg-ai) :
+Étape 2 · Suggestions IA     extraction automatique (becpg-ai) **sur cette fiche seule** :
                              · ≥ 90 % de confiance  → appliqué, badge vert, révocable
                              · 70-89 %              → proposé, à confirmer, badge orange
                              · < 70 %               → signalé, saisie manuelle, badge rouge
@@ -556,7 +556,8 @@ Règles UI transverses :
 
 Étapes 3..n · Sections       propriétés, questionnaire, ingrédients, nutriments, allergènes,
                              physico-chimie, allégations, microbiologie, organoleptique…
-                             générées depuis la configuration serveur du wizard
+                             **dans l'ordre configuré côté serveur**, y compris l'étape
+                             Documents que la configuration place le plus souvent à la fin
                              (les listes gelées par le client sont en lecture seule)
 
 Étape n+1 · Conformité       contrôle catalogue : liste des champs manquants, cliquables,
@@ -565,6 +566,32 @@ Règles UI transverses :
 
 Étape n+2 · Signature        visionneuse PDF, signature de toutes les pages, puis clôture
 ```
+
+#### Pourquoi les documents ne sont plus en étape 1
+
+La première version plaçait **tous** les documents en entrée, pour en extraire ensuite les
+données. L'ordre est faux, et la raison est métier : **les types de documents attendus sont
+calculés à partir des données saisies** — une allégation « sans OGM » appelle une attestation
+OGM, un label bio appelle un certificat, etc. (§4.5, `DocumentFormulationHandler`). En étape 1
+la liste des exigences est donc vide ou fausse : on demandait au fournisseur de deviner ce que
+le système ne savait pas encore.
+
+Une seule exception, et c'est elle qui porte le flux : la **fiche technique du fournisseur**
+est demandée dans tous les cas, indépendamment de toute donnée. Elle est donc le bon point
+d'entrée, et le bon — et unique — support des suggestions d'extraction : c'est le document qui
+contient les valeurs à reprendre.
+
+Les autres documents restent à la place que la configuration leur donne. Leur dépôt reste
+outillé par l'IA, mais pour ce qu'un document déposé permet vraiment de déduire **de
+lui-même** : son type (auto-classification) et ses dates de validité (§4.5) — pas les
+propriétés du produit.
+
+Conséquence sur le périmètre des suggestions, à ne pas confondre :
+
+| Où | Ce que l'IA propose | Sur quoi |
+|---|---|---|
+| Étape 1 · Fiche technique | les **valeurs du produit** (propriétés, listes) | la fiche technique seule |
+| Étape Documents (n'importe où) | le **type** du document et ses **dates** `cm:from` / `cm:to` | le document qui vient d'être déposé |
 
 Exigences de comportement :
 
