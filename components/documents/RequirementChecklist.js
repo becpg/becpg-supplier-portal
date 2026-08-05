@@ -31,6 +31,7 @@ import { SkeletonList } from '@/components/ui/Skeleton';
 import { download } from '@/lib/client';
 import { DocumentUpload, AiValidationBadge } from '@/components/documents/DocumentUpload';
 import { ExpiryPill, ValidityRange, ExpiryBar } from '@/components/documents/ExpiryPill';
+import { entityTypeLabel } from '@/components/products/ProductHeader';
 
 const LABELS = {
     fr: {
@@ -378,9 +379,15 @@ function RequirementGroup({ group, onUploaded, noticeDays, compact, defaultOpen 
                 <div className="min-w-0 flex-1">
                     <h3 className="break-words text-sm font-medium sm:text-base">{entityName}</h3>
                     <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                        {group.entity && group.entity.type ? (
+                        {/* The code when there is one, the *translated* type otherwise.
+                            The fallback used to print `group.entity.type` as it came,
+                            so a product with no `bcpg:code` showed the raw qname
+                            `bcpg:rawMaterial` to the supplier. `entityTypeLabel`
+                            prefers a server-side `typeLabel`, then its own map, and
+                            only ever degrades to the local name — never the prefix. */}
+                        {group.entity && (group.entity.code || group.entity.type) ? (
                             <span className="text-xs text-[var(--becpg-dark-grey)]">
-                                {group.entity.code || group.entity.type}
+                                {group.entity.code || entityTypeLabel(group.entity, lang)}
                             </span>
                         ) : null}
                         {blockingCount > 0 ? (

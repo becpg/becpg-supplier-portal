@@ -180,11 +180,28 @@ export function stepIconType(step) {
  * `form` step (or when the wizard could not be read at all) — the sheet must
  * never lose its properties, even degraded to the raw attributes.
  *
+ * ## Why two tabs are skipped on a specification
+ *
+ * **Conformité** scores the entity against the catalogs its customer requires,
+ * and **Cahiers des charges** lists the specifications bound to it. Both were
+ * pushed unconditionally, so opening a `bcpg:productSpecification` — a cahier
+ * des charges, i.e. the requirement document itself — offered to score a
+ * specification against catalogs it is not subject to, and to list the
+ * specifications of a specification. Neither question exists: the first tab
+ * showed an empty gauge, the second an empty list, and both read as missing
+ * data rather than as an inapplicable question.
+ *
  * @param {Object[]} steps steps of the wizard state; `[]` when it is unavailable
  * @param {Object} labels the chrome dictionary
+ * @param {string|null} [entityType] prefixed type of the entity being shown
  * @returns {Array<{key: string, label: string, kind: string, iconType: string, step: Object|null}>}
  */
-export function buildProductTabs(steps, labels) {
+export function buildProductTabs(steps, labels, entityType = null) {
+    // Unknown type: keep both tabs. The sheet is opened for products the vast
+    // majority of the time, and hiding a section because the type has not
+    // arrived yet would make tabs appear a moment later.
+    const isSpecification = entityType === 'bcpg:productSpecification';
+
     const wizardSteps = Array.isArray(steps) ? steps : [];
     const tabs = [];
     const taken = new Set();
@@ -214,8 +231,10 @@ export function buildProductTabs(steps, labels) {
         taken.add('sheet');
     }
 
-    push({ key: 'compliance', label: labels.compliance, kind: 'compliance', iconType: 'compliance', step: null });
-    push({ key: 'specs', label: labels.specs, kind: 'specs', iconType: 'specs', step: null });
+    if (!isSpecification) {
+        push({ key: 'compliance', label: labels.compliance, kind: 'compliance', iconType: 'compliance', step: null });
+        push({ key: 'specs', label: labels.specs, kind: 'specs', iconType: 'specs', step: null });
+    }
 
     if (!wizardSteps.some((step) => step.type === 'documents')) {
         // No `documents` step in this configuration: the portal's own check-list
@@ -905,7 +924,11 @@ export function ProductSections({
         return { ...dict, retryLabel: t('action.retry') };
     }, [lang, t]);
 
-    const tabs = useMemo(() => buildProductTabs(steps, labels), [steps, labels]);
+    const entityType = entity ? entity.type : null;
+    const tabs = useMemo(
+        () => buildProductTabs(steps, labels, entityType),
+        [steps, labels, entityType],
+    );
 
     // An unknown `?tab=` value (a stale bookmark, a step the client removed)
     // falls back to the first tab instead of showing nothing.
