@@ -160,6 +160,11 @@ Réponse (`EntitySecurityWebScript`) :
 - `accessMode` : `1` = READ, `2` = WRITE.
 - `datalists[].state === "Valid"` ⇒ **liste gelée par le client**, non modifiable.
 - `View-properties` et `View-documents` sont les pseudo-listes des étapes `form` et `documents`.
+- `hasAssignedTask` n'est calculé **que si `checkTaskAssignment=true`** est passé, et
+  ce calcul est cher : mesuré sur dev.becpg.fr, **1575 ms contre 66 ms** sans lui.
+  Le portail ne le demande donc que lorsqu'il en fera quelque chose (`enforceTask`),
+  et republie `null` — « non demandé » — le reste du temps. Un `false` signifie que
+  beCPG a répondu non ; il ne faut pas confondre les deux.
 
 > C'est l'appel qui pilote tout l'état lecture/écriture du wizard. Il doit être fait **une fois**
 > au chargement et le résultat propagé, jamais re-déduit du DOM (cf. bug #25928).
