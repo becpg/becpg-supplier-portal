@@ -17,7 +17,7 @@ import { NextResponse } from 'next/server';
 import { getLiveSession } from '@/lib/session';
 import { AuthError, toApiResponse } from '@/lib/errors';
 import { createBecpgClient } from '@/lib/adapters/session';
-import { getEntityCatalogs } from '@/lib/adapters/entities';
+import { getEntity, getEntityCatalogs } from '@/lib/adapters/entities';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -38,7 +38,19 @@ export async function GET(request, context) {
         const { searchParams } = new URL(request.url);
         const catalogId = searchParams.get('catalogId') || undefined;
 
-        const payload = await getEntityCatalogs(createBecpgClient(session), id, { catalogId });
+        // Read the entity FIRST, and let beCPG refuse it.
+        //
+        // `becpg/entity/catalog/node/…` answers on a node the caller may not read:
+        // measured against dev with a real supplier session, a product belonging to
+        // another supplier returned `score: 100` with its catalog label and its
+        // protected fields, while `/api/v1/entities/{id}` on the same node answered
+        // 403. A compliance score is business information about someone else's
+        // product — the catalogue endpoint simply is not the place where the
+        // permission is enforced, so it is enforced here, by asking the authority.
+        const client = createBecpgClient(session);
+        await getEntity(client, id, { lists: 'none' });
+
+        const payload = await getEntityCatalogs(client, id, { catalogId });
 
         const response = NextResponse.json(payload, { status: 200 });
         response.headers.set('Cache-Control', 'private, no-store');

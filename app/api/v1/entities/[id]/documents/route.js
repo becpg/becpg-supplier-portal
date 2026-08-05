@@ -34,7 +34,7 @@ import { NextResponse } from 'next/server';
 import { getLiveSession } from '@/lib/session';
 import { AuthError, toApiResponse } from '@/lib/errors';
 import { toNodeRef } from '@/lib/adapters/tasks';
-import { getDocuments } from '@/lib/adapters/wizard';
+import { getDocuments, getEntity } from '@/lib/adapters/wizard';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -53,6 +53,13 @@ export async function GET(request, context) {
         }
 
         const nodeRef = toNodeRef(id);
+
+        // Same rule as the catalogs route: `getDocuments` degrades to an empty list
+        // when the folder cannot be read, so an out-of-scope node answered 200 with
+        // `items: []` — no data, but a usable "this node exists" oracle. Reading the
+        // entity first turns that into the 403 beCPG already returns for it.
+        await getEntity(nodeRef, { session });
+
         const { folderNodeRef, documents } = await getDocuments(nodeRef, { session });
 
         const items = documents
