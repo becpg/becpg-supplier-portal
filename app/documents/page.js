@@ -352,7 +352,9 @@ export default function DocumentsPage() {
                     ) : null,
             },
         ],
-        [labels],
+        // `lang` : la colonne « Modifié le » formate sa date avec la locale, donc
+        // un changement de langue doit reconstruire les colonnes.
+        [labels, lang],
     );
 
     const blocking = summary ? summary.blocking || 0 : 0;
