@@ -55,3 +55,11 @@
 * InProgress #35846 - [Cleanup] Move the portal network policy to the cluster manifest and use the core backend config
 * InProgress #35846 - [Bug] Ship the NetworkPolicy the portal needs: default-deny-all was hiding it from the health checker
 * [skip ci][Release]: Bump _VERSION to 0.0.2
+## [ 0.0.3 ] - 2026-08-05 08:01:04
+
+* InProgress #35846 - [Bug] Rebuild the documents columns when the language changes
+* InProgress #35846 - [Cleanup] Stop asking beCPG for fields a row already carries, which quadrupled the cost
+* InProgress #35846 - [Security] Serve the security headers the public portal answered without
+* InProgress #35846 - [Bug] Render the modification dates the API already served: risk cards, documents column, dead label removed
+* InProgress #35846 - [Bug] Read the doclib2 date and person shapes, which are objects and not strings
+* [skip ci][Release]: Bump _VERSION to 0.0.3
