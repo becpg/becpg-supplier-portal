@@ -70,9 +70,18 @@ export async function GET(request, context) {
             .filter((document) => !document.expected && document.nodeRef)
             .map((document) => ({
                 ...document,
-                downloadUrl: `/api/v1/documents/${encodeURIComponent(
-                    String(document.nodeRef).split('/').pop(),
-                )}/content`,
+                // The generic node-content proxy, NOT `/api/v1/documents/{id}/content`:
+                // that route serves the *requirement* documents, the ones the search on
+                // `bcpg:documentAspect` knows about, and answers 404 for anything else —
+                // starting with the signed technical sheet, which is exactly the file
+                // this listing exists to surface. Measured: 404 on the signed sheet of
+                // MP96843, 200 through the proxy below.
+                //
+                // `api/node/` is on the proxy allow-list and the session cookie
+                // authenticates it, so the ticket still never reaches the browser.
+                downloadUrl: `/api/v1/becpg/api/node/content/workspace/SpacesStore/${
+                    encodeURIComponent(String(document.nodeRef).split('/').pop())
+                }/${encodeURIComponent(document.name || 'document')}`,
             }));
 
         const response = NextResponse.json({

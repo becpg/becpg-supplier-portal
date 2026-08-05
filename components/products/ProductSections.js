@@ -63,6 +63,7 @@ import { SkeletonCard, SkeletonTable } from '@/components/ui/Skeleton';
 import { CatalogPanel } from '@/components/products/CatalogPanel';
 import { SpecPanel } from '@/components/specs/SpecPanel';
 import { RequirementChecklist } from '@/components/documents/RequirementChecklist';
+import { DepositedDocuments } from '@/components/documents/DepositedDocuments';
 import { DataListEditor } from '@/components/datalist/DataListEditor';
 import { useDataList } from '@/components/datalist/useDataList';
 import { DecisionTree } from '@/components/survey/DecisionTree';
@@ -783,6 +784,11 @@ function DocumentsPanel({ nodeRef, step, labels }) {
                 onUploaded={requirements.refresh}
                 groupByEntity={false}
             />
+            {/* The check-list only knows the typed requirements. The folder itself
+                holds everything else — the signed sheet in particular, which carries
+                no document type — and this is the screen a supplier opens to check
+                what was actually filed. */}
+            <DepositedDocuments entityNodeRef={nodeRef} className="mt-4" />
         </div>
     );
 }

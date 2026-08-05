@@ -27,7 +27,9 @@
  * same file.
  */
 
+import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
+import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import { Icon } from '@/components/ui/Button';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
@@ -44,6 +46,7 @@ const LABELS = {
         emptyHint: 'Le dossier de ce produit ne contient encore aucun document.',
         signed: 'Signé',
         download: 'Télécharger',
+        consult: 'Consulter',
         modified: 'Modifié le {date}',
     },
     en: {
@@ -53,6 +56,7 @@ const LABELS = {
         emptyHint: 'This product’s folder holds no document yet.',
         signed: 'Signed',
         download: 'Download',
+        consult: 'View',
         modified: 'Modified on {date}',
     },
 };
@@ -95,6 +99,7 @@ export function DepositedDocuments({ entityNodeRef, refreshKey = 0, className = 
     );
 
     const items = list.data && Array.isArray(list.data.items) ? list.data.items : [];
+    const [viewing, setViewing] = useState(null);
 
     return (
         <Card
@@ -155,9 +160,20 @@ export function DepositedDocuments({ entityNodeRef, refreshKey = 0, className = 
                                     .filter(Boolean)
                                     .join(' · ')}
                             </span>
+                            {/* Viewing comes first: it is what one wants nine times
+                                out of ten, and it spares a round trip through the
+                                file manager just to check a certificate. */}
+                            <button
+                                type="button"
+                                onClick={() => setViewing(item)}
+                                className="shrink-0 text-sm text-[var(--becpg-blue)] underline hover:text-[var(--becpg-orange)]"
+                            >
+                                {labels.consult}
+                            </button>
                             <a
                                 href={item.downloadUrl}
-                                className="shrink-0 text-sm text-[var(--becpg-blue)] underline hover:text-[var(--becpg-orange)]"
+                                download
+                                className="shrink-0 text-sm text-[var(--becpg-dark-grey)] underline hover:text-[var(--becpg-orange)]"
                             >
                                 {labels.download}
                             </a>
@@ -165,6 +181,8 @@ export function DepositedDocuments({ entityNodeRef, refreshKey = 0, className = 
                     ))}
                 </ul>
             ) : null}
+
+            <DocumentViewer document={viewing} onClose={() => setViewing(null)} />
         </Card>
     );
 }
