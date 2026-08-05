@@ -30,11 +30,35 @@
  */
 
 import { useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { Modal } from '@/components/ui/Modal';
-import { Button, Icon } from '@/components/ui/Button';
+import { Button, Icon, Spinner } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { PdfViewer } from '@/components/signature/PdfViewer';
 import { useMessages } from '@/lib/messages';
+
+/**
+ * Client-side only, exactly as `SignatureDocument` loads it and for the same
+ * reason: pdf.js touches `DOMMatrix` and `canvas` on import, neither of which
+ * exists in Node.
+ *
+ * A plain `import` here — which is what this file did first — is not caught by
+ * `'use client'`: Next still renders client components on the server, so every
+ * screen mounting a `DepositedDocuments` (a task, a product sheet) answered
+ * **500 `ReferenceError: DOMMatrix is not defined`** before painting anything.
+ * The panel is opened by a click and has nothing to pre-render, so deferring it
+ * costs nothing and keeps pdf.js out of every other screen's first payload.
+ */
+const PdfViewer = dynamic(
+    () => import('@/components/signature/PdfViewer').then((module) => module.PdfViewer),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="flex h-[70vh] items-center justify-center">
+                <Spinner size={18} />
+            </div>
+        ),
+    },
+);
 
 const LABELS = {
     fr: {
