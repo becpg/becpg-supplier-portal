@@ -47,6 +47,7 @@ import { Button, Icon } from '@/components/ui/Button';
 import { ButtonGroup } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
+import { formatDate } from '@/lib/format';
 import { Field, Select, Textarea } from '@/components/ui/Field';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useToast } from '@/components/providers/ToastProvider';
@@ -597,6 +598,15 @@ function RiskRow({ item, rank, local, lang, onDone }) {
                             : local.noBuyer}
                         {typeof item.completion === 'number'
                             ? ` · ${interpolate(local.completion, { value: item.completion })}`
+                            : ''}
+                        {/* `lastActivity` (cm:modified du fournisseur) était calculé par
+                            l'adaptateur, trié dessus et exporté en CSV, mais jamais rendu :
+                            le libellé existait sans point d'appel. Sur une carte de risque
+                            c'est la donnée qui dit si le dossier bouge encore. */}
+                        {item.lastActivity
+                            ? ` · ${interpolate(local.lastActivity, {
+                                date: formatDate(item.lastActivity, lang),
+                            })}`
                             : ''}
                     </p>
                 </div>

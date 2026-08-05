@@ -52,7 +52,6 @@ const LABELS = {
             'Complétez les champs ci-dessous pour atteindre 100 % : ce sont eux qui bloquent la validation.',
         goToField: 'Aller au champ',
         notScored: 'Non évalué',
-        updated: 'Mis à jour',
     },
     en: {
         title: 'Compliance',
@@ -74,7 +73,6 @@ const LABELS = {
             'Fill in the fields below to reach 100 % — they are the ones holding the validation back.',
         goToField: 'Go to the field',
         notScored: 'Not scored',
-        updated: 'Updated',
     },
 };
 

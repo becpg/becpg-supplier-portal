@@ -36,6 +36,7 @@ import { RequirementChecklist } from '@/components/documents/RequirementChecklis
 import { DocumentUpload, AiValidationBadge } from '@/components/documents/DocumentUpload';
 import { ExpiryPill } from '@/components/documents/ExpiryPill';
 import { download, useApi } from '@/lib/client';
+import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 
 const LABELS = {
@@ -73,6 +74,7 @@ const LABELS = {
             entity: 'Produit',
             status: 'Statut',
             validity: 'Validité',
+            modified: 'Modifié le',
             ai: 'Analyse IA',
             actions: '',
         },
@@ -124,6 +126,7 @@ const LABELS = {
             entity: 'Product',
             status: 'Status',
             validity: 'Validity',
+            modified: 'Modified',
             ai: 'AI review',
             actions: '',
         },
@@ -298,6 +301,21 @@ export default function DocumentsPage() {
                         daysToExpiry={row.original.daysToExpiry}
                         size="sm"
                     />
+                ),
+            },
+            {
+                // `modified` est servi par /api/v1/documents depuis le début et
+                // n'était affiché nulle part : sur un écran qui sert à savoir quel
+                // document renouveler, la date du dernier dépôt est ce qui distingue
+                // un dossier suivi d'un dossier abandonné.
+                id: 'modified',
+                accessorFn: (row) => row.modified || '',
+                header: labels.columns.modified,
+                meta: { label: labels.columns.modified },
+                cell: ({ row }) => (
+                    <span className="whitespace-nowrap text-sm text-[var(--becpg-dark-grey)]">
+                        {formatDate(row.original.modified, lang)}
+                    </span>
                 ),
             },
             {
