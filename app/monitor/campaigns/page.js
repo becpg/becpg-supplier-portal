@@ -30,6 +30,7 @@
  */
 
 import { useCallback, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { AppShell } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -161,9 +162,19 @@ export default function MonitorCampaignsPage() {
     const { lang } = useMessages();
     const labels = LABELS[lang] || LABELS.fr;
 
+    /*
+     * `?q=` amorce le filtre — la page devient adressable.
+     *
+     * Le filtre ne vivait qu'en état local, donc aucun écran ne pouvait pointer
+     * une campagne précise : la fiche fournisseur listait « Campagnes et projets
+     * en cours » sans qu'aucune ligne ne mène nulle part. Il n'existe pas de page
+     * par campagne, et en inventer une route serait pire ; amener l'utilisateur
+     * sur la liste **déjà filtrée** est ce que cette page sait faire.
+     */
+    const searchParams = useSearchParams();
     const [state, setState] = useState('');
     const [sort, setSort] = useState('dueDate');
-    const [supplier, setSupplier] = useState('');
+    const [supplier, setSupplier] = useState(() => searchParams.get('q') || '');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);
     const [rowSelection, setRowSelection] = useState({});

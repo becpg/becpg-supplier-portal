@@ -356,14 +356,32 @@ function ApprovalReasons({ approval, local, lang }) {
  * *Lancer un processus* — `POST /api/v1/process/start`, restricted to the
  * instance's allow-list. Starting a project cannot be undone from the portal, so
  * it goes through a confirmation that says exactly that.
+ *
+ * ## The list comes from the endpoint it posts to
+ *
+ * It used to come from `useMonitorActionCatalog()`, i.e. from
+ * `GET /api/v1/monitor/actions` — which lists the **suspension** processes, and
+ * those are deliberately pinned to `PORTAL_PROCESS_TEMPLATES` because beCPG
+ * ships no marker for a suspension template (see that route's header). The
+ * launcher started a *referencing* process, whose templates are **discovered**.
+ *
+ * Two lists, one of them consulted and the other used. Measured on
+ * portal.becpg.fr: `GET /api/v1/process/start` answered one discovered template
+ * while the panel displayed "aucun processus n'est autorisé sur cette instance
+ * (PORTAL_PROCESS_TEMPLATES)" — naming a variable that governs a different
+ * action. Asking the endpoint that will serve the request is the only way the
+ * two cannot drift.
  */
 function ProcessLauncher({ supplierRef, local, onDone }) {
-    const catalog = useMonitorActionCatalog();
+    const catalog = useApi('process/start');
     const toast = useToast();
     const [process, setProcess] = useState('');
     const [confirming, setConfirming] = useState(false);
-    const processes = catalog.processes || [];
-    const selected = process || processes[0] || '';
+    const processes = useMemo(
+        () => (catalog.data && Array.isArray(catalog.data.processes) ? catalog.data.processes : []),
+        [catalog.data],
+    );
+    const selected = process || (processes[0] && processes[0].id) || '';
 
     const launch = useCallback(async () => {
         try {
@@ -394,7 +412,12 @@ function ProcessLauncher({ supplierRef, local, onDone }) {
                     className="min-w-[12rem]"
                     value={selected}
                     onChange={(event) => setProcess(event.target.value)}
-                    options={processes.map((id) => ({ value: id, label: id }))}
+                    // The discovered templates carry a real label — beCPG's own
+                    // project template name — where the pinned list only had ids.
+                    options={processes.map((entry) => ({
+                        value: entry.id,
+                        label: entry.label || entry.name || entry.id,
+                    }))}
                 />
                 <Button variant="primary" size="sm" icon="play_arrow" onClick={() => setConfirming(true)}>
                     {local.process.launch}
@@ -791,15 +814,24 @@ export default function MonitorSupplierSheetPage() {
                                             key={product.nodeRef}
                                             className="flex flex-wrap items-center gap-2 border-b border-[var(--becpg-grey)] pb-2 last:border-0 last:pb-0"
                                         >
-                                            <span className="min-w-0 flex-1">
-                                                <span className="block truncate text-sm">{product.name}</span>
+                                            {/* Un produit listé mène à sa fiche : la ligne
+                                                portait le nom, le code et la date sans jamais
+                                                être cliquable, et il fallait retrouver le
+                                                produit par la recherche pour l'ouvrir. */}
+                                            <Link
+                                                href={`/products/${encodeURIComponent(product.nodeRef)}`}
+                                                className="min-w-0 flex-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                                            >
+                                                <span className="block truncate text-sm text-[var(--becpg-blue)] underline-offset-2 hover:underline">
+                                                    {product.name}
+                                                </span>
                                                 <span className="text-xs text-[var(--becpg-dark-grey)]">
                                                     {product.code || ''}
                                                     {product.modified
                                                         ? ` · ${formatDate(product.modified, lang)}`
                                                         : ''}
                                                 </span>
-                                            </span>
+                                            </Link>
                                             {product.state ? (
                                                 <StatusPill status={product.state} size="sm" />
                                             ) : null}
@@ -855,9 +887,16 @@ export default function MonitorSupplierSheetPage() {
                                     {projects.map((project) => (
                                         <li key={project.nodeRef}>
                                             <div className="flex flex-wrap items-center gap-2">
-                                                <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                                                {/* Aucune page par campagne n'existe : le lien
+                                                    mène à la liste déjà filtrée sur ce projet,
+                                                    ce qui est le plus proche de « ouvrir la
+                                                    campagne » sans inventer une route. */}
+                                                <Link
+                                                    href={`/monitor/campaigns?q=${encodeURIComponent(project.name || '')}`}
+                                                    className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--becpg-blue)] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                                                >
                                                     {project.name}
-                                                </span>
+                                                </Link>
                                                 {project.state ? (
                                                     <StatusPill status={project.state} size="sm" />
                                                 ) : null}

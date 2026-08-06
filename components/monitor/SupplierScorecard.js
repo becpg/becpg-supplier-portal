@@ -80,6 +80,16 @@ const LABELS = {
         historyUnavailable: 'Historique indisponible',
         historyWhy:
             'Sans cube OLAP, beCPG ne conserve aucun instantané des statuts d’agrément ni des scores passés : le portail n’affiche donc pas de courbe plutôt qu’une courbe inventée.',
+        historyWhyBy: {
+            supplierAxisUnavailable:
+                'Le cube répond, mais il n’expose pas d’axe fournisseur : impossible d’isoler l’historique de CE fournisseur. Il faut ajouter la dimension fournisseur au cube (schéma OLAP de beCPG), puis recharger le schéma côté serveur OLAP.',
+            supplierUnresolved:
+                'Ce fournisseur n’a pas pu être retrouvé dans le cube — son code n’y figure pas encore. Une reconstruction du cube le fera apparaître.',
+            noData:
+                'Le cube répond et connaît ce fournisseur, mais il ne contient encore aucun point sur la période : l’historique se remplira aux prochaines alimentations.',
+            unknownQuery:
+                'La série demandée n’existe pas dans le catalogue de requêtes du portail — c’est un défaut de configuration, pas une absence de données.',
+        },
         historyNeeds: 'Ce qu’il faut côté OLAP pour l’activer',
         dimensions: 'Dimensions',
         measures: 'Mesures',
@@ -113,6 +123,16 @@ const LABELS = {
         historyUnavailable: 'History unavailable',
         historyWhy:
             'Without an OLAP cube, beCPG keeps no snapshot of past approval statuses or scores: the portal shows no curve rather than an invented one.',
+        historyWhyBy: {
+            supplierAxisUnavailable:
+                'The cube answers, but exposes no supplier axis, so this supplier’s own history cannot be isolated. The supplier dimension has to be added to the cube (beCPG’s OLAP schema) and the schema reloaded on the OLAP server.',
+            supplierUnresolved:
+                'This supplier could not be found in the cube — its code is not there yet. Rebuilding the cube will bring it in.',
+            noData:
+                'The cube answers and knows this supplier, but holds no point for the period yet: the history fills in as the cube is fed.',
+            unknownQuery:
+                'The requested series is not in the portal’s query catalogue — a configuration defect, not missing data.',
+        },
         historyNeeds: 'What the OLAP side needs to enable it',
         dimensions: 'Dimensions',
         measures: 'Measures',
@@ -180,12 +200,25 @@ export function HistoryUnavailable({ history, compact = false, className = '' })
     const local = LABELS[lang] || LABELS.fr;
     const required = (history && history.required) || null;
 
+    /*
+     * La raison EST dans la charge — autant la dire.
+     *
+     * Ce bloc affichait toujours « sans cube OLAP … », y compris quand l'API
+     * répondait tout autre chose. Mesuré sur portal.becpg.fr :
+     * `{"available": false, "reason": "supplierAxisUnavailable"}` — le cube
+     * répondait bel et bien, il lui manquait l'axe fournisseur, et le message
+     * envoyait chercher un cube qui existait déjà. Une explication fausse coûte
+     * plus cher qu'une explication vague : elle envoie corriger le mauvais
+     * endroit.
+     */
+    const why = (history && local.historyWhyBy[history.reason]) || local.historyWhy;
+
     if (compact) {
         return (
             <p className={`flex items-start gap-1.5 text-xs text-[var(--becpg-dark-grey)] ${className}`}>
                 <Icon name="timeline" size={14} className="mt-0.5 shrink-0" />
                 <span>
-                    <strong className="font-medium">{local.historyUnavailable}</strong> — {local.historyWhy}
+                    <strong className="font-medium">{local.historyUnavailable}</strong> — {why}
                 </span>
             </p>
         );
@@ -198,7 +231,7 @@ export function HistoryUnavailable({ history, compact = false, className = '' })
                 <div className="min-w-0">
                     <p className="text-sm font-medium">{local.historyUnavailable}</p>
                     <p className="mt-0.5 text-xs leading-relaxed text-[var(--becpg-dark-grey)]">
-                        {local.historyWhy}
+                        {why}
                     </p>
                 </div>
             </div>
