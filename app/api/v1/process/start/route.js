@@ -149,7 +149,38 @@ async function supplierProcessDefinition(params) {
     const script = new URLSearchParams(String(definition.submissionUrl || '').split('?')[1] || '')
         .get('script') || SUPPLIER_PROJECT_SCRIPT;
 
-    return { script, formFields: definition.formFields || {} };
+    const formFields = definition.formFields || {};
+
+    /*
+     * PAS DE COMPTE FOURNISSEUR RÉSOLU, PAS DE SOUMISSION.
+     *
+     * `create-supplier-project.js` appelle
+     * `bSupplier.createSupplierProject(items, tpl, accounts)` où `accounts` doit
+     * être un `String[]`. Quand le champ manque, le script passe `""` — une
+     * chaîne — et Rhino ne trouve aucune surcharge :
+     *
+     *     La méthode 'SupplierPortalHelper.createSupplierProject(
+     *       [LScriptNode;, ScriptNode, string)' est introuvable
+     *
+     * Mesuré sur portal.becpg.fr en lançant le référencement depuis la fiche d'un
+     * `bcpg:supplier` : 502, message illisible pour l'utilisateur, projet non créé.
+     * beCPG n'évalue les comptes que pour les entités auxquelles le processus
+     * s'applique — un produit — et le portail soumettait quand même.
+     *
+     * Refuser ici rend la cause lisible et évite une erreur serveur pour une
+     * situation parfaitement prévisible. Le correctif beCPG (passer `[]` au lieu
+     * de `""`) reste souhaitable ; celui-ci ne dépend pas de lui.
+     */
+    const accounts = String(formFields.assoc_bcpg_supplierAccountRef ?? '').trim();
+    if (!accounts) {
+        throw new ForbiddenError(
+            'beCPG resolved no supplier account for this item: the referencing process '
+            + 'applies to a product, not to this entity',
+            { details: { entityNodeRef, reason: 'noSupplierAccount' } },
+        );
+    }
+
+    return { script, formFields };
 }
 
 /**

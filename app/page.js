@@ -284,6 +284,23 @@ export default async function DashboardPage() {
         redirect('/login?next=%2F');
     }
 
+    /*
+     * L'ESPACE DÉCIDE DE LA PAGE D'ACCUEIL.
+     *
+     * Cette page est le tableau de bord **du fournisseur** : mes tâches, mes
+     * produits, mon dossier, mon statut d'agrément. `resolveSpace` tranche déjà
+     * (spec §4.2) et la session le publie, mais rien ici ne le lisait : un
+     * utilisateur interne atterrissait donc sur « Mes tâches » après connexion,
+     * avec une pastille « Suspendu » dans l'en-tête — un statut d'agrément
+     * affiché à quelqu'un qui n'est pas fournisseur.
+     *
+     * Le pilotage est son point d'entrée ; la redirection remplace la page, elle
+     * n'ajoute pas un écran de plus à traverser.
+     */
+    if (session.space === 'monitor') {
+        redirect('/monitor');
+    }
+
     // `lib/messages` cannot be imported here: it carries the client hook
     // (`useSyncExternalStore`). A server component reads the cookie and calls
     // the plain resolver from `config/messages` instead.
