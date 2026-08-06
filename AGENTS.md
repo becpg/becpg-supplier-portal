@@ -6,11 +6,11 @@ Current state, known defects and remaining gaps: `doc/implementation-status.md`.
 
 ## Read this first
 
-**This repository is not under version control.** There is no `.git` in
-`becpg-supplier-portal/` nor anywhere above it. Nothing you write is committed, and nothing
-is recoverable once overwritten. Two consequences:
+**This repository IS under version control** — `main`, pushed to Google Source. That was not
+always true, and this paragraph said the opposite until 2026-08-06; if you find advice
+elsewhere that assumes no `.git`, it is stale.
 
-- do not assume you can `git diff` your work, revert, or branch — you cannot;
+- commit your work: `git diff`, revert and branch all behave normally;
 - **other agents may be editing the same files at the same time.** If a file changes under
   you mid-task, do not fight for it: finish what you own, and report the conflict instead of
   overwriting someone's in-flight work.
@@ -177,7 +177,8 @@ curl -s http://localhost:3000/api/health             # {"status":"ok","version":
 
 Release: `./release.sh` (must run from `main`, clean tree) tags the current
 `_VERSION` of `cloudbuild.delivery.yaml`, appends to `CHANGELOG.md`, then bumps the version.
-Note it assumes a git repository, which does not currently exist.
+It pushes the branch and the tag, so it needs valid `gcloud` credentials — when they expire the
+tag is created locally and only the push fails.
 
 ## Git commits
 

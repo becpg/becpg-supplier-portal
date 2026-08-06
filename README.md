@@ -103,6 +103,30 @@ Prérequis : l'instance locale **et** le portail (`http://localhost:3000`) tourn
 s'exécute **en série** : elle travaille sur une instance partagée et écrit de vraies données.
 Ses artefacts (`e2e/report/`, `e2e/results/`) sont gitignorés et exclus du lint.
 
+### Sans rien déployer en local
+
+La plupart des fichiers tournent aussi contre le **portail déployé** et **dev.becpg.fr**, ce qui
+évite les trois gros consommateurs de mémoire (Alfresco, MySQL, un serveur Next) :
+
+```bash
+PORTAL_BASE_URL=https://portal.becpg.fr BECPG_URL=https://dev.becpg.fr \
+  WIZARD_SOURCE_CODE=MP93981 \
+  npx playwright test --config e2e/playwright.config.js tests/07-wizard-steps.spec.js
+```
+
+Le mode d'authentification est **détecté**, jamais configuré : `fixtures/oidc.js` interroge
+`/api/auth/login` et regarde si la redirection sort du domaine du portail. Contre dev il ouvre une
+vraie session Keycloak avec les comptes du harnais recette
+(`../becpg-boxes/recette/src/fixtures/users.local.json`, voir le skill `becpg-test-ticket`) —
+aucun identifiant n'est recopié ici ni passé en ligne de commande.
+
+Deux fichiers font exception, et le disent dans leur en-tête : `04-supplier-journey` exige un
+portail servi en OIDC réel **en plus** de celui de la pile locale, et `08-datalists` exige le seed
+local parce que ses assertions supposent des listes vides au départ.
+
+Ce qui est vert, ce qui ne l'est pas et ce qui n'a pas pu être vérifié :
+**`doc/implementation-status.md`**.
+
 Docker :
 
 ```bash
