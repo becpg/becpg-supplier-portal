@@ -85,3 +85,8 @@
 * InProgress #35846 - [Bug] Do not re-derive suppliers from tasks when the groups already answered
 * InProgress #35846 - [Bug] Stop listing fifty tasks to resolve suppliers the groups already name
 * [skip ci][Release]: Bump _VERSION to 0.0.5
+## [ 0.0.6 ] - 2026-08-06 08:31:31
+
+* InProgress #35846 - [Bug] Enrich only the tasks the dashboard shows instead of one call per task
+* InProgress #35846 - [Bug] Fetch the dashboard park with the five attributes it shows, not thirteen
+* [skip ci][Release]: Bump _VERSION to 0.0.6
