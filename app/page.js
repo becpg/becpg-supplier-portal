@@ -299,7 +299,16 @@ export default async function DashboardPage() {
 
     const [taskResult, entityResult, documentResult] = await Promise.all([
         safe(
-            () => client.memo('tasks', () => listMyTasks(client, { pageSize: TASK_SCAN })),
+            /*
+             * `enrichLimit` — the dashboard shows six tasks and reads one counter.
+             * Enriching the whole scan cost one `becpg/project/task` per task (31
+             * on dev) to display six. The counters stay exact; only `byType`,
+             * which the dashboard does not use, is omitted.
+             */
+            () => client.memo('tasks', () => listMyTasks(client, {
+                pageSize: TASK_SCAN,
+                enrichLimit: PREVIEW.tasks * 2,
+            })),
             { items: [], counters: { total: 0, late: 0, open: 0, byType: {} } },
         ),
         safe(
