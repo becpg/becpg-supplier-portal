@@ -90,3 +90,7 @@
 * InProgress #35846 - [Bug] Enrich only the tasks the dashboard shows instead of one call per task
 * InProgress #35846 - [Bug] Fetch the dashboard park with the five attributes it shows, not thirteen
 * [skip ci][Release]: Bump _VERSION to 0.0.6
+## [ 0.0.7 ] - 2026-08-06 09:18:34
+
+* InProgress #35846 - [Cleanup] A supplier is defined by its group, so stop deriving one from its tasks
+* [skip ci][Release]: Bump _VERSION to 0.0.7
