@@ -99,3 +99,7 @@
 * InProgress #35846 - [Bug] Offer the processes the launcher can actually start, name the real reason a history is missing, and open the rows the monitor lists
 * InProgress #35846 - [Cleanup] Repair the specs the wizard reordering and the questionnaire rewrite invalidated
 * [skip ci][Release]: Bump _VERSION to 0.0.8
+## [ 0.0.9 ] - 2026-08-06 12:05:31
+
+* InProgress #35846 - [Bug] Send an internal user to the monitoring space and stop judging the approval of someone who is not a supplier
+* [skip ci][Release]: Bump _VERSION to 0.0.9
