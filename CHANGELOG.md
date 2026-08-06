@@ -103,3 +103,8 @@
 
 * InProgress #35846 - [Bug] Send an internal user to the monitoring space and stop judging the approval of someone who is not a supplier
 * [skip ci][Release]: Bump _VERSION to 0.0.9
+## [ 0.0.10 ] - 2026-08-06 14:57:03
+
+* InProgress #35846 - [Cleanup] Run the datalist spec anywhere, and state the fixture its assertions need
+* InProgress #35846 - [Cleanup] Make the wizard spec runnable against dev, and stop asserting one instance's configuration
+* [skip ci][Release]: Bump _VERSION to 0.0.10
