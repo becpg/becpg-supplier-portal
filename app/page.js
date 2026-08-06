@@ -303,7 +303,20 @@ export default async function DashboardPage() {
             { items: [], counters: { total: 0, late: 0, open: 0, byType: {} } },
         ),
         safe(
-            () => client.memo('entities', () => listMyEntities(client, { pageSize: ENTITY_SCAN })),
+            /*
+             * `preview: true` — the dashboard names and orders, it does not detail.
+             *
+             * It shows four products and a park counter, then uses the rest of the
+             * scan only to recognise the entity a preview task points at. The full
+             * projection costs 942-3614 ms for 200 rows against 166-191 ms for the
+             * cheap one (measured on dev.becpg.fr): eleven attributes fetched for
+             * every product in the park so that four rows can show a name, a code
+             * and a date.
+             */
+            () => client.memo('entities', () => listMyEntities(client, {
+                pageSize: ENTITY_SCAN,
+                preview: true,
+            })),
             { items: [], pagination: { totalItems: 0, totalAtLeast: 0, totalExact: true } },
         ),
         safe(() => listDocuments({ session, page: 1, pageSize: PREVIEW.documents * 4 }), null),
