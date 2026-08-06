@@ -80,3 +80,8 @@
 * InProgress #35846 - [Security] Refuse catalogs and documents of an entity the caller may not read
 * InProgress #35846 - [Bug] Only offer to download a specification that actually carries content
 * [skip ci][Release]: Bump _VERSION to 0.0.4
+## [ 0.0.5 ] - 2026-08-06 08:11:29
+
+* InProgress #35846 - [Bug] Do not re-derive suppliers from tasks when the groups already answered
+* InProgress #35846 - [Bug] Stop listing fifty tasks to resolve suppliers the groups already name
+* [skip ci][Release]: Bump _VERSION to 0.0.5
