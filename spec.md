@@ -605,6 +605,47 @@ Exigences de comportement :
 - Le mode **saisie déléguée** (client saisissant pour le fournisseur) est le même écran, avec
   un bandeau explicite « vous saisissez au nom de <fournisseur> ».
 
+#### 4.4.1 Langues obligatoires (#33085)
+
+Un fournisseur qui livre plusieurs marchés doit renseigner certains champs dans
+**plusieurs langues** — un libellé commercial en français *et* en anglais, une
+dénomination légale dans la langue du pays de destination. Aujourd'hui le portail
+rend les champs `d:mltext` avec leurs traductions, mais rien ne dit **lesquelles
+sont exigées** : le fournisseur remplit le français, part, et le dossier est
+refusé plus tard pour une raison qu'il n'avait aucun moyen de connaître.
+
+**Le catalogue est le bon porteur, et il l'est déjà.** `entity-catalog` est le
+mécanisme par lequel le client déclare ce qu'il attend d'une fiche, champ par
+champ, avec un score de complétude et un blocage de la finalisation (§4.4 étape
+n+1, §5.4.3). Une langue obligatoire est une exigence de complétude comme une
+autre : elle a sa place là, pas dans une configuration parallèle du portail.
+
+Ce que cela demande :
+
+- **côté beCPG** — que la définition d'un catalogue puisse nommer, pour un champ
+  multilingue, les **locales exigées** (par exemple `fr,en`), et que son calcul de
+  complétude compte un champ comme manquant tant qu'une de ces locales est vide.
+  C'est l'endroit où la règle doit vivre : le portail ne juge jamais la
+  conformité, il l'affiche (règle R1) ;
+- **côté portail** — trois choses seulement : marquer les locales exigées dans le
+  contrôle multilingue, faire apparaître une locale manquante dans la liste des
+  champs manquants de l'étape Conformité (cliquable, comme les autres), et
+  compter cette absence dans le score.
+
+Deux choses à ne pas faire, et la raison :
+
+- **ne pas inventer une liste de langues côté portail.** Les langues exigées
+  dépendent du client et du marché du produit ; une variable d'environnement
+  donnerait la même réponse à tous les catalogues d'une instance ;
+- **ne pas bloquer la saisie** d'une langue non exigée. Une langue de plus est
+  une information de plus ; l'exigence porte sur un minimum, jamais sur un
+  maximum.
+
+Tant que beCPG ne porte pas l'exigence, le portail ne doit **rien afficher** à ce
+sujet : une étoile « obligatoire » posée par défaut sur toutes les langues serait
+une exigence inventée, et le fournisseur la découvrirait comme un blocage sans
+origine.
+
 ### 4.5 Exigences documentaires et renouvellement — **exposer l'existant, combler 3 trous**
 
 Le socle est déjà là. Ce qu'il faut construire est limité et bien identifié.
