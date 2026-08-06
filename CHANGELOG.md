@@ -94,3 +94,8 @@
 
 * InProgress #35846 - [Cleanup] A supplier is defined by its group, so stop deriving one from its tasks
 * [skip ci][Release]: Bump _VERSION to 0.0.7
+## [ 0.0.8 ] - 2026-08-06 11:30:20
+
+* InProgress #35846 - [Bug] Offer the processes the launcher can actually start, name the real reason a history is missing, and open the rows the monitor lists
+* InProgress #35846 - [Cleanup] Repair the specs the wizard reordering and the questionnaire rewrite invalidated
+* [skip ci][Release]: Bump _VERSION to 0.0.8
