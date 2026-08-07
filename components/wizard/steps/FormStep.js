@@ -26,13 +26,14 @@
  * and focused through `fieldDomId()`.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Icon } from '@/components/ui/Button';
 import { ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { FormRenderer } from '@/components/form/FormRenderer';
 import { fieldDomId } from '@/components/form/FieldRenderer';
 import { useFormState } from '@/components/form/useFormState';
+import { isEmptyValue } from '@/components/form/validation';
 import { SuggestionBadge } from '@/components/wizard/SuggestionBadge';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
@@ -122,6 +123,10 @@ export function StepReadOnlyNotice({ reason, lang = 'fr', className = '' }) {
  * @param {Object} [props.suggestionsByField] `{ 'bcpg:legalName': { confidence, confidenceLevel } }`
  * @param {string|null} [props.focusField] a field to scroll to and focus
  * @param {Function} [props.onLoaded] `(definition) => void`
+ * @param {Function} [props.onIssues] `(stepId, {count, labels}) => void` — the
+ *        mandatory fields still blank, so the wizard can mark the step and refuse
+ *        to finish. Reported, never enforced here: this step does not own
+ *        "Terminer".
  * @param {string} [props.className]
  */
 export function FormStep({
@@ -135,6 +140,7 @@ export function FormStep({
     suggestionsByField = null,
     focusField = null,
     onLoaded,
+    onIssues,
     className = '',
 }) {
     const { lang } = useMessages();
@@ -205,6 +211,46 @@ export function FormStep({
             onLoaded(definition);
         }
     }, [definition, onLoaded]);
+
+    /*
+     * **Les obligatoires encore vides, remontés à l'assistant.**
+     *
+     * `useFormState` valide déjà au fil de la saisie, mais son verdict restait
+     * dans ce composant — qui est démonté dès qu'on change d'étape. D'où le
+     * défaut : rien n'indiquait, en quittant l'onglet, qu'il y restait un champ
+     * obligatoire vide, et *Terminer* ne s'en souciait pas.
+     *
+     * On ne remonte que le **manquant obligatoire**, pas les erreurs de format :
+     * une valeur déjà en base qui ne satisfait plus une contrainte n'est pas une
+     * saisie inachevée, et bloquer la clôture dessus interdirait de rendre une
+     * fiche que le fournisseur n'a aucun moyen de réparer.
+     *
+     * Les champs en lecture seule sont hors du compte : une section gelée par le
+     * client n'est pas au fournisseur de la remplir. `validateForm` les écarte
+     * de lui-même (`skipReadOnly`), et un pas en lecture seule voit tous ses
+     * champs marqués tels par le serveur.
+     */
+    const missing = useMemo(() => {
+        if (readOnly || !definition) {
+            return [];
+        }
+        const fields = Array.isArray(definition.fields) ? definition.fields : [];
+        return fields
+            .filter((field) => field
+                && field.name
+                && field.mandatory
+                && !field.readOnly
+                && !field.protectedField
+                && isEmptyValue(form.values[field.name]))
+            .map((field) => field.label || field.name);
+    }, [definition, readOnly, form.values]);
+
+    useEffect(() => {
+        if (!onIssues || !step) {
+            return;
+        }
+        onIssues(step.id, { count: missing.length, labels: missing });
+    }, [onIssues, step, missing]);
 
     // "Champ manquant" links from the conformity step land here.
     useEffect(() => {

@@ -112,6 +112,9 @@ const LABELS = {
         finish: 'Terminer',
         finished: 'Tâche envoyée à votre client',
         finishBlocked: 'Complétez les champs manquants de l’étape « Conformité » pour terminer.',
+        // Nommer l'étape et le nombre : « il manque quelque chose quelque part »
+        // n'aide personne à finir.
+        finishMissingStep: '« {step} » : {count} réponse(s) obligatoire(s) manquante(s).',
         notFound: 'Fiche introuvable',
         notFoundHint: 'Cette fiche n’existe pas ou ne fait pas partie de votre périmètre.',
         delegated: 'Vous saisissez au nom de {supplier}',
@@ -141,6 +144,8 @@ const LABELS = {
         finish: 'Finish',
         finished: 'Task sent to your customer',
         finishBlocked: 'Fill in the missing fields of the "Compliance" step to finish.',
+        /* See the note on the French keys. */
+        finishMissingStep: '"{step}": {count} mandatory answer(s) missing.',
         notFound: 'Sheet not found',
         notFoundHint: 'This sheet does not exist, or is not part of your scope.',
         delegated: 'You are filling in on behalf of {supplier}',
@@ -175,6 +180,12 @@ function resumeKey(entityId) {
  * button you press twelve times an afternoon.
  */
 const WIDE_KEY = 'becpg.portal.wizard.wide';
+
+/**
+ * DOM id of the discussion column, so `openComments` can bring it into view when
+ * it is already on screen. One wizard per document, so a constant is enough.
+ */
+const COMMENTS_PANEL_ID = 'becpg-wizard-comments';
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
@@ -447,9 +458,64 @@ export function Wizard({
     const currentIndex = steps.findIndex((step) => step.id === currentId);
     const currentStep = currentIndex >= 0 ? steps[currentIndex] : null;
 
+    /* ------------------------------------------------- mandatory-entry gaps */
+
+    /*
+     * **Ce qui manque, étape par étape.**
+     *
+     * `{ [stepId]: { count, labels: string[] } }`, alimenté par les étapes
+     * elles-mêmes : `FormStep` y déclare ses champs obligatoires restés vides,
+     * `SurveyStep` ses questions obligatoires sans réponse. Rien n'est calculé
+     * ici — l'assistant ne connaît ni les définitions de formulaire ni l'arbre de
+     * décision, et il ne doit pas se mettre à les connaître.
+     *
+     * **Ce registre est partiel, et c'est assumé.** Une étape n'est montée que
+     * lorsqu'elle est l'étape courante, donc seules les étapes réellement
+     * ouvertes s'y déclarent. Il rend visible ce qui manque là où le fournisseur
+     * est passé ; l'autorité sur « la fiche est-elle complète » reste le
+     * catalogue, relu par `finish()` avant toute clôture (voir plus bas).
+     */
+    const [stepIssues, setStepIssues] = useState({});
+
+    const reportStepIssues = useCallback((stepId, issues) => {
+        setStepIssues((current) => {
+            const next = issues && issues.count > 0 ? issues : null;
+            const previous = current[stepId] || null;
+            // Same verdict, same object identity: without this the report fires
+            // on every keystroke and re-renders the whole rail for nothing.
+            if (!next && !previous) {
+                return current;
+            }
+            if (next && previous && next.count === previous.count
+                && next.labels.join('|') === previous.labels.join('|')) {
+                return current;
+            }
+            const copy = { ...current };
+            if (next) {
+                copy[stepId] = next;
+            }
+            else {
+                delete copy[stepId];
+            }
+            return copy;
+        });
+    }, []);
+
+    const incompleteSteps = useMemo(
+        () => steps.filter((step) => stepIssues[step.id]),
+        [steps, stepIssues],
+    );
+
     const visitedSteps = useMemo(
-        () => steps.map((step) => ({ ...step, visited: nav.visited.includes(step.id) })),
-        [steps, nav.visited],
+        () => steps.map((step) => ({
+            ...step,
+            visited: nav.visited.includes(step.id),
+            // The rail is where "which step is not finished" belongs: the answer
+            // used to live only inside the step the supplier happened to be on,
+            // so leaving it took the answer with it.
+            issues: stepIssues[step.id] || null,
+        })),
+        [steps, nav.visited, stepIssues],
     );
 
     /* ---------------------------------------------------------- the autosave */
@@ -548,9 +614,17 @@ export function Wizard({
     const catalogs = useApi(
         complianceTouched && entityId ? `entities/${encodeURIComponent(entityId)}/catalogs` : null,
     );
+    /*
+     * Quels catalogues bloquent : l'instance le dit, jamais le portail. La prop
+     * l'emporte (un appelant qui sait), sinon c'est ce que l'état du wizard porte
+     * — `PORTAL_BLOCKING_CATALOGS`, vide par défaut. Voir `blockingCatalogs`.
+     */
+    const gatingCatalogIds = blockingCatalogIds
+        || (wizardState && wizardState.blockingCatalogIds)
+        || null;
     const blocking = useMemo(
-        () => blockingCatalogs((catalogs.data && catalogs.data.catalogs) || [], blockingCatalogIds),
-        [catalogs.data, blockingCatalogIds],
+        () => blockingCatalogs((catalogs.data && catalogs.data.catalogs) || [], gatingCatalogIds),
+        [catalogs.data, gatingCatalogIds],
     );
 
     /* -------------------------------------------------------------- movement */
@@ -687,15 +761,92 @@ export function Wizard({
         [steps, goTo, goToField],
     );
 
+    /**
+     * Opens the discussion, wherever it currently lives.
+     *
+     * Three layouts, and only one of them used to be handled:
+     *
+     * | layout | where the thread is | what used to happen |
+     * |---|---|---|
+     * | phone / tablet (`< lg`) | a modal sheet | the sheet opened — correct |
+     * | desktop, panels shown | the right-hand aside | **nothing visible** |
+     * | desktop, « Élargir la saisie » | nowhere: `aside` is `null` | **nothing at all** |
+     *
+     * So *Ouvrir la discussion*, in the context panel, was a dead button on
+     * desktop — silent when the panel was already there (the anchor changed, and
+     * the reader had no way to know), and inert in wide mode where there is no
+     * panel to change. Same for a comment opened on a field: the click set an
+     * anchor nobody could see.
+     *
+     * The rule now follows the layout rather than the viewport width: **the sheet
+     * opens whenever the aside is not on screen**, and when it is, the panel is
+     * scrolled to and focused so the click has a visible consequence. `wide` is
+     * the flag deciding whether the aside is rendered at all, so it is the flag
+     * consulted here.
+     */
     const openComments = useCallback((nextAnchor) => {
         setAnchor(nextAnchor || null);
-        if (typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches) {
-            setSheet('comments');
+        if (typeof window === 'undefined') {
+            return;
         }
-    }, []);
+        const asideOnScreen = !wide && window.matchMedia('(min-width: 1024px)').matches;
+        if (!asideOnScreen) {
+            setSheet('comments');
+            return;
+        }
+        // The panel is already rendered: bring it into view rather than open a
+        // second copy of it in a modal.
+        const panel = document.getElementById(COMMENTS_PANEL_ID);
+        if (panel) {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            const focusable = panel.querySelector('textarea, input, button, select');
+            if (focusable) {
+                focusable.focus({ preventScroll: true });
+            }
+        }
+    }, [wide]);
 
     /* ---------------------------------------------------------------- finish */
 
+    /**
+     * Terminer, **une fois la fiche vérifiée**.
+     *
+     * ## Ce qui n'allait pas
+     *
+     * `finishDisabled` ne regardait que les catalogues — et ceux-ci n'étaient lus
+     * qu'*une fois l'étape « Conformité » ouverte* (`complianceTouched`). Un
+     * fournisseur qui ne l'ouvrait jamais avait donc `catalogs.data === undefined`,
+     * donc `blocking === []`, donc un bouton *Terminer* actif : il rendait une
+     * fiche incomplète sans que rien ne le lui dise, et sans avoir jamais vu
+     * l'écran qui le lui aurait dit. Le garde-fou existait et ne gardait que ceux
+     * qui étaient déjà passés devant.
+     *
+     * ## Ce qui le remplace
+     *
+     * Deux verdicts, dans cet ordre, **avant** toute clôture :
+     *
+     *  1. **ce que l'assistant sait** : les champs et les questions obligatoires
+     *     restés vides sur les étapes ouvertes (`stepIssues`). C'est ce que le
+     *     catalogue ne couvre pas — un questionnaire n'y figure pas ;
+     *  2. **ce que le client a déclaré bloquant** : les catalogues, relus *ici*,
+     *     à la demande, et pas seulement s'ils se trouvent avoir déjà été
+     *     chargés. La lecture reste tardive — elle déclenche une reformulation,
+     *     ce qu'on ne veut pas au premier rendu de l'assistant — mais elle n'est
+     *     plus conditionnelle.
+     *
+     * **Un catalogue simplement incomplet ne bloque pas** : voir la note de
+     * `blockingCatalogs`. beCPG ne publie aucun marqueur « bloquant », et traiter
+     * l'absence de marqueur comme un blocage rendait tout assistant impossible à
+     * terminer sur une instance dont un catalogue n'est pas à 100 % — une règle
+     * que le dépôt n'a jamais énoncée, appliquée en son nom.
+     *
+     * Un refus n'est pas un bouton grisé : il **emmène** à l'étape fautive et dit
+     * ce qui manque. Un bouton grisé sans explication laisse chercher.
+     *
+     * beCPG reste l'autorité finale : il peut refuser la clôture pour ses propres
+     * raisons (liste figée, branche de refus, catalogue), et son refus est
+     * affiché tel quel.
+     */
     const finish = useCallback(async () => {
         if (!task) {
             return;
@@ -703,6 +854,58 @@ export function Wizard({
         setFinishing(true);
         try {
             await autoSave.flush();
+
+            // 1 — ce que l'assistant a vu de ses propres yeux. Sauf en mode
+            // brouillon, où le client a déclaré qu'une fiche partielle est
+            // recevable : le manque est alors signalé, pas opposé.
+            const localGap = wizardState.draft
+                ? null
+                : steps.find((step) => stepIssues[step.id]);
+            if (localGap) {
+                const issues = stepIssues[localGap.id];
+                toast.error(new Error(fill(labels.finishMissingStep, {
+                    step: localGap.label,
+                    count: issues.count,
+                })));
+                goTo(localGap.id);
+                return;
+            }
+
+            /*
+             * 2 — les catalogues **que l'instance a déclarés bloquants**.
+             *
+             * Relus à la demande, parce que `catalogs.data` n'existe que si l'étape
+             * Conformité a été ouverte — le trou d'origine. Mais **seulement quand
+             * il y a quelque chose à vérifier** : sans id déclaré, `blockingCatalogs`
+             * ne peut par construction rien renvoyer (beCPG ne marque aucun
+             * catalogue), et l'appel serait un aller-retour réseau — qui déclenche
+             * une reformulation — inséré entre le clic et son effet, pour une
+             * réponse connue d'avance. « Terminer » doit partir tout de suite.
+             */
+            let catalogList = catalogs.data ? catalogs.data.catalogs : null;
+            if (!catalogList && gatingCatalogIds && gatingCatalogIds.length > 0) {
+                try {
+                    const fresh = await api.get(`entities/${encodeURIComponent(entityId)}/catalogs`);
+                    catalogList = (fresh && fresh.catalogs) || [];
+                }
+                catch {
+                    // Le score est indisponible : on ne bloque pas sur une lecture
+                    // qui a échoué. beCPG refusera de lui-même si la fiche ne peut
+                    // pas être rendue — c'est lui l'autorité, pas cet écran.
+                    catalogList = null;
+                }
+            }
+            if (catalogList) {
+                const stillBlocking = blockingCatalogs(catalogList, gatingCatalogIds);
+                if (stillBlocking.length > 0) {
+                    setComplianceSeen(true);
+                    catalogs.refresh();
+                    toast.error(new Error(labels.finishBlocked));
+                    goTo(SYNTHETIC.COMPLIANCE);
+                    return;
+                }
+            }
+
             await api.post(`tasks/${encodeURIComponent(task.uuid || task.id)}/complete`);
             toast.success(labels.finished);
             if (typeof window !== 'undefined' && entityId) {
@@ -724,7 +927,10 @@ export function Wizard({
         finally {
             setFinishing(false);
         }
-    }, [task, autoSave, toast, labels.finished, router, backHref, entityId]);
+    }, [
+        task, autoSave, toast, labels, router, backHref, entityId,
+        steps, stepIssues, goTo, catalogs, gatingCatalogIds, wizardState,
+    ]);
 
     /* ----------------------------------------------------------- the panels */
 
@@ -744,14 +950,16 @@ export function Wizard({
     );
 
     const commentsPanel = commentsEnabled ? (
-        <CommentsPanel
-            entityNodeRef={entityNodeRef}
-            discussion={discussion}
-            anchor={anchor}
-            onAnchorChange={setAnchor}
-            targets={commentTargets}
-            readOnly={Boolean(wizardState && wizardState.readOnly)}
-        />
+        <div id={COMMENTS_PANEL_ID}>
+            <CommentsPanel
+                entityNodeRef={entityNodeRef}
+                discussion={discussion}
+                anchor={anchor}
+                onAnchorChange={setAnchor}
+                targets={commentTargets}
+                readOnly={Boolean(wizardState && wizardState.readOnly)}
+            />
+        </div>
     ) : null;
 
     /* ------------------------------------------------------------- rendering */
@@ -803,6 +1011,7 @@ export function Wizard({
             suggestions={suggestions}
             summary={suggestionsCall.data ? suggestionsCall.data.summary : null}
             entityLevelDropped={suggestionsCall.data ? suggestionsCall.data.entityLevelDropped || 0 : 0}
+            analysis={suggestionsCall.data ? suggestionsCall.data.analysis : null}
             loading={suggestionsCall.loading}
             error={suggestionsCall.error}
             onRefresh={suggestionsCall.refresh}
@@ -834,6 +1043,7 @@ export function Wizard({
             suggestionsByField={suggestionsByField}
             focusField={focusField}
             onLoaded={handleDefinitionLoaded(currentStep.id)}
+            onIssues={reportStepIssues}
         />
     ) : currentStep.kind === 'survey' ? (
         <SurveyStep
@@ -843,6 +1053,7 @@ export function Wizard({
             autoSave={autoSave}
             readOnlyReason={stepReadOnlyReason}
             onComment={commentsEnabled ? openComments : undefined}
+            onIssues={reportStepIssues}
         />
     ) : currentStep.kind === 'compliance' ? (
         <ComplianceStep
@@ -852,7 +1063,7 @@ export function Wizard({
             error={catalogs.error}
             onRetry={catalogs.refresh}
             onFieldClick={(field) => goToField(field.field || field.name)}
-            blockingIds={blockingCatalogIds}
+            blockingIds={gatingCatalogIds}
             documentSummary={documentSummary}
             onOpenDocuments={() => {
                 const target = steps.find((step) => step.kind === 'documents');
@@ -872,7 +1083,37 @@ export function Wizard({
         />
     );
 
-    const finishDisabled = blocking.length > 0;
+    /*
+     * **Ce qui manque est toujours dit. Ce qui bloque dépend de la configuration.**
+     *
+     * `draft` est l'attribut par lequel le client déclare qu'on peut rendre
+     * depuis n'importe quelle étape (spec §1.4) — donc, en toutes lettres, qu'une
+     * fiche partielle est recevable chez lui. Refuser la clôture sur un
+     * obligatoire vide dans ce mode reviendrait à contredire son propre
+     * paramétrage ; et le registre des manques est de toute façon **partiel** —
+     * il ne connaît que les étapes ouvertes — donc un blocage fondé dessus
+     * dépendrait de l'endroit où le fournisseur a navigué. Deux bonnes raisons de
+     * ne pas en faire un mur là où le client a dit l'inverse.
+     *
+     * Le manque, lui, est signalé dans les deux cas : dans le rail, et sous le
+     * bouton (`finishReason` est rendu même actif — voir `WizardFooter`). Taire
+     * une fiche incomplète parce qu'elle est recevable, c'est laisser le
+     * fournisseur l'apprendre par un refus de son client.
+     *
+     * Le bouton se grise donc sur ce qui est **su et bloquant** ; `finish()`
+     * revérifie sur ce qui est **vrai** au moment de rendre, parce que les
+     * catalogues ne sont chargés qu'après passage par « Conformité ».
+     */
+    const draftMode = Boolean(wizardState && wizardState.draft);
+    const finishDisabled = blocking.length > 0 || (!draftMode && incompleteSteps.length > 0);
+    const finishReason = incompleteSteps.length > 0
+        ? fill(labels.finishMissingStep, {
+            step: incompleteSteps[0].label,
+            count: stepIssues[incompleteSteps[0].id].count,
+        })
+        : blocking.length > 0
+            ? labels.finishBlocked
+            : null;
 
     // "Terminer" is an action, not a decoration: it is shown only when there is
     // something to submit. On a task that is already `Completed` — or on a
@@ -1071,7 +1312,7 @@ export function Wizard({
                         onFinish={canFinish ? finish : undefined}
                         finishing={finishing}
                         finishDisabled={finishDisabled}
-                        finishReason={finishDisabled ? labels.finishBlocked : null}
+                        finishReason={finishReason}
                         finishLabel={labels.finish}
                         formulating={formulating}
                         // `draft` (spec §1.4) — the configuration asks for

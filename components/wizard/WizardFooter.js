@@ -35,6 +35,9 @@ const LABELS = {
         finishing: 'Envoi…',
         formulating: 'Recalcul en cours…',
         blocked: 'Finalisation bloquée',
+        // Le même manque, sans la conséquence : en mode brouillon on peut rendre,
+        // on doit quand même savoir ce qui reste.
+        incomplete: 'Fiche incomplète',
     },
     en: {
         previous: 'Previous',
@@ -43,6 +46,8 @@ const LABELS = {
         finishing: 'Sending…',
         formulating: 'Recalculating…',
         blocked: 'Cannot finish yet',
+        /* See the note on the French key. */
+        incomplete: 'Sheet incomplete',
     },
 };
 
@@ -115,11 +120,30 @@ export function WizardFooter({
                 ) : null}
             </AnimatePresence>
 
-            {finishDisabled && finishReason && showFinish ? (
-                <div className="mb-2 flex items-start gap-2 rounded-xl border border-[var(--becpg-orange)] bg-[var(--becpg-orange)]/8 p-3">
-                    <Icon name="report" size={20} className="shrink-0 text-[var(--becpg-orange)]" />
+            {/* `finishReason` est affiché **même quand le bouton reste actif**.
+                En mode brouillon la configuration autorise à rendre une fiche
+                incomplète, mais le fournisseur doit savoir qu'elle l'est : taire
+                le manque parce qu'il n'interdit rien, c'est le lui apprendre par
+                le refus de son client. Le ton suit la conséquence — barrière
+                orange quand c'est bloquant, note grise quand c'est un avis. */}
+            {finishReason && showFinish ? (
+                <div
+                    className={[
+                        'mb-2 flex items-start gap-2 rounded-xl border p-3',
+                        finishDisabled
+                            ? 'border-[var(--becpg-orange)] bg-[var(--becpg-orange)]/8'
+                            : 'border-[var(--becpg-grey)] bg-[var(--becpg-grey)]/40',
+                    ].join(' ')}
+                >
+                    <Icon
+                        name={finishDisabled ? 'report' : 'info'}
+                        size={20}
+                        className={`shrink-0 ${finishDisabled ? 'text-[var(--becpg-orange)]' : 'text-[var(--becpg-dark-grey)]'}`}
+                    />
                     <div className="min-w-0 text-sm">
-                        <p className="font-medium text-[var(--becpg-blue)]">{labels.blocked}</p>
+                        <p className="font-medium text-[var(--becpg-blue)]">
+                            {finishDisabled ? labels.blocked : labels.incomplete}
+                        </p>
                         <div className="mt-0.5 text-[var(--becpg-dark-grey)]">{finishReason}</div>
                     </div>
                 </div>

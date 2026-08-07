@@ -54,7 +54,7 @@
  * key and its own DOM id prefix, so two on screen never share a radio group.
  */
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Icon } from '@/components/ui/Button';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { GaugeBar } from '@/components/ui/Gauge';
@@ -111,6 +111,10 @@ function fill(template, vars) {
  *        than no control.
  * @param {string} [props.readOnlyReason] `frozen` | `readAccess` | `noAssignedTask` | `wizardReadOnly`
  * @param {Function} [props.onComment] `({ nodeRef, label }) => void`
+ * @param {Function} [props.onIssues] `(stepId, {count, labels}) => void` — the
+ *        mandatory questions still blank, so the wizard can mark the step and
+ *        refuse to finish. The check below stays: it names them *here*, where
+ *        they are answered.
  * @param {string} [props.className]
  */
 export function SurveyStep({
@@ -120,6 +124,7 @@ export function SurveyStep({
     autoSave,
     readOnlyReason,
     onComment,
+    onIssues,
     className = '',
 }) {
     const { lang } = useMessages();
@@ -159,6 +164,26 @@ export function SurveyStep({
         () => (checked ? missing.map((question) => question.id) : []),
         [checked, missing],
     );
+
+    /*
+     * Le même verdict, remonté à l'assistant.
+     *
+     * « Vérifier mes réponses » existait déjà, mais il ne parlait qu'à cet écran
+     * et il fallait le demander. Un fournisseur qui changeait d'onglet emportait
+     * l'information avec lui, et *Terminer* ne la connaissait pas du tout : un
+     * questionnaire à moitié rempli se rendait sans un mot.
+     *
+     * Une étape en lecture seule ne remonte rien : ses blancs ne sont pas au
+     * fournisseur de les combler.
+     */
+    useEffect(() => {
+        if (!onIssues) {
+            return;
+        }
+        onIssues(step.id, readOnly
+            ? { count: 0, labels: [] }
+            : { count: missing.length, labels: missing.map((question) => question.label) });
+    }, [onIssues, step.id, missing, readOnly]);
 
     // The answers to send are read at send time, never captured in the closure:
     // a failed write must re-read whatever has been answered since (§4.4 F2).

@@ -43,6 +43,9 @@ const LABELS = {
         current: 'Étape en cours',
         todo: 'Pas encore vue',
         locked: 'Disponible plus tard',
+        // Ce que le rail ne savait pas dire : une étape ouverte, quittée, et
+        // incomplète. Elle s'affichait « Vue », coche verte comprise.
+        incomplete: '{count} obligatoire(s) manquant(s)',
         progress: '{percent} % du parcours',
     },
     en: {
@@ -55,6 +58,8 @@ const LABELS = {
         current: 'Current step',
         todo: 'Not visited yet',
         locked: 'Available later',
+        /* See the note on the French key. */
+        incomplete: '{count} mandatory missing',
         progress: '{percent}% of the path',
     },
 };
@@ -93,6 +98,7 @@ function fill(template, vars) {
  */
 function CollapsedStepButton({ step, index, total, active, selectable, onSelect, labels, state, icon, listIconType }) {
     const name = `${step.label} · ${fill(labels.step, { index, total })} · ${state}`;
+    const incomplete = Boolean(step.issues && step.issues.count > 0);
     return (
         <li>
             <button
@@ -116,14 +122,16 @@ function CollapsedStepButton({ step, index, total, active, selectable, onSelect,
                     aria-hidden="true"
                     className={[
                         'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-medium',
-                        active
-                            ? 'border-[var(--becpg-blue)] bg-[var(--becpg-blue)] text-white'
-                            : step.visited
-                              ? 'border-[var(--becpg-green)] bg-[var(--becpg-green)]/25 text-[var(--becpg-blue)]'
-                              : 'border-[var(--becpg-grey)] bg-white text-[var(--becpg-dark-grey)]',
+                        incomplete
+                            ? 'border-[var(--status-warn)] bg-[var(--status-warn-bg)] text-[var(--status-warn)]'
+                            : active
+                              ? 'border-[var(--becpg-blue)] bg-[var(--becpg-blue)] text-white'
+                              : step.visited
+                                ? 'border-[var(--becpg-green)] bg-[var(--becpg-green)]/25 text-[var(--becpg-blue)]'
+                                : 'border-[var(--becpg-grey)] bg-white text-[var(--becpg-dark-grey)]',
                     ].join(' ')}
                 >
-                    {step.visited || step.frozen || active ? <Icon name={icon} size={15} /> : index}
+                    {incomplete || step.visited || step.frozen || active ? <Icon name={icon} size={15} /> : index}
                 </span>
                 {/*
                   * The label, on hover and on focus. `pointer-events-none` so it
@@ -150,12 +158,18 @@ function CollapsedStepButton({ step, index, total, active, selectable, onSelect,
  */
 function StepButton({ step, index, total, active, selectable, onSelect, labels, dense = false, collapsed = false }) {
     const reduceMotion = useReducedMotion();
-    const done = step.visited && !active;
+    // A step the supplier opened and left with a mandatory answer still blank.
+    // It must NOT read as done: a green check on a step that blocks the
+    // completion is the rail contradicting the button.
+    const incomplete = Boolean(step.issues && step.issues.count > 0);
+    const done = step.visited && !active && !incomplete;
     const icon = step.frozen
         ? 'lock'
-        : done
-          ? 'check'
-          : KIND_ICONS[step.kind] || 'radio_button_unchecked';
+        : incomplete
+          ? 'error_outline'
+          : done
+            ? 'check'
+            : KIND_ICONS[step.kind] || 'radio_button_unchecked';
 
     // The characteristic list this step edits, when it edits one — `null` for a
     // synthetic step and for a list beCPG ships no glyph for. `buildStepModel`
@@ -179,17 +193,22 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
      * label now reads from it: a step you can reach is "pas encore vue", a step
      * you cannot is "disponible plus tard".
      */
-    const state = active
-        ? labels.current
-        : step.frozen
-          ? labels.frozen
-          : step.readOnly
-            ? labels.readOnly
-            : done
-              ? labels.done
-              : selectable
-                ? labels.todo
-                : labels.locked;
+    // `incomplete` wins over every other wording, including "current": it is the
+    // one state that stops the supplier from finishing, so it is the one the
+    // accessible name has to carry.
+    const state = incomplete
+        ? fill(labels.incomplete, { count: step.issues.count })
+        : active
+          ? labels.current
+          : step.frozen
+            ? labels.frozen
+            : step.readOnly
+              ? labels.readOnly
+              : done
+                ? labels.done
+                : selectable
+                  ? labels.todo
+                  : labels.locked;
 
     if (collapsed) {
         return (
@@ -230,14 +249,20 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
                     aria-hidden="true"
                     className={[
                         'mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-medium',
-                        active
-                            ? 'border-[var(--becpg-blue)] bg-[var(--becpg-blue)] text-white'
-                            : done
-                              ? 'border-[var(--becpg-green)] bg-[var(--becpg-green)]/25 text-[var(--becpg-blue)]'
-                              : 'border-[var(--becpg-grey)] bg-white text-[var(--becpg-dark-grey)]',
+                        // Never colour alone: the icon changes with the state
+                        // (`error_outline` here), and the accessible name says it
+                        // in words — AGENTS.md, "status is never conveyed by
+                        // colour alone".
+                        incomplete
+                            ? 'border-[var(--status-warn)] bg-[var(--status-warn-bg)] text-[var(--status-warn)]'
+                            : active
+                              ? 'border-[var(--becpg-blue)] bg-[var(--becpg-blue)] text-white'
+                              : done
+                                ? 'border-[var(--becpg-green)] bg-[var(--becpg-green)]/25 text-[var(--becpg-blue)]'
+                                : 'border-[var(--becpg-grey)] bg-white text-[var(--becpg-dark-grey)]',
                     ].join(' ')}
                 >
-                    {done || step.frozen || active ? <Icon name={icon} size={14} /> : index}
+                    {incomplete || done || step.frozen || active ? <Icon name={icon} size={14} /> : index}
                 </span>
 
                 <span className="min-w-0 flex-1">

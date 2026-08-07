@@ -49,6 +49,10 @@ const LABELS = {
         blocking: 'Catalogue(s) bloquant(s) : {names}',
         blockingHint: 'Complétez les champs manquants ci-dessous pour pouvoir terminer.',
         ready: 'Tous les catalogues bloquants sont satisfaits',
+        // Un catalogue incomplet que personne n'a déclaré bloquant : à combler,
+        // mais il n'interdit pas de rendre. Le dire autrement que « bloquant »,
+        // sinon les deux mots finissent par vouloir dire la même chose.
+        incomplete: 'Catalogue(s) à compléter : {names}',
         documents: 'Documents obligatoires',
         documentsMissing: '{count} document(s) obligatoire(s) manquant(s)',
         documentsOk: 'Tous les documents obligatoires sont fournis',
@@ -64,6 +68,8 @@ const LABELS = {
         blocking: 'Blocking catalog(s): {names}',
         blockingHint: 'Fill in the missing fields below to be able to finish.',
         ready: 'Every blocking catalog is satisfied',
+        /* See the note on the French key. */
+        incomplete: 'Catalog(s) to complete: {names}',
         documents: 'Mandatory documents',
         documentsMissing: '{count} mandatory document(s) missing',
         documentsOk: 'Every mandatory document is provided',
@@ -82,27 +88,66 @@ function fill(template, vars) {
 }
 
 /**
- * The catalogues that hold the finish button back.
+ * The catalogues that are **not satisfied** — the ones the conformity step shows.
+ *
+ * "Unsatisfied" is a fact about the sheet: a missing field, or beCPG saying
+ * `isComplete: false`. It says nothing about whether the supplier may submit; see
+ * {@link blockingCatalogs} for that, and read the note there before conflating
+ * the two — they were, and it cost a wizard nobody could finish.
  *
  * @param {Array<Object>} catalogs from `GET /api/v1/entities/{id}/catalogs`
- * @param {string[]} [blockingIds] restrict the gate to these catalogue ids
- * @returns {Array<Object>} the unsatisfied blocking catalogues
+ * @returns {Array<Object>}
+ */
+export function unsatisfiedCatalogs(catalogs) {
+    const list = Array.isArray(catalogs) ? catalogs : [];
+    return list.filter((catalog) => {
+        const missing = Array.isArray(catalog.missingFields) ? catalog.missingFields.length : 0;
+        return missing > 0 || catalog.isComplete === false;
+    });
+}
+
+/**
+ * The catalogues that hold the finish button back.
+ *
+ * ## Only a catalogue somebody DECLARED blocking blocks
+ *
+ * This used to treat an undeclared catalogue as blocking — `declared === undefined
+ * ? true` when no id list was configured. It was invisible for as long as the
+ * gate was dead code: the catalogues were only fetched once the supplier had
+ * opened the conformity step, so a wizard was finishable simply by not looking.
+ *
+ * Made real, that default bites hard. **Measured on the local instance**:
+ * `GET /api/v1/entities/{id}/catalogs` carries **no `blocking` key at all** —
+ * beCPG does not publish one — and `incoRawMaterials` is one field short on every
+ * seeded raw material. Every wizard on the instance became unfinishable, on the
+ * portal's own authority, for a rule the repository never expressed. E2E case 3b
+ * caught it: *Terminer* stopped calling the completion.
+ *
+ * So the rule is inverted where it matters. A catalogue blocks when it is
+ * **declared** to: beCPG marks it (`blocking` / `isBlocking`), or the instance
+ * lists it in `blockingIds` — `PORTAL_BLOCKING_CATALOGS`, which the wizard state
+ * carries (`blockingCatalogIds()` in `lib/adapters/wizard.js`), with `all` for a
+ * client who really wants "100 % or nothing". Otherwise the supplier sees the
+ * score and the missing fields — that is the information they asked for — and the
+ * submission goes to beCPG, which stays the authority on whether a task may be
+ * completed (rule R2). An unsatisfied catalogue is a warning; only a declared one
+ * is a wall.
+ *
+ * @param {Array<Object>} catalogs from `GET /api/v1/entities/{id}/catalogs`
+ * @param {string[]} [blockingIds] catalogue ids the instance declares blocking, `['*']` for all
+ * @returns {Array<Object>} the unsatisfied catalogues that really block
  *
  * @example
  * blockingCatalogs(catalogs).length === 0; // "Terminer" may be enabled
  */
 export function blockingCatalogs(catalogs, blockingIds = null) {
-    const list = Array.isArray(catalogs) ? catalogs : [];
-    return list.filter((catalog) => {
+    const declaredAll = Array.isArray(blockingIds) && blockingIds.includes('*');
+    return unsatisfiedCatalogs(catalogs).filter((catalog) => {
         const declared = catalog.blocking ?? catalog.isBlocking;
-        const isBlocking = declared === undefined
-            ? (Array.isArray(blockingIds) ? blockingIds.includes(catalog.id) : true)
-            : Boolean(declared);
-        if (!isBlocking) {
-            return false;
+        if (declared !== undefined && declared !== null) {
+            return Boolean(declared);
         }
-        const missing = Array.isArray(catalog.missingFields) ? catalog.missingFields.length : 0;
-        return missing > 0 || catalog.isComplete === false;
+        return declaredAll || (Array.isArray(blockingIds) && blockingIds.includes(catalog.id));
     });
 }
 
@@ -137,6 +182,10 @@ export function ComplianceStep({
     const labels = LABELS[lang] || LABELS.fr;
 
     const blocking = useMemo(() => blockingCatalogs(catalogs, blockingIds), [catalogs, blockingIds]);
+    // Montré même quand rien ne bloque : c'est l'information que le fournisseur
+    // vient chercher ici. Ce qui change, c'est le mot et le ton — « à compléter »
+    // et non « bloquant » — parce que la conséquence n'est pas la même.
+    const unsatisfied = useMemo(() => unsatisfiedCatalogs(catalogs), [catalogs]);
     const missingDocuments = documentSummary ? Number(documentSummary.blocking) || 0 : 0;
 
     return (
@@ -148,9 +197,7 @@ export function ComplianceStep({
 
             {!loading && !error ? (
                 <div className="mb-3 flex flex-wrap items-center gap-2">
-                    {blocking.length === 0 ? (
-                        <StatusPill status="valid" tone="ok" icon="verified" size="sm" label={labels.ready} />
-                    ) : (
+                    {blocking.length > 0 ? (
                         <StatusPill
                             status="missing"
                             tone="warn"
@@ -160,6 +207,18 @@ export function ComplianceStep({
                                 names: blocking.map((catalog) => catalog.label).join(', '),
                             })}
                         />
+                    ) : unsatisfied.length > 0 ? (
+                        <StatusPill
+                            status="inProgress"
+                            tone="info"
+                            icon="edit_note"
+                            size="sm"
+                            label={fill(labels.incomplete, {
+                                names: unsatisfied.map((catalog) => catalog.label).join(', '),
+                            })}
+                        />
+                    ) : (
+                        <StatusPill status="valid" tone="ok" icon="verified" size="sm" label={labels.ready} />
                     )}
                     {documentSummary ? (
                         missingDocuments > 0 ? (
