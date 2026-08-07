@@ -183,6 +183,46 @@ const TOPICS = {
             ],
         },
         {
+            /*
+             * Les deux notions se ressemblent — l'une et l'autre disent « ce que
+             * mon client attend » — et elles se touchent à l'écran : le cahier des
+             * charges est dans le panneau Contexte, le catalogue dans l'étape
+             * Conformité. Rien ne les distinguait nulle part, alors que la
+             * différence est celle entre un texte à lire et un contrôle qui bloque
+             * le bouton Terminer.
+             */
+            id: 'specs',
+            icon: 'menu_book',
+            title: 'Cahier des charges et catalogue : quelle différence',
+            summary: 'Le cahier des charges se lit. Le catalogue se remplit — et c’est lui qui décide si vous pouvez terminer.',
+            blocks: [
+                {
+                    p: 'Ce sont deux objets différents, et ils ne servent pas au même moment. Le plus simple est de les prendre dans l’ordre où vous les rencontrez.',
+                },
+                {
+                    ul: [
+                        '**Le cahier des charges** — un document de votre client, rattaché à un produit ou à une famille de produits. Il énonce ses exigences : matières interdites, origines acceptées, seuils analytiques, conditions de transport, engagements RSE. C’est un **texte de référence**, à lire. Le portail vous le montre dans le panneau « Contexte » de l’assistant, et la rubrique « Cahiers des charges » les rassemble tous.',
+                        '**Le catalogue** — une **liste de champs obligatoires** que votre client a définie : « pour qu’une matière première soit référencée chez moi, il me faut l’origine, la densité, le code EAN, l’allergène majeur… ». Ce n’est pas un texte, c’est un contrôle. Le portail le calcule en continu et vous en donne le score dans l’étape « Conformité ».',
+                    ],
+                },
+                {
+                    p: 'Autrement dit : le cahier des charges vous dit **ce que votre client attend de votre produit**, le catalogue vérifie **que sa fiche est complète**. On peut être conforme au cahier des charges et avoir une fiche incomplète, et l’inverse.',
+                },
+                {
+                    p: 'Un seul des deux vous empêche de rendre : le catalogue. Quand votre client en a déclaré un bloquant, le bouton « Terminer » reste indisponible tant qu’il manque un champ, et l’étape « Conformité » vous liste précisément lesquels — chaque ligne vous emmène au champ concerné.',
+                },
+                {
+                    note: 'Un cahier des charges peut aussi appeler des documents (un certificat bio, une attestation sans OGM). Ceux-là apparaissent dans « Mes documents » et dans l’étape Documents, avec leur date de validité — pas dans le catalogue.',
+                },
+                {
+                    links: [
+                        { href: '/specs', icon: 'menu_book', label: 'Cahiers des charges' },
+                        { href: '/documents', icon: 'folder_shared', label: 'Mes documents' },
+                    ],
+                },
+            ],
+        },
+        {
             id: 'frozen',
             icon: 'lock',
             title: 'Ce que veut dire une liste gelée',
@@ -438,6 +478,39 @@ const TOPICS = {
                 },
                 {
                     note: 'If your contact enters data on your behalf, a banner saying "you are entering data for …" states it explicitly at the top of the assistant.',
+                },
+            ],
+        },
+        {
+            /* See the note on the French section. */
+            id: 'specs',
+            icon: 'menu_book',
+            title: 'Specification and catalogue: what is the difference',
+            summary: 'A specification is read. A catalogue is filled in — and it is the one that decides whether you can finish.',
+            blocks: [
+                {
+                    p: 'These are two different objects, and they do not serve the same moment. The simplest way is to take them in the order you meet them.',
+                },
+                {
+                    ul: [
+                        '**The specification** — a document from your customer, attached to a product or to a family of products. It states their requirements: banned materials, accepted origins, analytical thresholds, transport conditions, CSR commitments. It is a **reference text**, to be read. The portal shows it in the assistant\'s "Context" panel, and the "Specifications" screen gathers them all.',
+                        '**The catalogue** — a **list of mandatory fields** your customer defined: "for a raw material to be referenced with me, I need the origin, the density, the EAN code, the major allergen…". It is not a text, it is a check. The portal computes it continuously and gives you its score in the "Compliance" step.',
+                    ],
+                },
+                {
+                    p: 'In other words: the specification tells you **what your customer expects of your product**, the catalogue verifies **that its sheet is complete**. You can comply with the specification and still have an incomplete sheet, and the other way round.',
+                },
+                {
+                    p: 'Only one of the two stops you from submitting: the catalogue. When your customer declared a blocking one, the "Finish" button stays unavailable while a field is missing, and the "Compliance" step lists exactly which ones — each line takes you to the field.',
+                },
+                {
+                    note: 'A specification may also call for documents (an organic certificate, a GMO-free attestation). Those appear under "My documents" and in the Documents step, with their validity dates — not in the catalogue.',
+                },
+                {
+                    links: [
+                        { href: '/specs', icon: 'menu_book', label: 'Specifications' },
+                        { href: '/documents', icon: 'folder_shared', label: 'My documents' },
+                    ],
                 },
             ],
         },
