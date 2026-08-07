@@ -31,11 +31,27 @@ const SIZES = {
  * 200×37 wordmark squeezed into a 32px square is unreadable anyway — so a tenant
  * still on the fallback shows the neutral "customer" mark instead of a second,
  * crushed copy of the product logo.
+ *
+ * Exported because `/login` draws the same chip and must not keep its own,
+ * shorter copy of this list: it had one, missing `/theme/images/logo.png`, and a
+ * tenant configured with that path therefore rendered a squeezed wordmark on the
+ * sign-in card and the neutral mark everywhere else.
  */
-const BECPG_FALLBACK_LOGOS = [
+export const BECPG_FALLBACK_LOGOS = [
     '/theme/default/images/logo.png',
     '/theme/images/logo.png',
 ];
+
+/**
+ * The logo a tenant should actually be drawn with, or `null` for the neutral mark.
+ *
+ * @param {{logoUrl?: string}|null} tenant
+ * @returns {string|null}
+ */
+export function tenantLogoUrl(tenant) {
+    const raw = tenant && tenant.logoUrl;
+    return raw && !BECPG_FALLBACK_LOGOS.includes(raw) ? raw : null;
+}
 
 /**
  * @param {Object} props
@@ -61,8 +77,7 @@ export function TenantBadge({
     const metrics = SIZES[size] || SIZES.md;
 
     const label = (resolved && (resolved.label || resolved.id)) || t('app.title');
-    const rawLogoUrl = resolved && resolved.logoUrl;
-    const logoUrl = BECPG_FALLBACK_LOGOS.includes(rawLogoUrl) ? null : rawLogoUrl;
+    const logoUrl = tenantLogoUrl(resolved);
 
     return (
         <span className={`flex min-w-0 items-center gap-2 ${className}`}>

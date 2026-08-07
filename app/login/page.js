@@ -23,6 +23,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { cookies, headers } from 'next/headers';
+import { TenantLogo } from '@/components/shell/TenantLogo';
 import {
     TENANT_COOKIE,
     defaultTenantId,
@@ -158,14 +159,6 @@ export default async function LoginPage({ searchParams }) {
     const errorCode = typeof params.error === 'string' ? params.error : null;
     const errorMessage = errorCode ? errors[errorCode] || t(lang, 'error.generic') : null;
 
-    // A tenant that never declared a logo falls back to the beCPG wordmark
-    // (lib/tenant.js). The card already shows that wordmark full size, so the
-    // customer chip only appears when the customer really has its own mark.
-    const tenantLogo =
-        selected && selected.logoUrl && !selected.logoUrl.endsWith('/theme/default/images/logo.png')
-            ? selected.logoUrl
-            : null;
-
     return (
         /*
          * The first screen a supplier ever sees, so it is the product's own
@@ -272,23 +265,13 @@ export default async function LoginPage({ searchParams }) {
                                 priority
                                 className="h-7 w-auto sm:h-8"
                             />
-                            {tenantLogo ? (
-                                <>
-                                    <span
-                                        className="h-8 w-px bg-[var(--becpg-grey)]"
-                                        aria-hidden="true"
-                                    />
-                                    {/* Per-tenant URL from TENANT_MAP: an arbitrary
-                                        host, so a plain <img> — next/image would
-                                        require it in next.config.mjs up front. */}
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                        src={tenantLogo}
-                                        alt=""
-                                        className="h-8 w-auto max-w-[7rem] object-contain"
-                                    />
-                                </>
-                            ) : null}
+                            {/* The customer's own mark, when it has one. A client
+                                component on purpose: this page cannot carry the
+                                `onError` a URL coming from `TENANT_MAP` needs, and
+                                without it a mistyped or moved logo drew the
+                                browser's broken-image icon on the sign-in card —
+                                changing as the tenant was picked. */}
+                            <TenantLogo tenant={selected} />
                         </div>
 
                         <h1 className="text-lg font-medium text-[var(--becpg-blue)]">
