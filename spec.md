@@ -328,6 +328,7 @@ qu'elles sont génériques. À rapatrier dans `SupplierPortalInitRepoVisitor` et
 | **Rapport Fiche Technique Fournisseur** (type `SupplierSheet`) prêt à signer | refait chez chaque client |
 | **Neutralisation des règles de renommage client sur les branches fournisseur** | script Bridor (#24097) ; le produit renomme déjà via `beCPG.sendToSupplier.entityName.format`, il manque juste le moyen standard de dire « ne pas appliquer les règles client ici » |
 | **Génération conditionnelle de documents sur `bcpg:supplier`** | ✅ déjà rapatrié en 23.4.2 (#32395) |
+| **Type de document « Fiche technique fournisseur »** lié à `bcpg:rawMaterial` | ✅ ajouté à `SupplierPortalInitRepoVisitor`, **sans drapeau** : ce visiteur provisionne déjà le site fournisseur, le modèle de projet de référencement et le cahier des charges par défaut sans rien demander — une option pour ce seul type aurait détonné. Sans lui, l'étape 1 de l'assistant tombe sur son dépôt libre et l'extraction IA n'a aucune exigence à laquelle s'accrocher. Créé **non obligatoire**, et c'est ce qui le rend sûr par défaut : l'existence de l'exigence est la valeur, pas le blocage d'un agrément |
 
 **Critère de décision** pour trancher « spécifique ou produit » : si le paramétrage répond à un
 besoin qu'au moins deux clients auraient, il remonte dans `init-repo`. Sur la liste ci-dessus,
@@ -600,8 +601,48 @@ Exigences de comportement :
 - **Reformulation** entre étapes conservée (`becpg/remote/formulate`) mais asynchrone et non
   bloquante visuellement.
 - Étapes **navigables librement** une fois visitées, pas de tunnel strict.
+- **On ne termine pas une fiche incomplète**, et le refus dit où aller. Deux verdicts, dans
+  cet ordre, avant toute clôture :
+  1. **ce que l'assistant a vu** — les champs obligatoires laissés vides sur une étape
+     ouverte, et les questions obligatoires sans réponse du questionnaire. L'étape fautive
+     est marquée dans le rail (icône + libellé, jamais la couleur seule) et ne peut pas
+     s'afficher « vue ».
+
+     **Sauf en mode brouillon** (`draft`), par lequel le client déclare qu'on peut rendre
+     depuis n'importe quelle étape — donc qu'une fiche partielle lui est recevable.
+     Refuser là serait contredire son paramétrage ; et ce relevé est de toute façon
+     *partiel* — il ne connaît que les étapes ouvertes — donc un blocage fondé dessus
+     dépendrait de l'endroit où le fournisseur a navigué. **Le manque reste affiché dans
+     les deux cas**, sous le bouton et dans le rail : le taire parce qu'il n'interdit rien
+     revient à le faire découvrir par le refus du client ;
+  2. **ce que le client a déclaré bloquant** — le catalogue, **relu au moment de terminer**
+     et pas seulement s'il se trouve avoir déjà été chargé. Le score n'est demandé que tard,
+     parce que sa lecture déclenche une reformulation, mais il n'est plus conditionnel au
+     fait d'avoir ouvert l'étape Conformité.
+
+  **Un catalogue simplement incomplet ne bloque pas.** beCPG ne publie aucun marqueur
+  « bloquant » sur un catalogue ; traiter son absence comme un blocage revient à interdire
+  la remise au nom d'une règle que le dépôt n'a jamais énoncée — et rend tout assistant
+  impossible à terminer dès qu'un catalogue n'est pas à 100 %. Bloque donc ce qui est
+  **déclaré** bloquant (par beCPG, ou par la liste d'ids de l'instance) ; le reste
+  s'affiche « à compléter », avec ses champs manquants cliquables, et la remise part à
+  beCPG qui reste l'autorité.
+
+  Un refus **emmène** à l'étape fautive et nomme ce qui manque ; un bouton grisé sans
+  explication laisse chercher. beCPG reste l'autorité finale et peut refuser pour ses
+  propres raisons (liste gelée, branche de refus) : son refus est affiché tel quel.
 - Les commentaires du client sont ancrés **au niveau du champ / de la ligne**, pas seulement
   au niveau tâche.
+- **L'IA est appelée par le dépôt, jamais par le portail.** `becpg/ai/suggestions`,
+  `…/apply`, `…/apply-plan` — le montage d'OLAP (§4.6.6) : l'adresse de becpg-ai
+  (`beCPG.ai.serverUrl`) et le jeton d'appel restent dans beCPG, qui est le seul à posséder
+  le format de ce jeton. Le portail ne porte ni URL ni identifiant d'IA, et `becpg/ai/` est
+  hors de l'allow-list du proxy exposé au navigateur — sinon faire transiter l'IA par beCPG
+  n'apporterait rien.
+- **L'extraction dit qu'elle travaille.** `becpg-ai` répond immédiatement en annonçant les
+  greffons qu'il a lancés (`Loading` / `LoadingComplete`) et calcule en asynchrone : tant
+  qu'un greffon tourne, l'étape Suggestions l'affiche et se relit d'elle-même. Un silence
+  rendu par « Aucune suggestion » se lit comme une panne.
 - Le mode **saisie déléguée** (client saisissant pour le fournisseur) est le même écran, avec
   un bandeau explicite « vous saisissez au nom de <fournisseur> ».
 

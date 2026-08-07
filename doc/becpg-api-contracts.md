@@ -630,37 +630,68 @@ leurs propriétés :
 
 ⇒ « ce que je dois fournir et pour quand » = lister ces documents et les présenter en check-list.
 
-## 10. IA — becpg-ai
+## 10. IA — becpg-ai, **derrière le proxy du dépôt**
 
-- `GET /api/suggestions/{entityId}` — suggestions avec `confidence` (par ligne et moyenne)
-- `POST /api/suggestions/apply` — appliquer
+### 10.1 Le portail n'appelle plus becpg-ai. Il appelle beCPG.
 
-### 10.1 Authentification : le bearer OIDC **seul**
+Trois opérations, servies par `AiSuggestionsProxyWebScript` (becpg-core) :
 
-**Token OIDC** (jamais le ticket Alfresco) dans `Authorization: Bearer …`, et **rien d'autre**.
+| Portail | beCPG | becpg-ai |
+|---|---|---|
+| `GET becpg/ai/suggestions?nodeRef=&listId=&locale=` | ⟶ | `GET /api/suggestions/{id}` |
+| `POST becpg/ai/suggestions/apply` | ⟶ | `POST /api/suggestions/apply` |
+| `POST becpg/ai/suggestions/apply-plan` | ⟶ | `POST /api/suggestions/apply-plan` |
 
-> ⚠️ **Ne jamais envoyer `X-BecPG-Instance` à côté du bearer.** Cette page l'a longtemps
-> prescrit ; c'est faux, et c'est la raison pour laquelle le portail n'a **jamais** atteint
-> becpg-ai. Côté becpg-ai ce header est le *principal* de `RequestHeaderAuthenticationFilter`
-> (alias de `BECPG_TICKET`), et ce filtre passe **avant** le filtre bearer : une simple valeur
-> `dev` y est interprétée comme un jeton composite `<instance>$<login>@<tenant>#<ticket>`, échoue
-> dans `UserNameHelper`, et la requête reste **anonyme** — le bearer n'est jamais regardé.
->
-> Mesuré sur dev-ai.becpg.fr, même token valide :
->
-> | Appel | sans le header | avec `X-BecPG-Instance: dev` |
-> |---|---|---|
-> | `GET /api/auth/me` | **200** `{"username":"6bae8a39-…","isAdmin":false}` | **401** |
-> | `GET /api/suggestions/{id}` | **200**, 29 suggestions | **500** |
->
-> Le tenant n'a pas besoin d'être transmis : il voyage **dans le token**, en claims
-> `becpg_instance` et `becpg_url` (vérifié : `"becpg_instance":"dev"`,
-> `"becpg_url":"https://dev.becpg.fr"`), que `OAuth2DelegatedAuthenticationProvider` lit pour
-> réécrire l'URL de l'appel descendant vers beCPG.
+**C'est le montage d'OLAP, pour les mêmes raisons.** Le dépôt détient déjà l'adresse du
+service compagnon (`beCPG.ai.serverUrl`, comme `becpg.olap.url.internal`) et sait déjà
+authentifier l'utilisateur courant auprès de lui. Un client qui appelait becpg-ai en direct
+devait porter trois choses qui ne le regardent pas : l'URL, un identifiant, et le **format**
+de cet identifiant.
 
-Le header `BECPG_TICKET` (base64 de `<instance>$<login>@<tenant>#<TICKET_…>`) reste le second
-schéma accepté par becpg-ai ; il ne sert qu'au mode `DEV_FAKE_AUTH`, où la session ne porte pas
-de bearer.
+Le portail faisait exactement cela — et **réimplémentait en JavaScript** le jeton composite
+de beCPG à partir de quatre variables d'environnement. Ce jeton est
+`BeCPGTicketService.getCurrentAuthToken()` : un format que seul beCPG possède, recopié
+ailleurs, donc destiné à casser en silence. `BECPG_AI_URL`, `BECPG_AI_API_KEY`,
+`BECPG_AI_INSTANCE_NAME` et `BECPG_AI_TENANT` **n'existent plus**.
+
+Deux propriétés à ne pas perdre :
+
+- **`becpg/ai/` est absent de `ALLOWED_BECPG_PATH_PREFIXES`**, exactement comme `becpg/olap/`.
+  Le proxy exposé au navigateur répond **403** ; seul `lib/adapters/suggestions.js`, qui
+  s'exécute côté serveur avec `createBecpgClient` (`skipAllowList`), y accède. Sans cette
+  absence, faire transiter l'IA par beCPG n'aurait rien apporté : le navigateur y aurait
+  tunnelé par `/api/v1/becpg/**`. Vérifié : `403` depuis le navigateur, `404` sur l'ancienne
+  route `/api/v1/ai/**`, qui est supprimée ;
+- **les opérations sont closes.** Pas de paramètre `path` : un proxy qui relaie un chemin
+  arbitraire est un tunnel générique vers becpg-ai dont l'appelant choisit la destination.
+  Une quatrième opération = un descripteur de plus, ce qui est le but.
+
+### 10.1.1 Ce que répond le proxy, et comment le lire
+
+| Situation | Statut | Lecture |
+|---|---|---|
+| `beCPG.ai.serverUrl` vide | **503** `aiNotConfigured` | l'instance n'a pas becpg-ai — masquer les panneaux IA |
+| webscript absent (becpg-core antérieur) | **404** | idem |
+| becpg-ai refuse | **401 / 403** relayé tel quel | problème de droits, pas de configuration |
+| becpg-ai répond, mais pas en JSON | **502** `aiNotJson` + le type reçu | voir ci-dessous |
+| becpg-ai injoignable | **502** `aiUnreachable` | panne |
+
+Le statut amont est relayé, jamais écrasé : « becpg-ai t'a refusé », « becpg-ai n'est pas
+configuré » et « becpg-ai est tombé » sont des faits différents.
+
+> ⚠️ **Un 200 de becpg-ai n'est pas une preuve de réponse.** Non authentifié, becpg-ai sert sa
+> **page de connexion OAuth en HTTP 200 `text/html`** — mesuré en pointant une instance locale
+> sur `dev-ai.becpg.fr`, le ticket d'une instance ne valant pas pour une autre. Relayée telle
+> quelle, cette page arrive au portail étiquetée `application/json` et n'échoue que bien plus
+> loin, en « non-JSON payload », sans rien dire de la cause. Le proxy vérifie donc le type de
+> contenu amont et répond `502 aiNotJson`. Même famille de piège que le « 200 au corps vide »
+> d'OLAP (§ historique) : un statut de succès qui n'est pas une réponse.
+
+Côté becpg-ai l'authentification reste inchangée — c'est le webscript qui la porte désormais,
+avec l'en-tête `BECPG_TICKET` construit par `BeCPGTicketService`. Le piège historique
+(`X-BecPG-Instance` envoyé à côté du bearer rendait la requête anonyme, mesuré : `200` sans
+le header contre `401` avec) ne concerne plus le portail, qui n'envoie plus aucun de ces
+en-têtes.
 
 ### 10.2 `GET /api/suggestions/{id}` accepte aussi un **document**
 

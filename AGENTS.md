@@ -33,6 +33,13 @@ elsewhere that assumes no `.git`, it is stale.
    `localStorage`.
 6. **The portal is a proxy** — the same role as Share's `/share/proxy/alfresco`. Alfresco is
    never exposed to the browser; every call goes through `app/api/*`.
+   **And the portal talks to beCPG only.** Not to Saiku, not to becpg-ai: those are reached
+   through repository webscripts (`becpg/olap/chart`, `becpg/ai/*`) that hold their address and
+   build their credential. A companion service's URL, credential — or worse, the *format* of
+   that credential — must never live here. The portal held four `BECPG_AI_*` variables and a
+   JavaScript copy of `BeCPGTicketService.getCurrentAuthToken()`; both are gone.
+   `becpg/olap/` and `becpg/ai/` are deliberately absent from `ALLOWED_BECPG_PATH_PREFIXES`,
+   so the browser-facing proxy refuses them and only server-side adapters get in.
 7. **A client component never imports `@/lib/becpg` nor `@/lib/session`.** Client code talks
    to the API through `@/lib/client` and nothing else. This is currently true with zero
    exceptions — keep it that way; it is the line that keeps tickets server-side.
@@ -101,11 +108,11 @@ app/                      App Router
   monitor/                monitoring space — layout.js holds THE access gate
     page.js suppliers/[id]/ documents/ campaigns/ quality/
   share/page/wizard/      entry point from Share
-  api/                    THE proxy — 38 route handlers
+  api/                    THE proxy — 46 route handlers
     health/route.js       { status, version } — Docker HEALTHCHECK and k8s probes
     auth/                 login, callback, logout, session
     v1/                   internal API, incl. monitor/*
-components/               86 components — ui/ shell/ form/ datalist/ wizard/ monitor/
+components/               107 components — ui/ shell/ form/ datalist/ wizard/ monitor/
                           documents/ dashboard/ signature/ products/ specs/ providers/
 lib/                      21 modules; adapters/ holds the 12 domain adapters
 config/                   chrome messages, default wizards
