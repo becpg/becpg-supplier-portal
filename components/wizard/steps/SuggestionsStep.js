@@ -78,6 +78,15 @@ const LABELS = {
         emptyEntityLevel:
             'L’analyse a bien tourné, mais elle n’a produit que des déductions faites sur la fiche '
             + 'elle-même, sans document à l’appui : elles ne vous sont pas proposées.',
+        // L'analyse est asynchrone : becpg-ai accuse réception, ses greffons
+        // tournent, et le résultat arrive plus tard. Tant que ce n'était pas dit,
+        // ce délai s'affichait « Aucune suggestion » — c'est-à-dire comme une
+        // panne.
+        analysing: 'Analyse en cours',
+        analysingHint:
+            'Le portail lit vos documents. Les propositions apparaîtront ici toutes seules, '
+            + 'sans quitter la page : la lecture d’une fiche technique prend en général moins d’une minute.',
+        analysingPlugins: 'En cours : {plugins}',
         refresh: 'Relancer l’analyse',
         readOnly: 'Cette fiche est en lecture seule : les suggestions ne peuvent pas être appliquées.',
         source: 'Source',
@@ -113,6 +122,12 @@ const LABELS = {
         emptyEntityLevel:
             'The analysis did run, but it only produced deductions made from the sheet itself, '
             + 'with no document backing them: they are not offered to you.',
+        /* See the note on the French keys. */
+        analysing: 'Analysis in progress',
+        analysingHint:
+            'The portal is reading your documents. The proposals will appear here on their own, '
+            + 'without leaving the page: reading a technical sheet usually takes under a minute.',
+        analysingPlugins: 'Running: {plugins}',
         refresh: 'Run the analysis again',
         readOnly: 'This sheet is read-only: suggestions cannot be applied.',
         source: 'Source',
@@ -120,6 +135,19 @@ const LABELS = {
         error: 'Applying the suggestion failed.',
     },
 };
+
+/**
+ * How long the step waits before re-reading while becpg-ai is still working.
+ *
+ * A cold run — read a PDF, call a model — was measured at ~22 s on dev-ai, so a
+ * tighter interval would mostly re-ask a question already in flight; a much
+ * looser one would leave the supplier looking at a spinner well after the
+ * answer landed.
+ */
+const ANALYSIS_POLL_MS = 8000;
+
+/** Upper bound on those re-reads, so a plugin that never closes cannot poll forever. */
+const ANALYSIS_POLL_MAX = 15;
 
 /** Per-suggestion lifecycle, kept locally: becpg-ai has no notion of "dismissed". */
 const STATE = Object.freeze({
@@ -356,6 +384,8 @@ function SuggestionCard({
  * @param {string} props.entityType prefixed type, needed by the apply patch
  * @param {Array<Object>} props.suggestions normalised suggestions (`/api/v1/suggestions/{id}`)
  * @param {Object} [props.summary]
+ * @param {{running: boolean, plugins: string[]}|null} [props.analysis] becpg-ai's own
+ *        progress, from the `Loading` / `LoadingComplete` envelopes
  * @param {boolean} [props.loading]
  * @param {Error} [props.error]
  * @param {Function} [props.onRefresh]
@@ -371,6 +401,7 @@ export function SuggestionsStep({
     suggestions = [],
     summary = null,
     entityLevelDropped = 0,
+    analysis = null,
     loading = false,
     error = null,
     onRefresh,
@@ -389,6 +420,39 @@ export function SuggestionsStep({
     const [statuses, setStatuses] = useState({});
     const [errors, setErrors] = useState({});
     const autoAppliedRef = useRef(new Set());
+
+    const analysing = Boolean(analysis && analysis.running);
+
+    /*
+     * **The analysis finishes on its own, so the screen must too.**
+     *
+     * becpg-ai answers immediately with the plugins it has started and computes
+     * in the background; the result only exists on a *later* call. Announcing
+     * "analyse en cours" and then waiting for the supplier to press *Relancer
+     * l'analyse* would be asking them to poll by hand — and *Relancer* does not
+     * even mean "check", it means "run it again".
+     *
+     * So while at least one plugin is running the step re-reads on its own, on a
+     * fixed interval, and stops the moment nothing is running. Bounded by
+     * {@link ANALYSIS_POLL_MAX}: an instance whose `LoadingComplete` never
+     * arrives — a plugin that died without closing its `Flux` — must not leave a
+     * browser polling for the rest of the day.
+     */
+    const pollsRef = useRef(0);
+    useEffect(() => {
+        if (!analysing || !onRefresh) {
+            pollsRef.current = 0;
+            return undefined;
+        }
+        if (pollsRef.current >= ANALYSIS_POLL_MAX) {
+            return undefined;
+        }
+        const timer = setTimeout(() => {
+            pollsRef.current += 1;
+            onRefresh();
+        }, ANALYSIS_POLL_MS);
+        return () => clearTimeout(timer);
+    }, [analysing, onRefresh, suggestions]);
 
     // Every entity attribute a suggestion would overwrite: the snapshot is what
     // makes "revocable" true rather than decorative.
@@ -604,7 +668,27 @@ export function SuggestionsStep({
                 </p>
             ) : null}
 
-            {sections.length === 0 ? (
+            {sections.length === 0 && analysing ? (
+                /* Not the "empty" state: nothing is missing, the answer is not
+                   there yet. Naming the plugins is what makes the wait credible
+                   — it is the same wording becpg-ai streams. */
+                <div
+                    role="status"
+                    aria-live="polite"
+                    className="flex items-start gap-3 rounded-xl border border-[var(--becpg-grey)] bg-[var(--becpg-grey)]/40 p-4"
+                >
+                    <span className="skeleton mt-0.5 h-5 w-5 shrink-0 rounded-full" aria-hidden="true" />
+                    <div className="min-w-0">
+                        <p className="text-sm font-medium text-[var(--becpg-blue)]">{labels.analysing}</p>
+                        <p className="mt-0.5 text-sm text-[var(--becpg-dark-grey)]">{labels.analysingHint}</p>
+                        {analysis.plugins.length > 0 ? (
+                            <p className="mt-1 text-xs text-[var(--becpg-dark-grey)]">
+                                {fill(labels.analysingPlugins, { plugins: analysis.plugins.join(' · ') })}
+                            </p>
+                        ) : null}
+                    </div>
+                </div>
+            ) : sections.length === 0 ? (
                 <EmptyState
                     variant="empty"
                     icon="auto_awesome"
