@@ -121,6 +121,11 @@ const LABELS = {
         remove: 'Retirer',
         browse: 'Afficher les valeurs',
         error: 'La recherche a échoué',
+        // Un champ dont la configuration ne nomme aucune source de données n'a
+        // pas « échoué » : il n'y a rien à interroger, et réessayer n'y changera
+        // rien. Le dire, plutôt que de laisser le fournisseur s'acharner sur un
+        // champ que son client n'a pas fini de paramétrer.
+        errorUnconfigured: 'Ce champ n’a pas de liste de valeurs configurée. Signalez-le à votre contact chez le client.',
         showing: 'Affichage des éléments 1 - {count} sur {total}',
         favourite: 'Favori',
     },
@@ -133,6 +138,8 @@ const LABELS = {
         remove: 'Remove',
         browse: 'Show values',
         error: 'The search failed',
+        /* See the note on the French key. */
+        errorUnconfigured: 'This field has no value list configured. Report it to your contact at the customer.',
         showing: 'Showing items 1 - {count} of {total}',
         favourite: 'Favourite',
     },
@@ -734,10 +741,16 @@ export function DatasourcePicker({
                 </p>
             ) : null}
 
+            {/* A 400 from the autocomplete route is the *configuration* saying
+                this field names no datasource, not a call that went wrong: it
+                will answer the same way on every retry, so it is worded as a
+                dead end and not as a hiccup. Everything else keeps the generic
+                wording — including a 404, which does mean the field could not
+                be resolved. */}
             {state.error ? (
                 <p className="becpg-ac-note" role="status" style={{ color: 'var(--status-danger)' }}>
                     <Icon name="error_outline" size={14} />
-                    {labels.error}
+                    {state.error.status === 400 ? labels.errorUnconfigured : labels.error}
                 </p>
             ) : null}
 
