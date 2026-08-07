@@ -36,13 +36,15 @@
  * always addresses a supplier (`POST /monitor/actions`, §4.6.7).
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { DataTable } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Icon } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { CommentsPanel } from '@/components/wizard/panels/CommentsPanel';
 import { formatDate, formatNumber } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 
@@ -124,6 +126,25 @@ const LABELS = {
         noSupplier: 'Aucun fournisseur rattaché',
         search: 'Rechercher une non-conformité',
         empty: 'Aucune non-conformité sur ce périmètre',
+        // La consultation : jusqu'ici la NC ne s'ouvrait nulle part, l'écran en
+        // listait le code et le verdict sans jamais en donner le texte.
+        open: 'Consulter cette non-conformité',
+        detail: {
+            description: 'Description',
+            comment: 'Commentaire qualité',
+            noText: 'Cette non-conformité ne porte ni description ni commentaire dans beCPG.',
+            facts: 'Faits',
+            actions: 'Actions correctives',
+            noActions: 'Aucune action corrective ouverte.',
+            suppliers: 'Fournisseurs concernés',
+            discussion: 'Discussion',
+            created: 'Créée le',
+            modified: 'Dernière modification',
+            cost: 'Coût',
+            priority: 'Priorité',
+            state: 'État',
+            type: 'Type',
+        },
     },
     en: {
         columns: {
@@ -172,6 +193,24 @@ const LABELS = {
         noSupplier: 'No supplier linked',
         search: 'Search a non-conformity',
         empty: 'No non-conformity in this perimeter',
+        /* See the note on the French keys. */
+        open: 'Open this non-conformity',
+        detail: {
+            description: 'Description',
+            comment: 'Quality comment',
+            noText: 'This non-conformity carries neither a description nor a comment in beCPG.',
+            facts: 'Facts',
+            actions: 'Corrective actions',
+            noActions: 'No open corrective action.',
+            suppliers: 'Suppliers concerned',
+            discussion: 'Discussion',
+            created: 'Created on',
+            modified: 'Last modified',
+            cost: 'Cost',
+            priority: 'Priority',
+            state: 'State',
+            type: 'Type',
+        },
     },
 };
 
@@ -244,6 +283,188 @@ function supplierHref(ref) {
     return `/monitor/suppliers/${encodeURIComponent(ref.nodeRef)}`;
 }
 
+/** One `label: value` line of the facts block; renders nothing without a value. */
+function Fact({ label, value }) {
+    if (value === null || value === undefined || value === '') {
+        return null;
+    }
+    return (
+        <div className="min-w-0">
+            <dt className="text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">{label}</dt>
+            <dd className="truncate text-sm text-[var(--becpg-blue)]">{value}</dd>
+        </div>
+    );
+}
+
+/**
+ * **Une non-conformité, ouverte.**
+ *
+ * ## Pourquoi une fenêtre et pas une route
+ *
+ * Une NC se consulte *depuis la liste* : on en ouvre trois de suite pour trier ce
+ * qui bloque un agrément, et une navigation par NC ferait perdre le filtre, le
+ * tri et la sélection à chaque aller-retour. La fenêtre garde l'écran de travail
+ * derrière elle.
+ *
+ * ## Ce qu'elle montre, et d'où ça vient
+ *
+ * **Rien de plus que la ligne** — mêmes champs, même requête : `qa:ncComment` et
+ * `cm:description` ont simplement été ajoutés à la projection déjà émise, donc
+ * ouvrir une NC ne coûte aucun appel. S'y ajoutent les actions correctives que la
+ * liste résumait en « 2 / 5 » et le fil de discussion de la NC — le même que
+ * Share affiche, jamais un second canal (spec §7.1).
+ *
+ * Le portail n'écrit pas sur la NC : le traitement se fait dans beCPG, et une
+ * fenêtre de consultation qui proposerait de changer un état sans en porter le
+ * circuit serait un deuxième modèle de qualité (règle R2).
+ *
+ * @param {Object} props
+ * @param {Object|null} props.nc the row being consulted, `null` closes the modal
+ * @param {Function} props.onClose
+ * @param {Object} props.labels a LABELS dictionary
+ * @param {string} props.lang
+ */
+function NonConformityDetail({ nc, onClose, labels, lang }) {
+    const words = labels.detail;
+    const style = (nc && STATE_STYLE[nc.state]) || { tone: 'neutral', icon: 'help_outline' };
+    const actions = (nc && nc.correctiveActions) || [];
+
+    return (
+        <Modal open={Boolean(nc)} onClose={onClose} title={nc ? nc.name || '—' : ''} size="lg">
+            {nc ? (
+                <div className="flex flex-col gap-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <StatusPill
+                            status={nc.state || 'unknown'}
+                            tone={style.tone}
+                            icon={style.icon}
+                            label={ncStateLabel(nc.state, lang)}
+                            size="sm"
+                        />
+                        {nc.blocking ? (
+                            <StatusPill
+                                status="suspended"
+                                tone="danger"
+                                icon="block"
+                                label={labels.blocking}
+                                size="sm"
+                            />
+                        ) : null}
+                        {nc.overdue ? (
+                            <StatusPill
+                                status="late"
+                                tone="warn"
+                                icon="schedule"
+                                label={labels.overdue}
+                                size="sm"
+                            />
+                        ) : null}
+                    </div>
+
+                    {/* Le texte d'abord : c'est ce qu'on vient lire. */}
+                    <div>
+                        {nc.description ? (
+                            <>
+                                <p className="text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">
+                                    {words.description}
+                                </p>
+                                <p className="mt-0.5 whitespace-pre-wrap text-sm text-[var(--becpg-blue)]">
+                                    {nc.description}
+                                </p>
+                            </>
+                        ) : null}
+                        {nc.comment ? (
+                            <>
+                                <p className="mt-3 text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">
+                                    {words.comment}
+                                </p>
+                                <p className="mt-0.5 whitespace-pre-wrap text-sm text-[var(--becpg-blue)]">
+                                    {nc.comment}
+                                </p>
+                            </>
+                        ) : null}
+                        {/* Dire que beCPG ne porte pas de texte, plutôt que
+                            d'afficher un blanc qu'on prendrait pour un bug. */}
+                        {!nc.description && !nc.comment ? (
+                            <p className="text-sm text-[var(--becpg-dark-grey)]">{words.noText}</p>
+                        ) : null}
+                    </div>
+
+                    <dl className="grid grid-cols-2 gap-3 border-t border-[var(--becpg-grey)] pt-3 sm:grid-cols-3">
+                        <Fact label={words.type} value={ncTypeLabel(nc.ncType, lang)} />
+                        <Fact
+                            label={words.priority}
+                            value={nc.priority === null ? null : (labels.priorities[nc.priority] || nc.priority)}
+                        />
+                        <Fact label="Code" value={nc.code} />
+                        <Fact label={words.created} value={formatDate(nc.createdAt, lang)} />
+                        <Fact label={words.modified} value={formatDate(nc.modifiedAt, lang)} />
+                        <Fact label={words.cost} value={formatNumber(nc.cost, lang)} />
+                    </dl>
+
+                    <div className="border-t border-[var(--becpg-grey)] pt-3">
+                        <p className="text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">
+                            {words.actions}
+                        </p>
+                        {actions.length === 0 ? (
+                            <p className="mt-0.5 text-sm text-[var(--becpg-dark-grey)]">{words.noActions}</p>
+                        ) : (
+                            <ul className="mt-1 flex flex-col gap-1">
+                                {actions.map((action) => (
+                                    <li
+                                        key={action.nodeRef}
+                                        className="flex flex-wrap items-center gap-2 text-sm"
+                                    >
+                                        <Icon
+                                            name={action.done ? 'task_alt' : action.late ? 'alarm' : 'radio_button_unchecked'}
+                                            size={16}
+                                            className={action.late && !action.done
+                                                ? 'text-[var(--status-danger)]'
+                                                : action.done
+                                                    ? 'text-[var(--status-ok)]'
+                                                    : 'text-[var(--becpg-dark-grey)]'}
+                                        />
+                                        <span className="min-w-0 flex-1 truncate">{action.name || '—'}</span>
+                                        {action.dueDate ? (
+                                            <span className="shrink-0 text-xs text-[var(--becpg-dark-grey)]">
+                                                {formatDate(action.dueDate, lang)}
+                                            </span>
+                                        ) : null}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+
+                    {(nc.suppliers || []).length > 0 ? (
+                        <div className="border-t border-[var(--becpg-grey)] pt-3">
+                            <p className="text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">
+                                {words.suppliers}
+                            </p>
+                            <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                                {nc.suppliers.map((supplier) => (
+                                    <li key={supplier.nodeRef}>
+                                        <Link
+                                            href={supplierHref(supplier)}
+                                            className="rounded text-sm underline underline-offset-2 hover:text-[var(--becpg-blue-light)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                                        >
+                                            {supplier.label || supplier.nodeRef}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ) : null}
+
+                    <div className="border-t border-[var(--becpg-grey)] pt-3">
+                        <CommentsPanel entityNodeRef={nc.nodeRef} title={words.discussion} />
+                    </div>
+                </div>
+            ) : null}
+        </Modal>
+    );
+}
+
 /**
  * @param {Object} props
  * @param {Object[]} props.items NC rows from `GET /monitor/quality`
@@ -270,6 +491,17 @@ export function NonConformityList({
     const { lang } = useMessages();
     const labels = LABELS[lang] || LABELS.fr;
 
+    /** The NC being consulted, or `null`. Holds the row itself: the detail needs no fetch. */
+    const [opened, setOpened] = useState(null);
+
+    // `opened` is refreshed from `items` so a reload of the list — a filter, a
+    // bulk action — updates the open panel instead of freezing yesterday's state
+    // behind it.
+    const openedRow = useMemo(
+        () => (opened ? items.find((item) => item.nodeRef === opened.nodeRef) || opened : null),
+        [opened, items],
+    );
+
     const columns = useMemo(
         () => [
             {
@@ -277,9 +509,26 @@ export function NonConformityList({
                 accessorFn: (row) => `${row.name || ''} ${row.code || ''} ${row.ncType || ''}`,
                 header: labels.columns.nc,
                 meta: { primary: true, label: labels.columns.nc, width: '18rem' },
+                /*
+                 * **La NC s'ouvre.** L'écran la listait sans jamais permettre de
+                 * la lire : ni sa description, ni le commentaire qualité, ni sa
+                 * discussion. Un vrai `<button>` — pas un `<div onClick>` — et
+                 * `stopPropagation`, pour que consulter ne coche pas la ligne au
+                 * passage.
+                 */
                 cell: ({ row }) => (
                     <div className="min-w-0">
-                        <p className="truncate font-medium">{row.original.name || '—'}</p>
+                        <button
+                            type="button"
+                            title={labels.open}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                setOpened(row.original);
+                            }}
+                            className="block w-full truncate rounded text-left font-medium hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                        >
+                            {row.original.name || '—'}
+                        </button>
                         <p className="truncate text-xs text-[var(--becpg-dark-grey)]">
                             {[row.original.code, ncTypeLabel(row.original.ncType, lang)]
                                 .filter(Boolean)
@@ -500,25 +749,33 @@ export function NonConformityList({
     );
 
     return (
-        <DataTable
-            columns={columns}
-            data={items}
-            loading={loading}
-            error={error}
-            onRetry={onRetry}
-            getRowId={(row) => row.nodeRef}
-            enableRowSelection
-            rowSelection={rowSelection}
-            onRowSelectionChange={onRowSelectionChange}
-            enableColumnVisibility
-            enablePagination={enablePagination}
-            initialSorting={[{ id: 'delay', desc: true }]}
-            initialColumnVisibility={{ cost: false }}
-            searchPlaceholder={labels.search}
-            toolbar={toolbar}
-            actions={actions}
-            emptyState={<EmptyState icon="verified_user" variant="success" title={labels.empty} />}
-            caption={labels.columns.nc}
-        />
+        <>
+            <DataTable
+                columns={columns}
+                data={items}
+                loading={loading}
+                error={error}
+                onRetry={onRetry}
+                getRowId={(row) => row.nodeRef}
+                enableRowSelection
+                rowSelection={rowSelection}
+                onRowSelectionChange={onRowSelectionChange}
+                enableColumnVisibility
+                enablePagination={enablePagination}
+                initialSorting={[{ id: 'delay', desc: true }]}
+                initialColumnVisibility={{ cost: false }}
+                searchPlaceholder={labels.search}
+                toolbar={toolbar}
+                actions={actions}
+                emptyState={<EmptyState icon="verified_user" variant="success" title={labels.empty} />}
+                caption={labels.columns.nc}
+            />
+            <NonConformityDetail
+                nc={openedRow}
+                onClose={() => setOpened(null)}
+                labels={labels}
+                lang={lang}
+            />
+        </>
     );
 }

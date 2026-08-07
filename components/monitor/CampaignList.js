@@ -226,9 +226,27 @@ export function CampaignList({
                 accessorFn: (row) => `${row.name || ''} ${row.code || ''}`,
                 header: labels.columns.campaign,
                 meta: { primary: true, label: labels.columns.campaign, width: '18rem' },
+                /*
+                 * **La campagne s'ouvre.** Les lignes étaient inertes alors que la
+                 * charge utile publiait déjà `href` — une route qui ne répondait
+                 * pas. De là on atteint la fiche en cours de saisie et la
+                 * discussion, c'est-à-dire la réponse à « où en est ce
+                 * référencement ? », qui était jusqu'ici hors de cet écran.
+                 *
+                 * `stopPropagation` : la ligne porte aussi la case de sélection
+                 * des actions groupées, et ouvrir la campagne ne doit pas la
+                 * cocher au passage.
+                 */
                 cell: ({ row }) => (
                     <div className="min-w-0">
-                        <p className="truncate font-medium">{row.original.name || '—'}</p>
+                        <Link
+                            href={row.original.href
+                                || `/monitor/campaigns/${encodeURIComponent(row.original.nodeRef)}`}
+                            onClick={(event) => event.stopPropagation()}
+                            className="block truncate rounded font-medium hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                        >
+                            {row.original.name || '—'}
+                        </Link>
                         <p className="truncate text-xs text-[var(--becpg-dark-grey)]">
                             {[row.original.code, projectStateLabel(row.original.state, lang)]
                                 .filter(Boolean)
