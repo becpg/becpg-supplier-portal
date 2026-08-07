@@ -79,7 +79,7 @@ est dit en §4.
 |---|---|
 | **« Ouvrir la discussion » ne faisait rien** | `openComments()` n'ouvrait la feuille qu'en dessous de 1024 px. Sur desktop panneaux affichés il ne changeait qu'une ancre invisible ; en mode « Élargir la saisie » il n'y a **pas d'`aside` du tout**, donc rien. La règle suit maintenant la **mise en page** et non la largeur : feuille quand la colonne n'est pas à l'écran, sinon on y amène le lecteur et on y met le focus |
 | **Icône cassée au choix du tenant** | Le bandeau de `/login` rendait le logo du tenant en `<img>` **sans `onError`** — la page est un composant serveur — et sa liste de repli était plus courte que celle de `TenantBadge` (il lui manquait `/theme/images/logo.png`). Une URL venant de `TENANT_MAP` qui n'aboutit pas donnait donc l'icône « image cassée » du navigateur, sur le premier écran vu par un fournisseur, et elle changeait avec le tenant choisi. Extrait en `TenantLogo` (client), repli sur la marque neutre ; la liste de repli est désormais partagée |
-| **La déconnexion affichait une erreur** | **Mesuré sur `ids-test.becpg.fr`, réalm `dev`, client `dev-supplier-portal`** : `logout?…&post_logout_redirect_uri=…/login` → **400 « Invalid redirect uri »**, et `…/api/auth/callback` → **400** aussi (la liste *post logout* n'est pas celle des redirections). Sans le paramètre : **200**. La liste « Valid post logout redirect URIs » du client est donc vide, et **toute** déconnexion tombait sur la page d'erreur Keycloak. La découverte OIDC n'annonce rien à ce sujet : le portail sonde une fois par émetteur, retient la réponse, et retire le paramètre quand il est refusé (`OIDC_POST_LOGOUT_REDIRECT`, défaut `auto`). **La vraie réparation reste côté Keycloak** — un champ, à `+` |
+| **La déconnexion affichait une erreur** | **Mesuré sur `ids-test.becpg.fr`, réalm `dev`, client `dev-supplier-portal`** : `logout?…&post_logout_redirect_uri=http://localhost:3000/login` → **400 « Invalid redirect uri »**, et `…/api/auth/callback` → **400** aussi (la liste *post logout* n'est pas celle des redirections). Sans le paramètre : **200**. J'en avais conclu que la liste du client était vide : **c'était faux**, et la mesure du 2026-08-07 sur l'URI de production le montre — `https://portal.becpg.fr/login` → **302**, l'URI est déclarée. Ce qui tombait sur la page d'erreur Keycloak, c'était la déconnexion **en développement local**, dont l'URI n'est pas déclarée. La découverte OIDC n'annonce rien à ce sujet : le portail sonde une fois par émetteur, retient la réponse, et retire le paramètre quand il est refusé (`OIDC_POST_LOGOUT_REDIRECT`, défaut `auto`). **La vraie réparation reste côté Keycloak** — un champ, à `+` |
 | **Pas de `help-id` sur les champs** | Côté beCPG : `portal-form.lib.js` ne lisait que `getHelpText()` (l'attribut `help`), alors que beCPG déclare `help-id` (une clé de message) sur ~90 champs et `help` sur aucun. Corrigé, et **mesuré après déploiement à chaud sur la pile locale** : `step1` de `bcpg:rawMaterial` passe de **0 à 9 champs sur 21** portant leur aide. Le rendu était déjà câblé (`FieldRenderer`) — seule la donnée manquait |
 | **Cahier des charges vs catalogue** | Ce n'était pas un défaut mais une question, et l'absence de réponse en est un : les deux se touchent à l'écran (Contexte / Conformité) et rien ne les distinguait. Rubrique ajoutée à `/help`, fr et en |
 
@@ -430,10 +430,15 @@ webscript (rétrocompatible, absent = comportement actuel).
   et beCPG n'expose aucun marqueur de modèle de *suspension* — la restriction est délibérée ;
 - **`PORTAL_TECHNICAL_SHEET_TYPES`** s'ajoute au Secret `becpg-supplier-portal-secrets` si le type
   « fiche technique » de l'instance porte un autre nom que les valeurs par défaut ;
-- **Keycloak : « Valid post logout redirect URIs » du client `dev-supplier-portal` est vide.** À
-  renseigner (`+`, ou `https://portal.becpg.fr/login`). Tant que ce n'est pas fait, le portail
-  détecte le refus et retire le paramètre — la déconnexion aboutit, mais sur la page de
-  l'identity provider et non sur `/login` (§2bis.3) ;
+- ~~**Keycloak : « Valid post logout redirect URIs » du client `dev-supplier-portal` est vide.**~~
+  **Faux, corrigé le 2026-08-07.** Mesuré sur l'émetteur de production
+  (`ids-test.becpg.fr`, réalm `dev`, client `dev-supplier-portal`) :
+  `post_logout_redirect_uri=https://portal.becpg.fr/login` → **302 vers `/login`**, donc
+  **déclaré**. Ce qui est refusé (400 « Invalid redirect uri ») : `…/api/auth/callback`,
+  `…/zzz`, et `http://localhost:3000/login`. La liste n'est donc pas vide : elle contient
+  l'URI de production en clair, et c'est l'URI **locale** qui avait été mesurée. Rien à
+  faire côté Keycloak pour `portal.becpg.fr` ; la sonde de `lib/oidc.js` reste utile pour
+  les autres émetteurs et pour le développement local (§2bis.3) ;
 - **Trois changements `../becpg` à construire et déployer** (§2bis.4, §2bis.5) — dont
   `AiSuggestionsProxyWebScript`, **sans lequel le portail n'a plus d'IA du tout** : c'est le
   seul chemin, par construction. Renseigner aussi `beCPG.ai.serverUrl` sur l'instance. Le premier —

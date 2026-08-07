@@ -31,8 +31,10 @@ Ce qui reste ouvert est en fin de fichier.
       fournisseur […] Signalez-le à votre contact chez le client » s'adressait à un
       fournisseur ; un compte interne lit maintenant un message qui le concerne.
 - [x] **Se déconnecter affiche une erreur.** Mesuré : Keycloak répond
-      400 « Invalid redirect uri ». Le portail détecte le refus et retire le
-      paramètre. **La réparation de fond est côté Keycloak** — voir « Reste ouvert ».
+      400 « Invalid redirect uri » pour une URI non déclarée. Le portail détecte le
+      refus et retire le paramètre. Sur `portal.becpg.fr` l'URI **est** déclarée
+      (`/login` → 302, vérifié le 2026-08-07) ; c'est le développement local qui
+      tombait sur la page d'erreur.
 
 ## Lorsque je suis fournisseur
 
@@ -151,9 +153,9 @@ Ce qui reste ouvert est en fin de fichier.
   un redémarrage mais pas à une recréation du conteneur. Ce qui n'a pas pu l'être : un
   aller-retour *réussi*, qui demande un becpg-ai acceptant les tickets de l'instance appelante.
 
-- **Keycloak** — renseigner « Valid post logout redirect URIs » sur le client
-  `dev-supplier-portal` (`+`, ou `https://portal.becpg.fr/login`). Sans cela la
-  déconnexion aboutit mais se termine sur la page de l'identity provider.
+- ~~**Keycloak** — renseigner « Valid post logout redirect URIs »~~ : déjà fait pour
+  `portal.becpg.fr` (vérifié le 2026-08-07). À renseigner en revanche sur tout autre
+  émetteur, et pour le développement local (`http://localhost:3000/login`, refusé).
 - **Livrer les trois changements `../becpg`** (`portal-form.lib.js`,
   `SupplierPortalInitRepoVisitor`, `AiSuggestionsProxyWebScript`) : ils sont en place et
   compilent, mais seul le premier a été déployé — à chaud, dans le conteneur Share local,
