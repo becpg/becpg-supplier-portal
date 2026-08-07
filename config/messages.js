@@ -51,6 +51,10 @@ export const messages = {
         'nav.monitor.campaigns': 'Campagnes',
         'nav.monitor.quality': 'Non-conformités',
         'nav.monitor.reports': 'Rapports',
+        // Les mêmes tâches que côté fournisseur, sous le nom qu'un interne leur
+        // donne : il n'y valide pas *son* dossier, il fait avancer celui d'un
+        // fournisseur.
+        'nav.monitor.tasks': 'Mes tâches',
 
         // --- Account ---
         'account.profile': 'Mon profil',
@@ -149,6 +153,8 @@ export const messages = {
         'nav.monitor.campaigns': 'Campaigns',
         'nav.monitor.quality': 'Non-conformities',
         'nav.monitor.reports': 'Reports',
+        /* See the note on the French key. */
+        'nav.monitor.tasks': 'My tasks',
 
         // --- Account ---
         'account.profile': 'My profile',

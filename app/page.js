@@ -42,7 +42,7 @@ import { DocumentList } from '@/components/dashboard/DocumentList';
 import { DiscussionList } from '@/components/dashboard/DiscussionList';
 import { NotificationList } from '@/components/dashboard/NotificationList';
 import { nodeRefToPath } from '@/lib/becpg';
-import { buildDashboard, createBecpgClient } from '@/lib/adapters/session';
+import { buildDashboard, createBecpgClient, getMyGroups, resolveSpace } from '@/lib/adapters/session';
 import { listMyTasks, mapWithConcurrency, nodeRefFromId } from '@/lib/adapters/tasks';
 import { buildEntityIndex, buildEntityQuery, listMyEntities } from '@/lib/adapters/entities';
 import { listDocuments } from '@/lib/adapters/documents';
@@ -284,23 +284,6 @@ export default async function DashboardPage() {
         redirect('/login?next=%2F');
     }
 
-    /*
-     * L'ESPACE DÉCIDE DE LA PAGE D'ACCUEIL.
-     *
-     * Cette page est le tableau de bord **du fournisseur** : mes tâches, mes
-     * produits, mon dossier, mon statut d'agrément. `resolveSpace` tranche déjà
-     * (spec §4.2) et la session le publie, mais rien ici ne le lisait : un
-     * utilisateur interne atterrissait donc sur « Mes tâches » après connexion,
-     * avec une pastille « Suspendu » dans l'en-tête — un statut d'agrément
-     * affiché à quelqu'un qui n'est pas fournisseur.
-     *
-     * Le pilotage est son point d'entrée ; la redirection remplace la page, elle
-     * n'ajoute pas un écran de plus à traverser.
-     */
-    if (session.space === 'monitor') {
-        redirect('/monitor');
-    }
-
     // `lib/messages` cannot be imported here: it carries the client hook
     // (`useSyncExternalStore`). A server component reads the cookie and calls
     // the plain resolver from `config/messages` instead.
@@ -309,6 +292,32 @@ export default async function DashboardPage() {
     const t = (key, vars) => translate(lang, key, vars);
 
     const client = createBecpgClient(session);
+
+    /*
+     * L'ESPACE DÉCIDE DE LA PAGE D'ACCUEIL.
+     *
+     * Cette page est le tableau de bord **du fournisseur** : mes tâches, mes
+     * produits, mon dossier, mon statut d'agrément. Un utilisateur interne y
+     * atterrissait après connexion, avec une pastille « Suspendu » dans
+     * l'en-tête — un statut d'agrément affiché à quelqu'un qui n'est pas
+     * fournisseur.
+     *
+     * **L'espace se calcule ici, il ne se lit pas sur la session.** La
+     * redirection existait déjà et testait `session.space` : or la session
+     * *chiffrée dans le cookie* ne porte pas cette clé — seul le payload de
+     * `/api/v1/session` la calcule, et il est construit ailleurs. `undefined`
+     * n'ayant jamais valu `'monitor'`, la redirection n'a jamais tiré et le
+     * défaut annoncé corrigé ne l'était pas. Mesuré le 06/08/2026 : compte
+     * `admin`, `space: "monitor"` sur `/api/v1/session`, `GET /` répond 200 avec
+     * l'espace fournisseur.
+     *
+     * `getMyGroups` est mémoïsé sur le client, et `buildDashboard` l'appelle
+     * juste après : la redirection ne coûte donc aucun appel supplémentaire.
+     */
+    const { groups, capabilities } = await safe(() => getMyGroups(client), { groups: [], capabilities: {} });
+    if (resolveSpace(groups, capabilities) === 'monitor') {
+        redirect('/monitor');
+    }
 
     // The four header cards. Everything below reuses this client's memo cache,
     // so the tasks and the entities are fetched exactly once for the page.

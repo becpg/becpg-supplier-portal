@@ -63,9 +63,17 @@ export const NOTIFICATION_LABELS = {
          * when what happened is that nobody can tell whose documents to look at.
          * That is a configuration fact and it belongs on the screen, not only in
          * the payload.
+         *
+         * `internalAccount` est le **même fait vu de l'autre côté**, et il ne se
+         * dit pas de la même façon : pour un compte interne, l'absence de
+         * périmètre fournisseur est normale, ce n'est pas une anomalie à
+         * signaler. Le texte `noSupplierIdentity` s'affichait aussi à un
+         * responsable référencement — à qui il conseillait de prévenir « son
+         * contact chez le client », c'est-à-dire lui-même.
          */
         scopeEmpty: {
             noSupplierIdentity: 'Votre compte n’est rattaché à aucun fournisseur : vos documents ne peuvent pas être identifiés. Seules vos tâches sont listées. Signalez-le à votre contact chez le client.',
+            internalAccount: 'Compte interne : les alertes documentaires suivent le fournisseur qui doit les fournir, votre cloche ne liste donc que vos tâches. La vue par parc est dans Conformité documentaire.',
             fallback: 'Le périmètre de votre compte est vide : certaines alertes ne peuvent pas être calculées.',
         },
         // The pill counts the whole set; the card lists its most urgent rows. Said
@@ -92,6 +100,7 @@ export const NOTIFICATION_LABELS = {
         /* See the note on the French `scopeEmpty`. */
         scopeEmpty: {
             noSupplierIdentity: 'Your account is not attached to any supplier, so your documents cannot be identified. Only your tasks are listed. Report it to your contact at the customer.',
+            internalAccount: 'Internal account: document alerts follow the supplier who owes them, so your bell only lists your tasks. The park-wide view is under Document compliance.',
             fallback: 'Your account perimeter is empty: some alerts cannot be computed.',
         },
         countTitle: '{total} pending · the {shown} most urgent below',
@@ -119,6 +128,11 @@ export function notificationLabels(lang) {
  * Shared by the dashboard card and the header bell, which read the same payload
  * and must not word the same fact differently.
  *
+ * **`internalAccount` is not a warning** and is not painted as one. The other
+ * reasons say something is wrong with the account; that one says the account is
+ * simply not the one document alerts are about. An orange strip on a normal
+ * state teaches the reader to ignore orange strips.
+ *
  * @param {Object} props
  * @param {{reason?: string, hint?: string}|null} props.empty the API block
  * @param {Object} props.local a {@link notificationLabels} dictionary
@@ -132,12 +146,21 @@ export function ScopeEmptyNote({ empty, local, className = '' }) {
     if (!message) {
         return null;
     }
+    const informational = empty.reason === 'internalAccount';
     return (
         <p
             role="status"
-            className={`flex items-start gap-1.5 rounded-lg bg-[var(--status-warn-bg)] px-2.5 py-2 text-xs text-[var(--becpg-dark-grey-deep)] ${className}`}
+            className={[
+                'flex items-start gap-1.5 rounded-lg px-2.5 py-2 text-xs text-[var(--becpg-dark-grey-deep)]',
+                informational ? 'bg-[var(--becpg-grey)]/60' : 'bg-[var(--status-warn-bg)]',
+                className,
+            ].join(' ')}
         >
-            <Icon name="info" size={14} className="mt-0.5 shrink-0 text-[var(--status-warn)]" />
+            <Icon
+                name="info"
+                size={14}
+                className={`mt-0.5 shrink-0 ${informational ? 'text-[var(--becpg-dark-grey)]' : 'text-[var(--status-warn)]'}`}
+            />
             <span>{message}</span>
         </p>
     );

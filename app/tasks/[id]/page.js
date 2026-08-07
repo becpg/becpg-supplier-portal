@@ -48,6 +48,7 @@ import { Wizard } from '@/components/wizard/Wizard';
 import { ReviewStep } from '@/components/wizard/steps/ReviewStep';
 import { DocumentsStep } from '@/components/wizard/steps/DocumentsStep';
 import { SignatureFlow } from '@/components/signature/SignatureFlow';
+import { CommentsPanel } from '@/components/wizard/panels/CommentsPanel';
 import { TaskActions } from '@/components/tasks/TaskActions';
 import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/client';
@@ -67,6 +68,7 @@ const LABELS = {
         due: 'À rendre le {date}',
         late: 'En retard',
         done: 'Terminée',
+        discussion: 'Discussion',
     },
     en: {
         loading: 'Task',
@@ -80,6 +82,7 @@ const LABELS = {
         due: 'Due on {date}',
         late: 'Late',
         done: 'Completed',
+        discussion: 'Discussion',
     },
 };
 
@@ -241,10 +244,38 @@ function TaskRouter() {
 
     /* --------------------------------------------------------------- review */
 
+    /*
+     * La relecture est l'écran d'un **interne** : la tâche « Validation » du
+     * modèle de projet fournisseur lui échoit, et il y relit ce que le
+     * fournisseur a saisi avant de terminer ou de refuser.
+     *
+     * La discussion est donc à côté de la fiche, et pas ailleurs. Sans elle,
+     * « signaler une coquille » voulait dire quitter la tâche, retrouver la
+     * fiche depuis `/messages`, écrire, revenir — ou refuser la tâche en
+     * espérant que le motif se devine (`TaskActions` le dit lui-même : le motif
+     * d'un refus n'est pas enregistré sur la tâche).
+     *
+     * Le fil est celui de l'entité : le même que celui du portail fournisseur et
+     * celui de Share (spec §7.1). Une remarque écrite ici est lue par le
+     * fournisseur dans son assistant, à l'endroit exact où il a saisi.
+     */
     return (
-        <AppShell title={data.name || labels.loading}>
+        <AppShell
+            title={data.name || labels.loading}
+            fullWidth
+            aside={
+                <div className="hidden lg:block">
+                    <CommentsPanel entityNodeRef={entityNodeRef} title={labels.discussion} />
+                </div>
+            }
+        >
             <TaskHeader task={data} labels={labels} lang={lang} onDone={task.refresh} />
             <ReviewStep entityId={entityNodeRef} wizardId={wizardId} />
+            {/* Sous `lg` il n'y a pas de colonne latérale : le fil passe sous la
+                fiche plutôt que de disparaître. */}
+            <div className="mt-4 lg:hidden">
+                <CommentsPanel entityNodeRef={entityNodeRef} title={labels.discussion} />
+            </div>
         </AppShell>
     );
 }
