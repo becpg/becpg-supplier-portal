@@ -108,3 +108,16 @@
 * InProgress #35846 - [Cleanup] Run the datalist spec anywhere, and state the fixture its assertions need
 * InProgress #35846 - [Cleanup] Make the wizard spec runnable against dev, and stop asserting one instance's configuration
 * [skip ci][Release]: Bump _VERSION to 0.0.10
+## [ 0.0.11 ] - 2026-08-07 15:32:33
+
+* InProgress #35846 - [Cleanup] Record the round: the AI now goes through beCPG, and the OLAP diagnosis was wrong on both counts
+* InProgress #35846 - [Feature] Explain specifications against catalogues in the help, and pin the round's defects with an E2E case each
+* InProgress #35846 - [Bug] Stop the broken tenant logo on the sign-in card and let sign-out survive an unregistered post-logout URI
+* InProgress #35846 - [Feature] Ask beCPG for the AI suggestions instead of calling becpg-ai, and say when the analysis is still running
+* InProgress #35846 - [Feature] Mark the steps whose mandatory answers are missing and gate Terminer on what really blocks
+* InProgress #35846 - [Bug] Resolve an autocomplete field from the wizard definitions instead of a source that answers no columns
+* InProgress #35846 - [Feature] Open a campaign from the pilotage and let a non-conformity be read
+* InProgress #35846 - [Bug] Send an internal account to the monitoring space, give it its tasks and stop addressing it as a supplier
+* InProgress #35846 - [Cleanup] Bring the status document up to date and correct two claims the docs had outlived
+* InProgress #33085 - [Feature] Specify mandatory languages as a catalog requirement rather than a portal setting
+* [skip ci][Release]: Bump _VERSION to 0.0.11
