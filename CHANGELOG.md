@@ -121,3 +121,7 @@
 * InProgress #35846 - [Cleanup] Bring the status document up to date and correct two claims the docs had outlived
 * InProgress #33085 - [Feature] Specify mandatory languages as a catalog requirement rather than a portal setting
 * [skip ci][Release]: Bump _VERSION to 0.0.11
+## [ 0.0.12 ] - 2026-08-10 17:01:12
+
+* InProgress #35846 - [Cleanup] Correct the post-logout diagnosis: the production URI is registered, the local one is not
+* [skip ci][Release]: Bump _VERSION to 0.0.12
