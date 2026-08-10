@@ -4,6 +4,11 @@
 > (versions **0.0.3 → 0.0.10**), une remise à plat de la suite E2E, puis une passe
 > sur le `TODO.md` du 6 août — §2bis.
 >
+> **Mis à jour le 2026-08-10**, après la livraison de `dev.becpg.fr` **26.1.0.31** et du
+> portail **0.0.12** : ré-exécution complète de la suite E2E (§3), état réel de la chaîne IA
+> sur dev (§5.3) et **retournement du diagnostic OLAP** (§5.1) — le cube n'était pas en panne,
+> c'est le compte avec lequel il avait été interrogé qui ne recevait rien.
+>
 > **Ce document vaut par une seule distinction** : ce qui a été **mesuré**, et ce qui est
 > seulement **cru** parce que lu dans le code. Une correction annoncée mais non re-mesurée
 > est requalifiée ici, nommément. Ce qui n'a pas pu être vérifié est dit tel quel, avec la
@@ -18,11 +23,11 @@
 | Application | Next.js 16.2.12 (App Router, Turbopack), React 18, Tailwind 4, **JavaScript** |
 | `npx next build` | ✅ compile, 0 erreur |
 | `npx eslint .` | ✅ 0 erreur, 1 avertissement assumé (`react-hooks/incompatible-library`) |
-| `npx playwright test` | ✅ **95 passés / 5 échecs / 1 abstention** en 9 min 20 s, pile locale — les 5 sont détaillés en §3 et §4, aucun n'est une régression |
-| Version publiée | **0.0.10** (tag poussé) ; `_VERSION` prêt pour 0.0.11 |
+| `npx playwright test` | ✅ **102 passés / 4 échecs / 3 abstentions** en 12 min 18 s, pile locale, 10/08 — les 4 sont détaillés en §3, aucun n'est une régression |
+| Version publiée | **0.0.12** (tag poussé, `portal.becpg.fr` sert `0.0.12-b009a75`) ; `_VERSION` prêt pour 0.0.13 |
 | Gestion de version | git, branche `main`, dépôt distant Google Source |
 | Production | `https://portal.becpg.fr` → tenant `dev`, OIDC réel (`ids-test.becpg.fr`, client `dev-supplier-portal`) |
-| beCPG dev | `26.1.0.28` — contient les correctifs portail côté serveur (formulaire A5, NPE datalist, API remote, cache d'associations) |
+| beCPG dev | `26.1.0.31` (10/08) — contient les correctifs portail côté serveur (formulaire A5, NPE datalist, API remote, cache d'associations) **et les trois changements de §2bis.4** : `portal-form.lib.js`, `SupplierPortalInitRepoVisitor`, `AiSuggestionsProxyWebScript` |
 
 ---
 
@@ -223,6 +228,21 @@ Trois causes, toutes mesurées :
 Exécution complète du 2026-08-06 contre la pile locale, `workers: 1` :
 **95 passés, 5 échecs, 1 abstention, 9 min 20 s.**
 
+**Ré-exécution du 2026-08-10**, après la livraison de `dev.becpg.fr` 26.1.0.31 et du portail
+0.0.12, même pile locale : **102 passés, 4 échecs, 3 abstentions, 46 non exécutés, 12 min 18 s**
+(le fichier est en `mode: 'serial'`, un échec arrête la suite du fichier). Les quatre échecs :
+
+| Cas | Statut |
+|---|---|
+| `04-supplier-journey` — atterrissage du fournisseur | **attendu** : exige le second portail OIDC sur `:3100`, absent de cette exécution. Le `beforeAll` échoue une fois en nommant la cause, ce qui est son rôle |
+| `06-full-process › 2` — la tâche du fournisseur | **connu, non résolu** — §4, inchangé |
+| `07-wizard-steps › 0` — création du projet | **connu et élucidé** : `/api/v1/tasks?pageSize=100` renvoie 100 éléments pour `counters.total = 101`. Le dépôt local reste au-dessus du seuil ; les tâches « Référencement » ouvertes sur `MPSEED001` n'ont toujours pas été fermées |
+| `08-datalists › 3` — association multivaluée au clavier | **nouveau** : l'`input` annonce `aria-activedescendant="_r_c_-3"` là où le test attend l'`id` de l'option qu'il vient de mettre en surbrillance, valeur stable sur 34 tentatives. À élucider — c'est ce qu'un lecteur d'écran annonce. Le cas 2 passe |
+
+Aucune régression : les 102 verts couvrent `00`, `01`, `02`, `03`, `05`, `06-product-sheet`,
+`07-date-formatting`, `08-signature`, `09-survey`, `10-documents` et les onze cas de
+`11-todo-2026-08-06`.
+
 | Fichier | État | Où |
 |---|---|---|
 | `00`, `02`, `03`, `05`, `06-product-sheet`, `07-date-formatting`, `09-survey`, `10-documents` | ✅ passent | pile locale |
@@ -324,7 +344,7 @@ et le refus d'un corps de datalist.
 | **`04-supplier-journey`** | Exige un portail servi en OIDC réel, distinct de celui qui sert la pile locale (Next refuse deux serveurs depuis un même dossier) |
 | **Parcours de signature** | Aucune tâche de signature n'existe sur dev |
 | **Reconnaissance de la fiche technique en production** | Vérifiée contre les quatre types du seed local (`Fiche technique fournisseur (portail)` → vrai, les trois autres → faux). **Le vocabulaire de dev n'a pas été confronté** : aucun type « fiche technique » n'y est configuré, l'étape tombe donc sur son dépôt libre |
-| **`SupplierPortalInitRepoVisitor` — le type semé** | Compile (`mvn -pl becpg-plm/becpg-plm-core compile`, JDK 21) mais **n'a pas été déployé** : cela demande un redémarrage d'Alfresco. Le *mécanisme* est vérifié — les quatre types `(portail)` du seed ont exactement cette forme (`docTypeLinkedTypes: ["bcpg:rawMaterial"]`) et se matérialisent bien en exigences. Ce qui n'a pas pu l'être : un type créé **à chaud** n'apparaît pas après reformulation, cache des caractéristiques probable ; sans conséquence pour un visiteur qui s'exécute au démarrage, mais non prouvé. Le nœud d'essai créé sur l'instance locale a été supprimé |
+| **`SupplierPortalInitRepoVisitor` — le type semé** | **Livré le 10/08 dans dev 26.1.0.31** ; l'effet sur l'instance — un type « Fiche technique fournisseur » présent et non obligatoire — n'a pas encore été re-mesuré. Ce qui suit décrit l'état au 06/08 : compile (`mvn -pl becpg-plm/becpg-plm-core compile`, JDK 21) mais **non déployé**, cela demandait un redémarrage d'Alfresco. Le *mécanisme* est vérifié — les quatre types `(portail)` du seed ont exactement cette forme (`docTypeLinkedTypes: ["bcpg:rawMaterial"]`) et se matérialisent bien en exigences. Ce qui n'a pas pu l'être : un type créé **à chaud** n'apparaît pas après reformulation, cache des caractéristiques probable ; sans conséquence pour un visiteur qui s'exécute au démarrage, mais non prouvé. Le nœud d'essai créé sur l'instance locale a été supprimé |
 | **Rendu visuel des écrans nouveaux ou modifiés** | L'extension Chrome n'était pas connectée. Vérifié autrement : `next build` vert, `eslint` propre, chaque écran répond 200 et rend son squelette sans toucher la frontière d'erreur, et chaque endpoint a été appelé et sa charge utile lue. **Aucune capture d'écran** |
 
 ---
@@ -337,11 +357,52 @@ et le refus d'un corps de datalist.
 contre un vrai `becpg-ai` : la logique a été vérifiée en isolant la fonction pure, l'affichage ne
 l'a pas été.
 
-**L'axe fournisseur du cube OLAP — l'explication précédente était fausse sur les deux points.**
+**OLAP — ce n'était ni le cube, ni la base, ni le canal : c'était le compte de mesure.**
 
-Elle disait : « le cube répond, il lui manque la dimension ; elle est dans la 26.1.0.28 déployée
-mais le serveur OLAP sert encore l'ancien schéma ». **Testé sur dev le 07/08/2026**, avec un
-ticket `admin.test.user` :
+> **Mesuré le 10/08/2026.** Le paragraphe qui suit garde l'enquête du 07/08 parce qu'elle
+> reste juste sur ce qu'elle a établi, mais sa conclusion — « toutes les requêtes MDX
+> renvoient zéro ligne sur dev » — n'était vraie que **sous `admin.test.user`**, le compte
+> avec lequel elle a été menée de bout en bout, et le confondant qu'elle signalait elle-même
+> sans le lever. Même endpoint, même statement, quatre comptes :
+>
+> | Compte | `taskStates` sur `projectsSteps` |
+> |---|---|
+> | `admin.test.user` | 200, `{"metadatas":[],"resultsets":[]}` |
+> | `purchasingmgr.test.user` | 200, **6 lignes** (Annulé 308, Terminé 1157, En cours 2100, …) |
+> | `qualitymgr.test.user` | 200, 6 lignes |
+> | `rduser.test.user` | 200, 6 lignes |
+>
+> Les quatre statements du module répondent, et leurs comptes retrouvent ceux que leurs
+> commentaires enregistrent : `taskTrend` **10** lignes depuis 2019 (11 au jour de l'écriture),
+> `taskStates` **6**, `completion` **3** (2024 : 1250 projets, avancement moyen 4,47 %),
+> incidents par fournisseur **18**. **La base `becpg_olap_dev` n'est pas vide et la
+> synchronisation n'est pas en panne** : la piste n°1 du 07/08 est réfutée, il n'y a rien à
+> réparer de ce côté.
+>
+> Ce qui reste vrai et intéressant : la source de données Saiku est déclarée
+> `security.enabled=true`, `security.type=one2one`, `security.mapping=OlapUser=OlapUser`, et
+> `runMdxQuery` construit l'URL REST avec le nom de l'appelant. **L'administrateur est le seul
+> compte à qui le cube ne répond rien** — à regarder si l'on veut qu'il le voie, mais cela ne
+> gêne aucun utilisateur du portail, qui appelle avec son propre ticket.
+>
+> Vérifié aussi, contre l'hypothèse « deux bases » : le connecteur (CronJob
+> `olap-connector-dev-cron`, toutes les 2 h) écrit dans le Cloud SQL
+> `becpg-314807:europe-west9:becpg-olap-test1-db`, schéma `becpg_olap_dev` ; et
+> `becpg.olap.url.internal=https://olap-dev.becpg.fr/saiku` mène par l'ingress au déploiement
+> `becpg-olap-test1`, dont le sidecar cloud-sql-proxy pointe **la même** instance. Les deux
+> côtés lisent et écrivent au même endroit.
+>
+> **Et l'axe fournisseur est là où le module dit qu'il n'est pas encore.** Mesuré sous
+> `purchasingmgr` : `[suppliers].[name].Members` en lignes renvoie **133** lignes sur
+> `projectsSteps` **et** sur `projects`, et un `WHERE ([suppliers].[name].…)` sur
+> `projectsSteps` s'exécute. Les trois requêtes en `supplierScope: 'none'` peuvent donc passer
+> à `'slicer'` : la doctrine du module — un statement n'est livré qu'après avoir été exécuté
+> contre le vrai cube — est remplie. **Rien n'a été changé dans le code**, c'est le travail
+> qui reste.
+
+L'enquête du 07/08 disait : « le cube répond, il lui manque la dimension ; elle est dans la
+26.1.0.28 déployée mais le serveur OLAP sert encore l'ancien schéma ». **Testé sur dev le
+07/08/2026**, avec un ticket `admin.test.user` :
 
 - **la dimension `suppliers` est bien servie**, sur les quatre cubes.
   `GET becpg/olap/v4/schema?instance=dev` renvoie 87 Ko et **4** `DimensionUsage name="suppliers"`,
@@ -351,17 +412,17 @@ ticket `admin.test.user` :
   et `getHistory()` court-circuite sur ce champ *avant* tout appel. Le verdict décrivait la table
   du portail, pas l'état du serveur — et il ne pouvait pas changer quand le schéma, lui, changeait.
 
-**Ce qui bloque réellement est ailleurs, et c'est plus gênant : sur dev, `becpg/olap/chart` ne
-renvoie plus rien du tout.** Toutes les requêtes, y compris les statements de contrôle **sans**
-axe fournisseur dont les commentaires du module notent les résultats du jour où ils ont été
-écrits, répondent `{"metadatas":[],"resultsets":[]}` en HTTP 200 :
+**Ce qui a été pris pour le vrai blocage — et qui n'en était pas un.** Toutes les requêtes,
+y compris les statements de contrôle **sans** axe fournisseur dont les commentaires du module
+notent les résultats du jour où ils ont été écrits, répondaient `{"metadatas":[],"resultsets":[]}`
+en HTTP 200 — **sous `admin.test.user` uniquement**, ce que l'encadré ci-dessus mesure :
 
-| Requête | attendu (commentaire du module) | mesuré 07/08 |
-|---|---|---|
-| `projectsSteps` par année | 11 lignes | **0** |
-| `projectsSteps` par état | 6 lignes | **0** |
-| `projects` complétude par année | 3 lignes | **0** |
-| `incidents` par fournisseur | 18 lignes | **0** |
+| Requête | attendu (commentaire du module) | 07/08 (`admin.test.user`) | 10/08 (`purchasingmgr`) |
+|---|---|---|---|
+| `projectsSteps` par année | 11 lignes | **0** | ✅ **10** |
+| `projectsSteps` par état | 6 lignes | **0** | ✅ **6** |
+| `projects` complétude par année | 3 lignes | **0** | ✅ **3** |
+| `incidents` par fournisseur | 18 lignes | **0** | ✅ **18** |
 
 Le piège n°1 du module s'applique : Saiku répond `{"cellset": null}`, `OlapServiceImpl` journalise
 `Incorrect data return by saiku` et le webscript renvoie un corps vide en 200 — de l'extérieur,
@@ -380,26 +441,45 @@ location=jdbc:mondrian:Catalog=AlfrescoCatalog;
 Deux choses en découlent :
 
 1. **le schéma et les données ne viennent pas du même endroit.** Le schéma est tiré d'Alfresco à
-   la volée par `AlfrescoSchemaProcessor` — c'est pourquoi il est correct et à jour, je viens de
-   le lire. Les **faits**, eux, sont dans une base MySQL séparée, `becpg_olap_<instance>`,
-   alimentée par une synchronisation. Un cube dont le schéma est parfait et la base vide répond
-   exactement ce que j'observe : zéro ligne partout, sur toutes les requêtes, y compris les plus
-   simples. **C'est la première piste à vérifier sur dev**, et elle n'a rien à voir avec la
-   dimension fournisseur ;
+   la volée par `AlfrescoSchemaProcessor` ; les **faits** sont dans une base MySQL séparée,
+   `becpg_olap_<instance>`, alimentée par une synchronisation. Un cube dont le schéma est parfait
+   et la base vide répondrait exactement ce qui était observé — **c'est cette piste qui a été
+   suivie, et elle est fausse** : la base répond, dès qu'on la demande sous un autre compte
+   (encadré du 10/08). Les journaux du pod `becpg-olap-test1` le montrent aussi en creux — une
+   table réellement absente **est** journalisée avec sa trace
+   (`Table 'becpg_olap_test36.becpg_dimdate' doesn't exist`, vu pour une autre instance), et rien
+   de tel n'apparaît pour `dev` : le connecteur `dev` est créé, le schéma chargé, aucune erreur ;
 2. les noms doivent concorder. `runMdxQuery` déclare `connection="beCPG"` (✅ `name=beCPG`),
    `schema="beCPG OLAP Schema"` (✅ `<Schema name="beCPG OLAP Schema">`) et
-   `catalog="beCPG OLAP Schema"` — alors que la source déclare `Catalog=AlfrescoCatalog`. Je ne
-   sais pas si Saiku valide ce dernier, donc **je ne conclus pas** ; c'est à regarder après la
-   base.
+   `catalog="beCPG OLAP Schema"` — alors que la source déclare `Catalog=AlfrescoCatalog`.
+   Puisque le cube répond, **la question est close** : Saiku ne valide pas ce dernier.
 
-À vérifier aussi : `admin.test.user` doit exister côté Saiku, `runMdxQuery` construisant l'URL
-REST avec le nom de l'appelant (`/rest/saiku/<user>/query/…`). Mes mesures ont toutes été faites
-avec ce compte, donc ce confondant n'est pas écarté.
+Et le confondant que ce paragraphe signalait — « mes mesures ont toutes été faites avec
+`admin.test.user` » — **était toute l'explication**. Le nom de l'appelant entre dans l'URL REST
+(`/rest/saiku/<user>/query/…`) et la source est en `security.type=one2one` : ce compte-là ne
+reçoit rien, les autres reçoivent tout. La leçon tient en une ligne : **un endpoint qui répond
+200 vide doit être réinterrogé sous un second compte avant d'accuser la donnée.**
 
-**À faire côté portail, une fois le cube réparé** : les trois requêtes `supplierScope: 'none'`
-peuvent passer à `'slicer'`, puisque la dimension est là. Rien n'a été changé pour l'instant, et
-c'est délibéré — la doctrine du module est que **chaque statement est exécuté contre le vrai cube
-avant d'être livré**, et aucun ne peut l'être tant que le cube ne renvoie rien.
+**À faire côté portail** : les trois requêtes `supplierScope: 'none'` passent à `'slicer'` —
+l'axe fournisseur répond sur `projectsSteps` et `projects` (133 lignes chacun, mesuré le 10/08
+sous `purchasingmgr`), et la doctrine du module — **chaque statement est exécuté contre le vrai
+cube avant d'être livré** — est désormais remplie pour les deux formes, en lignes et en slicer.
+Rien n'a encore été changé dans le code.
+
+**Une défaillance voisine, trouvée en chemin et non corrigée : le canal de publication de dev
+tourne à vide, et son statut dit le contraire.** `bp:pubChannelId=becpg-olap` porte **25 entités
+archivées** que le connecteur ne peut jamais publier — `401 - 07105963 You cannot update this
+entity since it is archived` — et qu'il relit à chaque exécution : `readCount = 27` pour 25
+bloquées, sur un lot qui devrait charrier les entités récemment modifiées. Le pas `importEntities`
+est en `.skip(Exception.class)` avec `skipLimit=Integer.MAX_VALUE` : elles sont donc **sautées
+sans bruit**, et le canal se déclare `COMPLETED`, `failCount = 0`, `lastSuccessBatchId = batchId`.
+Seul `bp:pubChannelError` garde la trace, dans une trace Java de 6 Ko que rien ne lit.
+La configuration du canal, elle, **est correcte et complète** : elle est identique aux valeurs par
+défaut du connecteur (requête sur les cinq types, toutes les clés `mapping.olap.*`, `bcpg:suppliers`
+et `mapping.olap.bcpg_supplier` compris). À savoir pour la suite : `OlapSchemaInitializer` n'écrit
+la configuration du connecteur **que si le canal est absent** ou si `connector.olap.resetChannel`
+est vrai — sinon il *lit* la sienne dans le canal. Un canal périmé gouvernerait donc l'extraction
+en silence ; ce n'est pas le cas ici, mais c'est le premier endroit où regarder la prochaine fois.
 
 **Les 29 appels amont restants** par rendu du tableau de bord, dont une douzaine de
 `becpg/project/task` et un lot de lectures d'entité — même travail de profilage que §2.2, sur les
@@ -422,9 +502,25 @@ webscript (rétrocompatible, absent = comportement actuel).
 
 ### 5.3 Livraison et configuration
 
+> **Point du 2026-08-10.** `dev.becpg.fr` est en **26.1.0.31** (build 16:54) et
+> `portal.becpg.fr` sert **0.0.12-b009a75** (`/api/health`). Les trois changements `../becpg`
+> sont poussés sur `master` et embarqués. Vérifié sur l'instance : `becpg/ai/suggestions`
+> répond **401** sans ticket — il est donc enregistré, il ne répond plus 404 — et
+> `-DbeCPG.ai.serverUrl=http://becpg-ai-dev` est bien dans les `CATALINA_OPTS` de
+> `becpg-core-dev`.
+>
+> **Il reste un geste, et un seul, pour que l'IA fonctionne : la NetworkPolicy.** Avec un
+> ticket valide, `becpg/ai/suggestions` répond **`502 {"error":"aiUnreachable"}` en 5,1 s** —
+> la signature d'un paquet jeté, pas d'un refus. Vérifié dans `becpg-test2` :
+> `becpg-core-to-ai-netpol` **n'existe pas**, et l'egress de `becpg-core-dev-netpol` se limite
+> à MySQL `127.0.0.1:3306`, `becpg-search-master2:8983`, `becpg-mail:25`, les IP de métadonnées
+> (169.254.169.254 / .252), le DNS et le 443 sortant. C'est exactement ce que §2bis.5
+> annonçait, mesuré cette fois du côté qui échoue.
+
 - **14 commits beCPG** attendent d'être poussés, dont le correctif de `create-supplier-project.js`
   (`[]` au lieu de `""` : la signature attend `String[]`, et cette branche ne pouvait jamais
-  fonctionner) ;
+  fonctionner) — **périmé au 10/08** : les trois changements portail sont poussés, il ne reste
+  que 4 commits locaux sur `../becpg`, sans rapport avec ce ticket ;
 - **`PORTAL_PROCESS_TEMPLATES`** reste à renseigner sur `portal.becpg.fr` pour la suspension depuis
   le pilotage. La découverte ne peut pas s'en charger : elle trouve des modèles de *référencement*,
   et beCPG n'expose aucun marqueur de modèle de *suspension* — la restriction est délibérée ;

@@ -77,16 +77,30 @@ Ce qui reste ouvert est en fin de fichier.
 
 ## Reste ouvert
 
-- **OLAP sur dev — testé le 07/08, et le diagnostic précédent était faux.** La dimension
-  `suppliers` **est** servie (4 cubes sur `becpg/olap/v4/schema`), donc rien à recharger ; et
-  le `supplierAxisUnavailable` du portail sortait d'une **constante**, sans jamais interroger
-  le cube. Le vrai blocage est que **toutes** les requêtes MDX renvoient zéro ligne sur dev,
-  y compris sans axe fournisseur. Piste n°1 : les faits vivent dans la base MySQL séparée
-  `becpg_olap_<instance>` (le schéma, lui, vient d'Alfresco à la volée) — vérifier la
-  synchronisation avant toute autre chose. Détail et mesures dans le statut, §5.1.
-- **Appliquer la conf k8s de l'IA** — les fichiers sont **modifiés**, mais **rien n'a été
-  appliqué au cluster** : `kubectl` en écriture est refusé par la politique de permissions de
-  l'agent. Deux fichiers, deux rôles :
+- **OLAP — il n'y avait rien à réparer : c'était le compte de mesure.** Re-testé le 10/08.
+  Le cube de dev répond, avec de vrais chiffres (`taskTrend` 10 lignes depuis 2019,
+  `taskStates` 6, `completion` 3, incidents par fournisseur 18) — **mais uniquement pour un
+  compte autre qu'`admin.test.user`**, le seul avec lequel les mesures du 07/08 avaient été
+  faites. Sous `admin.test.user` chaque requête répond `{"metadatas":[],"resultsets":[]}` en
+  200 ; sous `purchasingmgr`, `qualitymgr` ou `rduser`, les mêmes statements renvoient leurs
+  lignes. La source de données Saiku est en `security.type=one2one` : c'est là qu'il faut
+  regarder si l'on veut qu'un administrateur voie le cube. **Rien à faire côté base ni côté
+  synchronisation** — la piste « `becpg_olap_dev` vide » est réfutée.
+  **Reste à faire côté portail** : `taskTrend`, `taskStates` et `completion` déclarent
+  `supplierScope: 'none'` alors que l'axe fournisseur répond désormais sur `projectsSteps`
+  **et** `projects` (133 lignes chacun, mesuré). Les passer à `'slicer'` — la doctrine du
+  module est remplie, chaque statement a été exécuté contre le vrai cube. Détail en §5.1.
+- **Appliquer la NetworkPolicy de l'IA — c'est le seul geste qui manque, et il est mesuré.**
+  Livraison du 10/08 vérifiée sur dev : `becpg/ai/suggestions` est enregistré (401 sans
+  ticket, plus 404) et `-DbeCPG.ai.serverUrl=http://becpg-ai-dev` est bien dans les
+  `CATALINA_OPTS` de `becpg-core-dev`. Mais l'appel répond **`502 {"error":"aiUnreachable"}`
+  en 5,1 s** — le délai d'un paquet jeté, pas d'un refus. Vérifié : `becpg-core-to-ai-netpol`
+  **n'existe pas** dans `becpg-test2`, et l'egress de `becpg-core-dev-netpol` n'autorise que
+  MySQL (127.0.0.1:3306), `becpg-search-master2:8983`, `becpg-mail:25`, les IP de métadonnées,
+  le DNS et le 443 sortant. Tant que la règle n'est pas posée, **l'IA ne marche pas sur dev**,
+  avec une configuration qui a pourtant l'air juste. Les fichiers sont **modifiés**, rien n'a
+  été appliqué : `kubectl` en écriture est refusé par la politique de permissions de l'agent.
+  Deux fichiers, deux rôles :
 
   | Fichier | Ce qui y a été ajouté |
   |---|---|
@@ -145,27 +159,40 @@ Ce qui reste ouvert est en fin de fichier.
 
   **Rien n'est déployé** : les cinq fichiers sont modifiés, aucun `kubectl apply` n'a été
   passé.
-- **Déployer `AiSuggestionsProxyWebScript`** et renseigner `beCPG.ai.serverUrl` : le portail
-  n'appelle plus becpg-ai directement, donc **sans ce webscript il n'y a plus d'IA du tout**
-  (dégradation propre : l'étape Suggestions disparaît, la fiche reste à 200).
-  Le trajet complet a été vérifié — portail → beCPG → becpg-ai, réponse relayée avec sa raison —
-  en déployant le webscript **à chaud dans le conteneur Alfresco local** ; cet override survit à
-  un redémarrage mais pas à une recréation du conteneur. Ce qui n'a pas pu l'être : un
-  aller-retour *réussi*, qui demande un becpg-ai acceptant les tickets de l'instance appelante.
+- ~~**Déployer `AiSuggestionsProxyWebScript`** et renseigner `beCPG.ai.serverUrl`~~ :
+  **fait le 10/08** (`dev.becpg.fr` 26.1.0.31). Les deux sont vérifiés sur l'instance ; il ne
+  reste que la règle réseau ci-dessus. L'aller-retour *réussi* attend donc toujours, mais pour
+  une seule raison désormais nommée et mesurée.
+
+- **Une nouvelle défaillance, trouvée en cherchant OLAP : le canal de publication de dev est
+  bloqué.** `bp:pubChannelId=becpg-olap` porte **25 entités archivées** que le connecteur ne
+  peut jamais publier — `401 - 07105963 You cannot update this entity since it is archived` —
+  et qu'il relit à chaque exécution (`readCount = 27` pour 25 bloquées). Le pas de batch est
+  en `.skip(Exception.class)` / `skipLimit=Integer.MAX_VALUE` : elles sont donc **sautées en
+  silence**, et le canal se déclare `COMPLETED` avec `failCount = 0`. Rien dans le statut ne
+  dit qu'il tourne à vide. Deux gestes possibles : purger ces 25 lignes de la liste de
+  publication, ou faire que le connecteur retire de la file une entité archivée au lieu de la
+  réessayer indéfiniment. Sans conséquence sur les mesures ci-dessus — le cube répond — mais
+  les entités modifiées après elles n'entrent pas dans les faits.
 
 - ~~**Keycloak** — renseigner « Valid post logout redirect URIs »~~ : déjà fait pour
   `portal.becpg.fr` (vérifié le 2026-08-07). À renseigner en revanche sur tout autre
   émetteur, et pour le développement local (`http://localhost:3000/login`, refusé).
-- **Livrer les trois changements `../becpg`** (`portal-form.lib.js`,
-  `SupplierPortalInitRepoVisitor`, `AiSuggestionsProxyWebScript`) : ils sont en place et
-  compilent, mais seul le premier a été déployé — à chaud, dans le conteneur Share local,
-  pour la mesure.
+- ~~**Livrer les trois changements `../becpg`**~~ (`portal-form.lib.js`,
+  `SupplierPortalInitRepoVisitor`, `AiSuggestionsProxyWebScript`) : **fait le 10/08** —
+  poussés sur `master` et embarqués dans `dev.becpg.fr` 26.1.0.31 (build 16:54).
 - **Correction d'une coquille par un interne** : l'écran de relecture d'une tâche
   de validation reste en lecture seule. Ouvrir la saisie à un valideur est une
   décision de sécurité côté beCPG (`SupplierSecurityPlugin`), pas un réglage
   d'affichage — à arbitrer avant de l'implémenter.
 - **Rendu visuel non vérifié** : l'extension navigateur n'était pas connectée ce
   tour. Build, lint, réponses HTTP et charges utiles l'ont été.
+- **Nouveau, à élucider : `08-datalists › 3` échoue sur la navigation clavier.**
+  Exécution du 10/08 : l'association multivaluée annonce `aria-activedescendant="_r_c_-3"`
+  alors que le test attend l'`id` de l'option qu'il vient de mettre en surbrillance
+  (34 tentatives, valeur stable). Soit la liste se refiltre entre la flèche et l'assertion,
+  soit l'index de surbrillance ne suit pas la liste rendue — et c'est exactement ce qu'un
+  lecteur d'écran annonce, donc l'invariant compte. Le cas 2 passe.
 - **`07-wizard-steps` est instable sur la pile locale.** Sur six exécutions
   consécutives l'échec s'est déplacé : cas 2, 3b, 8b (×3), puis le cas **0**.
   **Vérifié : ce n'est pas cette passe** — les six fichiers `components/wizard/**`
