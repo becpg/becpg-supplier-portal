@@ -352,6 +352,8 @@ export function buildStepModel(state, { hasSuggestions, labels }) {
  * @param {string} [props.siteId]
  * @param {Object} [props.task] the task the wizard was opened from; enables "Terminer"
  * @param {string} [props.initialStepId] forces the resumed step
+ * @param {Object} [props.initialState] wizard state already resolved server-side
+ *        (`GET /api/v1/tasks/{id}?withWizard=1`), to skip one browser round trip
  * @param {string[]} [props.blockingCatalogIds] catalogues that gate the completion
  * @param {string} [props.backHref='/tasks']
  * @param {string} [props.className]
@@ -362,6 +364,7 @@ export function Wizard({
     siteId,
     task = null,
     initialStepId = null,
+    initialState = null,
     blockingCatalogIds = null,
     backHref = '/tasks',
     className = '',
@@ -375,7 +378,12 @@ export function Wizard({
     /* ------------------------------------------------------------- the state */
 
     const params = useMemo(() => ({ wizardId, siteId }), [wizardId, siteId]);
-    const state = useApi(entityId ? `wizard/${encodeURIComponent(entityId)}` : null, { params });
+    // `initialData` : quand la route de la tâche a déjà composé l'état, il est
+    // peint immédiatement et la requête se contente de le rafraîchir derrière.
+    const state = useApi(entityId ? `wizard/${encodeURIComponent(entityId)}` : null, {
+        params,
+        initialData: initialState,
+    });
     const wizardState = state.data;
     const entityNodeRef = wizardState && wizardState.entity ? wizardState.entity.nodeRef : entityId;
 

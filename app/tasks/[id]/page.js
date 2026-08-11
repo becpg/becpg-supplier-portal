@@ -136,7 +136,11 @@ function TaskRouter() {
     const labels = LABELS[lang] || LABELS.fr;
 
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
-    const task = useApi(id ? `tasks/${encodeURIComponent(id)}` : null);
+    // `withWizard=1` : l'état de l'assistant est résolu côté serveur, en parallèle
+    // de la tâche, et voyage avec elle. Voir la route pour les mesures.
+    const task = useApi(id ? `tasks/${encodeURIComponent(id)}` : null, {
+        params: { withWizard: 1 },
+    });
 
     const step = search.get('step');
     const data = task.data;
@@ -192,6 +196,7 @@ function TaskRouter() {
                 wizardId={wizardId}
                 task={data}
                 initialStepId={step || null}
+                initialState={data.wizard || null}
                 backHref="/tasks"
             />
         );
