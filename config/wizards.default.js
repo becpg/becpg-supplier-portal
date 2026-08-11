@@ -22,6 +22,7 @@ const SUPPLIER_DOCS = 'becpg/project/path?nodeRef={nodeRef}&path=SupplierDocumen
 export const DEFAULT_WIZARDS = {
     'supplier-rawMaterial': {
         id: 'supplier-rawMaterial',
+        catalogId: 'supplierPortalRawMaterial',
         draft: true,
         comments: true,
         enforceTask: true,
@@ -42,6 +43,7 @@ export const DEFAULT_WIZARDS = {
 
     'supplier-finishedProduct': {
         id: 'supplier-finishedProduct',
+        catalogId: 'supplierPortalFinishedProduct',
         draft: true,
         comments: true,
         enforceTask: true,
@@ -61,6 +63,7 @@ export const DEFAULT_WIZARDS = {
 
     'supplier-semiFinishedProduct': {
         id: 'supplier-semiFinishedProduct',
+        catalogId: 'supplierPortalFinishedProduct',
         draft: true,
         comments: true,
         enforceTask: true,
@@ -80,6 +83,7 @@ export const DEFAULT_WIZARDS = {
 
     'supplier-packagingMaterial': {
         id: 'supplier-packagingMaterial',
+        catalogId: 'supplierPortalPackaging',
         draft: true,
         comments: true,
         enforceTask: true,
@@ -95,6 +99,7 @@ export const DEFAULT_WIZARDS = {
 
     'supplier-packagingKit': {
         id: 'supplier-packagingKit',
+        catalogId: 'supplierPortalPackaging',
         draft: true,
         enforceTask: true,
         skipSecurityRules: false,
@@ -105,6 +110,7 @@ export const DEFAULT_WIZARDS = {
 
     'supplier-supplier': {
         id: 'supplier-supplier',
+        catalogId: 'supplierPortalSupplier',
         draft: true,
         enforceTask: true,
         skipSecurityRules: false,

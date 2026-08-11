@@ -623,6 +623,43 @@ export function Wizard({
     const catalogs = useApi(
         complianceTouched && entityId ? `entities/${encodeURIComponent(entityId)}/catalogs` : null,
     );
+
+    /*
+     * Le catalogue propre à l'assistant, demandé nommément — et **en plus**, pas
+     * à la place.
+     *
+     * `entity/catalog/node` sans `catalogId` renvoie le score enregistré, c'est-à-dire
+     * les catalogues du client (INCO, GS1…). Avec un `catalogId`, il renvoie ce
+     * catalogue-là et lui seul, formulé sur-le-champ. Les deux réponses sont donc
+     * disjointes, et remplacer la première par la seconde ferait disparaître de
+     * l'écran les exigences réglementaires du client — l'inverse de ce qu'on veut.
+     *
+     * D'où deux appels et une fusion. Le second n'existe que si la configuration
+     * nomme un catalogue, ce qui est le cas des assistants fournisseur par défaut
+     * et d'aucun autre : une instance qui n'en déclare pas ne paie rien.
+     */
+    const wizardCatalogId = wizardState ? wizardState.catalogId : null;
+    const wizardCatalog = useApi(
+        complianceTouched && entityId && wizardCatalogId
+            ? `entities/${encodeURIComponent(entityId)}/catalogs`
+            : null,
+        { params: { catalogId: wizardCatalogId } },
+    );
+
+    /** Score enregistré + catalogue de l'assistant, dédoublonnés sur l'id. */
+    const catalogList = useMemo(() => {
+        const stored = (catalogs.data && catalogs.data.catalogs) || [];
+        const own = (wizardCatalog.data && wizardCatalog.data.catalogs) || [];
+        const byId = new Map();
+        for (const catalog of [...stored, ...own]) {
+            const key = (catalog && (catalog.id || catalog.label)) || '';
+            if (key) {
+                // Le second gagne : il vient d'être formulé, le premier est stocké.
+                byId.set(key, catalog);
+            }
+        }
+        return [...byId.values()];
+    }, [catalogs.data, wizardCatalog.data]);
     /*
      * Quels catalogues bloquent : l'instance le dit, jamais le portail. La prop
      * l'emporte (un appelant qui sait), sinon c'est ce que l'état du wizard porte
@@ -632,8 +669,8 @@ export function Wizard({
         || (wizardState && wizardState.blockingCatalogIds)
         || null;
     const blocking = useMemo(
-        () => blockingCatalogs((catalogs.data && catalogs.data.catalogs) || [], gatingCatalogIds),
-        [catalogs.data, gatingCatalogIds],
+        () => blockingCatalogs(catalogList, gatingCatalogIds),
+        [catalogList, gatingCatalogIds],
     );
 
     /* -------------------------------------------------------------- movement */
@@ -891,21 +928,21 @@ export function Wizard({
              * une reformulation — inséré entre le clic et son effet, pour une
              * réponse connue d'avance. « Terminer » doit partir tout de suite.
              */
-            let catalogList = catalogs.data ? catalogs.data.catalogs : null;
-            if (!catalogList && gatingCatalogIds && gatingCatalogIds.length > 0) {
+            let gateList = catalogList.length > 0 ? catalogList : null;
+            if (!gateList && gatingCatalogIds && gatingCatalogIds.length > 0) {
                 try {
                     const fresh = await api.get(`entities/${encodeURIComponent(entityId)}/catalogs`);
-                    catalogList = (fresh && fresh.catalogs) || [];
+                    gateList = (fresh && fresh.catalogs) || [];
                 }
                 catch {
                     // Le score est indisponible : on ne bloque pas sur une lecture
                     // qui a échoué. beCPG refusera de lui-même si la fiche ne peut
                     // pas être rendue — c'est lui l'autorité, pas cet écran.
-                    catalogList = null;
+                    gateList = null;
                 }
             }
-            if (catalogList) {
-                const stillBlocking = blockingCatalogs(catalogList, gatingCatalogIds);
+            if (gateList) {
+                const stillBlocking = blockingCatalogs(gateList, gatingCatalogIds);
                 if (stillBlocking.length > 0) {
                     setComplianceSeen(true);
                     catalogs.refresh();
@@ -938,7 +975,7 @@ export function Wizard({
         }
     }, [
         task, autoSave, toast, labels, router, backHref, entityId,
-        steps, stepIssues, goTo, catalogs, gatingCatalogIds, wizardState,
+        steps, stepIssues, goTo, catalogs, catalogList, gatingCatalogIds, wizardState,
     ]);
 
     /* ----------------------------------------------------------- the panels */
@@ -1066,11 +1103,14 @@ export function Wizard({
         />
     ) : currentStep.kind === 'compliance' ? (
         <ComplianceStep
-            catalogs={(catalogs.data && catalogs.data.catalogs) || []}
+            catalogs={catalogList}
             score={catalogs.data ? catalogs.data.score : null}
-            loading={catalogs.loading}
+            loading={catalogs.loading || wizardCatalog.loading}
             error={catalogs.error}
-            onRetry={catalogs.refresh}
+            onRetry={() => {
+                catalogs.refresh();
+                wizardCatalog.refresh();
+            }}
             onFieldClick={(field) => goToField(field.field || field.name)}
             blockingIds={gatingCatalogIds}
             documentSummary={documentSummary}
