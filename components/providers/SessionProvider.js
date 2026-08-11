@@ -48,7 +48,9 @@ import { UNAUTHORIZED_EVENT, api, tenantPrefix } from '@/lib/client';
  * @property {'supplier'|'monitor'|'unknown'} space
  * @property {string[]} groups beCPG group names
  * @property {Array<Object>} suppliers supplier refs the user acts for
- * @property {Object|null} supplier the primary supplier
+ * @property {Object|null} supplier the record being worked on — always concrete
+ * @property {Object|null} scopedSupplier what the lists filter on; `null` = all
+ * @property {boolean} scopeAll true when the lists are widened to every record
  * @property {{isExternalUser: boolean, canMonitor: boolean}} capabilities
  */
 
@@ -75,17 +77,48 @@ const RELOGIN_KEY = 'becpg_portal_relogin_attempts';
  */
 const SUPPLIER_KEY = 'becpg_portal_active_supplier';
 
-/** Reads the stored supplier nodeRef for a user, or `null`. */
-function readStoredSupplier(sub) {
+/**
+ * Reads the stored scope for a user: `{ ref, all }`.
+ *
+ * Two shapes are accepted because the key predates the "all" scope: a bare
+ * string is the record that was chosen before this existed, and reading it as
+ * such is what stops an upgrade from silently resetting everyone's choice.
+ *
+ * @param {string|null} sub
+ * @returns {{ref: string|null, all: boolean}}
+ */
+function readStoredScope(sub) {
+    const empty = { ref: null, all: false };
     if (!sub || typeof window === 'undefined') {
-        return null;
+        return empty;
     }
     try {
         const raw = JSON.parse(window.localStorage.getItem(SUPPLIER_KEY) || '{}');
-        return raw[sub] || null;
+        const entry = raw[sub];
+        if (typeof entry === 'string') {
+            return { ref: entry, all: false };
+        }
+        if (entry && typeof entry === 'object') {
+            return { ref: entry.ref || null, all: Boolean(entry.all) };
+        }
+        return empty;
     }
     catch {
-        return null;
+        return empty;
+    }
+}
+
+/** Persists `{ ref, all }` for a user, merging into the per-`sub` map. */
+function writeStoredScope(sub, scope) {
+    if (!sub || typeof window === 'undefined') {
+        return;
+    }
+    try {
+        const raw = JSON.parse(window.localStorage.getItem(SUPPLIER_KEY) || '{}');
+        window.localStorage.setItem(SUPPLIER_KEY, JSON.stringify({ ...raw, [sub]: scope }));
+    }
+    catch {
+        // Private browsing: the choice still holds for this page's lifetime.
     }
 }
 
@@ -104,6 +137,10 @@ const SessionContext = createContext({
     groups: [],
     suppliers: [],
     supplier: null,
+    scopedSupplier: null,
+    scopeAll: false,
+    selectSupplier: () => {},
+    selectAllSuppliers: () => {},
     capabilities: EMPTY_CAPABILITIES,
     loading: true,
     error: null,
@@ -285,16 +322,26 @@ export function SessionProvider({ initialIdentity = null, children }) {
     // Read during render, not in an effect: an effect would paint one frame of the
     // wrong company — and on `/company` that frame is a whole supplier record.
     const [chosenRef, setChosenRef] = useState(null);
+    const [scopeAll, setScopeAll] = useState(false);
     const [chosenFor, setChosenFor] = useState(null);
     if (sub && chosenFor !== sub) {
+        const stored = readStoredScope(sub);
         setChosenFor(sub);
-        setChosenRef(readStoredSupplier(sub));
+        setChosenRef(stored.ref);
+        setScopeAll(stored.all);
     }
 
     /**
      * The record being worked on. Falls back to the first one, so a single-record
      * account behaves exactly as before and a stale stored ref — a supplier the
      * user no longer acts for — cannot leave the shell pointing at nothing.
+     *
+     * **It stays a concrete record even under the "all" scope.** `/company`, the
+     * approval banner and the document check-list describe *one* company; there
+     * is no such thing as the profile of "all my records". The all-scope is a
+     * property of the **lists** (`/products`, `/tasks`), carried by `scopeAll`
+     * and by `scopedSupplier` below, and choosing it must not blank the screens
+     * that need a company.
      */
     const supplier = useMemo(() => {
         if (suppliers.length === 0) {
@@ -306,23 +353,30 @@ export function SessionProvider({ initialIdentity = null, children }) {
         return chosen || suppliers[0];
     }, [suppliers, chosenRef, session]);
 
+    /**
+     * What the list screens filter on: the selected record, or `null` for "all".
+     *
+     * `null` only ever means "do not scope"; an account acting for a single
+     * record can never reach it, because scoping on the only record it has and
+     * not scoping at all return the same rows.
+     */
+    const scopedSupplier = scopeAll && suppliers.length > 1 ? null : supplier;
+
     const selectSupplier = useCallback(
         (value) => {
             const ref = typeof value === 'string' ? value : (value && (value.nodeRef || value.uuid)) || null;
             setChosenRef(ref);
-            if (!sub || typeof window === 'undefined') {
-                return;
-            }
-            try {
-                const raw = JSON.parse(window.localStorage.getItem(SUPPLIER_KEY) || '{}');
-                window.localStorage.setItem(SUPPLIER_KEY, JSON.stringify({ ...raw, [sub]: ref }));
-            }
-            catch {
-                // Private browsing: the choice still holds for this page's lifetime.
-            }
+            setScopeAll(false);
+            writeStoredScope(sub, { ref, all: false });
         },
         [sub],
     );
+
+    /** Widens the list screens to every record the account acts for. */
+    const selectAllSuppliers = useCallback(() => {
+        setScopeAll(true);
+        writeStoredScope(sub, { ref: chosenRef, all: true });
+    }, [sub, chosenRef]);
 
     const signOut = useCallback((options = {}) => {
         const params = new URLSearchParams();
@@ -346,7 +400,10 @@ export function SessionProvider({ initialIdentity = null, children }) {
             groups: (session && session.groups) || [],
             suppliers,
             supplier,
+            scopedSupplier,
+            scopeAll: Boolean(scopeAll && suppliers.length > 1),
             selectSupplier,
+            selectAllSuppliers,
             capabilities: (session && session.capabilities) || EMPTY_CAPABILITIES,
             loading,
             error,
@@ -354,7 +411,10 @@ export function SessionProvider({ initialIdentity = null, children }) {
             refresh,
             signOut,
         }),
-        [session, suppliers, supplier, selectSupplier, loading, error, refresh, signOut],
+        [
+            session, suppliers, supplier, scopedSupplier, scopeAll,
+            selectSupplier, selectAllSuppliers, loading, error, refresh, signOut,
+        ],
     );
 
     return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

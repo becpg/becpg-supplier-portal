@@ -34,6 +34,7 @@ import { StatCard, StatGrid } from '@/components/ui/StatCard';
 import { TASK_TYPE_META, taskTypeLabel } from '@/components/dashboard/ActionsCard';
 import { DueBadge, PriorityPill } from '@/components/dashboard/TaskList';
 import { daysUntil, formatDate } from '@/lib/format';
+import { useSession } from '@/components/providers/SessionProvider';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
@@ -74,6 +75,13 @@ const LOCAL = {
         emptyFiltered: 'Aucune tâche ne correspond à ces filtres.',
         truncated:
             'Seules les premières tâches sont affichées. Affinez les filtres pour voir le reste.',
+        scoped: 'Périmètre : {supplier}.',
+        scopedAll: 'Périmètre : tous les fournisseurs.',
+        scopedChange: 'Le fournisseur se choisit en haut à droite.',
+        orphans:
+            '{count} tâche(s) ne sont rattachées à aucune de vos fiches fournisseur et'
+            + ' n’apparaissent pas ici. Choisissez « Tous les fournisseurs » en haut à droite'
+            + ' pour les voir.',
         priorityHigh: 'Haute',
         priorityMedium: 'Moyenne',
         priorityLow: 'Basse',
@@ -111,6 +119,12 @@ const LOCAL = {
         emptyHint: 'Nothing is expected from you right now.',
         emptyFiltered: 'No task matches these filters.',
         truncated: 'Only the first tasks are shown. Narrow the filters to see the rest.',
+        scoped: 'Scope: {supplier}.',
+        scopedAll: 'Scope: all suppliers.',
+        scopedChange: 'The supplier is chosen in the top right corner.',
+        orphans:
+            '{count} task(s) are attached to none of your supplier records and are not'
+            + ' listed here. Pick "All suppliers" in the top right corner to see them.',
         priorityHigh: 'High',
         priorityMedium: 'Medium',
         priorityLow: 'Low',
@@ -122,6 +136,13 @@ const LOCAL = {
 
 /** How many tasks a single read pulls; the adapter caps its own scan anyway. */
 const PAGE_SIZE = 100;
+
+/** `'{count} tâche(s)'` + `{count: 3}` → `'3 tâche(s)'`. */
+function fill(template, vars) {
+    return String(template).replace(/\{(\w+)\}/g, (match, name) =>
+        (vars[name] === undefined || vars[name] === null ? match : String(vars[name])),
+    );
+}
 
 /**
  * Does a task fall inside the selected due-date window?
@@ -195,8 +216,57 @@ function TasksScreen() {
         params: { state: filters.state, pageSize: PAGE_SIZE, sort: 'due' },
     });
 
-    const items = useMemo(() => (data && Array.isArray(data.items) ? data.items : []), [data]);
-    const counters = (data && data.counters) || { total: 0, late: 0, open: 0, byType: {} };
+    const all = useMemo(() => (data && Array.isArray(data.items) ? data.items : []), [data]);
+
+    /*
+     * **The toolbar scope, applied here.** `/products` has been scoped on the
+     * selected record since it existed; this list was not, so the same account
+     * read a catalogue of one company beside the tasks of thirteen — and nothing
+     * on screen explained the discrepancy.
+     *
+     * It is a memory filter and not a query clause, unlike `/products`: a task
+     * has no supplier of its own, it inherits the one of the product it is
+     * about (`entity.supplier`, resolved by `lib/adapters/tasks.js` on a field of
+     * a query that already runs). The page holds the whole open backlog anyway,
+     * which is the reason every other filter here is a memory filter too.
+     *
+     * A task whose product could not be read carries no supplier, so a scope
+     * excludes it. That is deliberate — filing it under the selected record
+     * would be a guess — but it is **said**, below, rather than silently applied.
+     */
+    const { scopedSupplier, scopeAll, suppliers } = useSession();
+    const scopeRef = scopedSupplier ? scopedSupplier.nodeRef : null;
+    const items = useMemo(
+        () => (scopeRef
+            ? all.filter((task) => task.entity && task.entity.supplier === scopeRef)
+            : all),
+        [all, scopeRef],
+    );
+    const hiddenByScope = all.length - items.length;
+    const orphans = useMemo(
+        () => (scopeRef ? all.filter((task) => !(task.entity && task.entity.supplier)).length : 0),
+        [all, scopeRef],
+    );
+
+    /*
+     * Counters follow the scope.
+     *
+     * The server's `counters` describe the whole backlog, which is the right
+     * answer when nothing is scoped and a wrong one the moment something is: a
+     * KPI reading "15 tâches" over a table of three is not a nuance, it is the
+     * screen contradicting itself. They are therefore recomputed from the scoped
+     * snapshot — the same snapshot the table draws — as soon as a record is
+     * selected, and left untouched otherwise.
+     */
+    const serverCounters = (data && data.counters) || { total: 0, late: 0, open: 0, byType: {} };
+    const counters = scopeRef
+        ? {
+            ...serverCounters,
+            total: items.length,
+            late: items.filter((task) => task.isLate).length,
+            open: items.filter((task) => task.isOpen).length,
+        }
+        : serverCounters;
 
     // Product filter options are built from the snapshot: the supplier only ever
     // needs to filter on products that actually carry a task.
@@ -402,6 +472,33 @@ function TasksScreen() {
     return (
         <AppShell title={local.title} badges={{ tasks: counters.open || 0 }} fullWidth>
             <PageHeader title={local.title} description={local.description} />
+
+            {/* Which company these tasks belong to, in words — the toolbar chip
+                says it too, but a list that silently drops rows has to carry the
+                reason itself. Only for an account acting for several records:
+                below that there is nothing to disambiguate. */}
+            {suppliers.length > 1 ? (
+                <p className="mb-3 flex flex-wrap items-center gap-1.5 text-xs text-[var(--becpg-dark-grey)]">
+                    <Icon name="apartment" size={14} />
+                    <span className="font-medium text-[var(--becpg-blue)]">
+                        {scopeAll
+                            ? local.scopedAll
+                            : fill(local.scoped, {
+                                supplier: (scopedSupplier && scopedSupplier.name) || '—',
+                            })}
+                    </span>
+                    <span>{local.scopedChange}</span>
+                </p>
+            ) : null}
+
+            {/* Rows the scope removed for want of a readable product. Counted, not
+                guessed into a record — and shown only when it actually happens. */}
+            {orphans > 0 && hiddenByScope > 0 ? (
+                <p className="mb-3 flex items-start gap-2 rounded-lg bg-[var(--status-warn-bg)] px-3 py-2 text-xs text-[var(--status-warn)]">
+                    <Icon name="info" size={16} />
+                    {fill(local.orphans, { count: orphans })}
+                </p>
+            ) : null}
 
             <StatGrid columns={3} className="mb-4">
                 <StatCard

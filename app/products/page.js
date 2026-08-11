@@ -43,9 +43,6 @@ const LABELS = {
         search: 'Rechercher un produit',
         allStates: 'Tous les états',
         allTypes: 'Tous les types',
-        scope: 'Périmètre',
-        scopeCurrent: 'Fiche courante',
-        scopeAll: 'Toutes mes fiches',
         branch: 'MAJ',
         branchFrom: 'Mise à jour de la version {version}',
         columns: {
@@ -73,9 +70,6 @@ const LABELS = {
         search: 'Search a product',
         allStates: 'All states',
         allTypes: 'All types',
-        scope: 'Scope',
-        scopeCurrent: 'Current record',
-        scopeAll: 'All my records',
         branch: 'Update',
         branchFrom: 'Update of version {version}',
         columns: {
@@ -115,25 +109,27 @@ export default function ProductsPage() {
     // and an option must not disappear from under the user's cursor.
     const [seenTypes, setSeenTypes] = useState([]);
 
-    const { supplier, suppliers } = useSession();
-    // Only meaningful for an account acting for several records; a single-record
-    // account is already looking at everything it has.
-    const canScope = suppliers.length > 1;
-    const [scopeAll, setScopeAll] = useState(false);
+    const { scopedSupplier } = useSession();
 
     /*
-     * Scoped on the supplier record currently selected in the header.
+     * Scoped on the supplier record currently selected **in the toolbar**.
      *
      * The scope is a query clause — `ANCESTOR:` on the supplier's own space,
      * resolved server-side — not a filter applied to a list already fetched, so
      * the repository returns only what is asked for.
      *
-     * **It can hide products, and that is why "toutes mes fiches" exists.**
+     * **It can hide products, and that is why "Tous les fournisseurs" exists.**
      * Measured on dev with an account acting for 14 records: the records account
      * for 50 of the 58 products the account can read, because 8 are filed outside
      * any supplier space (`bcpg:suppliers` points at them, but filing is what
      * `ANCESTOR:` sees). Without a way back to the unscoped list those 8 would be
      * unreachable from this screen whichever record is selected.
+     *
+     * The escape hatch used to be a select of this screen's own, next to the
+     * state and type filters. It is now `SupplierSwitcher` in the toolbar, for
+     * one reason: `/tasks` needs the very same scope, and a per-screen control
+     * gives the same account a filtered catalogue beside an unfiltered task list
+     * with nothing saying why.
      */
     const products = useApi('entities', {
         params: {
@@ -141,7 +137,7 @@ export default function ProductsPage() {
             withProjects: 1,
             state: state || undefined,
             type: type || undefined,
-            supplier: scopeAll ? undefined : (supplier ? supplier.nodeRef : undefined),
+            supplier: scopedSupplier ? scopedSupplier.nodeRef : undefined,
         },
     });
 
@@ -379,26 +375,6 @@ export default function ProductsPage() {
                                 placeholder={labels.allTypes}
                             />
                         </div>
-                        {/*
-                         * The scope is shown, not implied. An account acting for
-                         * several records is otherwise looking at a filtered list
-                         * with nothing on screen saying so — and 8 of this account's
-                         * 58 products sit under no record at all, reachable only
-                         * from here.
-                         */}
-                        {canScope ? (
-                            <div className="w-64">
-                                <Select
-                                    value={scopeAll ? '' : 'current'}
-                                    onChange={(event) => setScopeAll(event.target.value === '')}
-                                    aria-label={labels.scope}
-                                    options={[
-                                        { value: 'current', label: supplier ? supplier.name : labels.scopeCurrent },
-                                        { value: '', label: labels.scopeAll },
-                                    ]}
-                                />
-                            </div>
-                        ) : null}
                     </div>
                 }
             />

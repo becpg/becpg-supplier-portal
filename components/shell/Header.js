@@ -37,6 +37,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon, IconButton } from '@/components/ui/Button';
 import { NotificationBell } from '@/components/shell/NotificationBell';
+import { SupplierSwitcher } from '@/components/shell/SupplierSwitcher';
 import { TenantBadge } from '@/components/shell/TenantBadge';
 import { TestBanner } from '@/components/shell/TestBanner';
 import { StatusPill } from '@/components/ui/StatusPill';
@@ -203,6 +204,16 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                         {status ? <span className="hidden sm:inline-flex">{status}</span> : null}
                         {actions}
 
+                        {/* Which of my records am I acting for — the question
+                            `/products` and `/tasks` are both scoped on. It sits
+                            beside the tenant badge's counterpart on the right so
+                            the two identities (customer / my company) frame the
+                            bar; see SupplierSwitcher for why it left the account
+                            popover. */}
+                        <SupplierSwitcher />
+                        <span className="toolbar-divider hidden md:block" aria-hidden="true" />
+
+
                         {/* The bell owns its own data and its own popover: it used to
                             be a link to `/notifications`, a route that does not
                             exist, fed by a count no page ever passed. */}
@@ -248,14 +259,20 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                                                     {user.email}
                                                 </p>
                                             ) : null}
-                                            {session.supplier && session.suppliers.length <= 1 ? (
+                                            {/* The record the account is acting for, stated —
+                                                not chosen: the choice is the toolbar's
+                                                SupplierSwitcher, and having it in two places
+                                                is how the two drift apart. */}
+                                            {session.supplier ? (
                                                 <p className="mt-1 truncate text-xs text-[var(--becpg-dark-grey)]">
                                                     <Icon
                                                         name="apartment"
                                                         size={13}
                                                         className="mr-1 align-text-bottom"
                                                     />
-                                                    {session.supplier.name}
+                                                    {session.scopeAll
+                                                        ? t('account.allSuppliers')
+                                                        : session.supplier.name}
                                                 </p>
                                             ) : null}
                                             {session.isTest ? (
@@ -272,74 +289,6 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                                         </div>
 
                                         <div className="p-1">
-                                            {/*
-                                             * One contact, several supplier records — a group and
-                                             * its subsidiaries. Before this, the shell showed
-                                             * `suppliers[0]` and the other twelve (measured on dev)
-                                             * were unreachable from the UI.
-                                             *
-                                             * It lives in the header rather than on `/company`
-                                             * because it changes what several screens describe —
-                                             * the profile, its approval status, its document
-                                             * checklist — not one page's content.
-                                             *
-                                             * *Mes produits* is scoped on the selection too
-                                             * (`ANCESTOR:` on the record's space, server-side).
-                                             * That scope can hide products — measured on dev, 8 of
-                                             * the account's 58 are filed under no record at all —
-                                             * so `/products` carries an explicit "toutes mes fiches"
-                                             * option. Scoping silently would make those 8
-                                             * unreachable.
-                                             */}
-                                            {session.suppliers.length > 1 ? (
-                                                <>
-                                                    <div className="px-3 pb-1 pt-1 text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">
-                                                        {t('account.suppliers')}
-                                                    </div>
-                                                    <div
-                                                        role="group"
-                                                        aria-label={t('account.suppliers')}
-                                                        className="max-h-56 overflow-y-auto"
-                                                    >
-                                                        {session.suppliers.map((entry) => {
-                                                            const active = session.supplier
-                                                                && entry.nodeRef === session.supplier.nodeRef;
-                                                            return (
-                                                                <button
-                                                                    key={entry.nodeRef}
-                                                                    type="button"
-                                                                    role="menuitemradio"
-                                                                    aria-checked={Boolean(active)}
-                                                                    onClick={() => {
-                                                                        session.selectSupplier(entry);
-                                                                        setOpen(false);
-                                                                    }}
-                                                                    className={[
-                                                                        'flex w-full touch-target items-center gap-2 rounded-lg px-3 py-2 text-left text-sm',
-                                                                        active
-                                                                            ? 'bg-[var(--becpg-blue-lighter)] font-medium'
-                                                                            : 'hover:bg-[var(--becpg-grey)]',
-                                                                    ].join(' ')}
-                                                                >
-                                                                    <Icon
-                                                                        name={active ? 'radio_button_checked' : 'apartment'}
-                                                                        size={18}
-                                                                        className="shrink-0"
-                                                                    />
-                                                                    <span className="min-w-0 flex-1 truncate">{entry.name}</span>
-                                                                    {entry.code ? (
-                                                                        <span className="shrink-0 text-[11px] text-[var(--becpg-dark-grey)]">
-                                                                            {entry.code}
-                                                                        </span>
-                                                                    ) : null}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                    <div className="my-1 border-t border-[var(--becpg-grey)]" />
-                                                </>
-                                            ) : null}
-
                                             <Link
                                                 href="/company"
                                                 role="menuitem"

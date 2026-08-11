@@ -36,6 +36,7 @@ import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { ProductHeader } from '@/components/products/ProductHeader';
 import { ProductSections } from '@/components/products/ProductSections';
+import { ProductTaskBanner } from '@/components/products/ProductTaskBanner';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
@@ -141,6 +142,15 @@ function ProductScreen() {
                 entity={product}
                 loading={entity.loading}
                 backHref="/products"
+                className="mb-4"
+            />
+
+            {/* The write path, on a read-only screen. Right under the identity
+                band because it is the first thing a supplier has to act on when
+                a task is running — above the sections, which are consultation. */}
+            <ProductTaskBanner
+                entityId={id}
+                entityNodeRef={product ? product.nodeRef : null}
                 className="mb-4"
             />
 
