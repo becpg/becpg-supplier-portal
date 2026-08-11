@@ -88,6 +88,7 @@ import { DocumentsStep } from '@/components/wizard/steps/DocumentsStep';
 import { TechnicalSheetStep } from '@/components/wizard/steps/TechnicalSheetStep';
 import { SuggestionsStep } from '@/components/wizard/steps/SuggestionsStep';
 import { ComplianceStep, blockingCatalogs } from '@/components/wizard/steps/ReviewStep';
+import { ContentLocalesProvider } from '@/components/form/ContentLocalesProvider';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { formatDate } from '@/lib/format';
@@ -1137,6 +1138,9 @@ export function Wizard({
         && currentStep.kind !== 'compliance' && currentStep.kind !== 'suggestions';
 
     return (
+        /* Les langues de saisie de la fiche, mises à disposition des contrôles
+           `d:mltext` sans traverser cinq composants — voir ContentLocalesProvider. */
+        <ContentLocalesProvider value={wizardState.contentLocales}>
         <AppShell
             title={entity.name || labels.step}
             fullWidth={gridStep}
@@ -1364,5 +1368,6 @@ export function Wizard({
                 ) : null}
             </Modal>
         </AppShell>
+        </ContentLocalesProvider>
     );
 }

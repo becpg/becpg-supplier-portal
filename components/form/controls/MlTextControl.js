@@ -27,16 +27,31 @@
  * `lib/adapters/forms.js#toFormValue` serialises for the form processor.
  *
  * The list of languages comes from the definition when it says something
- * (`locales` / `languages` control parameters), from the portal's own supported
- * languages otherwise, and always includes every locale the value already
- * carries — a language nobody configured but somebody translated must not
- * disappear.
+ * (`locales` / `languages` control parameters), from the **content locale
+ * policy** of the sheet otherwise, and always includes every locale the value
+ * already carries — a language nobody configured but somebody translated must
+ * not disappear.
+ *
+ * That policy is `contentLocales`, resolved server-side and published on the
+ * wizard state: the catalogue bound to the assistant when it declares languages,
+ * the repository's own `$supportedLocales` otherwise (`lib/adapters/contentLocales.js`).
+ * It replaces what used to be the last resort here — `SUPPORTED_LANGS`, i.e. the
+ * two languages the portal's **chrome** is translated into. Those two are a
+ * property of this application; they were never a statement about what a
+ * customer expects a supplier to write, and a supplier shipping to Italy simply
+ * could not enter Italian. Measured on dev.becpg.fr the 11/08: the repository
+ * declares 27 locales, the portal offered 2.
+ *
+ * `SUPPORTED_LANGS` remains the floor for the case where nothing answered at
+ * all — degrading to zero language box would be worse than degrading to the one
+ * the user is reading in.
  */
 
 import { useState } from 'react';
 import { Icon } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Field';
 import { SUPPORTED_LANGS } from '@/config/messages';
+import { useContentLocales } from '@/components/form/ContentLocalesProvider';
 import { controlParams, lengthBounds, toNumber } from '@/components/form/validation';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
 
@@ -89,16 +104,19 @@ export function toLocaleMap(value, lang) {
  * @param {Object} field
  * @param {Object} valueMap
  * @param {string} lang
+ * @param {string[]|null} [policy] the sheet's content locales — see the module
+ *        comment; `null` keeps the previous behaviour rather than inventing one
  * @returns {string[]}
  */
-export function localesFor(field, valueMap, lang) {
+export function localesFor(field, valueMap, lang, policy = null) {
     const params = controlParams(field);
     const declared = params.locales || params.languages;
+    const fallback = Array.isArray(policy) && policy.length > 0 ? policy : SUPPORTED_LANGS;
     const configured = Array.isArray(declared)
         ? declared.map((entry) => String(entry))
         : typeof declared === 'string'
           ? declared.split(',').map((entry) => entry.trim()).filter(Boolean)
-          : SUPPORTED_LANGS;
+          : fallback;
 
     const all = [...configured, ...Object.keys(valueMap || {})];
     const seen = new Set();
@@ -204,7 +222,7 @@ export function MlTextControl({
     const labels = LABELS[lang] || LABELS.fr;
 
     const map = toLocaleMap(value, lang);
-    const locales = localesFor(field, map, lang);
+    const locales = localesFor(field, map, lang, useContentLocales());
 
     if (readOnly) {
         return <ReadOnlyControl field={field} value={value} displayValue={displayValue} lang={lang} id={id} />;
