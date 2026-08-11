@@ -638,7 +638,10 @@ export function Wizard({
      * nomme un catalogue, ce qui est le cas des assistants fournisseur par défaut
      * et d'aucun autre : une instance qui n'en déclare pas ne paie rien.
      */
-    const wizardCatalogId = wizardState ? wizardState.catalogId : null;
+    // Porté par l'URL du livrable (`&catalogId=`), qui est la convention beCPG —
+    // la même que lit `wizard-mgr.get.js` dans Share. La tâche le transporte
+    // jusqu'ici sans que l'URL soit jamais réécrite (invariant I1).
+    const wizardCatalogId = (task && task.catalogId) || null;
     const wizardCatalog = useApi(
         complianceTouched && entityId && wizardCatalogId
             ? `entities/${encodeURIComponent(entityId)}/catalogs`
