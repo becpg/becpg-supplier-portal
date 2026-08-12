@@ -118,9 +118,24 @@ export function TechnicalSheetStep({
         params: { entity: entityNodeRef },
     });
 
+    /*
+     * `requirements`, pas `items`.
+     *
+     * `listRequirements()` renvoie `{ requirements, groups, summary, scope,
+     * supplierScope, pagination }` — il n'y a **aucune** clé `items`. Cet écran
+     * lisait `data.items`, obtenait donc toujours un tableau vide, ne trouvait
+     * jamais de fiche technique, et affichait « Aucun type "fiche technique"
+     * configuré » quelles que soient les données.
+     *
+     * C'était le **second** défaut sur ce message, empilé sur celui de
+     * `isTechnicalSheet()` corrigé en 0.0.13 : même une fois la reconnaissance
+     * réparée, la liste à reconnaître restait vide. Mesuré sur dev le 12/08 —
+     * l'exigence `Fiche technique fournisseur` existe bien sur `MP96896`, avec le
+     * bon `bcpg:documentTypeRef`, et l'écran l'ignorait.
+     */
     const items = useMemo(
-        () => (requirements.data && Array.isArray(requirements.data.items)
-            ? requirements.data.items
+        () => (requirements.data && Array.isArray(requirements.data.requirements)
+            ? requirements.data.requirements
             : []),
         [requirements.data],
     );
