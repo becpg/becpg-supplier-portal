@@ -60,6 +60,7 @@ import {
     reorderStepRows,
     runNextStepWebScript,
     saveStep,
+    invalidateWizardState,
 } from '@/lib/adapters/wizard';
 
 export const runtime = 'nodejs';
@@ -154,6 +155,10 @@ export async function PUT(request, context) {
         const state = await getWizardState(entityId, { ...options, session });
         const result = await saveStep(state, stepId, body, { ...options, session });
 
+        // L'écriture a changé l'entité et l'état de ses listes : purger APRÈS,
+        // sinon le `getWizardState` ci-dessus vient de re-mémoriser l'état d'avant.
+        invalidateWizardState(entityId);
+
         // The configuration can ask for a reformulation (or a folder resolution)
         // between two steps. It stays opt-in and is never allowed to fail the
         // save the user just made: the value is persisted either way.
@@ -240,6 +245,10 @@ export async function POST(request, context) {
             { ...options, session },
         );
 
+        // L'écriture a changé l'entité et l'état de ses listes : purger APRÈS,
+        // sinon le `getWizardState` ci-dessus vient de re-mémoriser l'état d'avant.
+        invalidateWizardState(entityId);
+
         const response = NextResponse.json(result);
         response.headers.set('Cache-Control', 'no-store');
         return response;
@@ -270,6 +279,10 @@ export async function DELETE(request, context) {
             { nodeRefs: body.nodeRefs || body.nodeRef },
             { ...options, session },
         );
+
+        // L'écriture a changé l'entité et l'état de ses listes : purger APRÈS,
+        // sinon le `getWizardState` ci-dessus vient de re-mémoriser l'état d'avant.
+        invalidateWizardState(entityId);
 
         const response = NextResponse.json(result);
         response.headers.set('Cache-Control', 'no-store');

@@ -20,7 +20,7 @@
 import { NextResponse } from 'next/server';
 import { ForbiddenError, toApiResponse } from '@/lib/errors';
 import { requireSession } from '@/lib/becpg';
-import { formulate, getWizardState } from '@/lib/adapters/wizard';
+import { formulate, getWizardState, invalidateWizardState } from '@/lib/adapters/wizard';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -36,6 +36,7 @@ const FORMULATE_TIMEOUT = Number(process.env.BECPG_FORMULATE_TIMEOUT || 120000);
 export async function POST(request, context) {
     const { entityId } = await context.params;
     try {
+        // L'ecriture change l'etat des listes : l'etat memorise doit tomber.
         const session = await requireSession();
         const url = new URL(request.url);
 
@@ -54,6 +55,9 @@ export async function POST(request, context) {
 
         const started = Date.now();
         const result = await formulate(state.entity.nodeRef, { session, timeout: FORMULATE_TIMEOUT });
+
+        // La formulation recalcule les scores et l'état des listes : purger APRÈS.
+        invalidateWizardState(entityId);
 
         const response = NextResponse.json({
             entity: state.entity,
