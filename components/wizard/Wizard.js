@@ -798,13 +798,35 @@ export function Wizard({
                 return;
             }
             if (change.scope === 'datalist' && change.listName) {
-                const target = steps.find(
-                    (step) => step.listName === change.listName || step.listId === change.listName,
-                );
+                /*
+                 * **Les deux côtés ne nomment pas la liste pareil.**
+                 *
+                 * becpg-ai clé ses `suggestedChanges.datalists` par le *type
+                 * d'item* — `bcpg:nutList` — tandis que l'étape porte
+                 * `listId: 'nutList'` et `itemId: 'bcpg:nutList'`. La comparaison
+                 * ne testait que `listName`/`listId` : elle échouait toujours sur
+                 * une suggestion de datalist, et « Aller au champ » retombait sur
+                 * la première étape de formulaire — donc sur « Informations
+                 * fournisseur » au lieu de « Nutriments ». Signalé le 12/08.
+                 *
+                 * On accepte les deux écritures, préfixée ou non, plutôt que de
+                 * parier sur celle que l'IA choisira.
+                 */
+                const wanted = String(change.listName);
+                const local = wanted.split(':').pop();
+                const target = steps.find((step) => step.listName === wanted
+                    || step.listId === wanted
+                    || step.itemId === wanted
+                    || step.listName === local
+                    || step.listId === local);
                 if (target) {
                     goTo(target.id);
                     return;
                 }
+                // Aucune étape ne porte cette liste : ne pas emmener le
+                // fournisseur sur un formulaire qui n'a rien à voir. Un bouton
+                // sans effet se remarque ; une navigation trompeuse, non.
+                return;
             }
             goToField(change.name);
         },

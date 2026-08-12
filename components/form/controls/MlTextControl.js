@@ -48,6 +48,7 @@
  */
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Icon } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Field';
 import { SUPPORTED_LANGS } from '@/config/messages';
@@ -136,6 +137,38 @@ export function localesFor(field, valueMap, lang, policy = null) {
 }
 
 /**
+ * Le code drapeau d'une locale — **la règle de beCPG Share, à l'identique**.
+ *
+ * `form.lib.ftl#renderLocaleImage` prend les caractères 3 et 4 quand la locale
+ * porte un `_` (donc le PAYS : `en_US` → `us`), et les deux premiers sinon
+ * (donc la LANGUE : `fr` → `fr`). Reprendre exactement cette règle garantit
+ * qu'un fournisseur voit le même drapeau dans Share et dans le portail — les
+ * images viennent d'ailleurs du même jeu, recopié dans `public/theme/images/flags`.
+ *
+ * @param {string} locale
+ * @returns {string} un code de fichier, sans extension
+ */
+export function flagCode(locale) {
+    const value = String(locale || '').replace('-', '_');
+    const parts = value.split('_');
+    return (parts.length > 1 ? parts[1] : parts[0]).toLowerCase().slice(0, 2);
+}
+
+/**
+ * Le code affiché sur la pastille : **la locale entière**, pas ses deux premières
+ * lettres.
+ *
+ * `slice(0, 2)` rendait `en`, `en_US` et `en_AU` tous les trois « EN » : trois
+ * cases identiques, et aucun moyen de savoir laquelle remplir. Signalé le 12/08.
+ *
+ * @param {string} locale
+ * @returns {string}
+ */
+export function localeTag(locale) {
+    return String(locale || '').replace('_', '-').toUpperCase();
+}
+
+/**
  * A human name for a locale code, with the code as the fallback.
  *
  * @param {string} locale
@@ -184,10 +217,26 @@ function LocaleInput({ locale, lang, text, rows, maxLength, invalid, onChange, i
               * or not the chip is painted.
               */}
             <span
-                className="becpg-ml-tag mt-2 w-9 shrink-0 text-xs font-medium uppercase text-[var(--becpg-dark-grey)]"
+                className="becpg-ml-tag mt-2 flex w-16 shrink-0 items-center gap-1 text-xs font-medium uppercase text-[var(--becpg-dark-grey)]"
                 title={name}
             >
-                {String(locale).slice(0, 2)}
+                {/* Le drapeau ne remplace pas le code, il l'accompagne : il ne
+                    distingue pas `en` de `en_GB`, et il n'est lu par aucun
+                    lecteur d'écran (l'input porte déjà `aria-label={name}`). */}
+                <Image
+                    src={`/theme/images/flags/${flagCode(locale)}.png`}
+                    alt=""
+                    width={16}
+                    height={11}
+                    aria-hidden="true"
+                    className="shrink-0"
+                    onError={(event) => {
+                        // Une locale sans drapeau dans le jeu : le code seul
+                        // reste lisible, une icône cassée ne l'est pas.
+                        event.currentTarget.style.visibility = 'hidden';
+                    }}
+                />
+                <span className="truncate">{localeTag(locale)}</span>
             </span>
             <div className="min-w-0 flex-1">
                 {rows ? <Textarea rows={rows} {...shared} /> : <Input type="text" autoComplete="off" {...shared} />}
