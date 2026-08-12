@@ -548,12 +548,20 @@ Règles UI transverses :
                              technique fournisseur. C'est le seul document du parcours
                              dont le type est connu d'avance.
 
-Étape 2 · Suggestions IA     extraction automatique (becpg-ai) **sur cette fiche seule** :
-                             · ≥ 90 % de confiance  → appliqué, badge vert, révocable
-                             · 70-89 %              → proposé, à confirmer, badge orange
+Étape 2 · Suggestions IA     extraction automatique (becpg-ai) **sur cette fiche seule**.
+                             **Aucune suggestion n'est jamais appliquée sans un clic** — la
+                             confiance trie et colore, elle ne décide pas :
+                             · ≥ 90 % de confiance  → proposé en tête, badge vert
+                             · 70-89 %              → proposé, badge orange
                              · < 70 %               → signalé, saisie manuelle, badge rouge
                              · pas de score renvoyé → aucun badge (jamais interprété comme
                                une confiance faible)
+
+                             Le ≥ 90 % était appliqué à l'arrivée, révocable. Retiré le
+                             12/08 : c'est le fournisseur qui signe la fiche, et écrire dans
+                             ses champs sans son geste lui fait endosser ce qu'une machine a
+                             lu dans un PDF. Pouvoir révoquer ne répare pas ça — encore
+                             faut-il avoir remarqué.
 
 Étapes 3..n · Sections       propriétés, questionnaire, ingrédients, nutriments, allergènes,
                              physico-chimie, allégations, microbiologie, organoleptique…

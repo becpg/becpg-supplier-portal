@@ -236,7 +236,33 @@ function readableValue(value, lang = 'fr') {
         return value.map((entry) => readableValue(entry, lang)).filter((entry) => entry !== '—').join(', ') || '—';
     }
     if (typeof value === 'object') {
-        return String(value.displayValue || value.name || value.label || value.value || '—');
+        /*
+         * Une **carte de locales** — `{ fr: "Sucre cristal", en: "Caster sugar" }`,
+         * ce que l'IA renvoie pour un champ `d:mltext` comme `bcpg:legalName`.
+         *
+         * Aucune des quatre clés testées ci-dessous n'existe sur une telle carte,
+         * si bien que la suggestion s'affichait « — », c'est-à-dire vide : le
+         * fournisseur voyait une proposition sans valeur, sur le champ que l'IA
+         * lit le plus souvent. Mesuré le 12/08.
+         *
+         * On rend la langue de lecture si elle est renseignée, la première
+         * disponible sinon — préfixée de sa locale, pour ne pas faire passer une
+         * traduction anglaise pour du français.
+         */
+        const locales = Object.entries(value)
+            .filter(([, text]) => typeof text === 'string' && text.trim() !== '');
+        if (locales.length > 0 && locales.every(([key]) => /^[a-z]{2}(_[A-Za-z]{2})?$/.test(key))) {
+            const own = locales.find(([key]) => key.toLowerCase().startsWith(lang));
+            if (own) {
+                return own[1];
+            }
+            const [locale, text] = locales[0];
+            return `${locale} : ${text}`;
+        }
+        // `value.value` peut être une carte à son tour : on repasse par ici
+        // plutôt que de laisser `String()` produire « [object Object] ».
+        const inner = value.displayValue ?? value.name ?? value.label ?? value.value;
+        return inner === undefined || inner === null ? '—' : readableValue(inner, lang);
     }
     if (typeof value === 'boolean') {
         return value ? '✓' : '✗';
@@ -419,7 +445,6 @@ export function SuggestionsStep({
     const [decisions, setDecisions] = useState(() => readDecisions(entityId));
     const [statuses, setStatuses] = useState({});
     const [errors, setErrors] = useState({});
-    const autoAppliedRef = useRef(new Set());
 
     const analysing = Boolean(analysis && analysis.running);
 
@@ -582,31 +607,21 @@ export function SuggestionsStep({
         [remember],
     );
 
-    // ≥ 90 % is applied on arrival (spec §4.4) — once, never against a
-    // suggestion the supplier already revoked or dismissed, and never before the
-    // snapshot that makes it revocable has landed.
-    useEffect(() => {
-        if (readOnly || suggestions.length === 0) {
-            return;
-        }
-        if (attributeNames.length > 0 && !snapshot) {
-            return;
-        }
-        for (const suggestion of suggestions) {
-            if (suggestion.confidenceLevel !== 'high' || !suggestion.autoApplicable) {
-                continue;
-            }
-            if (autoAppliedRef.current.has(suggestion.id)) {
-                continue;
-            }
-            const decided = decisions[suggestion.id];
-            if (decided && decided !== STATE.PROPOSED) {
-                continue;
-            }
-            autoAppliedRef.current.add(suggestion.id);
-            apply(suggestion, { silent: true });
-        }
-    }, [suggestions, snapshot, attributeNames.length, decisions, readOnly, apply]);
+    /*
+     * **Rien n'est appliqué tout seul.** Une suggestion à 95 % l'était à
+     * l'arrivée sur l'étape, badge vert et bouton « révoquer » — c'est ce que
+     * décrivait la spec §4.4, et c'est retiré sur demande.
+     *
+     * La raison tient en une phrase : le fournisseur signe la fiche. Écrire dans
+     * ses champs sans qu'il ait cliqué lui fait endosser une valeur qu'une
+     * machine a lue dans un PDF, et le fait de pouvoir révoquer ne répare pas
+     * ça — il faut d'abord avoir remarqué. La confiance continue de trier et de
+     * colorer les propositions ; elle ne décide plus à sa place.
+     *
+     * `autoApplicable` reste dans la charge utile de l'adaptateur : c'est une
+     * information de l'IA sur sa propre certitude, et rien n'oblige un écran à
+     * en faire une action.
+     */
 
     const labelFor = useCallback(
         (change) => {
