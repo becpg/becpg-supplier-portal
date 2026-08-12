@@ -71,6 +71,7 @@ import { formatDate, formatDateTime, isIsoTimestamp, isMachineValue, nodeLabel }
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { parseListId } from '@/config/wizards.default';
+import { portalCatalogs } from '@/lib/catalogs';
 
 /**
  * Portal chrome for this screen. Business labels — the tab names, the section
@@ -868,7 +869,7 @@ function CompliancePanel({ entityId }) {
     const catalogs = useApi(`entities/${entityId}/catalogs`);
     return (
         <CatalogPanel
-            catalogs={(catalogs.data && catalogs.data.catalogs) || []}
+            catalogs={portalCatalogs((catalogs.data && catalogs.data.catalogs) || [])}
             score={catalogs.data ? catalogs.data.score : undefined}
             loading={catalogs.loading}
             error={catalogs.error}

@@ -41,6 +41,7 @@ import { DataListStep } from '@/components/wizard/steps/DataListStep';
 import { SurveyStep } from '@/components/wizard/steps/SurveyStep';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { portalCatalogs } from '@/lib/catalogs';
 
 const LABELS = {
     fr: {
@@ -412,7 +413,7 @@ export function ReviewStep({ entityId, state = null, wizardId, withCompliance = 
             {withCompliance ? (
                 <Card padding="lg">
                     <ComplianceStep
-                        catalogs={(catalogs.data && catalogs.data.catalogs) || []}
+                        catalogs={portalCatalogs((catalogs.data && catalogs.data.catalogs) || [])}
                         score={catalogs.data ? catalogs.data.score : null}
                         loading={catalogs.loading}
                         error={catalogs.error}

@@ -92,6 +92,7 @@ import { ContentLocalesProvider } from '@/components/form/ContentLocalesProvider
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { formatDate } from '@/lib/format';
+import { portalCatalogs } from '@/lib/catalogs';
 
 const LABELS = {
     fr: {
@@ -1106,7 +1107,7 @@ export function Wizard({
         />
     ) : currentStep.kind === 'compliance' ? (
         <ComplianceStep
-            catalogs={catalogList}
+            catalogs={portalCatalogs(catalogList)}
             score={catalogs.data ? catalogs.data.score : null}
             loading={catalogs.loading || wizardCatalog.loading}
             error={catalogs.error}
