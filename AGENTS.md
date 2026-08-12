@@ -189,9 +189,9 @@ tag is created locally and only the push fails.
 
 Fast deploy: `./deploy-fast.sh --yes` builds the image from the working tree, pushes it under
 `<_VERSION>-<sha>` and rolls the Deployment over — no tag, no CHANGELOG, no version bump.
-**It deploys to production**: the only `becpg-supplier-portal` Deployment lives on cluster
-`becpg-front` (zone `europe-west9-a`) and serves `portal.becpg.fr`. There is no staging portal,
-which is why `--yes` is mandatory; the tag is stamped into `/api/health` so an unreleased image
+**There is only one portal deployment**: `becpg-supplier-portal` on cluster `becpg-front`
+(zone `europe-west9-a`), serving `portal.becpg.fr`. No staging, no second instance — whatever is
+deployed is what everyone sees, which is why `--yes` is mandatory; the tag is stamped into `/api/health` so an unreleased image
 is recognisable from outside. `latest` is never retagged — that one belongs to Cloud Build.
 
 ## Git commits
