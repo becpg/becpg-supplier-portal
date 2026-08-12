@@ -280,7 +280,8 @@ export default function MonitorDocumentsPage() {
                         size="sm"
                         icon="refresh"
                         label={labels.refresh}
-                        onClick={matrix.refresh}
+                        loading={matrix.loading}
+                    onClick={matrix.refresh}
                     />
                     <Button variant="secondary" size="sm" icon="download" onClick={exportCsv}>
                         <span className="hidden sm:inline">{labels.export}</span>

@@ -341,7 +341,8 @@ function MonitorSuppliersScreen() {
                         size="sm"
                         icon="refresh"
                         label={local.refresh}
-                        onClick={list.refresh}
+                        loading={list.loading}
+                    onClick={list.refresh}
                     />
                     <Button variant="secondary" size="sm" icon="download" onClick={requestExport}>
                         <span className="hidden sm:inline">{local.export}</span>

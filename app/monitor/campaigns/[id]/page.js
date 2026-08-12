@@ -194,8 +194,8 @@ export default function CampaignPage() {
                             variant="outline"
                             size="sm"
                             icon="refresh"
-                            onClick={call.refresh}
                             loading={call.loading}
+                            onClick={call.refresh}
                         >
                             {labels.refresh}
                         </Button>

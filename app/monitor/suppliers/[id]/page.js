@@ -511,6 +511,7 @@ export default function MonitorSupplierSheetPage() {
                     size="sm"
                     icon="refresh"
                     label={local.refresh}
+                    loading={sheet.loading}
                     onClick={sheet.refresh}
                 />
             }

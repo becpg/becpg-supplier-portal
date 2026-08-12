@@ -258,6 +258,7 @@ export default function MonitorCampaignsPage() {
                     size="sm"
                     icon="refresh"
                     label={labels.refresh}
+                    loading={campaigns.loading}
                     onClick={campaigns.refresh}
                 />
             }

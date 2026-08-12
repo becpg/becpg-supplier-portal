@@ -164,6 +164,7 @@ function MonitorOverviewScreen() {
                     size="sm"
                     icon="refresh"
                     label={local.refresh}
+                    loading={overview.loading}
                     onClick={overview.refresh}
                 />
             }
