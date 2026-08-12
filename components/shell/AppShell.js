@@ -29,12 +29,13 @@
  * collapses to nothing under `prefers-reduced-motion`.
  */
 
-import { useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Header } from '@/components/shell/Header';
 import { Nav } from '@/components/shell/Nav';
 import { useSession } from '@/components/providers/SessionProvider';
+import { publishBadges, readBadges, serverBadges, subscribeBadges } from '@/lib/badges';
 import { Skeleton } from '@/components/ui/Skeleton';
 
 /**
@@ -106,6 +107,31 @@ export function AppShell({
 
     const resolvedSpace = space || session.space || 'supplier';
 
+    /*
+     * LES PASTILLES DU MENU SURVIVENT AU CHANGEMENT D'ÉCRAN.
+     *
+     * Chaque page ne passe que ce qu'elle sait compter — le tableau de bord les
+     * trois, `/tasks` les tâches seules, `/products` rien — et le menu affichait
+     * donc exactement ce que la page courante lui donnait : quitter le tableau
+     * de bord effaçait les compteurs de tâches et de discussions.
+     *
+     * Ils sont désormais mémorisés pour l'onglet (voir `lib/badges.js`) et
+     * complétés ici. La page reste prioritaire sur ce qu'elle affirme : ses
+     * chiffres sont ceux de l'écran qu'on regarde, donc les plus frais.
+     * Faire recalculer les autres par chaque page coûterait, pour un « 3 », le
+     * balayage d'entités qu'exige le compteur de discussions.
+     */
+    const storedBadges = useSyncExternalStore(subscribeBadges, readBadges, serverBadges);
+    const badgeKey = JSON.stringify(badges);
+    const currentUser = session.user ? (session.user.username || session.user.sub || null) : null;
+    useEffect(() => {
+        publishBadges(JSON.parse(badgeKey), currentUser);
+        // `badges` est un littéral recréé à chaque rendu : c'est sa valeur, non
+        // son identité, qui doit déclencher la publication — d'où la clé
+        // sérialisée, qui sert à la fois de dépendance et de source.
+    }, [badgeKey, currentUser]);
+    const mergedBadges = { ...storedBadges, ...badges };
+
     return (
         <div className="flex min-h-dvh flex-col bg-[var(--becpg-grey)]/30">
             <Header
@@ -147,7 +173,7 @@ export function AppShell({
                                 ))}
                             </div>
                         ) : (
-                            <Nav variant="sidebar" space={resolvedSpace} badges={badges} />
+                            <Nav variant="sidebar" space={resolvedSpace} badges={mergedBadges} />
                         )}
                     </aside>
                 )}
@@ -193,13 +219,13 @@ export function AppShell({
                     <Nav
                         variant="bottom"
                         space={resolvedSpace}
-                        badges={badges}
+                        badges={mergedBadges}
                         onOpenMore={() => setDrawerOpen(true)}
                     />
                     <Nav
                         variant="drawer"
                         space={resolvedSpace}
-                        badges={badges}
+                        badges={mergedBadges}
                         open={drawerOpen}
                         onClose={() => setDrawerOpen(false)}
                     />
