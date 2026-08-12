@@ -80,6 +80,10 @@ function readOptions(request) {
         page: url.searchParams.get('page') || undefined,
         pageSize: url.searchParams.get('pageSize') || undefined,
         sort: url.searchParams.get('sort') || undefined,
+        // Ce que l'écran sait déjà de l'assignation : le redemander coûte 5 s
+        // par onglet (voir `getWizardState`). Même mécanique que Share.
+        knownTaskAssigned: url.searchParams.get('taskAssigned') === '1' ? true
+            : url.searchParams.get('taskAssigned') === '0' ? false : undefined,
     };
 }
 
