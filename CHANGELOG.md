@@ -125,3 +125,16 @@
 
 * InProgress #35846 - [Cleanup] Correct the post-logout diagnosis: the production URI is registered, the local one is not
 * [skip ci][Release]: Bump _VERSION to 0.0.12
+## [ 0.0.13 ] - 2026-08-12 09:31:56
+
+* InProgress #35846 - [Cleanup] Record the 11/08 round and what it left open
+* Fix #35846 - [Bug] Write multilingual values through the endpoint that builds an MLText
+* InProgress #35846 - [Bug] Read the wizard catalogue from the deliverable URL, as Share does
+* InProgress #35846 - [Feature] Ask for the wizard's own catalogue, without hiding the customer's
+* InProgress #35846 - [Feature] Resolve the task and its wizard together instead of one after the other
+* InProgress #33085 - [Feature] Take the entry languages from the wizard catalogue, or from the repository's own locales
+* Fix #35846 - [Bug] Recognise the technical sheet on the field that actually carries the type label
+* InProgress #35846 - [Bug] Stop serialising the two independent reads a single task needs
+* InProgress #35846 - [Feature] Scope the task list on the supplier chosen in the toolbar, and say which one it is
+* InProgress #35846 - [Cleanup] Retract the OLAP diagnosis: the cube answers, it was the account it was asked under
+* [skip ci][Release]: Bump _VERSION to 0.0.13
