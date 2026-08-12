@@ -13,6 +13,7 @@
  * composition); this component only renders them.
  */
 
+import { useMemo, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Icon } from '@/components/ui/Button';
@@ -20,6 +21,7 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useMessages } from '@/lib/messages';
 import { formatDate } from '@/lib/format';
+import { isUnread, markRead, readState, serverState, subscribe } from '@/lib/discussions';
 
 const LOCAL = {
     fr: {
@@ -30,6 +32,8 @@ const LOCAL = {
         messages: '{count} message(s)',
         anonymous: 'Utilisateur',
         onField: 'sur {field}',
+        unread: 'Nouveau',
+        unreadCount: '{count} non lu(s)',
     },
     en: {
         title: 'My discussions',
@@ -39,6 +43,8 @@ const LOCAL = {
         messages: '{count} message(s)',
         anonymous: 'User',
         onField: 'on {field}',
+        unread: 'New',
+        unreadCount: '{count} unread',
     },
 };
 
@@ -63,6 +69,35 @@ export function DiscussionList({ threads = [], index = 0, className = '' }) {
     const local = LOCAL[lang] || LOCAL.fr;
     const reduceMotion = useReducedMotion();
 
+    /*
+     * L'état de lecture vit dans `localStorage`, donc hors de React :
+     * `useSyncExternalStore` est fait pour cela. Son instantané serveur est vide
+     * — le serveur ne sait pas ce que cet utilisateur a lu — ce qui écarte tout
+     * écart d'hydratation, et l'abonnement fait disparaître le marqueur dans les
+     * autres onglets dès qu'un fil est ouvert ici.
+     */
+    const seen = useSyncExternalStore(subscribe, readState, serverState);
+
+    /*
+     * Les fils non lus d'abord, chacun des deux groupes restant trié par date
+     * décroissante — l'ordre dans lequel le serveur les a déjà rendus. Trier
+     * ainsi plutôt que masquer : un fil lu reste consultable, il cesse seulement
+     * de disputer la première place à un message auquel personne n'a répondu.
+     */
+    const ordered = useMemo(() => {
+        const unread = [];
+        const read = [];
+        for (const thread of threads) {
+            (isUnread(thread, seen) ? unread : read).push(thread);
+        }
+        return [...unread, ...read];
+    }, [threads, seen]);
+
+    const unreadCount = useMemo(
+        () => threads.filter((thread) => isUnread(thread, seen)).length,
+        [threads, seen],
+    );
+
     return (
         <Card
             title={local.title}
@@ -72,13 +107,20 @@ export function DiscussionList({ threads = [], index = 0, className = '' }) {
             className={className}
             actions={
                 threads.length > 0 ? (
-                    <Link
-                        href="/messages"
-                        className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-[var(--becpg-blue-light)] hover:bg-[var(--becpg-grey)]"
-                    >
-                        {local.all}
-                        <Icon name="arrow_forward" size={14} />
-                    </Link>
+                    <span className="flex items-center gap-1.5">
+                        {unreadCount > 0 ? (
+                            <span className="pill pill-warning pill-sm pill-no-dot">
+                                {local.unreadCount.replace('{count}', unreadCount)}
+                            </span>
+                        ) : null}
+                        <Link
+                            href="/messages"
+                            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-[var(--becpg-blue-light)] hover:bg-[var(--becpg-grey)]"
+                        >
+                            {local.all}
+                            <Icon name="arrow_forward" size={14} />
+                        </Link>
+                    </span>
                 ) : null
             }
         >
@@ -86,7 +128,9 @@ export function DiscussionList({ threads = [], index = 0, className = '' }) {
                 <EmptyState variant="empty" compact title={local.empty} message={local.emptyHint} />
             ) : (
                 <ul className="-mx-2 flex flex-col">
-                    {threads.map((thread, position) => (
+                    {ordered.map((thread, position) => {
+                        const unread = isUnread(thread, seen);
+                        return (
                         <motion.li
                             key={thread.nodeRef || position}
                             initial={reduceMotion ? false : { opacity: 0, y: 6 }}
@@ -98,7 +142,10 @@ export function DiscussionList({ threads = [], index = 0, className = '' }) {
                         >
                             <Link
                                 href={thread.href}
-                                className="flex touch-target items-start gap-2.5 rounded-lg px-2 py-2.5 transition-colors hover:bg-[var(--becpg-grey)]/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                                onClick={() => markRead(thread.nodeRef, thread.last ? thread.last.date : null)}
+                                className={`flex touch-target items-start gap-2.5 rounded-lg px-2 py-2.5 transition-colors hover:bg-[var(--becpg-grey)]/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]${
+                                    unread ? ' bg-[var(--becpg-orange)]/5' : ''
+                                }`}
                             >
                                 <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--becpg-blue)] text-[0.6875rem] font-medium text-white">
                                     {initials(thread.last ? thread.last.author : thread.title)}
@@ -106,7 +153,13 @@ export function DiscussionList({ threads = [], index = 0, className = '' }) {
 
                                 <span className="min-w-0 flex-1">
                                     <span className="flex items-baseline justify-between gap-2">
-                                        <span className="min-w-0 truncate text-sm font-medium">
+                                        <span className={`min-w-0 truncate text-sm${unread ? ' font-semibold' : ' font-medium'}`}>
+                                            {unread ? (
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="mr-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--becpg-orange)] align-middle"
+                                                />
+                                            ) : null}
                                             {thread.title}
                                         </span>
                                         {thread.last && thread.last.date ? (
@@ -133,6 +186,11 @@ export function DiscussionList({ threads = [], index = 0, className = '' }) {
                                     ) : null}
 
                                     <span className="mt-1 flex flex-wrap items-center gap-1.5">
+                                        {unread ? (
+                                            <span className="pill pill-warning pill-sm pill-no-dot">
+                                                {local.unread}
+                                            </span>
+                                        ) : null}
                                         <span className="pill pill-neutral pill-sm pill-no-dot">
                                             <Icon name="chat_bubble_outline" size={13} />
                                             {local.messages.replace('{count}', thread.count)}
@@ -152,7 +210,8 @@ export function DiscussionList({ threads = [], index = 0, className = '' }) {
                                 />
                             </Link>
                         </motion.li>
-                    ))}
+                        );
+                    })}
                 </ul>
             )}
         </Card>
