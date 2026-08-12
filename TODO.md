@@ -1,10 +1,36 @@
 # TODO
 
-Relevé d'usage du 2026-08-06. **Tous les points ci-dessous ont été traités** —
-le détail, la cause et la preuve de chacun sont dans
-[`doc/implementation-status.md` §2bis](./doc/implementation-status.md).
+Deux relevés d'usage, du plus récent au plus ancien. Ce qui reste ouvert est en
+fin de fichier.
 
-Ce qui reste ouvert est en fin de fichier.
+---
+
+## Relevé du 2026-08-11 — traité, livré sur dev en 26.1.0.32-SNAPSHOT-29900b9c17
+
+| Point | Cause réelle | Où |
+|---|---|---|
+| Liste des tâches non filtrée par fournisseur, périmètre invisible | le sélecteur existait mais était enterré dans le menu compte, et seul *Mes produits* s'en servait | portail — `SupplierSwitcher`, `scopedSupplier` |
+| Pas d'accès à la tâche depuis la fiche produit | la fiche est en lecture seule et cachait son propre chemin d'écriture | portail — `ProductTaskBanner` |
+| « Aucun type fiche technique configuré » alors que le type existe | `isTechnicalSheet()` lisait `type.name/code/title`, qui n'existent pas : `assocRef()` produit `label`. **Renvoyait donc toujours `false`, sur toute instance** | portail — `technicalSheet.js` |
+| `d:mltext` stockés en JSON littéral (`{"fr":"Sucre cristal"}`) | le portail sérialisait la carte pour le form processor, en croyant que c'est ce que poste Share. Share utilise un endpoint dédié | portail — `saveForm` ; beCPG — `MultilingualFormFilter` |
+| Vue tâche lente | `/tasks/{id}` puis `/wizard/{id}` en file indienne, plus deux lectures sérialisées dans `getTask` | portail — `?withWizard=1`, `peekTaskEntity` |
+| Type de document coché « supprimé » recréé à la formulation | `DocumentFormulationHandler` ne lisait jamais `bcpg:isDeleted` | beCPG |
+| Complétude calculée sur les catalogues du client | rien ne rattachait un catalogue au portail | beCPG — catalogues `supplierPortal-*` ; portail — moyenne restreinte au préfixe |
+| Langues de saisie limitées à fr/en | repli sur `SUPPORTED_LANGS`, les langues du *chrome* du portail | portail — `contentLocales.js` ; beCPG — `locales` du catalogue |
+
+**Vérifié sur dev le 12/08** : catalogue portail dans `bcpg:entityScore` (66,67 %), libellé
+traduit, `Halal - TODELETE.pdf` disparu à la reformulation, `fr`/`en` stockées séparément
+depuis la charge utile fautive.
+
+**Non vérifié de bout en bout** : la chaîne référencement → tâche → `catalogId` (voir
+« Reste ouvert »).
+
+---
+
+## Relevé du 2026-08-06 — traité
+
+Le détail, la cause et la preuve de chacun sont dans
+[`doc/implementation-status.md` §2bis](./doc/implementation-status.md).
 
 ---
 
@@ -76,6 +102,60 @@ Ce qui reste ouvert est en fin de fichier.
 ---
 
 ## Reste ouvert
+
+### Ouvert depuis le relevé du 11/08
+
+- **La chaîne référencement → tâche → `catalogId` n'a pas été vue tourner.** Les deux
+  extrémités sont vérifiées séparément : le livrable du modèle de dev porte bien
+  `&catalogId=supplierPortal-{pjt:projectEntity|@type}` (posé à la main, voir ci-dessous), et
+  `parseDeliverableUrl()` en extrait `supplierPortal-rawMaterial` sur l'URL réelle. Le milieu
+  est du code beCPG non modifié. **Pour conclure : lancer un « Envoyer au fournisseur » depuis
+  Share sur une MP** — deux clics valent mieux qu'une reconstitution de formulaire.
+- **`becpg/supplier/send-to-supplier` est du code mort, sur toutes les instances.**
+  `SupplierPortalWebScript` étend `AbstractWebScript`, mais aucun bean
+  `webscript.fr.becpg.supplier.sendToSupplier.post` n'est déclaré : `service-context.xml`
+  n'enregistre que `createSupplier` et `updateSupplier`. Alfresco retombe donc sur le rendu
+  déclaratif et répond **500 « Cannot locate template processor »**. Aucun fichier du dépôt
+  n'appelle cette URL — le vrai chemin est `beCPG/script/workflow/create-supplier-project.js`.
+  Soit on enregistre le bean, soit on supprime le descripteur ; en l'état il promet une API
+  qui ne répond pas.
+- **Le `catalogId` du livrable ne concerne que les instances neuves.** Dans
+  `SupplierPortalInitRepoVisitor.visitContainer`, le livrable n'est construit que dans
+  `if (projectTplNodeRef == null)`. Sur une instance qui a déjà son modèle — dev, et toutes
+  les autres — l'URL garde son ancienne valeur. Corrigé à la main sur dev ; il faut un patch
+  de reprise si l'on veut que la livraison le fasse.
+- **`locales` sur un catalogue multiplie les lignes stockées.** Ce n'est pas « les langues à
+  proposer à la saisie » mais « évaluer ce catalogue une fois par langue » : mesuré sur dev,
+  11 locales donnaient 12 lignes et 9,5 Ko dans `bcpg:entityScore` d'une seule MP, contre
+  ~1 Ko avant. Ramené à quatre (`en, fr, es, de`) → 5 lignes, 3,6 Ko. À garder en tête avant
+  d'en ajouter.
+- **Trois projets de test à supprimer sur dev** : `testtest` (2020, site `archived`),
+  `test_commentaire` et `Test commentaire` (2022 et 2024, site `simulation`). Tous
+  `pjt:project`, sans entité rattachée. La suppression a été refusée par la politique de
+  permissions de l'agent ; les trois questions de test, elles, sont retirées
+  (`bcpg:isDeleted = true`, vérifié).
+- **Un flag `bcpg:isDeleted` qui ne tient pas du premier coup.** Les trois PUT sur les
+  questions de test ont répondu `true`, et une relecture quelques secondes plus tard donnait
+  `false` sur les trois. La seconde salve a tenu. Aucune policy beCPG ne touche cette
+  propriété — vérifié. À élucider.
+- **Les trois listes de questions de dev** — `surveyQuestion`, `surveyQuestion@5` et
+  `SurveyQuestions` — devraient n'en faire qu'une. C'est probablement ce qui rend les
+  questionnaires incohérents, plus que les questions de test elles-mêmes.
+- **`deploy-fast.sh` a un bug d'ordonnancement.** Ses quatre cibles dans un seul
+  `docker compose build` partent en parallèle, et `becpg-plm-core` échoue parce que
+  `becpg-base-core`, dont il hérite, n'existe pas encore. Correction : deux invocations.
+  Par ailleurs le build exige `JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64` — le 17 par
+  défaut ne sait pas produire du `release 21`.
+- **Les visiteurs d'init ne tournent pas au démarrage.** `InitVisitorService` est piloté par
+  `GET becpg/admin/repository/init-repo` (`AdminModuleWebScript`, ~55 s). Un déploiement seul
+  ne sème rien. Le Javadoc du visiteur affirmait le contraire ; corrigé.
+
+### Ouvert depuis le relevé du 06/08
+
+- **Réfuté depuis** : la formulation qui échouait sur `Type is not queryable
+  bcpg:regulatoryUsage` (42 occurrences en 6 h dans les logs de dev, cause des 34 échecs du
+  batch `reformulateChangedEntities`) est corrigée par `11363c6d Fix #35938`, embarqué dans
+  la livraison du 12/08.
 
 - **OLAP — il n'y avait rien à réparer : c'était le compte de mesure.** Re-testé le 10/08.
   Le cube de dev répond, avec de vrais chiffres (`taskTrend` 10 lignes depuis 2019,
