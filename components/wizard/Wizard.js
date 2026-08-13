@@ -6,10 +6,9 @@
  * ## The order is the feature
  *
  * ```
- * 0 · Contexte         permanent side panel: suggestions de l'IA, cahier des
- *                      charges, remarques, listes gelées, refus → HelpPanel
- * 1 · Fiche technique  the one document always expected     → TechnicalSheetStep
- * 2..n · Sections      the wizard definition, as configured → Form / DataList /
+ * 0 · Contexte         volet permanent : fiche technique, suggestions de l'IA,
+ *                      cahier des charges, remarques, listes gelées, refus → HelpPanel
+ * 1..n · Sections      the wizard definition, as configured → Form / DataList /
  *                      Survey / Documents, in server order
  * n+1 · Conformité     catalogue check, gates "Terminer"    → ComplianceStep
  * ```
@@ -84,7 +83,6 @@ import { FormStep } from '@/components/wizard/steps/FormStep';
 import { DataListStep } from '@/components/wizard/steps/DataListStep';
 import { SurveyStep } from '@/components/wizard/steps/SurveyStep';
 import { DocumentsStep } from '@/components/wizard/steps/DocumentsStep';
-import { TechnicalSheetStep } from '@/components/wizard/steps/TechnicalSheetStep';
 import { SuggestionsStep } from '@/components/wizard/steps/SuggestionsStep';
 import { ComplianceStep, blockingCatalogs } from '@/components/wizard/steps/ReviewStep';
 import { ContentLocalesProvider } from '@/components/form/ContentLocalesProvider';
@@ -92,6 +90,7 @@ import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { formatDate } from '@/lib/format';
 import { portalCatalogs } from '@/lib/catalogs';
+import { suggestionScopeForStep } from '@/lib/suggestionScope';
 
 const LABELS = {
     fr: {
@@ -161,7 +160,6 @@ const LABELS = {
 
 /** Ids of the steps the portal adds on top of the configured ones. */
 const SYNTHETIC = Object.freeze({
-    TECHNICAL_SHEET: '__technicalSheet',
     DOCUMENTS: '__documents',
     SUGGESTIONS: '__suggestions',
     COMPLIANCE: '__compliance',
@@ -271,11 +269,10 @@ function stepLabel(step, labels) {
  *
  * @param {Object} state the payload of `GET /api/v1/wizard/{entityId}`
  * @param {Object} options
- * @param {boolean} options.hasSuggestions
  * @param {Object} options.labels
  * @returns {Array<Object>} step view models
  */
-export function buildStepModel(state, { hasSuggestions, labels }) {
+export function buildStepModel(state, { labels }) {
     if (!state || !Array.isArray(state.steps)) {
         return [];
     }
@@ -288,16 +285,19 @@ export function buildStepModel(state, { hasSuggestions, labels }) {
 
     const model = [];
 
-    // Étape 1 — the technical sheet, always, and before anything else.
-    model.push({
-        id: SYNTHETIC.TECHNICAL_SHEET,
-        type: 'technicalSheet',
-        kind: 'technicalSheet',
-        synthetic: true,
-        label: labels.technicalSheet,
-        readOnly: Boolean(state.readOnly),
-        frozen: false,
-    });
+    /*
+     * LA FICHE TECHNIQUE N'EST PLUS UNE ÉTAPE.
+     *
+     * Elle ouvrait le parcours parce que c'est le document dont l'IA tire les
+     * valeurs. Mais quand elle est déjà déposée — le cas courant, un
+     * référencement précédent ou la matière première d'origine — l'étape ne
+     * demandait rien et il fallait la traverser ; et quand elle manque, c'est
+     * pendant la saisie qu'on s'en aperçoit, pas avant.
+     *
+     * Elle est donc dans le volet « Contexte », juste au-dessus des suggestions
+     * qu'elle alimente (voir `panels/TechnicalSheetPanel.js`) : consultable de
+     * partout, déposable au moment où son absence se voit.
+     */
 
     /*
      * LES SUGGESTIONS NE SONT PLUS UNE ÉTAPE.
@@ -390,13 +390,6 @@ export function Wizard({
     const entityNodeRef = wizardState && wizardState.entity ? wizardState.entity.nodeRef : entityId;
 
     // becpg-ai is optional: a 503 `aiDisabled` simply means no suggestions step.
-    const suggestionsCall = useApi(entityId ? `suggestions/${encodeURIComponent(entityId)}` : null);
-    const suggestions = useMemo(
-        () => (suggestionsCall.data && Array.isArray(suggestionsCall.data.suggestions)
-            ? suggestionsCall.data.suggestions
-            : []),
-        [suggestionsCall.data],
-    );
 
     /*
      * `suggestionsByField` a été supprimé avec les badges de confiance : il ne
@@ -409,8 +402,8 @@ export function Wizard({
     /* ------------------------------------------------------------- the steps */
 
     const steps = useMemo(
-        () => buildStepModel(wizardState, { hasSuggestions: suggestions.length > 0, labels }),
-        [wizardState, suggestions.length, labels],
+        () => buildStepModel(wizardState, { labels }),
+        [wizardState, labels],
     );
 
     // Where the supplier was, in order of authority: an explicit prop, the URL,
@@ -483,6 +476,34 @@ export function Wizard({
     const currentId = nav.currentId;
     const currentIndex = steps.findIndex((step) => step.id === currentId);
     const currentStep = currentIndex >= 0 ? steps[currentIndex] : null;
+
+    /*
+     * LES SUGGESTIONS SONT DEMANDÉES POUR L'ÉTAPE OUVERTE, PAS POUR TOUT.
+     *
+     * becpg-ai borne son analyse quand on lui nomme la liste — c'est ce que fait
+     * l'action « Suggestions » de Share — et le portail transportait déjà ce
+     * paramètre sans jamais le renseigner. Il lançait donc les quinze plugins à
+     * chaque fois : sur l'étape « Nutriments », le fournisseur recevait aussi la
+     * correction orthographique de ses libellés et l'examen de ses certificats,
+     * après avoir attendu que tout ait tourné (~26 s mesurées sur dev).
+     *
+     * Le périmètre fait partie de la CLÉ de l'appel : changer d'étape change la
+     * clé, donc relit ce qu'il faut sans qu'on ait à l'orchestrer, et deux
+     * étapes de même périmètre partagent leur résultat.
+     *
+     * `suggestionScopeForStep` ne renvoie que des identifiants vérifiés dans
+     * becpg-ai : un identifiant inconnu y répond vide, pas « tout ».
+     */
+    const suggestionScope = suggestionScopeForStep(currentStep);
+    const suggestionsCall = useApi(entityId ? `suggestions/${encodeURIComponent(entityId)}` : null, {
+        params: suggestionScope ? { listId: suggestionScope } : undefined,
+    });
+    const suggestions = useMemo(
+        () => (suggestionsCall.data && Array.isArray(suggestionsCall.data.suggestions)
+            ? suggestionsCall.data.suggestions
+            : []),
+        [suggestionsCall.data],
+    );
 
     /* ------------------------------------------------- mandatory-entry gaps */
 
@@ -793,6 +814,11 @@ export function Wizard({
              * `autoSave.flush()` vient d'avoir lieu juste au-dessus : la relecture
              * porte donc bien sur ce qui a été écrit, jamais sur l'état d'avant.
              * L'appel n'est pas attendu — la navigation ne doit rien à l'IA.
+             *
+             * Il reste utile MALGRÉ la clé d'appel bornée à l'étape : deux étapes
+             * de même périmètre — deux formulaires, tous deux `View-properties` —
+             * ne changent pas la clé, et sans ce rappel la seconde afficherait ce
+             * qui avait été lu avant la saisie de la première.
              */
             suggestionsCall.refresh();
 
@@ -1046,6 +1072,7 @@ export function Wizard({
             entityId={entityId}
             entityNodeRef={entityNodeRef}
             suggestions={suggestionsPanel}
+            readOnly={Boolean(wizardState.readOnly)}
             steps={visitedSteps}
             onSelectStep={(stepId) => {
                 setSheet(null);
@@ -1095,15 +1122,7 @@ export function Wizard({
     const readOnlyReason = wizardState.readOnlyReason;
     const stepReadOnlyReason = currentStep && currentStep.frozen ? 'frozen' : readOnlyReason;
 
-    const stepContent = !currentStep ? null : currentStep.kind === 'technicalSheet' ? (
-        <TechnicalSheetStep
-            entityNodeRef={entityNodeRef}
-            step={currentStep}
-            readOnlyReason={stepReadOnlyReason}
-            autoSave={autoSave}
-            onUploaded={() => suggestionsCall.refresh()}
-        />
-    ) : currentStep.kind === 'documents' ? (
+    const stepContent = !currentStep ? null : currentStep.kind === 'documents' ? (
         <DocumentsStep
             entityNodeRef={entityNodeRef}
             step={currentStep}
@@ -1446,6 +1465,7 @@ export function Wizard({
                     entityId={entityId}
                     entityNodeRef={entityNodeRef}
                     suggestions={suggestionsPanel}
+                    readOnly={Boolean(wizardState.readOnly)}
                     steps={visitedSteps}
                     onSelectStep={(stepId) => {
                         setSheet(null);

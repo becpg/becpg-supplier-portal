@@ -34,6 +34,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { SkeletonText } from '@/components/ui/Skeleton';
 import { SpecPanel } from '@/components/specs/SpecPanel';
 import { SuggestionsStep } from '@/components/wizard/steps/SuggestionsStep';
+import { TechnicalSheetPanel, useTechnicalSheet } from '@/components/wizard/panels/TechnicalSheetPanel';
 import { formatDate, formatDateTime, plainText } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
@@ -42,6 +43,7 @@ const LABELS = {
     fr: {
         title: 'Contexte',
         subtitle: 'Ce que votre client attend, et ce qui est déjà acté',
+        technicalSheet: 'Fiche technique',
         suggestions: 'Suggestions de l’IA',
         specs: 'Cahiers des charges',
         specsEmpty: 'Aucun cahier des charges rattaché à cette fiche.',
@@ -62,6 +64,7 @@ const LABELS = {
     en: {
         title: 'Context',
         subtitle: 'What your customer expects, and what is already settled',
+        technicalSheet: 'Technical sheet',
         suggestions: 'AI suggestions',
         specs: 'Specifications',
         specsEmpty: 'No specification attached to this sheet.',
@@ -136,6 +139,7 @@ function Section({ id, icon, title, count, open, onToggle, children }) {
  * @param {string} props.entityNodeRef the entity nodeRef, for the discussion thread
  * @param {Object} [props.suggestions] ce que le wizard sait des suggestions de l'IA —
  *        voir `suggestionsPanel` dans `Wizard.js`. Absent = aucune section rendue.
+ * @param {boolean} [props.readOnly] la saisie est-elle fermée sur cette fiche
  * @param {Array<Object>} [props.steps] the wizard's step view models (frozen ones are listed)
  * @param {Function} [props.onSelectStep] `(stepId) => void`
  * @param {Object} [props.discussion] a `useDiscussion` instance on the entity
@@ -148,6 +152,7 @@ export function HelpPanel({
     entityId,
     entityNodeRef,
     suggestions = null,
+    readOnly = false,
     steps = [],
     onSelectStep,
     discussion,
@@ -161,8 +166,15 @@ export function HelpPanel({
     // Les suggestions ouvertes d'emblée : c'est ce que le fournisseur n'a pas
     // demandé mais dont il se sert, et une section repliée ne se lit pas.
     const [open, setOpen] = useState({
-        suggestions: true, specs: true, comments: true, frozen: false, refusals: true,
+        technicalSheet: true, suggestions: true, specs: true, comments: true, frozen: false, refusals: true,
     });
+
+    /*
+     * La fiche technique est lue ICI et non dans son composant, pour savoir
+     * s'il faut ouvrir la section : un client sans type « fiche technique »
+     * configuré ne doit pas se retrouver avec un encart vide.
+     */
+    const technicalSheet = useTechnicalSheet(entityNodeRef);
 
     const toggle = (id) => setOpen((current) => ({ ...current, [id]: !current[id] }));
 
@@ -205,6 +217,31 @@ export function HelpPanel({
                 Ici, elles restent sous les yeux pendant la saisie, quelle que soit
                 l'étape, et `Wizard.js` les relit à chaque changement d'étape.
             */}
+            {/*
+                LA FICHE TECHNIQUE, AU-DESSUS DES SUGGESTIONS.
+
+                C'est le document dont elles sont tirées : l'ordre dit la
+                dépendance, et quand il n'y a rien à proposer, la zone de dépôt
+                est juste au-dessus de l'endroit où le fournisseur constate le
+                vide.
+            */}
+            {technicalSheet.loading || technicalSheet.sheet ? (
+                <Section
+                    id="technicalSheet"
+                    icon="description"
+                    title={labels.technicalSheet}
+                    open={open.technicalSheet}
+                    onToggle={toggle}
+                >
+                    <TechnicalSheetPanel
+                        entityNodeRef={entityNodeRef}
+                        state={technicalSheet}
+                        readOnly={readOnly}
+                        onUploaded={suggestions ? suggestions.refresh : undefined}
+                    />
+                </Section>
+            ) : null}
+
             {suggestions ? (
                 <Section
                     id="suggestions"
