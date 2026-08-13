@@ -351,7 +351,11 @@ export default async function DashboardPage() {
              */
             () => client.memo(`tasks:${supplierNodeRef || 'all'}`, () => listMyTasks(client, {
                 pageSize: TASK_SCAN,
-                enrichLimit: PREVIEW.tasks * 2,
+                // Sous périmètre, la troncature de `enrichLimit` cacherait les
+                // tâches du fournisseur choisi — voir le commentaire détaillé
+                // dans `buildDashboard`. Ce memo est de toute façon rempli par
+                // lui, qui s'exécute avant ; les deux doivent dire la même chose.
+                enrichLimit: supplierNodeRef ? null : PREVIEW.tasks * 2,
             })),
             { items: [], counters: { total: 0, late: 0, open: 0, byType: {} } },
         ),
