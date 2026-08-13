@@ -31,7 +31,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, ButtonGroup } from '@/components/ui/Button';
-import { ConfirmModal } from '@/components/ui/Modal';
+import { ConfirmModal, Modal } from '@/components/ui/Modal';
+import { Textarea } from '@/components/ui/Field';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useMessages } from '@/lib/messages';
 import { api } from '@/lib/client';
@@ -45,7 +46,11 @@ const LABELS = {
             'La tâche sera marquée comme terminée et le projet passera à l’étape suivante.',
         refuseTitle: 'Refuser cette tâche ?',
         refuseMessage:
-            'Le projet repartira à l’étape prévue par le circuit de refus. Expliquez le motif dans la discussion du projet : il n’est pas enregistré sur la tâche.',
+            'Le projet repartira à l’étape prévue par le circuit de refus. Le motif ci-dessous sera transmis au fournisseur.',
+        refuseReason: 'Motif du refus',
+        refuseReasonHint: 'Ce texte est envoyé au fournisseur : dites-lui ce qu’il doit corriger.',
+        refuseReasonRequired: 'Un motif est nécessaire pour refuser.',
+        cancel: 'Annuler',
         completed: 'Tâche terminée.',
         refused: 'Tâche refusée.',
     },
@@ -56,7 +61,11 @@ const LABELS = {
         completeMessage: 'The task will be marked as done and the project moves to the next step.',
         refuseTitle: 'Refuse this task?',
         refuseMessage:
-            'The project goes back to the step the refusal path defines. Explain the reason in the project discussion: it is not stored on the task.',
+            'The project goes back to the step the refusal path defines. The reason below is sent to the supplier.',
+        refuseReason: 'Reason for the refusal',
+        refuseReasonHint: 'This text is sent to the supplier: tell them what to correct.',
+        refuseReasonRequired: 'A reason is required to refuse.',
+        cancel: 'Cancel',
         completed: 'Task completed.',
         refused: 'Task refused.',
     },
@@ -75,6 +84,8 @@ export function TaskActions({ task, onDone, backHref = '/tasks' }) {
     const router = useRouter();
     const [pending, setPending] = useState(null);
     const [confirming, setConfirming] = useState(null);
+    // Le motif du refus, obligatoire : voir la route, qui le refuse aussi vide.
+    const [reason, setReason] = useState('');
 
     if (!task || !task.isOpen) {
         return null;
@@ -85,7 +96,8 @@ export function TaskActions({ task, onDone, backHref = '/tasks' }) {
     const run = async (action) => {
         setPending(action);
         try {
-            await api.post(`tasks/${taskId}/${action}`);
+            await api.post(`tasks/${taskId}/${action}`,
+                action === 'refuse' ? { comment: reason.trim() } : undefined);
             toast.success(action === 'complete' ? labels.completed : labels.refused);
             if (onDone) {
                 onDone();
@@ -110,7 +122,7 @@ export function TaskActions({ task, onDone, backHref = '/tasks' }) {
                         icon="close"
                         loading={pending === 'refuse'}
                         disabled={Boolean(pending)}
-                        onClick={() => setConfirming('refuse')}
+                        onClick={() => { setReason(''); setConfirming('refuse'); }}
                     >
                         {labels.refuse}
                     </Button>
@@ -126,14 +138,56 @@ export function TaskActions({ task, onDone, backHref = '/tasks' }) {
                 </Button>
             </ButtonGroup>
 
-            <ConfirmModal
-                open={confirming !== null}
+            {/*
+                LE REFUS DEMANDE SON MOTIF.
+
+                Ce n'était qu'une confirmation, et le texte disait au client
+                d'expliquer sa décision « dans la discussion du projet » — un
+                endroit auquel le fournisseur n'a pas accès. Le motif est
+                désormais saisi ici et transmis au moteur par la transition de
+                workflow, qui le pose sur la tâche rouverte : celle du fournisseur.
+            */}
+            <Modal
+                open={confirming === 'refuse'}
                 onClose={() => setConfirming(null)}
-                onConfirm={() => run(confirming)}
-                tone={confirming === 'refuse' ? 'danger' : 'primary'}
-                title={confirming === 'refuse' ? labels.refuseTitle : labels.completeTitle}
-                message={confirming === 'refuse' ? labels.refuseMessage : labels.completeMessage}
-                confirmLabel={confirming === 'refuse' ? labels.refuse : labels.complete}
+                title={labels.refuseTitle}
+                size="md"
+            >
+                <div className="flex flex-col gap-3">
+                    <p className="text-sm text-[var(--becpg-dark-grey)]">{labels.refuseMessage}</p>
+                    <Textarea
+                        label={labels.refuseReason}
+                        hint={labels.refuseReasonHint}
+                        value={reason}
+                        rows={4}
+                        required
+                        onChange={(event) => setReason(event.target.value)}
+                    />
+                    <div className="flex justify-end gap-2">
+                        <Button variant="ghost" onClick={() => setConfirming(null)}>
+                            {labels.cancel}
+                        </Button>
+                        <Button
+                            variant="danger"
+                            icon="close"
+                            loading={pending === 'refuse'}
+                            disabled={!reason.trim() || Boolean(pending)}
+                            onClick={() => run('refuse')}
+                        >
+                            {labels.refuse}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            <ConfirmModal
+                open={confirming === 'complete'}
+                onClose={() => setConfirming(null)}
+                onConfirm={() => run('complete')}
+                tone="primary"
+                title={labels.completeTitle}
+                message={labels.completeMessage}
+                confirmLabel={labels.complete}
             />
         </>
     );

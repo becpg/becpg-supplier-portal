@@ -20,6 +20,7 @@ import { getLiveSession } from '@/lib/session';
 import { AuthError, toApiResponse } from '@/lib/errors';
 import { createBecpgClient } from '@/lib/adapters/session';
 import { getTask, refuseTask } from '@/lib/adapters/tasks';
+import { BadRequestError } from '@/lib/errors';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -37,8 +38,35 @@ export async function POST(request, context) {
             throw new AuthError('No portal session');
         }
 
+        /*
+         * LE MOTIF EST OBLIGATOIRE.
+         *
+         * Un refus renvoie la fiche au fournisseur : sans raison, il ne peut que
+         * la redéposer à l'identique. La contrainte est posée ici, côté serveur,
+         * et pas seulement dans la boîte de dialogue — une action qui engage
+         * quelqu'un d'autre ne se valide pas sur la seule bonne volonté du client.
+         */
+        let comment = '';
+        try {
+            const body = await request.json();
+            comment = typeof body?.comment === 'string' ? body.comment.trim() : '';
+        }
+        catch {
+            comment = '';
+        }
+        if (!comment) {
+            throw new BadRequestError('A refusal must carry a reason');
+        }
+
         const client = createBecpgClient(session);
-        const result = await refuseTask(client, id);
+
+        // La tâche d'abord : c'est elle qui porte l'identifiant de tâche Activiti,
+        // seul chemin par lequel le motif parvient au moteur.
+        const before = await getTask(client, id).catch(() => null);
+        const result = await refuseTask(client, id, {
+            comment,
+            workflowTaskId: before && before.workflowTaskId,
+        });
 
         // Best effort, exactly as on completion: the refusal is what matters, and
         // the task may already have moved on.
