@@ -34,7 +34,6 @@ import { FormRenderer } from '@/components/form/FormRenderer';
 import { fieldDomId } from '@/components/form/FieldRenderer';
 import { useFormState } from '@/components/form/useFormState';
 import { isEmptyValue } from '@/components/form/validation';
-import { SuggestionBadge } from '@/components/wizard/SuggestionBadge';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
@@ -120,7 +119,6 @@ export function StepReadOnlyNotice({ reason, lang = 'fr', className = '' }) {
  * @param {string|null} [props.readOnlyReason]
  * @param {Object} [props.commentCounts] `{ 'bcpg:legalName': 2 }`
  * @param {Function} [props.onComment] `({ field, label }) => void`
- * @param {Object} [props.suggestionsByField] `{ 'bcpg:legalName': { confidence, confidenceLevel } }`
  * @param {string|null} [props.focusField] a field to scroll to and focus
  * @param {Function} [props.onLoaded] `(definition) => void`
  * @param {Function} [props.onIssues] `(stepId, {count, labels}) => void` — the
@@ -137,7 +135,6 @@ export function FormStep({
     readOnlyReason = null,
     commentCounts = null,
     onComment,
-    suggestionsByField = null,
     focusField = null,
     onLoaded,
     onIssues,
@@ -274,23 +271,15 @@ export function FormStep({
         }
     }, [focusField, definition]);
 
-    const badgeFor = useCallback(
-        (field) => {
-            const suggestion = suggestionsByField ? suggestionsByField[field.name] : null;
-            if (!suggestion) {
-                return null;
-            }
-            return (
-                <SuggestionBadge
-                    level={suggestion.confidenceLevel}
-                    confidence={suggestion.confidence}
-                    lang={lang}
-                    showValue={false}
-                />
-            );
-        },
-        [suggestionsByField, lang],
-    );
+    /*
+     * `badgeFor` a été supprimé avec la notion de confiance.
+     *
+     * Il posait sur le libellé d'un champ un badge « Confiance élevée / moyenne /
+     * faible » tiré du score de la suggestion qui l'avait touché. Le score dit
+     * l'assurance d'un modèle sur sa propre lecture, pas l'exactitude de la
+     * valeur : affiché à côté d'un champ, il se lisait comme un certificat. Le
+     * fournisseur reste seul juge de ce qu'il inscrit.
+     */
 
     const actionFor = useCallback(
         (field) => {
@@ -346,7 +335,6 @@ export function FormStep({
                 formId={step.formId || undefined}
                 itemType={step.itemId || undefined}
                 lang={lang}
-                badgeFor={badgeFor}
                 actionFor={actionFor}
             />
         </div>

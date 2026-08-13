@@ -398,25 +398,10 @@ export function Wizard({
         [suggestionsCall.data],
     );
 
-    /**
-     * `{ 'bcpg:legalName': { confidence, confidenceLevel } }` — what the form
-     * steps need to badge a label. Built from the same payload the suggestions
-     * step renders, so a badge and a card can never disagree.
+    /*
+     * `suggestionsByField` a été supprimé avec les badges de confiance : il ne
+     * servait qu'à poser un niveau sur le libellé d'un champ.
      */
-    const suggestionsByField = useMemo(() => {
-        const map = {};
-        for (const suggestion of suggestions) {
-            for (const change of suggestion.changes || []) {
-                if (change.scope === 'entity' && change.name && !map[change.name]) {
-                    map[change.name] = {
-                        confidence: suggestion.confidence,
-                        confidenceLevel: suggestion.confidenceLevel,
-                    };
-                }
-            }
-        }
-        return map;
-    }, [suggestions]);
 
     const commentsEnabled = Boolean(wizardState && wizardState.comments);
     const discussion = useDiscussion({ nodeRef: entityNodeRef, enabled: commentsEnabled });
@@ -1140,7 +1125,6 @@ export function Wizard({
                     ? ({ field, label }) => openComments({ nodeRef: entityNodeRef, field, label })
                     : undefined
             }
-            suggestionsByField={suggestionsByField}
             focusField={focusField}
             onLoaded={handleDefinitionLoaded(currentStep.id)}
             onIssues={reportStepIssues}

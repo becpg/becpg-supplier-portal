@@ -17,12 +17,12 @@
  * ## Why the content is data and not prose in JSX
  *
  * Every topic is a `{ id, icon, title, summary, blocks }` record and every block
- * is one of seven shapes (`p`, `ul`, `ol`, `note`, `warn`, `badges`, `links`).
+ * is one of six shapes (`p`, `ul`, `ol`, `note`, `warn`, `links`).
  * Adding a paragraph is editing an array, not editing markup, and the renderer
  * guarantees that all topics look alike. Markdown was considered and dropped:
  * `react-markdown` is **not** a dependency of this project (checked in
  * `package.json`), and adding a parser to render text the portal itself owns
- * would buy nothing — while `links` and `badges` would still need components.
+ * would buy nothing — while `links` would still need a component.
  *
  * ## Every statement here is checked against the code
  *
@@ -30,7 +30,7 @@
  * overdue task red is `NOTIFICATION_CONFIG.taskDangerAfterDays`, the 60-day
  * notice is `DEFAULT_DOCUMENT_CONFIG.noticeDays`, the approval rules are
  * `DEFAULT_APPROVAL_CONFIG.rules`, the confidence buckets are rendered by the
- * wizard's own `<SuggestionBadge>`, and the signature paragraph describes what
+ * wizard's own vocabulary, and the signature paragraph describes what
  * `SignatureFlow` actually does (read tracking, consent, server-side signing).
  * Graduated reminders and internal escalation (spec §4.5, gap 2) are **not**
  * described: they are not built yet, and help that promises a feature is worse
@@ -44,7 +44,6 @@ import { AppShell } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { SearchInput } from '@/components/ui/Field';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { SuggestionBadge } from '@/components/wizard/SuggestionBadge';
 import { useSession } from '@/components/providers/SessionProvider';
 import { useMessages } from '@/lib/messages';
 
@@ -249,22 +248,21 @@ const TOPICS = {
         {
             id: 'confidence',
             icon: 'auto_awesome',
-            title: 'Ce que veulent dire les badges de confiance',
-            summary: 'Trois niveaux, et un quatrième cas : pas de badge du tout.',
+            title: 'Ce que l’IA vous propose',
+            summary: 'Des propositions, jamais des valeurs posées à votre place.',
             blocks: [
                 {
-                    p: 'Quand l’extraction automatique est activée chez votre client, les valeurs lues dans vos documents arrivent pré-remplies, accompagnées d’un badge qui dit à quel point la lecture est sûre. Le badge n’est pas une note : c’est une consigne sur ce qu’il vous reste à faire.',
+                    p: 'Quand l’extraction automatique est activée chez votre client, le portail lit vos documents et vous propose les valeurs qu’il y a trouvées. Elles s’affichent dans le panneau « Contexte », à droite de la saisie, et sont relues à chaque changement d’étape.',
                 },
-                { badges: ['high', 'medium', 'low'] },
                 {
                     ul: [
-                        '**Appliqué** (confiance ≥ 90 %) — la valeur est déjà en place. Vous pouvez l’annuler d’un clic si elle est fausse.',
-                        '**À confirmer** (70 à 89 %) — la valeur est proposée mais pas appliquée : vérifiez-la, puis acceptez ou corrigez.',
-                        '**À saisir** (moins de 70 %) — la lecture n’est pas fiable, saisissez la valeur vous-même.',
+                        '**Appliquer** — la valeur est écrite dans la fiche. Rien ne l’est avant ce clic.',
+                        '**Ignorer** — la proposition disparaît de la liste et ne revient pas.',
+                        '**Agrandir** — pour les analyses longues, qui ne tiennent pas dans le panneau.',
                     ],
                 },
                 {
-                    note: 'Quatrième cas : **aucun badge**. Cela veut dire qu’aucun score n’a été renvoyé pour ce champ, pas que la confiance est faible. Une absence de badge ne signale jamais un doute.',
+                    note: 'Aucune valeur n’est appliquée automatiquement, quel que soit le degré de certitude de la lecture. C’est vous qui engagez votre fiche : la décision vous revient, champ par champ.',
                 },
                 {
                     p: 'Dans tous les cas, la valeur finale est la vôtre : vous restez responsable de ce que vous validez, et rien n’est envoyé à votre client avant que vous ne terminiez la tâche.',
@@ -541,22 +539,21 @@ const TOPICS = {
         {
             id: 'confidence',
             icon: 'auto_awesome',
-            title: 'What the confidence badges mean',
-            summary: 'Three levels, and a fourth case: no badge at all.',
+            title: 'What the AI proposes',
+            summary: 'Proposals — never values written in your place.',
             blocks: [
                 {
-                    p: 'When automatic extraction is enabled at your customer, values read from your documents arrive pre-filled with a badge saying how sure that reading is. The badge is not a grade: it tells you what is left for you to do.',
+                    p: 'When automatic extraction is enabled at your customer, the portal reads your documents and proposes the values it found. They appear in the "Context" panel, to the right of the form, and are re-read on every step change.',
                 },
-                { badges: ['high', 'medium', 'low'] },
                 {
                     ul: [
-                        '**Applied** (confidence ≥ 90%) — the value is already in place. One click undoes it if it is wrong.',
-                        '**To confirm** (70 to 89%) — the value is proposed but not applied: check it, then accept or correct it.',
-                        '**Manual entry** (below 70%) — the reading is not reliable, enter the value yourself.',
+                        '**Apply** — the value is written to the sheet. Nothing is written before that click.',
+                        '**Dismiss** — the proposal leaves the list and does not come back.',
+                        '**Expand** — for long analyses that do not fit in the panel.',
                     ],
                 },
                 {
-                    note: 'Fourth case: **no badge**. It means no score was returned for that field, not that confidence is low. A missing badge never signals a doubt.',
+                    note: 'No value is ever applied automatically, however certain the reading claims to be. You are the one committing the sheet: the decision is yours, field by field.',
                 },
                 {
                     p: 'In every case the final value is yours: you remain responsible for what you validate, and nothing reaches your customer before you complete the task.',
@@ -785,25 +782,6 @@ function Block({ block, lang }) {
                     </li>
                 ))}
             </ol>
-        );
-    }
-    if (block.badges) {
-        // The badges the wizard itself renders — not a drawing of them.
-        return (
-            <div className="flex flex-wrap items-center gap-2">
-                {block.badges.map((level) => (
-                    // `showValue={false}`: this is a legend, there is no score to
-                    // append — and `confidence={null}` must not be printed as 0 %.
-                    <SuggestionBadge
-                        key={level}
-                        level={level}
-                        confidence={null}
-                        showValue={false}
-                        lang={lang}
-                        size="md"
-                    />
-                ))}
-            </div>
         );
     }
     if (block.links) {
