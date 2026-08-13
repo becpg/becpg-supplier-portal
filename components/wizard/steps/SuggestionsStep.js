@@ -67,8 +67,15 @@ const LABELS = {
         notRevocable:
             'La valeur précédente ne peut pas être rétablie automatiquement : modifiez le champ directement si besoin.',
         empty: 'Aucune suggestion',
+        /*
+         * Plus « à l'étape précédente » : la fiche technique n'est plus une
+         * étape, et les suggestions sont désormais bornées à l'étape ouverte —
+         * « rien ici » veut dire « rien POUR CETTE ÉTAPE », pas « rien du tout ».
+         * Renvoyer vers un écran disparu était la pire des deux erreurs.
+         */
         emptyHint:
-            'Déposez vos documents à l’étape précédente : l’extraction automatique vous proposera les valeurs qu’elle y trouve.',
+            'Rien à proposer pour cette étape. La fiche technique se dépose juste au-dessus : '
+            + 'l’extraction vous proposera les valeurs qu’elle y trouve.',
         emptyEntityLevel:
             'L’analyse a bien tourné, mais elle n’a produit que des déductions faites sur la fiche '
             + 'elle-même, sans document à l’appui : elles ne vous sont pas proposées.',
@@ -111,8 +118,10 @@ const LABELS = {
         notRevocable:
             'The previous value cannot be restored automatically: edit the field directly if needed.',
         empty: 'No suggestion',
+        /* See the note on the French key. */
         emptyHint:
-            'Deposit your documents at the previous step: the automatic extraction will propose the values it finds.',
+            'Nothing to propose for this step. The technical sheet is uploaded just above: '
+            + 'the extraction will propose the values it finds there.',
         emptyEntityLevel:
             'The analysis did run, but it only produced deductions made from the sheet itself, '
             + 'with no document backing them: they are not offered to you.',
