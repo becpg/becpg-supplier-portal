@@ -193,9 +193,10 @@ export function HelpPanel({
      * Mesuré sur dev : une tâche « Validation » refusée pendant que le panneau
      * affichait « Aucun refus sur cette fiche ».
      *
-     * `/api/v1/tasks/{id}` les résout désormais depuis le projet de la tâche
-     * (`listProjectRefusals`), avec le motif que le client a saisi —
-     * `pjt:tlTaskComment`, ce que `ProjectServiceImpl.refusedTask` y écrit.
+     * Ils arrivent désormais AVEC la tâche : `projectTaskInfo.get.json.ftl`
+     * remonte les associations sources de `pjt:tlRefusedTaskRef` et leur
+     * `pjt:tlTaskComment` — ce que `ProjectServiceImpl.refusedTask` y écrit.
+     * Lire le projet n'aurait rien donné : un fournisseur n'y a pas accès.
      */
     const refusals = useMemo(
         () => (task && Array.isArray(task.refusals) ? task.refusals : []),
