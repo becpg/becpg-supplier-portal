@@ -4,6 +4,9 @@ Instructions for any AI agent working in this repository. Read this before touch
 `spec.md` is the authoritative specification; this file is only the short form of the rules.
 Current state, known defects and remaining gaps: `doc/implementation-status.md`.
 
+`CLAUDE.md` and `GEMINI.md` are symlinks to this file — one document, whichever agent reads it.
+Edit `AGENTS.md`; the same layout is used in the `becpg` repository.
+
 ## Read this first
 
 **This repository IS under version control** — `main`, pushed to Google Source. That was not
@@ -127,10 +130,49 @@ Packaging: `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `deployment.yml`
 `cloudbuild.delivery.yaml`, `release.sh` — a **single** Next.js standalone image, no Java
 backend (spec §5.1.1, §5.5).
 
+## Language: everything in the source is English
+
+**All source code is written in English, comments included.** Same rule as the `becpg`
+repository, and it applies to every file type here:
+
+- **Identifiers**: components, functions, variables, constants, route segments
+- **Comments and JSDoc**, every line
+- **Log messages** and error messages
+- **Commit messages** (see the Git section below)
+- The **key** side of `config/messages.js` — its values are the translations
+
+French belongs to the *interface*, never to the source. Chrome wording lives in
+`config/messages.js`, business labels come from beCPG in the user's locale; a French sentence
+anywhere else is either a defect or a quote. When it genuinely is a quote — a field label, an
+error message the system really emits — keep the quote as it is and write the sentence around
+it in English.
+
+This applies to the files you touch: fix the file you are working on, do not translate the
+whole repository in passing. There is a real backlog here, some 200 comment lines across
+`app/`, `lib/` and `components/`.
+
+## Comments
+
+- **Do not comment bad code — rewrite it.** Code explains itself through naming and structure.
+- **Comment the *why*, never the *what*.** Intent, a constraint that is not visible locally, a
+  trap someone will otherwise fall into again.
+- **A comment is not a changelog.** No history of what the code used to do, no measurement
+  dates, no ticket narrative, no "this used to be broken because…". Git holds that. A comment
+  that would still be true and useful in a year is a good comment.
+- **No commented-out code.** Ever.
+- **No Markdown inside comments** — no bold, no headings; they are read as plain text.
+- **JSDoc on the exported functions** of `lib/` and on the adapters: what it returns, and the
+  shape of what it returns. Internal helpers only when the contract is not obvious.
+
 ## Conventions
 
 - Mirror `becpg-regulatory-ui`: 4-space indent, named exports, semicolons,
   double quotes in JSX attributes / single quotes in JS.
+- **No magic strings**: a literal used more than once, or carrying meaning, becomes a `const`
+  at module scope — as `SESSION_COOKIE_NAME` and `LANG_COOKIE` already are.
+- **No en-dash character** (`U+2013`) in code, configuration or data files: a plain hyphen
+  (`-`), so values match external databases exactly and survive any encoding.
+- `?.` and `??` over defensive `&&` chains; strict equality, never `==` except against `null`.
 - Design tokens live in `app/globals.css` and must match regulatory:
   `--becpg-blue: #004254`, `--becpg-green: #00ffbd`, `--becpg-grey: #e4ecee`,
   `--becpg-orange: #ff642d`, `--becpg-darkGrey: #747474`. Font: Roboto via `next/font/google`.
@@ -143,7 +185,60 @@ backend (spec §5.1.1, §5.5).
 - Write complete, working code. No `TODO` stub for something you were asked to implement.
 - When the repository cannot answer a question honestly, **degrade explicitly** rather than
   fabricate: `history: { available: false }`, `filters.unsupported`, `pagination.truncated`,
-  `sortScope: 'window'`. Never invent a series, a date or a count.
+  `sortScope: 'window'`. Never invent a series, a date or a count. This is a correctness rule,
+  not a style one: a fabricated figure in a supplier's file is worse than a missing one.
+
+## Functions and modules
+
+- **Do one thing.** Keep functions short and at a single level of abstraction — 10 to 15 lines
+  is the target, 20 the ceiling. A route handler that fetches, maps and formats is three
+  functions.
+- **Few arguments.** More than two or three means a parameter object.
+- **No hidden side effects.** A function named `getX` does not write a cookie.
+- **DRY.** Logic duplicated between an adapter and a component belongs in the adapter.
+- Remove unused imports and dead code as you go.
+
+## Error handling
+
+- **Throw, do not return error codes or booleans.** An adapter that cannot map its input
+  throws; the route handler turns it into a status.
+- **Do not return `null` to mean "failed"**: an empty list, an explicit `{ available: false }`
+  or a thrown error, whichever is true.
+- Catch at the boundary — the route handler — not in every helper.
+- **Never swallow an exception silently.** Log it with enough context to find the caller.
+- A repository status is forwarded, not collapsed: the caller must be able to tell 401 from
+  404 from 502.
+
+## Security
+
+Hard rules 5, 6 and 7 *are* the security model; everything here serves them.
+
+- **Never log a secret**: no OIDC token, no Alfresco ticket, no session cookie, no password —
+  not truncated, not at debug level.
+- **Never put a credential in a URL.** Query strings are written to access logs, to the logs
+  of every proxy traversed and to browser history. Headers or a POST body. (This is currently
+  violated between the portal and `becpg/portal/wizard` — see `TODO.md`.)
+- **Validate at the boundary**: every value coming from the browser is untrusted, a `nodeRef`
+  included. Check its shape before forwarding it.
+- Use `[Security]` as the commit type for a security fix.
+
+## Testing
+
+- **Playwright end-to-end tests** are the main form of testing here:
+  `npx playwright test --config e2e/playwright.config.js`
+- Test code is first-class code: as clean as production code, and F.I.R.S.T. — fast,
+  independent, repeatable, self-validating, timely.
+- **One concept per test.** A test name says what breaks when it fails.
+- Never make a test pass by weakening its assertion.
+- A bug fix comes with the test that would have caught it, whenever the harness allows it.
+
+## Logging
+
+- `console.error` for a failure, `console.warn` for a recoverable problem, `console.log` only
+  behind an explicit debug flag.
+- Always give the context that lets someone find the call — the route, the nodeRef, the user —
+  and never the credential.
+- Server logs go to the pod: assume a colleague reads them at 2 a.m. without the code open.
 
 ## How to run
 
@@ -196,6 +291,24 @@ is recognisable from outside. `latest` is never retagged — that one belongs to
 
 ## Git commits
 
-One line, English, format `[Optional: InProgress/Fix #ticket] - [Type] Description` with type in
-`[Feature] [Bug] [Setup] [Cleanup] [Migration] [Security] [Merge]`.
-Never add a `Co-Authored-By` line nor any "Generated with" footer.
+Strict format, **one line only**, English:
+
+```
+[Optional: InProgress/Fix #ticket] - [Type] Description
+```
+
+Types: `[Feature]` `[Bug]` `[Setup]` `[Cleanup]` `[Migration]` `[Security]` `[Merge]`
+
+```
+InProgress #6174 - [Bug] Fix project dashlet task name
+[Feature] Implement the supplier signature flow
+Fix #1234 - [Security] Stop forwarding the ticket in the query string
+```
+
+- **One line only** — no multi-line commit messages
+- **Never add a `Co-Authored-By` line**, nor a "Generated with" footer, nor any similar
+  attribution
+- **Stage only the files you explicitly changed.** Never `git add .`, never stage unrelated
+  work — other agents may be editing the same tree. Read `git diff --cached --stat` before
+  committing, every time.
+- Commit and push only when asked
