@@ -21,7 +21,7 @@
  * to a task (spec §4.4). It is shown as a chip on the message.
  */
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { AppShell } from '@/components/shell/AppShell';
@@ -35,6 +35,7 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { useSession } from '@/components/providers/SessionProvider';
 import { formatDateTime, formatTotal } from '@/lib/format';
 import { api, useApi } from '@/lib/client';
+import { isUnread, markRead, readState, serverState, subscribe } from '@/lib/discussions';
 import { useMessages } from '@/lib/messages';
 
 const LABELS = {
@@ -42,6 +43,7 @@ const LABELS = {
         title: 'Discussions',
         subtitle: 'Les échanges avec le client, produit par produit',
         subjects: 'Sujets',
+        messageCount: '{count} message(s)',
         search: 'Rechercher un sujet',
         myRecord: 'Ma fiche fournisseur',
         back: 'Sujets',
@@ -74,6 +76,7 @@ const LABELS = {
         title: 'Discussions',
         subtitle: 'Exchanges with the customer, product by product',
         subjects: 'Subjects',
+        messageCount: '{count} message(s)',
         search: 'Search a subject',
         myRecord: 'My supplier record',
         back: 'Subjects',
@@ -297,6 +300,7 @@ function MessagesScreen() {
             name: item.name,
             code: item.code,
             href: `/products/${item.uuid}`,
+            count: item.commentCount || 0,
         }));
         const supplier = session.supplier;
         // The supplier's own record is not part of the paginated catalogue, so the
@@ -315,10 +319,39 @@ function MessagesScreen() {
                 code: supplier.code,
                 href: '/company',
                 isSupplier: true,
+                count: supplier.commentCount || 0,
             });
         }
-        return list;
+        /*
+         * Les sujets qui portent des messages remontent en tête.
+         *
+         * Vingt-six produits présentés à l'identique, dont trois seulement ont un
+         * fil : l'écran répondait « voici tes produits » quand la question était
+         * « où sont mes échanges ? ». Le tri est **stable** — l'ordre du
+         * catalogue est conservé à l'intérieur de chaque groupe — et la fiche
+         * fournisseur garde sa place en tête, ce n'est pas un produit.
+         */
+        const [own, rest] = list[0] && list[0].isSupplier
+            ? [[list[0]], list.slice(1)]
+            : [[], list];
+        return [
+            ...own,
+            ...rest.filter((entry) => entry.count > 0),
+            ...rest.filter((entry) => !(entry.count > 0)),
+        ];
     }, [loaded, search, session.supplier, labels.myRecord]);
+
+    /*
+     * Ce que le fournisseur a déjà ouvert — le même magasin que la carte du
+     * tableau de bord (`lib/discussions.js`). Ici la comparaison se fait sur le
+     * NOMBRE de messages : lire la date du dernier message coûterait un appel par
+     * sujet, vingt-six pour afficher une liste.
+     */
+    const seenThreads = useSyncExternalStore(subscribe, readState, serverState);
+    const unreadOf = useCallback(
+        (subject) => isUnread({ nodeRef: subject.nodeRef, count: subject.count, last: null }, seenThreads),
+        [seenThreads],
+    );
 
     /** More pages upstream for the term currently displayed. */
     const hasMoreSubjects = loaded.q === search && loaded.hasMore;
@@ -364,9 +397,14 @@ function MessagesScreen() {
      * (a notification mail points at `/messages?nodeRef=…`). `replaceState` is
      * used rather than a router push: switching subject is not a navigation.
      */
-    const select = useCallback((nodeRef) => {
+    const select = useCallback((nodeRef, count = null) => {
         setSelected(nodeRef);
         setDraft('');
+        // Ouvrir un sujet, c'est le lire : le nombre de messages vu à cet instant
+        // devient la référence à laquelle le prochain affichage se comparera.
+        if (nodeRef) {
+            markRead(nodeRef, null, count);
+        }
         if (typeof window === 'undefined') {
             return;
         }
@@ -458,7 +496,7 @@ function MessagesScreen() {
                         <li key={subject.nodeRef}>
                             <button
                                 type="button"
-                                onClick={() => select(subject.nodeRef)}
+                                onClick={() => select(subject.nodeRef, subject.count)}
                                 aria-current={selected === subject.nodeRef ? 'true' : undefined}
                                 className={[
                                     'touch-target flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors',
@@ -473,13 +511,34 @@ function MessagesScreen() {
                                     className="text-[var(--becpg-dark-grey)]"
                                 />
                                 <span className="min-w-0 flex-1">
-                                    <span className="block truncate">{subject.name || '—'}</span>
+                                    <span className={`block truncate${unreadOf(subject) ? ' font-semibold' : ''}`}>
+                                        {unreadOf(subject) ? (
+                                            <span
+                                                aria-hidden="true"
+                                                className="mr-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--becpg-orange)] align-middle"
+                                            />
+                                        ) : null}
+                                        {subject.name || '—'}
+                                    </span>
                                     {subject.code ? (
                                         <span className="block truncate text-xs text-[var(--becpg-dark-grey)]">
                                             {subject.code}
                                         </span>
                                     ) : null}
                                 </span>
+                                {/* Le nombre de messages : c'est LA question de cet
+                                    écran, et vingt-six sujets rendus à l'identique n'y
+                                    répondaient pas. Une ligne sans message n'affiche
+                                    rien plutôt qu'un « 0 » à lire. */}
+                                {subject.count > 0 ? (
+                                    <span
+                                        className="pill pill-neutral pill-sm pill-no-dot shrink-0"
+                                        aria-label={labels.messageCount.replace('{count}', subject.count)}
+                                    >
+                                        <Icon name="chat_bubble_outline" size={13} />
+                                        {subject.count}
+                                    </span>
+                                ) : null}
                             </button>
                         </li>
                     ))}
