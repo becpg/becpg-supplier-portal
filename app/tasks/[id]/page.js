@@ -37,7 +37,7 @@
  * entity we do know, not a blank assistant.
  */
 
-import { Suspense, useMemo } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { AppShell } from '@/components/shell/AppShell';
 import { Card } from '@/components/ui/Card';
@@ -48,6 +48,8 @@ import { Wizard } from '@/components/wizard/Wizard';
 import { ReviewStep } from '@/components/wizard/steps/ReviewStep';
 import { DocumentsStep } from '@/components/wizard/steps/DocumentsStep';
 import { SignatureFlow } from '@/components/signature/SignatureFlow';
+import { DocumentViewer } from '@/components/documents/DocumentViewer';
+import { Button } from '@/components/ui/Button';
 import { CommentsPanel } from '@/components/wizard/panels/CommentsPanel';
 import { TaskActions } from '@/components/tasks/TaskActions';
 import { formatDate } from '@/lib/format';
@@ -65,6 +67,7 @@ const LABELS = {
         noEntityHint:
             'Le livrable associé à cette tâche ne référence aucun produit. Contactez votre client via la discussion du projet.',
         documents: 'Documents à fournir',
+        viewDocument: 'Consulter le document',
         due: 'À rendre le {date}',
         late: 'En retard',
         done: 'Terminée',
@@ -79,6 +82,7 @@ const LABELS = {
         noEntityHint:
             'The deliverable attached to this task references no product. Contact your customer through the project discussion.',
         documents: 'Documents to provide',
+        viewDocument: 'View the document',
         due: 'Due on {date}',
         late: 'Late',
         done: 'Completed',
@@ -129,6 +133,11 @@ function TaskHeader({ task, labels, lang, onDone }) {
     );
 }
 
+/** `workspace://SpacesStore/<uuid>` → `<uuid>`, ce qu'attend la route de contenu. */
+function uuidOf(nodeRef) {
+    return String(nodeRef || '').split('/').pop();
+}
+
 function TaskRouter() {
     const params = useParams();
     const search = useSearchParams();
@@ -144,6 +153,9 @@ function TaskRouter() {
 
     const step = search.get('step');
     const data = task.data;
+    // Le document de la tâche, ouvert à la demande : `DocumentViewer` est une
+    // modale, l'inscrire dans le flux la laisserait ouverte en permanence.
+    const [viewing, setViewing] = useState(null);
 
     // The wizard id comes from the deliverable URL when it carries one — the
     // deliverable is the authority, not the entity type (invariant I1).
@@ -275,6 +287,32 @@ function TaskRouter() {
             }
         >
             <TaskHeader task={data} labels={labels} lang={lang} onDone={task.refresh} />
+            {/*
+                LE DOCUMENT SE LIT, IL NE SE TÉLÉCHARGE PAS SEULEMENT.
+
+                Une tâche de validation de signature nomme le fichier signé. Sans
+                visionneuse, la relire supposait de la télécharger, l'ouvrir
+                ailleurs, puis revenir décider — pour une action dont tout
+                l'objet est de regarder ce document.
+            */}
+            {data.documentNodeRef ? (
+                <div className="mb-4">
+                    <Button
+                        variant="outline"
+                        icon="visibility"
+                        onClick={() => setViewing({
+                            nodeRef: data.documentNodeRef,
+                            name: data.name || '',
+                            // `DocumentViewer` lit le contenu par le portail, jamais
+                            // par Alfresco — voir `lib/adapters/documents.js`.
+                            downloadUrl: `/api/v1/documents/${encodeURIComponent(uuidOf(data.documentNodeRef))}/content`,
+                        })}
+                    >
+                        {labels.viewDocument}
+                    </Button>
+                </div>
+            ) : null}
+            <DocumentViewer document={viewing} onClose={() => setViewing(null)} />
             <ReviewStep entityId={entityNodeRef} wizardId={wizardId} />
             {/* Sous `lg` il n'y a pas de colonne latérale : le fil passe sous la
                 fiche plutôt que de disparaître. */}
