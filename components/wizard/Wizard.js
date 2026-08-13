@@ -990,9 +990,9 @@ export function Wizard({
             // 1 — ce que l'assistant a vu de ses propres yeux. Sauf en mode
             // brouillon, où le client a déclaré qu'une fiche partielle est
             // recevable : le manque est alors signalé, pas opposé.
-            const localGap = wizardState.draft
-                ? null
-                : steps.find((step) => stepIssues[step.id]);
+            // Voir `finishDisabled` : `draft` autorise l'enregistrement, pas la
+            // soumission d'une fiche incomplète.
+            const localGap = steps.find((step) => stepIssues[step.id]);
             if (localGap) {
                 const issues = stepIssues[localGap.id];
                 toast.error(new Error(fill(labels.finishMissingStep, {
@@ -1220,28 +1220,28 @@ export function Wizard({
     );
 
     /*
-     * **Ce qui manque est toujours dit. Ce qui bloque dépend de la configuration.**
+     * **`draft` NE GOUVERNE PAS LA SOUMISSION.**
      *
-     * `draft` est l'attribut par lequel le client déclare qu'on peut rendre
-     * depuis n'importe quelle étape (spec §1.4) — donc, en toutes lettres, qu'une
-     * fiche partielle est recevable chez lui. Refuser la clôture sur un
-     * obligatoire vide dans ce mode reviendrait à contredire son propre
-     * paramétrage ; et le registre des manques est de toute façon **partiel** —
-     * il ne connaît que les étapes ouvertes — donc un blocage fondé dessus
-     * dépendrait de l'endroit où le fournisseur a navigué. Deux bonnes raisons de
-     * ne pas en faire un mur là où le client a dit l'inverse.
+     * Il l'a fait ici, à tort : la clôture était autorisée sur des obligatoires
+     * vides dès que l'assistant portait `draft="true"` — ce qui est le cas de
+     * tous les assistants fournisseur. Un questionnaire à moitié rempli partait
+     * donc chez le client sans que rien ne s'y oppose.
      *
-     * Le manque, lui, est signalé dans les deux cas : dans le rail, et sous le
-     * bouton (`finishReason` est rendu même actif — voir `WizardFooter`). Taire
-     * une fiche incomplète parce qu'elle est recevable, c'est laisser le
-     * fournisseur l'apprendre par un refus de son client.
+     * `draft` dit qu'on peut **enregistrer** en cours de route, pas qu'une fiche
+     * partielle est recevable. Les deux sont indépendants, et sur ce portail
+     * l'attribut n'a de toute façon plus grand sens : l'enregistrement est
+     * automatique à chaque frappe.
      *
-     * Le bouton se grise donc sur ce qui est **su et bloquant** ; `finish()`
-     * revérifie sur ce qui est **vrai** au moment de rendre, parce que les
-     * catalogues ne sont chargés qu'après passage par « Conformité ».
+     * Rendre, c'est engager la fiche : un obligatoire manquant l'empêche,
+     * toujours.
+     *
+     * Le manque reste **dit** avant d'être opposé — dans le rail, et sous le
+     * bouton (`finishReason` est rendu même quand il est actif). Le bouton se
+     * grise sur ce qui est **su** ; `finish()` revérifie sur ce qui est **vrai**
+     * au moment de rendre, les catalogues n'étant chargés qu'après passage par
+     * « Conformité ».
      */
-    const draftMode = Boolean(wizardState && wizardState.draft);
-    const finishDisabled = blocking.length > 0 || (!draftMode && incompleteSteps.length > 0);
+    const finishDisabled = blocking.length > 0 || incompleteSteps.length > 0;
     const finishReason = incompleteSteps.length > 0
         ? fill(labels.finishMissingStep, {
             step: incompleteSteps[0].label,
