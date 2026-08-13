@@ -104,10 +104,12 @@ export function TechnicalSheetPanel({ entityNodeRef, state, readOnly = false, on
     const { loading, sheet, refresh } = state;
 
     const [deposits, setDeposits] = useState(0);
+    const [replacing, setReplacing] = useState(false);
 
     const handleUploaded = useCallback(
         (...args) => {
             setDeposits((current) => current + 1);
+            setReplacing(false);
             refresh();
             if (onUploaded) {
                 onUploaded(...args);
@@ -126,47 +128,46 @@ export function TechnicalSheetPanel({ entityNodeRef, state, readOnly = false, on
     return (
         <div className="flex flex-col gap-2">
             {sheet.isProvided ? (
-                <>
-                    <div className="flex items-baseline gap-2">
-                        <Icon name="description" size={16} className="shrink-0 text-[var(--becpg-dark-grey)]" />
-                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--becpg-blue)]">
-                            {sheet.name || (sheet.type && sheet.type.label) || labels.title}
+                /*
+                    UNE LIGNE, PAS UN DOSSIER.
+                
+                    Le bloc reprenait le nom du fichier sous un encart déjà
+                    intitulé « Fiche technique », puis repliait le remplacement
+                    derrière un dépliant — trois niveaux pour dire « elle est là,
+                    depuis telle date ». Ce qui sert au fournisseur, c'est la
+                    date de dépôt, la validité, et pouvoir la remplacer.
+                */
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <Icon name="check_circle" size={15} className="shrink-0 text-[var(--becpg-green)]" />
+                    {sheet.modified ? (
+                        <span className="text-sm text-[var(--becpg-dark-grey)]">
+                            {fill(labels.deposited, { date: formatDate(sheet.modified, lang) })}
                         </span>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-1.5">
-                        {sheet.modified ? (
-                            <span className="text-xs text-[var(--becpg-dark-grey)]">
-                                {fill(labels.deposited, { date: formatDate(sheet.modified, lang) })}
-                            </span>
-                        ) : null}
-                        {sheet.validTo ? <ExpiryPill validTo={sheet.validTo} /> : null}
-                    </div>
-
-                    {/*
-                        Le remplacement reste possible sans être la première chose
-                        qu'on voit : une fiche déposée n'appelle pas d'action, elle
-                        appelle une vérification.
-                    */}
-                    {!readOnly ? (
-                        <details className="text-xs">
-                            <summary className="cursor-pointer text-[var(--becpg-blue-light)] hover:underline">
-                                {labels.replace}
-                            </summary>
-                            <div className="mt-1.5">
-                                <DocumentUpload
-                                    key={deposits}
-                                    documentRef={sheet.uploadTarget && sheet.uploadTarget.documentRef}
-                                    entityRef={(sheet.uploadTarget && sheet.uploadTarget.entityRef) || entityNodeRef}
-                                    variant="zone"
-                                    disabled={readOnly}
-                                    disabledReason={labels.readOnly}
-                                    onUploaded={handleUploaded}
-                                />
-                            </div>
-                        </details>
                     ) : null}
-                </>
+                    {sheet.validTo ? <ExpiryPill validTo={sheet.validTo} /> : null}
+                    {!readOnly ? (
+                        <button
+                            type="button"
+                            onClick={() => setReplacing((current) => !current)}
+                            className="text-xs text-[var(--becpg-blue-light)] underline underline-offset-2 hover:opacity-80"
+                        >
+                            {labels.replace}
+                        </button>
+                    ) : null}
+                    {replacing && !readOnly ? (
+                        <div className="w-full">
+                            <DocumentUpload
+                                key={deposits}
+                                documentRef={sheet.uploadTarget && sheet.uploadTarget.documentRef}
+                                entityRef={(sheet.uploadTarget && sheet.uploadTarget.entityRef) || entityNodeRef}
+                                variant="zone"
+                                disabled={readOnly}
+                                disabledReason={labels.readOnly}
+                                onUploaded={handleUploaded}
+                            />
+                        </div>
+                    ) : null}
+                </div>
             ) : (
                 <>
                     <p className="text-sm text-[var(--becpg-dark-grey)]">{labels.missingHint}</p>

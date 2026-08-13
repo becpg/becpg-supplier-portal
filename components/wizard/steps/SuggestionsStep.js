@@ -58,7 +58,6 @@ const LABELS = {
         expand: 'Agrandir',
         applyAnyway: 'Appliquer quand même',
         revoke: 'Annuler',
-        dismiss: 'Ignorer',
         restore: 'Revoir',
         applying: 'Application…',
         appliedAt: 'Appliqué',
@@ -109,7 +108,6 @@ const LABELS = {
         expand: 'Expand',
         applyAnyway: 'Apply anyway',
         revoke: 'Undo',
-        dismiss: 'Dismiss',
         restore: 'Review',
         applying: 'Applying…',
         appliedAt: 'Applied',
@@ -292,7 +290,6 @@ function SuggestionCard({
     revocable,
     onApply,
     onRevoke,
-    onDismiss,
     onExpand,
     index,
     compact = false,
@@ -404,11 +401,15 @@ function SuggestionCard({
                     </Button>
                 ) : null}
 
-                {!readOnly && !applied && status !== STATE.DISMISSED ? (
-                    <Button variant="ghost" size="sm" onClick={onDismiss}>
-                        {labels.dismiss}
-                    </Button>
-                ) : null}
+                {/*
+                    « Ignorer » a été retiré.
+                
+                    Il n'écartait la proposition que dans ce navigateur, sans rien
+                    dire à personne — et posé à côté d'« Appliquer », il laissait
+                    entendre que l'autre bouton engageait quelque chose de
+                    symétrique et définitif. Une suggestion qu'on ne veut pas, on
+                    ne l'applique pas : c'est déjà l'action par défaut.
+                */}
 
             </div>
         </motion.li>
@@ -619,14 +620,6 @@ export function SuggestionsStep({
         [readOnly, snapshot, entityId, entityType, remember, onApplied, toast],
     );
 
-    const dismiss = useCallback(
-        (suggestion) => {
-            setStatuses((current) => ({ ...current, [suggestion.id]: STATE.DISMISSED }));
-            remember(suggestion.id, STATE.DISMISSED);
-        },
-        [remember],
-    );
-
     /*
      * **Rien n'est appliqué tout seul.** Une suggestion à 95 % l'était à
      * l'arrivée sur l'étape, badge vert et bouton « révoquer » — c'est ce que
@@ -768,7 +761,6 @@ export function SuggestionsStep({
                                 revocable={revocableOf(suggestion)}
                                 onApply={() => apply(suggestion)}
                                 onRevoke={() => revoke(suggestion)}
-                                onDismiss={() => dismiss(suggestion)}
                                 onExpand={() => setExpanded(suggestion)}
                             />
                         ))}

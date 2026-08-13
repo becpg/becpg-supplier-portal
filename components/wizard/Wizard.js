@@ -92,6 +92,12 @@ import { formatDate } from '@/lib/format';
 import { portalCatalogs } from '@/lib/catalogs';
 import { suggestionScopeForStep } from '@/lib/suggestionScope';
 
+/**
+ * Ce que le navigateur accorde à une analyse becpg-ai, aligné sur
+ * `AI_SUGGESTIONS_TIMEOUT` de la route. Les deux doivent bouger ensemble.
+ */
+const AI_TIMEOUT_MS = 180_000;
+
 const LABELS = {
     fr: {
         context: 'Contexte',
@@ -497,6 +503,9 @@ export function Wizard({
     const suggestionScope = suggestionScopeForStep(currentStep);
     const suggestionsCall = useApi(entityId ? `suggestions/${encodeURIComponent(entityId)}` : null, {
         params: suggestionScope ? { listId: suggestionScope } : undefined,
+        // Le même plafond que la route : 45 s côté navigateur coupaient une
+        // analyse que le serveur laissait aller jusqu'à 180 s.
+        timeout: AI_TIMEOUT_MS,
     });
     const suggestions = useMemo(
         () => (suggestionsCall.data && Array.isArray(suggestionsCall.data.suggestions)
