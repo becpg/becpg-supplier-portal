@@ -37,6 +37,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { writeScopeCookie } from '@/lib/scope';
 import { UNAUTHORIZED_EVENT, api, tenantPrefix } from '@/lib/client';
 
 /**
@@ -330,6 +331,22 @@ export function SessionProvider({ initialIdentity = null, children }) {
         setChosenRef(stored.ref);
         setScopeAll(stored.all);
     }
+
+    /*
+     * Le périmètre est recopié dans un cookie, parce que le rendu SERVEUR n'a
+     * aucun autre moyen de le connaître (voir `lib/scope.js`). Le tableau de
+     * bord composait sinon ses compteurs sur toutes les fiches du compte pendant
+     * que la barre en annonçait une seule.
+     *
+     * Dans un effet, et non au rendu : écrire un cookie est la synchronisation
+     * d'un système extérieur, exactement ce à quoi sert un effet. Il couvre les
+     * deux cas d'un seul geste — le choix qui vient d'être fait, et celui qui
+     * dormait déjà dans le stockage local d'un navigateur qui n'a jamais eu ce
+     * cookie.
+     */
+    useEffect(() => {
+        writeScopeCookie(sub, { ref: chosenRef, all: scopeAll });
+    }, [sub, chosenRef, scopeAll]);
 
     /**
      * The record being worked on. Falls back to the first one, so a single-record

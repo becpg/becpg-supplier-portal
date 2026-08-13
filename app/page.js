@@ -47,6 +47,7 @@ import { listMyTasks, mapWithConcurrency, nodeRefFromId } from '@/lib/adapters/t
 import { buildEntityIndex, buildEntityQuery, listMyEntities } from '@/lib/adapters/entities';
 import { listDocuments } from '@/lib/adapters/documents';
 import { getLiveSession } from '@/lib/session';
+import { SCOPE_COOKIE, parseScopeCookie } from '@/lib/scope';
 import { LANG_COOKIE, normalizeLang, t as translate } from '@/config/messages';
 import { cookies } from 'next/headers';
 
@@ -172,9 +173,10 @@ function excerpt(html, max = 140) {
  *
  * @param {Object} client
  * @param {Array<Object>} tasks
+ * @param {string|null} [supplierNodeRef] borne la requête produits au fournisseur choisi
  * @returns {Promise<Array<Object>>}
  */
-async function loadDiscussions(client, tasks) {
+async function loadDiscussions(client, tasks, supplierNodeRef = null) {
     const candidates = [];
 
     for (const task of tasks) {
@@ -194,7 +196,9 @@ async function loadDiscussions(client, tasks) {
     const data = await safe(
         () => client.getJson('becpg/remote/entity/list', {
             query: {
-                query: buildEntityQuery({}),
+                // Même périmètre que le reste de l'écran : sans lui, la carte
+                // listait les fils des quinze fiches du compte.
+                query: buildEntityQuery(supplierNodeRef ? { ancestor: supplierNodeRef } : {}),
                 fields: 'cm:name,bcpg:code,fm:commentCount',
                 lists: 'none',
                 maxResults: ENTITY_SCAN,
@@ -291,6 +295,20 @@ export default async function DashboardPage() {
     const lang = normalizeLang(cookieStore.get(LANG_COOKIE)?.value);
     const t = (key, vars) => translate(lang, key, vars);
 
+    /*
+     * Le fournisseur choisi dans la barre du haut — voir `lib/scope.js`.
+     *
+     * C'est un composant serveur : le choix vit dans le navigateur, et sans ce
+     * cookie il composait ses compteurs sur les quinze fiches du compte pendant
+     * que la barre en annonçait une seule. Le cookie est une indication d'où
+     * regarder, jamais une autorisation : beCPG reste seul juge de l'accès.
+     *
+     * `all` — « Tous les fournisseurs » — ne borne rien, ce qui est bien ce que
+     * le libellé promet.
+     */
+    const scope = parseScopeCookie(cookieStore.get(SCOPE_COOKIE)?.value, session.sub || null);
+    const supplierNodeRef = scope.all ? null : scope.ref;
+
     const client = createBecpgClient(session);
 
     /*
@@ -321,7 +339,7 @@ export default async function DashboardPage() {
 
     // The four header cards. Everything below reuses this client's memo cache,
     // so the tasks and the entities are fetched exactly once for the page.
-    const dashboard = await safe(() => buildDashboard(client));
+    const dashboard = await safe(() => buildDashboard(client, { supplierNodeRef }));
 
     const [taskResult, entityResult, documentResult] = await Promise.all([
         safe(
@@ -331,7 +349,7 @@ export default async function DashboardPage() {
              * on dev) to display six. The counters stay exact; only `byType`,
              * which the dashboard does not use, is omitted.
              */
-            () => client.memo('tasks', () => listMyTasks(client, {
+            () => client.memo(`tasks:${supplierNodeRef || 'all'}`, () => listMyTasks(client, {
                 pageSize: TASK_SCAN,
                 enrichLimit: PREVIEW.tasks * 2,
             })),
@@ -348,18 +366,33 @@ export default async function DashboardPage() {
              * every product in the park so that four rows can show a name, a code
              * and a date.
              */
-            () => client.memo('entities', () => listMyEntities(client, {
+            () => client.memo(`entities:${supplierNodeRef || 'all'}`, () => listMyEntities(client, {
                 pageSize: ENTITY_SCAN,
                 preview: true,
+                supplierNodeRef: supplierNodeRef || undefined,
             })),
             { items: [], pagination: { totalItems: 0, totalAtLeast: 0, totalExact: true } },
         ),
-        safe(() => listDocuments({ session, page: 1, pageSize: PREVIEW.documents * 4 }), null),
+        safe(() => listDocuments({
+            session,
+            page: 1,
+            pageSize: PREVIEW.documents * 4,
+            supplier: supplierNodeRef ? [supplierNodeRef] : undefined,
+        }), null),
     ]);
 
     // --- Mes tâches ---------------------------------------------------------
     const entityByRef = new Map(entityResult.items.map((entity) => [entity.nodeRef, entity]));
-    const openTasks = taskResult.items.filter((task) => task.isOpen !== false).sort(byUrgency);
+    /*
+     * Bornées au fournisseur choisi, exactement comme dans `buildDashboard` : une
+     * tâche hérite du fournisseur de son produit, et aucune clause de recherche
+     * ne suit ce lien. Compter autrement ici afficherait, sous une carte annoncée
+     * pour une fiche, l'aperçu des quinze autres.
+     */
+    const inScope = supplierNodeRef
+        ? taskResult.items.filter((task) => task.entity && task.entity.supplier === supplierNodeRef)
+        : taskResult.items;
+    const openTasks = inScope.filter((task) => task.isOpen !== false).sort(byUrgency);
     const previewTasks = openTasks.slice(0, PREVIEW.tasks);
 
     // Products the tasks point at that are not in my own product list (delegated
@@ -402,7 +435,7 @@ export default async function DashboardPage() {
     const documentTotal = documentResult ? documentResult.pagination.totalItems : 0;
 
     // --- Mes discussions ----------------------------------------------------
-    const threads = await safe(() => loadDiscussions(client, taskResult.items), []);
+    const threads = await safe(() => loadDiscussions(client, inScope, supplierNodeRef), []);
 
     const approval = dashboard ? dashboard.approval : null;
     const supplier = dashboard ? dashboard.supplier : null;
@@ -418,7 +451,7 @@ export default async function DashboardPage() {
         : null;
 
     const badges = {
-        tasks: taskResult.counters.open || 0,
+        tasks: openTasks.length,
         documents: documentCounters
             ? (documentCounters.expired || 0) + (documentCounters.missing || 0)
             : 0,
@@ -472,7 +505,7 @@ export default async function DashboardPage() {
                  * level instead of one running 500px past the other.
                  */}
                 <div className="lg:columns-2 lg:gap-4 xl:columns-3 [&>*]:mb-3 [&>*]:break-inside-avoid sm:[&>*]:mb-4 lg:[&>*:last-child]:mb-0">
-                    <TaskList tasks={tasks} total={taskResult.counters.open} index={0} />
+                    <TaskList tasks={tasks} total={openTasks.length} index={0} />
                     {/* `totalItems` is null when beCPG could not count the products
                         (see `formatTotal`); the floor travels with it so the card can
                         say "100+" instead of silently showing the preview size. */}

@@ -21,7 +21,7 @@
  * takes 200 ms does not flash: the text swaps, the row does not move.
  */
 
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Icon, Spinner } from '@/components/ui/Button';
 import { useMessages } from '@/lib/messages';
 import { formatTime } from '@/lib/format';
@@ -110,22 +110,27 @@ export function AutoSaveIndicator({
                 <Spinner size={14} className="shrink-0" />
             )}
 
-            <AnimatePresence mode="wait" initial={false}>
-                <motion.span
-                    key={`${status}-${text}`}
-                    initial={reduceMotion ? false : { opacity: 0, y: 3 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={reduceMotion ? undefined : { opacity: 0, y: -3 }}
-                    transition={{ duration: reduceMotion ? 0 : 0.15 }}
-                    className={compact && !isError ? 'truncate' : 'min-w-0 truncate'}
-                >
-                    {isError ? (
-                        <span className="font-medium">{labels.error}</span>
-                    ) : null}
-                    {isError ? ' · ' : ''}
-                    {text}
-                </motion.span>
-            </AnimatePresence>
+            {/*
+                Entrée seule, sans `AnimatePresence mode="wait"` : ce mode a figé
+                le corps de l'assistant (voir le commentaire de `Wizard.js`), et
+                l'indicateur d'enregistrement est le dernier endroit où l'on peut
+                se permettre un texte bloqué — il dit au fournisseur si sa saisie
+                est partie. « Enregistré » qui resterait affiché sur un échec
+                serait un mensonge, pas une imperfection d'animation.
+            */}
+            <motion.span
+                key={`${status}-${text}`}
+                initial={reduceMotion ? false : { opacity: 0, y: 3 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: reduceMotion ? 0 : 0.15 }}
+                className={compact && !isError ? 'truncate' : 'min-w-0 truncate'}
+            >
+                {isError ? (
+                    <span className="font-medium">{labels.error}</span>
+                ) : null}
+                {isError ? ' · ' : ''}
+                {text}
+            </motion.span>
 
             {isError && onRetry ? (
                 <button

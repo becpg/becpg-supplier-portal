@@ -36,6 +36,7 @@ import { RequirementChecklist } from '@/components/documents/RequirementChecklis
 import { DocumentUpload, AiValidationBadge } from '@/components/documents/DocumentUpload';
 import { ExpiryPill } from '@/components/documents/ExpiryPill';
 import { download, useApi } from '@/lib/client';
+import { useSession } from '@/components/providers/SessionProvider';
 import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 
@@ -200,7 +201,25 @@ export default function DocumentsPage() {
     const [depositEntity, setDepositEntity] = useState('');
     const depositRef = useRef(null);
 
-    const requirements = useApi('documents/requirements');
+    /*
+     * BORNÉ AU FOURNISSEUR CHOISI DANS LA BARRE, comme *Mes tâches* et *Mes produits*.
+     *
+     * L'écran interrogeait `/documents/requirements` sans périmètre : il rendait
+     * donc les exigences des **seize** fiches fournisseur du compte pendant que
+     * la barre annonçait n'en montrer qu'une. Un fournisseur y lisait comme
+     * siennes des obligations qui ne le concernaient pas, et le compteur
+     * « à traiter » ne correspondait à rien de ce qu'il pouvait faire.
+     *
+     * Le paramètre est envoyé au serveur — l'endpoint l'accepte déjà — plutôt
+     * que filtré ici : un filtrage local laisserait le total et les compteurs
+     * calculés sur les seize.
+     */
+    const { scopedSupplier, scopeAll } = useSession();
+    const scopeRef = !scopeAll && scopedSupplier ? scopedSupplier.nodeRef : null;
+
+    const requirements = useApi('documents/requirements', {
+        params: scopeRef ? { supplier: scopeRef } : undefined,
+    });
     // The flat table is only fetched when its tab is opened — the check-list is
     // what the screen is for, and a supplier on 3G should not pay for both.
     const documents = useApi(tab === 'all' ? 'documents' : null, { params: { pageSize: 200 } });

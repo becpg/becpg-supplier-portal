@@ -67,7 +67,7 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { AppShell } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -452,16 +452,46 @@ export function Wizard({
 
     const [nav, setNav] = useState({ currentId: null, visited: [] });
 
+    /*
+     * L'étape demandée peut n'exister QU'APRÈS le premier rendu.
+     *
+     * « Suggestions » n'est ajoutée que lorsque becpg-ai a répondu, ce qui prend
+     * de quelques secondes à une demi-minute. Ouvrir directement
+     * `?step=__suggestions` — le lien qu'on s'envoie, celui qu'on met en favori —
+     * demandait donc une étape que le modèle ne contenait pas encore : le repli
+     * sur la première étape s'appliquait, et comme il rendait `currentId` valide,
+     * plus rien ne ramenait ensuite le fournisseur là où il allait. La demande
+     * était perdue sans avoir jamais été refusée.
+     *
+     * Elle reste donc en attente tant qu'elle n'a pas pu être honorée, et ne
+     * l'est qu'une fois. Une navigation manuelle la périme sur-le-champ — `goTo`
+     * marque la reprise comme consommée — parce que rien ne doit déplacer un
+     * fournisseur qui vient de choisir son étape, fût-ce au nom de ce qu'il
+     * demandait dix secondes plus tôt.
+     */
+    const [resumeDone, setResumeDone] = useState(false);
+
     // Derived during render rather than in an effect: an effect would paint one
     // frame of "no step" before settling (the pattern `useApi` uses too).
-    if (steps.length > 0 && !steps.some((step) => step.id === nav.currentId)) {
-        const target = resumeStepId && steps.some((step) => step.id === resumeStepId)
-            ? resumeStepId
-            : steps[0].id;
-        setNav((current) => ({
-            currentId: target,
-            visited: current.visited.includes(target) ? current.visited : [...current.visited, target],
-        }));
+    if (steps.length > 0) {
+        const resumeReachable = Boolean(resumeStepId) && steps.some((step) => step.id === resumeStepId);
+        const anchor = (target) => {
+            if (resumeReachable && target === resumeStepId) {
+                setResumeDone(true);
+            }
+            setNav((current) => ({
+                currentId: target,
+                visited: current.visited.includes(target) ? current.visited : [...current.visited, target],
+            }));
+        };
+
+        if (!steps.some((step) => step.id === nav.currentId)) {
+            anchor(resumeReachable ? resumeStepId : steps[0].id);
+        }
+        else if (!resumeDone && resumeReachable && nav.currentId !== resumeStepId) {
+            // L'étape demandée vient d'apparaître : on l'honore, enfin.
+            anchor(resumeStepId);
+        }
     }
 
     const currentId = nav.currentId;
@@ -743,6 +773,9 @@ export function Wizard({
                 }
                 return;
             }
+            // Le fournisseur choisit : la reprise demandée par l'URL est
+            // consommée et ne le déplacera plus.
+            setResumeDone(true);
             const leaving = steps.find((step) => step.id === currentId);
 
             // Nothing is ever left behind: whatever is pending goes out first.
@@ -1369,18 +1402,40 @@ export function Wizard({
                         </div>
                     </div>
 
-                    <AnimatePresence mode="wait" initial={false}>
-                        <motion.div
-                            key={currentId || 'empty'}
-                            initial={reduceMotion ? false : { opacity: 0, x: 12 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={reduceMotion ? undefined : { opacity: 0, x: -12 }}
-                            transition={{ duration: reduceMotion ? 0 : 0.2, ease: 'easeOut' }}
-                            className="min-w-0"
-                        >
-                            {stepContent}
-                        </motion.div>
-                    </AnimatePresence>
+                    {/*
+                        LE CORPS DE L'ÉTAPE N'EST DERRIÈRE AUCUNE ANIMATION DE SORTIE.
+
+                        Il l'a été, dans un `<AnimatePresence mode="wait">`. Ce mode
+                        garde l'ancien enfant monté tant que sa sortie n'est pas
+                        terminée, puis monte le nouveau. Quand cette sortie ne se
+                        termine jamais — observé en production le 2026-08-13,
+                        framer-motion 12.43 — le nouvel enfant n'est jamais monté :
+                        le rail, qui est hors du bloc, marquait bien la nouvelle
+                        étape et l'URL suivait, pendant que le panneau restait
+                        figé sur l'étape d'arrivée. Un nœud du DOM marqué à la main
+                        survivait au changement d'étape, ce qui a écarté le
+                        remontage et l'animation en cours : l'ancien élément était
+                        simplement conservé.
+
+                        Conséquence : les suggestions de l'IA étaient inatteignables
+                        alors que le serveur les produisait, et toutes les autres
+                        étapes l'étaient tout autant.
+
+                        Le remplacement est une animation d'ENTRÉE seule, remontée
+                        par la clé. Sans sortie il n'y a rien à attendre, donc rien
+                        qui puisse bloquer : le contenu ne peut plus dépendre de
+                        l'aboutissement d'une animation. On perd le fondu sortant,
+                        qui ne valait pas ce risque sur le contenu principal.
+                    */}
+                    <motion.div
+                        key={currentId || 'empty'}
+                        initial={reduceMotion ? false : { opacity: 0, x: 12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: reduceMotion ? 0 : 0.2, ease: 'easeOut' }}
+                        className="min-w-0"
+                    >
+                        {stepContent}
+                    </motion.div>
 
                     <WizardFooter
                         hasPrevious={currentIndex > 0}
