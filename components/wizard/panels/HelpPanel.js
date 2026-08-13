@@ -350,12 +350,16 @@ export function HelpPanel({
                         <ul className="flex flex-col gap-2">
                             {refusals.slice(0, 5).map((entry) => (
                                 <li
-                                    key={entry.nodeRef}
+                                    key={entry.nodeRef || entry.date}
                                     className="rounded-lg border border-[var(--becpg-orange)]/40 bg-[var(--becpg-orange)]/5 p-2"
                                 >
-                                    <p className="text-sm font-medium text-[var(--becpg-blue)]">{entry.name}</p>
-                                    <p className="mt-0.5 text-[11px] text-[var(--becpg-dark-grey)]">
-                                        {entry.date ? formatDate(entry.date, lang) : ''}
+                                    {/* L'auteur et la date : le motif vient d'un
+                                        commentaire, qui ne porte pas de nom d'étape. */}
+                                    <p className="flex flex-wrap items-baseline gap-x-1.5 text-[11px] text-[var(--becpg-dark-grey)]">
+                                        {entry.by ? (
+                                            <span className="font-medium text-[var(--becpg-blue)]">{entry.by}</span>
+                                        ) : null}
+                                        {entry.date ? <span>{formatDate(entry.date, lang)}</span> : null}
                                     </p>
                                     {/*
                                         Le motif, quand il y en a un : un refus saisi
