@@ -711,13 +711,34 @@ export function Wizard({
         return [...byId.values()];
     }, [catalogs.data, wizardCatalog.data]);
     /*
-     * Quels catalogues bloquent : l'instance le dit, jamais le portail. La prop
-     * l'emporte (un appelant qui sait), sinon c'est ce que l'état du wizard porte
-     * — `PORTAL_BLOCKING_CATALOGS`, vide par défaut. Voir `blockingCatalogs`.
+     * QUELS CATALOGUES BLOQUENT : LE LIVRABLE LE DIT, COMME DANS SHARE.
+     *
+     * `project-task.js` (becpg-project-share) applique exactement cette règle sur
+     * la vue tâche : pour chaque livrable dont l'URL est un assistant **et porte
+     * un `catalogId`**, il masque le bouton de validation, interroge
+     * `becpg/entity/catalog/node/{nodeRef}?catalogId=…`, et ne le révèle que si
+     * le catalogue ne rapporte **aucun champ manquant**.
+     *
+     * Le portail n'appliquait cette porte que sur `PORTAL_BLOCKING_CATALOGS`,
+     * une variable d'environnement non renseignée : rien ne bloquait, et une
+     * tâche de référencement se terminait sur un catalogue incomplet alors que
+     * Share l'interdit sur la même donnée. Le catalogue du livrable prime donc
+     * désormais — c'est le référentiel qui déclare, pas la configuration du
+     * portail, et les deux interfaces s'accordent.
+     *
+     * L'ordre reste : une prop explicite (un appelant qui sait), puis le
+     * livrable, puis la variable d'environnement pour une instance qui veut
+     * élargir la règle à d'autres catalogues.
      */
-    const gatingCatalogIds = blockingCatalogIds
-        || (wizardState && wizardState.blockingCatalogIds)
-        || null;
+    // Mémoïsé : le tableau littéral changeait d'identité à chaque rendu, ce qui
+    // relançait le calcul des bloquants et la clôture à chaque frappe.
+    const gatingCatalogIds = useMemo(
+        () => blockingCatalogIds
+            || (wizardCatalogId ? [wizardCatalogId] : null)
+            || (wizardState && wizardState.blockingCatalogIds)
+            || null,
+        [blockingCatalogIds, wizardCatalogId, wizardState],
+    );
     const blocking = useMemo(
         () => blockingCatalogs(catalogList, gatingCatalogIds),
         [catalogList, gatingCatalogIds],
@@ -1291,9 +1312,12 @@ export function Wizard({
                             <StatusPill status="readonly" tone="neutral" icon="lock" size="sm" label={labels.readOnly} />
                         ) : null}
                         {/*
-                          * Only from `lg` up: below it there is no side panel and
-                          * no rail to put away — the layout is already the one
-                          * this button produces.
+                          * Only from `xl` up, et pas `lg` : c'est à `xl` que le
+                          * rail et les panneaux apparaissent
+                          * (`xl:grid-cols-[13rem_1fr]`, `hidden xl:block`).
+                          * Entre `lg` et `xl`, le bouton s'affichait sans rien
+                          * avoir à masquer — il ne produisait aucun changement
+                          * visible, ce qui est pire qu'une absence de bouton.
                           */}
                         <Button
                             variant="outline"
@@ -1302,13 +1326,13 @@ export function Wizard({
                             onClick={toggleWide}
                             title={wide ? labels.restore : labels.widenHint}
                             aria-pressed={wide}
-                            className="hidden lg:inline-flex"
+                            className="hidden xl:inline-flex"
                         >
                             {wide ? labels.restore : labels.widen}
                         </Button>
                         {/* With the panels away, they stay one click away. */}
                         {wide ? (
-                            <div className="hidden items-center gap-1 lg:flex">
+                            <div className="hidden items-center gap-1 xl:flex">
                                 <Button
                                     variant="ghost"
                                     size="icon"

@@ -39,7 +39,7 @@ import { api } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { Button, Icon, Spinner } from '@/components/ui/Button';
 import { useToast } from '@/components/providers/ToastProvider';
-import { formatDateTime } from '@/lib/format';
+import { formatDateTime, plainText } from '@/lib/format';
 
 const LABELS = {
     fr: {
@@ -225,17 +225,29 @@ export function AiValidationBadge({ state, hints, date, withHints = false, class
     }
 
     const label = labels[descriptor.key];
+    /*
+     * `bcpg:aiValidationHints` ARRIVE EN HTML.
+     *
+     * becpg-ai y range le compte rendu de sa revue, mis en forme par ses
+     * gabarits. Posé tel quel dans un `title=`, l'attribut ne rend pas le
+     * balisage : il l'affiche. L'infobulle du badge « Document refusé par l'IA »
+     * montrait donc des `<p>` et des `<li>` à un fournisseur.
+     *
+     * `plainText` en extrait les lignes — et, depuis le correctif de
+     * `richTextLines`, sans le contenu des blocs `<style>`.
+     */
+    const hintsText = hints ? plainText(hints) : '';
     const badge = (
         <span
             className={`${AI_PILL_CLASS[descriptor.tone]} ${className}`}
-            title={hints || (date ? fill(labels.aiOn, { date: formatDateTime(date, lang) }) : label)}
+            title={hintsText || (date ? fill(labels.aiOn, { date: formatDateTime(date, lang) }) : label)}
         >
             <Icon name={descriptor.icon} size={13} />
             <span>{label}</span>
         </span>
     );
 
-    if (!withHints || !hints) {
+    if (!withHints || !hintsText) {
         return badge;
     }
 
@@ -243,7 +255,7 @@ export function AiValidationBadge({ state, hints, date, withHints = false, class
         <div className="flex flex-col gap-1">
             {badge}
             <p className="whitespace-pre-wrap break-words text-xs leading-relaxed text-[var(--becpg-dark-grey)]">
-                {hints}
+                {hintsText}
             </p>
             {date ? (
                 <p className="text-[0.6875rem] text-[var(--becpg-dark-grey)]">
