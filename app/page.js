@@ -42,7 +42,7 @@ import { DocumentList } from '@/components/dashboard/DocumentList';
 import { DiscussionList } from '@/components/dashboard/DiscussionList';
 import { NotificationList } from '@/components/dashboard/NotificationList';
 import { nodeRefToPath } from '@/lib/becpg';
-import { buildDashboard, createBecpgClient, getMyGroups, resolveSpace } from '@/lib/adapters/session';
+import { buildDashboard, createBecpgClient, getMyGroups, resolveSpace, scopeTasks } from '@/lib/adapters/session';
 import { listMyTasks, mapWithConcurrency, nodeRefFromId } from '@/lib/adapters/tasks';
 import { buildEntityIndex, buildEntityQuery, listMyEntities } from '@/lib/adapters/entities';
 import { listDocuments } from '@/lib/adapters/documents';
@@ -384,14 +384,14 @@ export default async function DashboardPage() {
     // --- Mes tâches ---------------------------------------------------------
     const entityByRef = new Map(entityResult.items.map((entity) => [entity.nodeRef, entity]));
     /*
-     * Bornées au fournisseur choisi, exactement comme dans `buildDashboard` : une
-     * tâche hérite du fournisseur de son produit, et aucune clause de recherche
-     * ne suit ce lien. Compter autrement ici afficherait, sous une carte annoncée
-     * pour une fiche, l'aperçu des quinze autres.
+     * Bornées au fournisseur choisi, par le MÊME test que `buildDashboard` — d'où
+     * la fonction partagée : deux filtres écrits séparément finissent par compter
+     * différemment, et l'écran afficherait alors deux nombres pour une question.
      */
-    const inScope = supplierNodeRef
-        ? taskResult.items.filter((task) => task.entity && task.entity.supplier === supplierNodeRef)
-        : taskResult.items;
+    const inScope = scopeTasks(taskResult.items, {
+        supplierNodeRef,
+        entities: entityResult.items,
+    });
     const openTasks = inScope.filter((task) => task.isOpen !== false).sort(byUrgency);
     const previewTasks = openTasks.slice(0, PREVIEW.tasks);
 
