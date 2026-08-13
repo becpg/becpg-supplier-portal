@@ -103,6 +103,34 @@ Le détail, la cause et la preuve de chacun sont dans
 
 ## Reste ouvert
 
+### Ouvert depuis la revue de code du 13/08 (diff beCPG 26.1.0.22 → master)
+
+- **Le ticket Alfresco du fournisseur transite en paramètre d'URL, sur trois sauts.** Le
+  portail le passe en `portalTicket` à `GET /becpg/portal/wizard`, puis `portal-form.lib.js`
+  le recolle en `?alf_ticket=` sur `/api/metadata` (`portalPrimeNodeTypeEvaluator`) et sur
+  `POST /becpg/form` (`portalResolveDefinition`). Un ticket en query string finit dans les
+  logs d'accès du frontal, dans ceux des proxies traversés et dans l'historique du
+  navigateur — trois endroits où il survit à la session qu'il ouvre.
+  **Le vrai correctif est en en-tête** (`alf_ticket` accepté en header par Alfresco, ou
+  passage en POST), ce qui touche les deux dépôts : l'appelant ici, et les deux
+  `remote.connect()` côté beCPG. Non fait : les deux extrémités doivent bouger ensemble.
+  *Où* : portail — `lib/adapters/wizardConfig.js` ; beCPG —
+  `site-webscripts/org/alfresco/becpg/portal/portal-form.lib.js` et `wizard.get.js`.
+- **`wizard.get.desc.xml` ne déclare pas `<authentication>`.** Le défaut Surf est `none`,
+  donc la structure du wizard — ses steps, ses `formId`, ses `listId` — se lit sans aucune
+  identité. Les *définitions de champs*, elles, sont protégées : elles passent par
+  `/becpg/form` avec le ticket, qui répond 401 sans lui.
+  **Attention au correctif évident :** poser `<authentication>user</authentication>` casse le
+  portail, qui n'a pas de session Share mais un ticket. Une garde `hasCallerIdentity()` dans
+  `wizard.get.js` (401 sans session ni ticket) a été écrite puis **annulée** — voir beCPG
+  `7e77df12ba` et son revert. À reprendre avec le point précédent, pas avant.
+- **Le proxy `becpg/ai/suggestions` ne contrôle pas les permissions sur le `nodeRef`.**
+  `AiSuggestionsProxyWebScript` valide la forme du nodeRef (`new NodeRef(...)`) et transmet
+  l'identité de l'appelant en `BECPG_TICKET`, mais ne vérifie pas lui-même le droit de
+  lecture : il s'en remet entièrement à becpg-ai. **À confirmer dans becpg-ai** que le
+  contrôle y est bien fait ; sinon n'importe quel compte authentifié peut demander les
+  suggestions de n'importe quelle entité.
+
 ### Ouvert depuis le relevé du 11/08
 
 - **La chaîne référencement → tâche → `catalogId` n'a pas été vue tourner.** Les deux
