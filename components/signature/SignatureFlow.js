@@ -46,6 +46,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { api, apiUrl, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
@@ -59,6 +60,7 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { useSession } from '@/components/providers/SessionProvider';
 import { SignaturePad } from '@/components/signature/SignaturePad';
 import { SignatureDocument, readStorageKey, uuidOf } from '@/components/signature/SignatureDocument';
+import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import { clearReadProgress } from '@/components/signature/useReadTracking';
 
 /** Where the idempotency key of a submission lives, per task. */
@@ -113,6 +115,12 @@ const LABELS = {
         // the document (working copy remplacée à la signature, ou accès retiré).
         signedBodyNoCopy:
             'La signature a déjà été enregistrée pour cette tâche. Il n’y a rien à refaire. Le document n’est plus accessible depuis le portail ; demandez-en une copie à votre client si nécessaire.',
+        signedView: 'Consulter le document',
+        // Le document est signé mais la tâche reste ouverte : c'est le cas du
+        // valideur dans /monitor, qui doit clore l'étape comme dans Share.
+        signedComplete: 'Terminer la tâche',
+        signedCompleteDone: 'Tâche terminée.',
+        signedCompleteError: 'La tâche n’a pas pu être terminée.',
         cancelledTitle: 'Signature annulée',
         cancelledBody:
             'Cette demande de signature a été annulée par votre client. Aucune action n’est attendue de votre part.',
@@ -165,6 +173,10 @@ const LABELS = {
             'A signature has already been recorded for this task. Nothing to redo — you can download the document.',
         signedBodyNoCopy:
             'A signature has already been recorded for this task. Nothing to redo. The document is no longer reachable from the portal; ask your customer for a copy if you need one.',
+        signedView: 'View the document',
+        signedComplete: 'Complete the task',
+        signedCompleteDone: 'Task completed.',
+        signedCompleteError: 'The task could not be completed.',
         cancelledTitle: 'Signature cancelled',
         cancelledBody: 'This signature request was cancelled by your customer. No action is expected from you.',
         closedTitle: 'Task already handled',
@@ -425,6 +437,55 @@ export function SignatureFlow({
             : null),
         [documentUuid, taskUuid, document_],
     );
+
+    /* ------------------------------------------- already signed: read, close */
+
+    // The terminal "already signed" card used to offer a download and nothing
+    // else. Two things were missing for the validator handling the task in
+    // /monitor: reading the document without downloading it, and closing the
+    // step — beCPG signs on completion, but a document signed by someone else
+    // leaves the task open, exactly as in Share.
+    const [viewing, setViewing] = useState(null);
+    const [completing, setCompleting] = useState(false);
+    const router = useRouter();
+
+    const viewerDocument = useMemo(
+        () => (document_ && downloadUrl
+            ? {
+                nodeRef: document_.nodeRef,
+                name: document_.name,
+                title: document_.name,
+                mimetype: document_.mimetype,
+                // Read through the portal proxy, never an Alfresco URL: same rule
+                // as the signing viewer. `download=1` is dropped on purpose —
+                // this one renders inline.
+                downloadUrl: apiUrl(`documents/${encodeURIComponent(documentUuid)}/content`, {
+                    ...(taskUuid ? { task: taskUuid } : {}),
+                }),
+            }
+            : null),
+        [document_, downloadUrl, documentUuid, taskUuid],
+    );
+
+    const completeSignedTask = useCallback(async () => {
+        setCompleting(true);
+        try {
+            await api.post(`tasks/${encodeURIComponent(taskId)}/complete`, {});
+            toast.success(labels.signedCompleteDone);
+            // No re-read: completing runs `sign-document.js`, which checks the
+            // signed content back in and removes the working copy the signature
+            // view is built from. Refreshing here asks beCPG for a task that has
+            // just ceased to exist in that shape, and renders its failure on top
+            // of a success. The task is done — go back to the list, as Share does.
+            router.push(backHref);
+        }
+        catch (error) {
+            toast.error((error && error.message) || labels.signedCompleteError);
+        }
+        finally {
+            setCompleting(false);
+        }
+    }, [taskId, toast, labels.signedCompleteDone, labels.signedCompleteError, router, backHref]);
 
     /* -------------------------------------------------------- read tracking */
 
@@ -785,17 +846,43 @@ export function SignatureFlow({
                     {...terminal}
                     actions={
                         <>
+                            {viewerDocument && outcome === OUTCOME.SIGNED ? (
+                                <Button
+                                    variant="outline"
+                                    icon="visibility"
+                                    onClick={() => setViewing(viewerDocument)}
+                                >
+                                    {labels.signedView}
+                                </Button>
+                            ) : null}
                             {downloadUrl && outcome === OUTCOME.SIGNED ? (
                                 <Button variant="outline" icon="download" href={downloadUrl} external>
                                     {labels.successDownload}
                                 </Button>
                             ) : null}
-                            <Button variant="primary" icon="arrow_back" href={backHref}>
+                            {/* Signed, yet still open: only then is there a step to close. */}
+                            {outcome === OUTCOME.SIGNED && task && task.isOpen !== false ? (
+                                <Button
+                                    variant="primary"
+                                    icon="check"
+                                    onClick={completeSignedTask}
+                                    loading={completing}
+                                    disabled={completing}
+                                >
+                                    {labels.signedComplete}
+                                </Button>
+                            ) : null}
+                            <Button
+                                variant={outcome === OUTCOME.SIGNED && task && task.isOpen !== false ? 'ghost' : 'primary'}
+                                icon="arrow_back"
+                                href={backHref}
+                            >
                                 {labels.successBack}
                             </Button>
                         </>
                     }
                 />
+                <DocumentViewer document={viewing} onClose={() => setViewing(null)} />
             </AppShell>
         );
     }
