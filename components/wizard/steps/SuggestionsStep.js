@@ -29,7 +29,7 @@ import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonCard } from '@/components/ui/Skeleton';
-import { SuggestionBody, isWideSuggestion } from '@/components/wizard/SuggestionBody';
+import { SuggestionBody, hasTypedBody, isWideSuggestion } from '@/components/wizard/SuggestionBody';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi } from '@/lib/client';
@@ -334,7 +334,12 @@ function SuggestionCard({
 
             <SuggestionBody suggestion={suggestion} compact={compact} />
 
-            {suggestion.changes && suggestion.changes.length > 0 ? (
+            {/*
+                La liste brute des changements ne s'affiche QUE si le corps typé
+                n'a rien rendu : sinon les deux répètent la même chose, la
+                seconde en qnames.
+            */}
+            {!hasTypedBody(suggestion) && suggestion.changes && suggestion.changes.length > 0 ? (
                 <ul className="mt-2 flex flex-col gap-1">
                     {suggestion.changes.slice(0, 8).map((change, position) => (
                         <li

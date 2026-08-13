@@ -39,6 +39,49 @@ const HTML_TYPES = new Set(['DocumentReview', 'RegulatoryToxSummary']);
 export const WIDE_TYPES = new Set(['DocumentReview', 'RegulatoryToxSummary', 'RecipeImprovement']);
 
 /**
+ * Le corps rend-il déjà, à lui seul, ce que la suggestion propose ?
+ *
+ * Quand c'est le cas, la carte n'affiche PAS en plus la liste brute des
+ * changements : les deux disaient la même chose, l'une en clair — « Sel :
+ * 0.008 g » — l'autre en qnames — « bcpg:nutList · nutListValue : 0.008 ».
+ * Dans une colonne étroite, la répétition chassait le reste hors de l'écran.
+ *
+ * @param {Object} suggestion
+ * @returns {boolean}
+ */
+export function hasTypedBody(suggestion) {
+    if (!suggestion) {
+        return false;
+    }
+    if (suggestion.type === 'Image' || suggestion.type === 'I18n' || suggestion.type === 'SpellCheck') {
+        return true;
+    }
+    if (suggestion.type === 'CreationPlan' && Array.isArray(suggestion.plan) && suggestion.plan.length > 0) {
+        return true;
+    }
+    const trimmed = String(suggestion.rawDescription || '').trim();
+    if (trimmed === '') {
+        return false;
+    }
+    if (HTML_TYPES.has(suggestion.type) || (trimmed.startsWith('<') && trimmed.includes('>'))) {
+        return true;
+    }
+    if (trimmed.startsWith('[')) {
+        try {
+            const parsed = JSON.parse(trimmed);
+            return Array.isArray(parsed)
+                && parsed.length > 0
+                && parsed.every((row) => row && typeof row === 'object')
+                && parsed.some((row) => 'name' in row || 'label' in row);
+        }
+        catch {
+            return false;
+        }
+    }
+    return false;
+}
+
+/**
  * Le corps est-il de ceux qu'on ne peut pas lire dans une colonne étroite ?
  *
  * @param {Object} suggestion
