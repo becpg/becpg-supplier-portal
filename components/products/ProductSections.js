@@ -52,6 +52,7 @@
  * scoped to that tab, and the other tabs keep working.
  */
 
+import { readMlText } from '@/lib/mltext';
 import { useMemo, useState } from 'react';
 import { Card, SectionHeader } from '@/components/ui/Card';
 import { Field } from '@/components/ui/Field';
@@ -287,6 +288,13 @@ export function readableValue(field, lang) {
             : field.value;
 
     const render = (entry) => {
+        // Une carte de locales — écrite comme telle, ou sérialisée en texte par
+        // le défaut décrit dans `lib/mltext.js` — se lit dans la langue de
+        // l'utilisateur, jamais sous sa forme de stockage.
+        const ml = readMlText(entry, lang);
+        if (ml !== entry) {
+            return ml || null;
+        }
         if (entry === null || entry === undefined || entry === '') {
             return null;
         }

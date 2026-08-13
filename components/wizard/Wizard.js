@@ -6,11 +6,10 @@
  * ## The order is the feature
  *
  * ```
- * 0 · Contexte         permanent side panel: cahier des charges, remarques,
- *                      listes gelées, refus précédents      → HelpPanel
+ * 0 · Contexte         permanent side panel: suggestions de l'IA, cahier des
+ *                      charges, remarques, listes gelées, refus → HelpPanel
  * 1 · Fiche technique  the one document always expected     → TechnicalSheetStep
- * 2 · Suggestions      what the AI read IN THAT SHEET       → SuggestionsStep
- * 3..n · Sections      the wizard definition, as configured → Form / DataList /
+ * 2..n · Sections      the wizard definition, as configured → Form / DataList /
  *                      Survey / Documents, in server order
  * n+1 · Conformité     catalogue check, gates "Terminer"    → ComplianceStep
  * ```
@@ -300,19 +299,21 @@ export function buildStepModel(state, { hasSuggestions, labels }) {
         frozen: false,
     });
 
-    // Étape 2 — only when there is something to show; an instance without
-    // becpg-ai must not grow an empty step.
-    if (hasSuggestions) {
-        model.push({
-            id: SYNTHETIC.SUGGESTIONS,
-            type: 'suggestions',
-            kind: 'suggestions',
-            synthetic: true,
-            label: labels.suggestions,
-            readOnly: Boolean(state.readOnly),
-            frozen: false,
-        });
-    }
+    /*
+     * LES SUGGESTIONS NE SONT PLUS UNE ÉTAPE.
+     *
+     * Elles en étaient une, insérée en deuxième position dès que becpg-ai avait
+     * répondu. Deux défauts venaient de là et non du contenu : le nombre
+     * d'étapes changeait sous les pieds du fournisseur — « étape 2 sur 13 »
+     * devenait « sur 14 » en cours de route, et « Suivant » ne menait plus au
+     * même endroit — et surtout ce que l'IA a lu concerne TOUTES les étapes, pas
+     * un moment du parcours : rangé au rang 2, il n'était consultable qu'en
+     * revenant en arrière.
+     *
+     * Elles vivent désormais dans le panneau « Contexte », à droite, à côté du
+     * cahier des charges et des remarques du client : visible pendant la saisie,
+     * quelle que soit l'étape en cours, et recalculé à chaque changement d'étape.
+     */
 
     model.push(...configured);
 
@@ -794,6 +795,22 @@ export function Wizard({
                 runNextStep(leaving.id);
             }
 
+            /*
+             * L'IA relit APRÈS chaque étape.
+             *
+             * Ce qu'elle propose dépend de ce qui est déjà saisi : une étape
+             * remplie change les valeurs encore manquantes, et une fiche déposée
+             * plus loin dans le parcours ouvre de nouvelles extractions. Calculées
+             * une seule fois à l'ouverture, les suggestions vieillissaient pendant
+             * toute la saisie — c'est précisément ce que leur ancienne place, une
+             * étape figée au rang 2, rendait invisible.
+             *
+             * `autoSave.flush()` vient d'avoir lieu juste au-dessus : la relecture
+             * porte donc bien sur ce qui a été écrit, jamais sur l'état d'avant.
+             * L'appel n'est pas attendu — la navigation ne doit rien à l'IA.
+             */
+            suggestionsCall.refresh();
+
             setNav((current) => ({
                 currentId: stepId,
                 visited: current.visited.includes(stepId) ? current.visited : [...current.visited, stepId],
@@ -809,7 +826,7 @@ export function Wizard({
                 window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
             }
         },
-        [currentId, steps, autoSave, runNextStep, persist, reduceMotion],
+        [currentId, steps, autoSave, runNextStep, persist, reduceMotion, suggestionsCall],
     );
 
     const goToField = useCallback(
@@ -825,46 +842,15 @@ export function Wizard({
         [fieldIndex, steps, goTo],
     );
 
-    const goToChange = useCallback(
-        (change) => {
-            if (!change) {
-                return;
-            }
-            if (change.scope === 'datalist' && change.listName) {
-                /*
-                 * **Les deux côtés ne nomment pas la liste pareil.**
-                 *
-                 * becpg-ai clé ses `suggestedChanges.datalists` par le *type
-                 * d'item* — `bcpg:nutList` — tandis que l'étape porte
-                 * `listId: 'nutList'` et `itemId: 'bcpg:nutList'`. La comparaison
-                 * ne testait que `listName`/`listId` : elle échouait toujours sur
-                 * une suggestion de datalist, et « Aller au champ » retombait sur
-                 * la première étape de formulaire — donc sur « Informations
-                 * fournisseur » au lieu de « Nutriments ». Signalé le 12/08.
-                 *
-                 * On accepte les deux écritures, préfixée ou non, plutôt que de
-                 * parier sur celle que l'IA choisira.
-                 */
-                const wanted = String(change.listName);
-                const local = wanted.split(':').pop();
-                const target = steps.find((step) => step.listName === wanted
-                    || step.listId === wanted
-                    || step.itemId === wanted
-                    || step.listName === local
-                    || step.listId === local);
-                if (target) {
-                    goTo(target.id);
-                    return;
-                }
-                // Aucune étape ne porte cette liste : ne pas emmener le
-                // fournisseur sur un formulaire qui n'a rien à voir. Un bouton
-                // sans effet se remarque ; une navigation trompeuse, non.
-                return;
-            }
-            goToField(change.name);
-        },
-        [steps, goTo, goToField],
-    );
+    /*
+     * `goToChange` a été supprimé avec « Aller au champ ».
+     *
+     * Il résolvait l'étape que visait une suggestion pour y envoyer le
+     * fournisseur. Le bouton posait plus de problèmes qu'il n'en réglait : il
+     * quittait l'étape en cours de saisie pour une autre, et les suggestions
+     * étant désormais dans le panneau permanent, la valeur proposée est lisible
+     * DEPUIS l'étape concernée — il n'y a plus nulle part où aller.
+     */
 
     /**
      * Opens the discussion, wherever it currently lives.
@@ -1039,10 +1025,42 @@ export function Wizard({
 
     /* ----------------------------------------------------------- the panels */
 
+    /*
+     * Ce que le panneau « Contexte » doit savoir des suggestions, en un objet :
+     * les cartes, l'état de l'appel, et de quoi les relancer. Assemblé ici parce
+     * que c'est le wizard qui détient l'appel, et mémoïsé pour ne pas redessiner
+     * le panneau à chaque frappe dans un champ.
+     */
+    const suggestionsPanel = useMemo(() => ({
+        entityId: entityNodeRef,
+        // `wizardState.entity` et non `entity` : celui-ci est déclaré plus bas,
+        // après les panneaux qui le consomment.
+        entityType: (wizardState.entity || {}).type,
+        items: suggestions,
+        summary: suggestionsCall.data ? suggestionsCall.data.summary : null,
+        entityLevelDropped: suggestionsCall.data ? suggestionsCall.data.entityLevelDropped || 0 : 0,
+        analysis: suggestionsCall.data ? suggestionsCall.data.analysis : null,
+        loading: suggestionsCall.loading,
+        error: suggestionsCall.error,
+        refresh: suggestionsCall.refresh,
+        readOnly: Boolean(wizardState.readOnly),
+        labelForField,
+        onApplied: () => {
+            if (complianceTouched) {
+                catalogs.refresh();
+            }
+        },
+    }), [
+        entityNodeRef, wizardState.entity, suggestions, suggestionsCall.data, suggestionsCall.loading,
+        suggestionsCall.error, suggestionsCall.refresh, wizardState.readOnly, labelForField,
+        complianceTouched, catalogs,
+    ]);
+
     const helpPanel = (
         <HelpPanel
             entityId={entityId}
             entityNodeRef={entityNodeRef}
+            suggestions={suggestionsPanel}
             steps={visitedSteps}
             onSelectStep={(stepId) => {
                 setSheet(null);
@@ -1108,29 +1126,6 @@ export function Wizard({
             autoSave={autoSave}
             onSummary={setDocumentSummary}
             onUploaded={() => suggestionsCall.refresh()}
-        />
-    ) : currentStep.kind === 'suggestions' ? (
-        <SuggestionsStep
-            entityId={entityNodeRef}
-            entityType={entity.type}
-            suggestions={suggestions}
-            summary={suggestionsCall.data ? suggestionsCall.data.summary : null}
-            entityLevelDropped={suggestionsCall.data ? suggestionsCall.data.entityLevelDropped || 0 : 0}
-            analysis={suggestionsCall.data ? suggestionsCall.data.analysis : null}
-            loading={suggestionsCall.loading}
-            error={suggestionsCall.error}
-            onRefresh={suggestionsCall.refresh}
-            readOnly={Boolean(wizardState.readOnly)}
-            onApplied={() => {
-                // The values are on the entity now; the form steps are mounted
-                // only when they are the current step, so they reload by
-                // themselves. Only the score has to be asked for again.
-                if (complianceTouched) {
-                    catalogs.refresh();
-                }
-            }}
-            onGoToChange={goToChange}
-            labelForField={labelForField}
         />
     ) : currentStep.kind === 'form' ? (
         <FormStep
@@ -1466,6 +1461,7 @@ export function Wizard({
                 <HelpPanel
                     entityId={entityId}
                     entityNodeRef={entityNodeRef}
+                    suggestions={suggestionsPanel}
                     steps={visitedSteps}
                     onSelectStep={(stepId) => {
                         setSheet(null);

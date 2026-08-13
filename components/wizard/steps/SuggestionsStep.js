@@ -65,7 +65,6 @@ const LABELS = {
         revoke: 'Annuler',
         dismiss: 'Ignorer',
         restore: 'Revoir',
-        goToField: 'Aller au champ',
         applying: 'Application…',
         appliedAt: 'Appliqué',
         revoked: 'Annulé',
@@ -109,7 +108,6 @@ const LABELS = {
         revoke: 'Undo',
         dismiss: 'Dismiss',
         restore: 'Review',
-        goToField: 'Go to the field',
         applying: 'Applying…',
         appliedAt: 'Applied',
         revoked: 'Undone',
@@ -290,7 +288,6 @@ function SuggestionCard({
     onApply,
     onRevoke,
     onDismiss,
-    onGoToChange,
     index,
 }) {
     const reduceMotion = useReducedMotion();
@@ -327,13 +324,11 @@ function SuggestionCard({
                             key={`${change.scope}-${change.listName || ''}-${change.name}-${position}`}
                             className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded-lg bg-[var(--becpg-grey)]/40 px-2 py-1 text-sm"
                         >
-                            <button
-                                type="button"
-                                onClick={() => onGoToChange(change)}
-                                className="truncate text-[var(--becpg-blue)] underline underline-offset-2 hover:opacity-80"
-                            >
+                            {/* Un libellé, plus un lien : « Aller au champ » a été
+                                retiré (voir le bloc supprimé plus bas). */}
+                            <span className="truncate text-[var(--becpg-dark-grey)]">
                                 {labelFor(change)}
-                            </button>
+                            </span>
                             <span className="min-w-0 flex-1 truncate font-medium text-[var(--becpg-blue)]">
                                 {readableValue(change.value, lang)}
                             </span>
@@ -389,16 +384,6 @@ function SuggestionCard({
                     </Button>
                 ) : null}
 
-                {suggestion.changes && suggestion.changes.length > 0 ? (
-                    <Button
-                        variant="link"
-                        size="sm"
-                        icon="edit"
-                        onClick={() => onGoToChange(suggestion.changes[0])}
-                    >
-                        {labels.goToField}
-                    </Button>
-                ) : null}
             </div>
         </motion.li>
     );
@@ -417,7 +402,6 @@ function SuggestionCard({
  * @param {Function} [props.onRefresh]
  * @param {boolean} [props.readOnly]
  * @param {Function} [props.onApplied] `(suggestion) => void` — the wizard refreshes the steps
- * @param {Function} [props.onGoToChange] `(change) => void` — navigate to the field / list
  * @param {Function} [props.labelForField] `(name) => string` — the dictionary label when known
  * @param {string} [props.className]
  */
@@ -433,8 +417,8 @@ export function SuggestionsStep({
     onRefresh,
     readOnly = false,
     onApplied,
-    onGoToChange,
     labelForField,
+    variant = 'step',
     className = '',
 }) {
     const { lang } = useMessages();
@@ -663,19 +647,37 @@ export function SuggestionsStep({
         { key: 'unscored', title: labels.unscored, hint: labels.unscoredHint, items: buckets.unscored },
     ].filter((section) => section.items.length > 0);
 
+    /*
+     * En panneau, le titre et le sous-titre sont ceux de la section qui nous
+     * contient : les répéter volerait la moitié d'une colonne déjà étroite. Le
+     * bouton de relance reste — l'analyse peut être relancée à la main — mais
+     * sous sa forme la plus discrète.
+     */
+    const inPanel = variant === 'panel';
+
     return (
         <div className={`min-w-0 ${className}`}>
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <div className="min-w-0">
-                    <h3 className="text-base font-medium text-[var(--becpg-blue)]">{labels.title}</h3>
-                    <p className="text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
+            {inPanel ? (
+                onRefresh ? (
+                    <div className="mb-2 flex justify-end">
+                        <Button variant="ghost" size="sm" icon="refresh" onClick={onRefresh} loading={loading}>
+                            {labels.refresh}
+                        </Button>
+                    </div>
+                ) : null
+            ) : (
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div className="min-w-0">
+                        <h3 className="text-base font-medium text-[var(--becpg-blue)]">{labels.title}</h3>
+                        <p className="text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
+                    </div>
+                    {onRefresh ? (
+                        <Button variant="outline" size="sm" icon="refresh" onClick={onRefresh} loading={loading}>
+                            {labels.refresh}
+                        </Button>
+                    ) : null}
                 </div>
-                {onRefresh ? (
-                    <Button variant="outline" size="sm" icon="refresh" onClick={onRefresh} loading={loading}>
-                        {labels.refresh}
-                    </Button>
-                ) : null}
-            </div>
+            )}
 
             {readOnly ? (
                 <p className="mb-3 rounded-xl border border-[var(--becpg-grey)] bg-[var(--becpg-grey)]/40 p-3 text-sm text-[var(--becpg-dark-grey)]">
@@ -735,7 +737,6 @@ export function SuggestionsStep({
                                             onApply={() => apply(suggestion)}
                                             onRevoke={() => revoke(suggestion)}
                                             onDismiss={() => dismiss(suggestion)}
-                                            onGoToChange={(change) => onGoToChange && onGoToChange(change)}
                                         />
                                     ))}
                                 </AnimatePresence>

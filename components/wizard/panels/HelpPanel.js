@@ -33,6 +33,7 @@ import { Card } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { SkeletonText } from '@/components/ui/Skeleton';
 import { SpecPanel } from '@/components/specs/SpecPanel';
+import { SuggestionsStep } from '@/components/wizard/steps/SuggestionsStep';
 import { formatDate, formatDateTime, plainText } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
@@ -41,6 +42,7 @@ const LABELS = {
     fr: {
         title: 'Contexte',
         subtitle: 'Ce que votre client attend, et ce qui est déjà acté',
+        suggestions: 'Suggestions de l’IA',
         specs: 'Cahiers des charges',
         specsEmpty: 'Aucun cahier des charges rattaché à cette fiche.',
         comments: 'Remarques de votre client',
@@ -60,6 +62,7 @@ const LABELS = {
     en: {
         title: 'Context',
         subtitle: 'What your customer expects, and what is already settled',
+        suggestions: 'AI suggestions',
         specs: 'Specifications',
         specsEmpty: 'No specification attached to this sheet.',
         comments: 'Your customer’s remarks',
@@ -131,6 +134,8 @@ function Section({ id, icon, title, count, open, onToggle, children }) {
  * @param {Object} props
  * @param {string} props.entityId entity nodeRef (or uuid) — the API accepts both
  * @param {string} props.entityNodeRef the entity nodeRef, for the discussion thread
+ * @param {Object} [props.suggestions] ce que le wizard sait des suggestions de l'IA —
+ *        voir `suggestionsPanel` dans `Wizard.js`. Absent = aucune section rendue.
  * @param {Array<Object>} [props.steps] the wizard's step view models (frozen ones are listed)
  * @param {Function} [props.onSelectStep] `(stepId) => void`
  * @param {Object} [props.discussion] a `useDiscussion` instance on the entity
@@ -142,6 +147,7 @@ function Section({ id, icon, title, count, open, onToggle, children }) {
 export function HelpPanel({
     entityId,
     entityNodeRef,
+    suggestions = null,
     steps = [],
     onSelectStep,
     discussion,
@@ -152,7 +158,11 @@ export function HelpPanel({
 }) {
     const { lang } = useMessages();
     const labels = LABELS[lang] || LABELS.fr;
-    const [open, setOpen] = useState({ specs: true, comments: true, frozen: false, refusals: true });
+    // Les suggestions ouvertes d'emblée : c'est ce que le fournisseur n'a pas
+    // demandé mais dont il se sert, et une section repliée ne se lit pas.
+    const [open, setOpen] = useState({
+        suggestions: true, specs: true, comments: true, frozen: false, refusals: true,
+    });
 
     const toggle = (id) => setOpen((current) => ({ ...current, [id]: !current[id] }));
 
@@ -183,6 +193,45 @@ export function HelpPanel({
 
     const content = (
         <div className="flex min-w-0 flex-col">
+            {/*
+                LES SUGGESTIONS DE L'IA, EN PREMIER.
+
+                Elles étaient une étape de l'assistant, à la deuxième place. Deux
+                choses n'allaient pas, et aucune ne tenait au contenu : le nombre
+                d'étapes changeait en cours de route quand becpg-ai répondait, et
+                surtout ce que l'IA a lu sert à REMPLIR les étapes — le consulter
+                supposait de quitter celle qu'on était en train de saisir.
+
+                Ici, elles restent sous les yeux pendant la saisie, quelle que soit
+                l'étape, et `Wizard.js` les relit à chaque changement d'étape.
+            */}
+            {suggestions ? (
+                <Section
+                    id="suggestions"
+                    icon="auto_awesome"
+                    title={labels.suggestions}
+                    count={(suggestions.items || []).length}
+                    open={open.suggestions}
+                    onToggle={toggle}
+                >
+                    <SuggestionsStep
+                        variant="panel"
+                        entityId={suggestions.entityId}
+                        entityType={suggestions.entityType}
+                        suggestions={suggestions.items || []}
+                        summary={suggestions.summary}
+                        entityLevelDropped={suggestions.entityLevelDropped}
+                        analysis={suggestions.analysis}
+                        loading={suggestions.loading}
+                        error={suggestions.error}
+                        onRefresh={suggestions.refresh}
+                        readOnly={suggestions.readOnly}
+                        onApplied={suggestions.onApplied}
+                        labelForField={suggestions.labelForField}
+                    />
+                </Section>
+            ) : null}
+
             <Section
                 id="specs"
                 icon="menu_book"
