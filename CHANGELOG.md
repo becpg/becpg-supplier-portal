@@ -138,3 +138,44 @@
 * InProgress #35846 - [Feature] Scope the task list on the supplier chosen in the toolbar, and say which one it is
 * InProgress #35846 - [Cleanup] Retract the OLAP diagnosis: the cube answers, it was the account it was asked under
 * [skip ci][Release]: Bump _VERSION to 0.0.13
+## [ 0.0.14 ] - 2026-08-13 16:17:15
+
+* InProgress #35696 - [Feature] Add document viewer and task completion on the already-signed card
+* [Cleanup] Require English in the source and add the coding conventions, with CLAUDE.md and GEMINI.md as symlinks
+* [Cleanup] Record the three security findings of the 26.1.0.22 review in the TODO
+* Fix #35846 - [Feature] Show the supplier why their sheet came back, from the comment the engine leaves on their task
+* InProgress #35846 - [Cleanup] Say what actually feeds the refusals of a task, and what does not
+* Fix #35846 - [Feature] Let a reviewer read the task document instead of downloading it
+* Fix #35846 - [Bug] Refuse through the workflow so the reason reaches the supplier, and require it
+* Fix #35846 - [Bug] Read the refusals from the project task list, and drop the remarks section that duplicated the discussion
+* Fix #35846 - [Bug] Stop draft mode from allowing an incomplete sheet to be submitted
+* Fix #35846 - [Bug] Send the supplier-portal site so Share can resolve portal-specific grid columns
+* Fix #35846 - [Bug] Gate the finish on the deliverable catalogue as Share does, and stop showing raw HTML in the AI hints
+* Fix #35846 - [Bug] Stop the browser cutting an AI run the server still allows, drop "Ignorer", tighten the technical sheet block
+* InProgress #35846 - [Cleanup] Reword the empty suggestions state, which pointed at a step that no longer exists
+* Fix #35846 - [Bug] Hide "Appliquer" on a suggestion that has nothing to write
+* Fix #35846 - [Feature] Scope the AI suggestions to the open step and move the technical sheet into the context panel
+* Fix #35846 - [Bug] Drop the content of style and script blocks when rendering stored HTML as text
+* InProgress #35846 - [Cleanup] Stop repeating a suggestion in qnames under its own readable body
+* Fix #35846 - [Feature] Drop the confidence badges and auto-application, render each suggestion by its becpg-ai type
+* InProgress #35846 - [Cleanup] Tighten the suggestion card when it renders in the narrow context panel
+* Fix #35846 - [Feature] Move the AI suggestions into the context panel, recompute them on each step, drop "Aller au champ"
+* Fix #35846 - [Bug] Enrich the whole task scan under a supplier scope, so its tasks are not truncated away
+* Fix #35846 - [Bug] Scope the dashboard tasks by their product, not by an enrichment only twelve of them get
+* Fix #35846 - [Bug] Recover multilingual values stored as text and show which discussions carry messages
+* Fix #35846 - [Bug] Unfreeze the wizard step body and scope the dashboard to the selected supplier
+* Fix #35846 - [Bug] Keep the nav counters when leaving the screen that computed them
+* Fix #35846 - [Bug] Decide the completeness catalogue fallback once for the dashboard, not once per product
+* Fix #35846 - [Bug] Count the documents the dashboard was missing, scope its completeness to the portal catalogues, and mark unread discussions
+* InProgress #35846 - [Feature] Drop from the product list the associations it never shows
+* Fix #35846 - [Feature] Build the wizard state once per session instead of once per tab
+* InProgress #35846 - [Feature] Ask once whether the supplier holds the task, not on every step
+* Fix #35846 - [Bug] Stop refetching the wizard the task route just resolved
+* Fix #35846 - [Bug] Tell the three English locales apart, and land on the list a suggestion is about
+* Fix #35846 - [Bug] Stop dumping the AI's HTML and JSON on the suggestion cards, and never apply one without a click
+* InProgress #35846 - [Cleanup] State what the portal deployment really is, not what I assumed
+* InProgress #35846 - [Setup] Add a fast deploy for the portal, and say that its only target is production
+* Fix #35846 - [Bug] Make the monitoring refresh button say that it is working
+* Fix #35846 - [Bug] Read the requirement list under the key the endpoint actually returns
+* Fix #35846 - [Bug] Show the supplier the catalogues that are his, not only score them
+* [skip ci][Release]: Bump _VERSION to 0.0.14
