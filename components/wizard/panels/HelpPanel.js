@@ -47,9 +47,6 @@ const LABELS = {
         suggestions: 'Suggestions de l’IA',
         specs: 'Cahiers des charges',
         specsEmpty: 'Aucun cahier des charges rattaché à cette fiche.',
-        comments: 'Remarques de votre client',
-        commentsEmpty: 'Aucune remarque pour le moment.',
-        commentsOpen: 'Ouvrir la discussion',
         frozen: 'Listes validées',
         frozenHint:
             'Votre client a validé ces sections : elles sont figées. Pour une correction, demandez leur réouverture via la discussion.',
@@ -68,9 +65,6 @@ const LABELS = {
         suggestions: 'AI suggestions',
         specs: 'Specifications',
         specsEmpty: 'No specification attached to this sheet.',
-        comments: 'Your customer’s remarks',
-        commentsEmpty: 'No remark yet.',
-        commentsOpen: 'Open the discussion',
         frozen: 'Validated lists',
         frozenHint:
             'Your customer validated these sections: they are frozen. For a correction, ask for them to be reopened through the discussion.',
@@ -166,7 +160,7 @@ export function HelpPanel({
     // Les suggestions ouvertes d'emblée : c'est ce que le fournisseur n'a pas
     // demandé mais dont il se sert, et une section repliée ne se lit pas.
     const [open, setOpen] = useState({
-        technicalSheet: true, suggestions: true, specs: true, comments: true, frozen: false, refusals: true,
+        technicalSheet: true, suggestions: true, specs: true, frozen: false, refusals: true,
     });
 
     /*
@@ -180,10 +174,6 @@ export function HelpPanel({
 
     const specs = useApi(entityId ? `entities/${encodeURIComponent(entityId)}/specs` : null);
 
-    // "Pourquoi ça m'est revenu" — the project's own history, no new data.
-    const history = useApi(entityNodeRef ? 'tasks' : null, {
-        params: { entity: entityNodeRef, state: 'completed', pageSize: 50, withEntities: 'false' },
-    });
 
     const specifications = useMemo(
         () => (specs.data && Array.isArray(specs.data.specifications) ? specs.data.specifications : []),
@@ -192,16 +182,26 @@ export function HelpPanel({
 
     const frozenSteps = useMemo(() => (steps || []).filter((step) => step.frozen), [steps]);
 
-    const refusals = useMemo(() => {
-        const items = (history.data && Array.isArray(history.data.items) ? history.data.items : [])
-            .filter((entry) => entry.state === 'Refused' || entry.isRefusedEnabled);
-        if (task && (task.state === 'Refused' || task.isRefusedEnabled)) {
-            return [task, ...items.filter((entry) => entry.id !== task.id)];
-        }
-        return items;
-    }, [history.data, task]);
+    /*
+     * LES REFUS VIENNENT DU PROJET, PAS DU CARNET DE TÂCHES.
+     *
+     * Ce panneau interrogeait `/tasks?state=completed` et retenait les entrées
+     * dont l'état valait `Refused`. Il n'en trouvait jamais, et ne le pouvait
+     * pas : `fetchWorkflowTasks` ramène l'état d'une tâche Activiti à
+     * `Completed` ou `InProgress`, et les tâches PROJET — les seules à porter
+     * `pjt:tlState = Refused` — n'étaient lues que pour `state=in_progress`.
+     * Mesuré sur dev : une tâche « Validation » refusée pendant que le panneau
+     * affichait « Aucun refus sur cette fiche ».
+     *
+     * `/api/v1/tasks/{id}` les résout désormais depuis le projet de la tâche
+     * (`listProjectRefusals`), avec le motif que le client a saisi —
+     * `pjt:tlTaskComment`, ce que `ProjectServiceImpl.refusedTask` y écrit.
+     */
+    const refusals = useMemo(
+        () => (task && Array.isArray(task.refusals) ? task.refusals : []),
+        [task],
+    );
 
-    const remarks = useMemo(() => (discussion ? discussion.messages.slice(0, 3) : []), [discussion]);
 
     const content = (
         <div className="flex min-w-0 flex-col">
@@ -291,62 +291,15 @@ export function HelpPanel({
                 )}
             </Section>
 
-            <Section
-                id="comments"
-                icon="forum"
-                title={labels.comments}
-                count={discussion ? discussion.total : 0}
-                open={open.comments}
-                onToggle={toggle}
-            >
-                {discussion && discussion.loading && remarks.length === 0 ? (
-                    <SkeletonText lines={2} />
-                ) : remarks.length === 0 ? (
-                    <p className="text-sm text-[var(--becpg-dark-grey)]">{labels.commentsEmpty}</p>
-                ) : (
-                    <ul className="flex flex-col gap-2">
-                        {remarks.map((message, index) => (
-                            <li
-                                key={message.nodeRef || index}
-                                className="rounded-lg bg-[var(--becpg-grey)]/40 p-2"
-                            >
-                                <p className="flex flex-wrap items-baseline gap-x-1.5 text-[11px] text-[var(--becpg-dark-grey)]">
-                                    <span className="font-medium text-[var(--becpg-blue)]">
-                                        {message.author.displayName || message.author.username}
-                                    </span>
-                                    <span>{formatDateTime(message.createdOn, lang)}</span>
-                                    {message.field ? (
-                                        <span>{fill(labels.onField, { field: message.field })}</span>
-                                    ) : null}
-                                </p>
-                                {/*
-                                 * A three-line preview, so the body is flattened
-                                 * rather than rendered as blocks: `line-clamp`
-                                 * counts lines inside one element and cannot clamp
-                                 * across sibling paragraphs. `plainText` also
-                                 * strips the `<p>` Alfresco wraps every comment in,
-                                 * which used to be printed literally here.
-                                 */}
-                                <p className="mt-0.5 line-clamp-3 break-words text-sm text-[var(--becpg-blue)]/90">
-                                    {plainText(message.content)}
-                                </p>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-                {onOpenComments ? (
-                    <Button
-                        variant="link"
-                        size="sm"
-                        icon="open_in_new"
-                        onClick={() => onOpenComments(null)}
-                        className="mt-1"
-                    >
-                        {labels.commentsOpen}
-                    </Button>
-                ) : null}
-            </Section>
+            {/*
+                « Remarques de votre client » a été supprimé.
 
+                La section lisait le MÊME fil que le panneau Discussion —
+                `discussion.messages.slice(0, 3)` — et en donnait un aperçu
+                tronqué, sans possibilité de répondre. Deux endroits pour une
+                seule conversation, dont l'un ne servait qu'à renvoyer vers
+                l'autre. Le fil complet, avec sa saisie, est à un clic.
+            */}
             <Section
                 id="frozen"
                 icon="lock"
@@ -388,9 +341,7 @@ export function HelpPanel({
                 open={open.refusals}
                 onToggle={toggle}
             >
-                {history.loading && refusals.length === 0 ? (
-                    <SkeletonText lines={2} />
-                ) : refusals.length === 0 ? (
+                {refusals.length === 0 ? (
                     <p className="text-sm text-[var(--becpg-dark-grey)]">{labels.refusalsEmpty}</p>
                 ) : (
                     <>
@@ -398,17 +349,21 @@ export function HelpPanel({
                         <ul className="flex flex-col gap-2">
                             {refusals.slice(0, 5).map((entry) => (
                                 <li
-                                    key={entry.id}
+                                    key={entry.nodeRef}
                                     className="rounded-lg border border-[var(--becpg-orange)]/40 bg-[var(--becpg-orange)]/5 p-2"
                                 >
                                     <p className="text-sm font-medium text-[var(--becpg-blue)]">{entry.name}</p>
                                     <p className="mt-0.5 text-[11px] text-[var(--becpg-dark-grey)]">
-                                        {entry.dueDate ? formatDate(entry.dueDate, lang) : ''}
-                                        {entry.commentCount > 0 ? ` · ${entry.commentCount} 💬` : ''}
+                                        {entry.date ? formatDate(entry.date, lang) : ''}
                                     </p>
-                                    {entry.description ? (
-                                        <p className="mt-1 line-clamp-3 text-sm text-[var(--becpg-blue)]/90">
-                                            {entry.description}
+                                    {/*
+                                        Le motif, quand il y en a un : un refus saisi
+                                        sans commentaire n'en porte pas, et il vaut
+                                        mieux l'annoncer sans raison que d'en inventer.
+                                    */}
+                                    {entry.comment ? (
+                                        <p className="mt-1 line-clamp-4 text-sm text-[var(--becpg-blue)]/90">
+                                            {entry.comment}
                                         </p>
                                     ) : null}
                                 </li>

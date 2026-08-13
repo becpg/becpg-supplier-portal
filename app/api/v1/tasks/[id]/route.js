@@ -31,7 +31,7 @@ import { NextResponse } from 'next/server';
 import { getLiveSession } from '@/lib/session';
 import { AuthError, NotFoundError, toApiResponse } from '@/lib/errors';
 import { createBecpgClient } from '@/lib/adapters/session';
-import { getTask, peekTaskEntity } from '@/lib/adapters/tasks';
+import { getTask, listProjectRefusals, peekTaskEntity } from '@/lib/adapters/tasks';
 import { buildEntityIndex } from '@/lib/adapters/entities';
 import { getWizardState } from '@/lib/adapters/wizard';
 
@@ -81,6 +81,15 @@ export async function GET(request, context) {
                 task.entity = { ...task.entity, name: meta.name, code: meta.code, type: meta.type };
             }
         }
+
+        /*
+         * Les refus portés par le projet de cette tâche.
+         *
+         * Lus ici et non par un appel séparé : le nodeRef du projet n'est connu
+         * qu'une fois la tâche résolue, et un second aller-retour depuis le
+         * navigateur repartirait de zéro pour le retrouver.
+         */
+        task.refusals = await listProjectRefusals(client, task.project && task.project.nodeRef);
 
         const response = NextResponse.json(task, { status: 200 });
         response.headers.set('Cache-Control', 'private, no-store');
