@@ -29,7 +29,12 @@ import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonCard } from '@/components/ui/Skeleton';
-import { SuggestionBody, hasTypedBody, isWideSuggestion } from '@/components/wizard/SuggestionBody';
+import {
+    SuggestionBody,
+    hasTypedBody,
+    isApplicableSuggestion,
+    isWideSuggestion,
+} from '@/components/wizard/SuggestionBody';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi } from '@/lib/client';
@@ -287,6 +292,8 @@ function SuggestionCard({
     const applied = status === STATE.APPLIED;
     const applying = status === STATE.APPLYING;
     const wide = isWideSuggestion(suggestion);
+    // Une analyse n'a rien à écrire : elle se lit, elle ne s'applique pas.
+    const applicable = isApplicableSuggestion(suggestion);
 
     return (
         <motion.li
@@ -382,7 +389,7 @@ function SuggestionCard({
                     </Button>
                 ) : null}
 
-                {!readOnly && !applied ? (
+                {!readOnly && !applied && applicable ? (
                     <Button variant="primary" size="sm" icon="check" onClick={onApply} loading={applying}>
                         {labels.apply}
                     </Button>

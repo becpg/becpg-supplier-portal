@@ -39,6 +39,36 @@ const HTML_TYPES = new Set(['DocumentReview', 'RegulatoryToxSummary']);
 export const WIDE_TYPES = new Set(['DocumentReview', 'RegulatoryToxSummary', 'RecipeImprovement']);
 
 /**
+ * Cette suggestion peut-elle être **appliquée** ?
+ *
+ * Toutes ne le peuvent pas, et c'est normal : becpg-ai renvoie sous le même
+ * enveloppe des propositions de valeurs — un nutriment lu dans une fiche — et
+ * des **analyses** : l'examen d'un certificat, une synthèse réglementaire, une
+ * suggestion d'amélioration de recette. Les secondes n'ont rien à écrire ; elles
+ * se lisent.
+ *
+ * `applySuggestion` côté beCPG prend un `RemoteEntity` à fusionner, ou un `plan`
+ * d'entités à créer. Sans l'un ni l'autre, le bouton « Appliquer » postait
+ * `{ suggestedChanges: null }` : rien ne se passait, et la carte passait quand
+ * même à « appliqué ». Un bouton qui ne fait rien est pire qu'un bouton absent —
+ * il fait croire que la valeur est posée.
+ *
+ * @param {Object} suggestion
+ * @returns {boolean}
+ */
+export function isApplicableSuggestion(suggestion) {
+    if (!suggestion) {
+        return false;
+    }
+    if (Array.isArray(suggestion.plan) && suggestion.plan.length > 0) {
+        return true;
+    }
+    // `changes` est la mise à plat de `suggestedChanges` : non vide, il y a
+    // quelque chose à écrire ; vide, l'enveloppe l'était aussi.
+    return Array.isArray(suggestion.changes) && suggestion.changes.length > 0;
+}
+
+/**
  * Le corps rend-il déjà, à lui seul, ce que la suggestion propose ?
  *
  * Quand c'est le cas, la carte n'affiche PAS en plus la liste brute des
