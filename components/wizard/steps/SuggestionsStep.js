@@ -289,6 +289,7 @@ function SuggestionCard({
     onRevoke,
     onDismiss,
     index,
+    compact = false,
 }) {
     const reduceMotion = useReducedMotion();
     const level = suggestion.confidenceLevel;
@@ -306,10 +307,21 @@ function SuggestionCard({
         >
             <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-[var(--becpg-blue)]">
+                    {/*
+                        En panneau, la colonne fait une quinzaine de rem : un titre
+                        comme « Nutriments extraits de la fiche technique "Fiche
+                        technique fournisseur.pdf" » y tenait sur six lignes et
+                        repoussait hors de vue les valeurs, qui sont l'information.
+                        Il est donc borné à deux lignes, en gardant le titre entier
+                        dans l'infobulle.
+                    */}
+                    <p
+                        className={`text-sm font-medium text-[var(--becpg-blue)]${compact ? ' line-clamp-2' : ''}`}
+                        title={compact ? (suggestion.title || labels.title) : undefined}
+                    >
                         {suggestion.title || labels.title}
                     </p>
-                    {suggestion.description ? (
+                    {suggestion.description && !compact ? (
                         <p className="mt-0.5 text-sm text-[var(--becpg-dark-grey)]">{suggestion.description}</p>
                     ) : null}
                 </div>
@@ -732,6 +744,7 @@ export function SuggestionsStep({
                                             labels={labels}
                                             lang={lang}
                                             index={index}
+                                            compact={inPanel}
                                             readOnly={readOnly}
                                             revocable={revocableOf(suggestion)}
                                             onApply={() => apply(suggestion)}
