@@ -36,6 +36,7 @@ import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { ProductHeader } from '@/components/products/ProductHeader';
 import { ProductSections } from '@/components/products/ProductSections';
+import { ContentLocalesProvider } from '@/components/form/ContentLocalesProvider';
 import { ProductTaskBanner } from '@/components/products/ProductTaskBanner';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
@@ -169,16 +170,24 @@ function ProductScreen() {
                 </Card>
             ) : null}
 
-            <ProductSections
-                entity={product}
-                entityId={id}
-                steps={(wizard.data && wizard.data.steps) || []}
-                wizardId={wizard.data ? wizard.data.wizardId : undefined}
-                loading={wizard.loading}
-                entityLoading={entity.loading}
-                activeTab={activeTab}
-                onTabChange={selectTab}
-            />
+            {/* The sheet edits its lists through the same controls as the
+                assistant, so a `d:mltext` cell needs the same language policy —
+                without it the control falls back on the portal's own two chrome
+                languages, which is the very confusion #33085 is about. The state
+                is already fetched above for the tabs; this only stops throwing
+                away the part of it the controls need. */}
+            <ContentLocalesProvider value={wizard.data ? wizard.data.contentLocales : null}>
+                <ProductSections
+                    entity={product}
+                    entityId={id}
+                    steps={(wizard.data && wizard.data.steps) || []}
+                    wizardId={wizard.data ? wizard.data.wizardId : undefined}
+                    loading={wizard.loading}
+                    entityLoading={entity.loading}
+                    activeTab={activeTab}
+                    onTabChange={selectTab}
+                />
+            </ContentLocalesProvider>
         </AppShell>
     );
 }

@@ -45,20 +45,45 @@
  * `SUPPORTED_LANGS` remains the floor for the case where nothing answered at
  * all — degrading to zero language box would be worse than degrading to the one
  * the user is reading in.
+ *
+ * **A language coming from a catalogue is marked required; one coming from the
+ * repository is not.** The distinction is `useRequiredLocales()`, and it is the
+ * difference between a customer asking for German and an instance being able to
+ * store it. Marked, never enforced: the portal displays conformity and does not
+ * judge it, so an empty required box blocks nothing here — beCPG already counts
+ * it as a missing field and the conformity step shows it. What the mark buys is
+ * that the supplier learns it *while typing*, instead of at the refusal.
+ *
+ * And because the other languages are folded, the count on the disclosure says
+ * how many required ones are still empty — an empty box nobody can see is the
+ * defect #33085 describes. A "missing field" link of the conformity step aiming
+ * at one of them opens the disclosure and focuses that very box
+ * (`useFieldFocus()`).
  */
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { Icon } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Field';
 import { SUPPORTED_LANGS } from '@/config/messages';
-import { useContentLocales } from '@/components/form/ContentLocalesProvider';
+import { useContentLocales, useRequiredLocales } from '@/components/form/ContentLocalesProvider';
+import { useFieldFocus } from '@/components/form/FieldFocusProvider';
 import { controlParams, lengthBounds, toNumber } from '@/components/form/validation';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
 
 const LABELS = {
-    fr: { more: '{count} autre(s) langue(s)', less: 'Masquer les autres langues' },
-    en: { more: '{count} other language(s)', less: 'Hide the other languages' },
+    fr: {
+        more: '{count} autre(s) langue(s)',
+        less: 'Masquer les autres langues',
+        required: 'exigée par le client',
+        missing: '{count} langue(s) exigée(s) à compléter',
+    },
+    en: {
+        more: '{count} other language(s)',
+        less: 'Hide the other languages',
+        required: 'required by the customer',
+        missing: '{count} required language(s) still empty',
+    },
 };
 
 /**
@@ -194,7 +219,7 @@ export function localeName(locale, lang) {
  *
  * @param {Object} props
  */
-function LocaleInput({ locale, lang, text, rows, maxLength, invalid, onChange, id, autoFocus }) {
+function LocaleInput({ locale, lang, text, rows, maxLength, invalid, onChange, id, autoFocus, required, requiredLabel }) {
     const name = localeName(locale, lang);
     const shared = {
         id,
@@ -202,7 +227,11 @@ function LocaleInput({ locale, lang, text, rows, maxLength, invalid, onChange, i
         onChange: (event) => onChange(event.target.value),
         maxLength,
         invalid,
-        'aria-label': name,
+        // The requirement belongs to the label, not to `aria-required`: the
+        // customer asks for this language, the portal does not enforce it (it
+        // never judges conformity, spec §4.4.1), and announcing a constraint no
+        // submission checks would promise a block that never comes.
+        'aria-label': required ? `${name} — ${requiredLabel}` : name,
         autoFocus,
     };
     return (
@@ -218,7 +247,7 @@ function LocaleInput({ locale, lang, text, rows, maxLength, invalid, onChange, i
               */}
             <span
                 className="becpg-ml-tag mt-2 flex w-16 shrink-0 items-center gap-1 text-xs font-medium uppercase text-[var(--becpg-dark-grey)]"
-                title={name}
+                title={required ? `${name} — ${requiredLabel}` : name}
             >
                 {/* Le drapeau ne remplace pas le code, il l'accompagne : il ne
                     distingue pas `en` de `en_GB`, et il n'est lu par aucun
@@ -237,6 +266,9 @@ function LocaleInput({ locale, lang, text, rows, maxLength, invalid, onChange, i
                     }}
                 />
                 <span className="truncate">{localeTag(locale)}</span>
+                {/* The mark is a character, not a colour: it survives greyscale,
+                    and the same sentence is in the input's `aria-label`. */}
+                {required ? <span aria-hidden="true">*</span> : null}
             </span>
             <div className="min-w-0 flex-1">
                 {rows ? <Textarea rows={rows} {...shared} /> : <Input type="text" autoComplete="off" {...shared} />}
@@ -272,19 +304,68 @@ export function MlTextControl({
 
     const map = toLocaleMap(value, lang);
     const locales = localesFor(field, map, lang, useContentLocales());
+    const requiredLocales = useRequiredLocales();
+    const focus = useFieldFocus();
+
+    const primary = locales[0];
+    const others = locales.slice(1);
+
+    // The language a "missing field" link of the conformity step is aiming at,
+    // when it is aiming at this very field.
+    const targeted = focus && focus.locale
+        && (focus.field === field.name || focus.field === field.id)
+        ? focus.locale
+        : null;
+    const foldedTarget = targeted && others.includes(targeted) ? targeted : null;
+    const nonce = focus ? focus.nonce : 0;
+
+    /*
+     * Opening the disclosure and focusing are two renders, not one: the folded
+     * boxes are unmounted, so the target has to exist before it can be reached.
+     * The opening is adjusted **during render** (React's "adjust state on prop
+     * change"), the focusing is the effect below — touching the DOM is what an
+     * effect is for, changing state on a new prop is not.
+     *
+     * Both are guarded by the nonce of the request they answer, so folding the
+     * languages back does not re-open them, and a stale request does not steal
+     * the focus from what the supplier is typing in.
+     */
+    const [expandedForNonce, setExpandedForNonce] = useState(0);
+    const focusedNonce = useRef(0);
+    if (foldedTarget && !expanded && nonce !== expandedForNonce) {
+        setExpandedForNonce(nonce);
+        setExpanded(true);
+    }
+
+    useEffect(() => {
+        if (!targeted || nonce === focusedNonce.current) {
+            return;
+        }
+        if (foldedTarget && !expanded) {
+            return;
+        }
+        focusedNonce.current = nonce;
+        const node = document.getElementById(targeted === primary ? id : `${id}-${targeted}`);
+        if (node) {
+            node.focus({ preventScroll: true });
+            node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [targeted, foldedTarget, expanded, nonce, id, primary]);
 
     if (readOnly) {
         return <ReadOnlyControl field={field} value={value} displayValue={displayValue} lang={lang} id={id} />;
     }
 
+    const isRequired = (locale) => Boolean(requiredLocales && requiredLocales.includes(locale));
     const params = controlParams(field);
     const configuredRows = toNumber(params.rows);
     const rows = configuredRows === null ? 0 : Math.max(2, Math.min(20, Math.round(configuredRows)));
     const maxLength = lengthBounds(field).max;
 
-    const primary = locales[0];
-    const others = locales.slice(1);
     const filledOthers = others.filter((locale) => map[locale]).length;
+    // What the supplier cannot see while the languages are folded, and is the
+    // whole point of #33085: a required language left empty behind the counter.
+    const missingRequired = others.filter((locale) => isRequired(locale) && !map[locale]).length;
 
     const setLocale = (locale, text) => {
         const next = { ...map };
@@ -297,9 +378,11 @@ export function MlTextControl({
         onChange(next);
     };
 
+    const missingLabel = labels.missing.replace('{count}', String(missingRequired));
     const toggleLabel = expanded
         ? labels.less
-        : labels.more.replace('{count}', String(others.length));
+        : [labels.more.replace('{count}', String(others.length)),
+            missingRequired > 0 ? missingLabel : null].filter(Boolean).join(' — ');
 
     /*
      * The disclosure sits **with** the first box, not under the whole stack.
@@ -327,6 +410,8 @@ export function MlTextControl({
                         maxLength={maxLength === null ? undefined : maxLength}
                         invalid={Boolean(error) || invalid}
                         onChange={(text) => setLocale(primary, text)}
+                        required={isRequired(primary)}
+                        requiredLabel={labels.required}
                     />
                 ) : null}
 
@@ -351,6 +436,16 @@ export function MlTextControl({
                                 {filledOthers}
                             </span>
                         ) : null}
+                        {/* An empty required language hides behind the counter,
+                            which is exactly the silence #33085 is about. The
+                            icon carries the alert as much as the tone does, and
+                            the sentence is already in the button's label. */}
+                        {!expanded && missingRequired > 0 ? (
+                            <span className="becpg-ml-toggle-count inline-flex items-center gap-0.5 rounded-full bg-[var(--status-warn-bg)] px-1.5 text-[10px] text-[var(--status-warn)]">
+                                <Icon name="error_outline" size={11} />
+                                {missingRequired}
+                            </span>
+                        ) : null}
                     </button>
                 ) : null}
             </div>
@@ -367,6 +462,8 @@ export function MlTextControl({
                           maxLength={maxLength === null ? undefined : maxLength}
                           invalid={false}
                           onChange={(text) => setLocale(locale, text)}
+                          required={isRequired(locale)}
+                          requiredLabel={labels.required}
                       />
                   ))
                 : null}

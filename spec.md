@@ -669,17 +669,39 @@ champ, avec un score de complétude et un blocage de la finalisation (§4.4 éta
 n+1, §5.4.3). Une langue obligatoire est une exigence de complétude comme une
 autre : elle a sa place là, pas dans une configuration parallèle du portail.
 
-Ce que cela demande :
+**Et beCPG le porte déjà — rien à développer côté dépôt.** La définition d'un
+catalogue nomme ses locales par un tableau `locales` (`EntityCatalogService.PROP_LOCALES`,
+lu par `getLocales()`, qui retombe sur `rep:reportLocales` de l'entité puis sur la
+locale de l'instance), et `extractMissingFields()` est rejoué pour chacune : un
+champ multilingue vide dans une seule langue ressort dans `missingFields` avec sa
+`locale`, et pèse sur le score. Déclarer `"locales": ["en","de"]` sur un catalogue
+`supplierPortal-*` est donc du paramétrage.
 
-- **côté beCPG** — que la définition d'un catalogue puisse nommer, pour un champ
-  multilingue, les **locales exigées** (par exemple `fr,en`), et que son calcul de
-  complétude compte un champ comme manquant tant qu'une de ces locales est vide.
-  C'est l'endroit où la règle doit vivre : le portail ne juge jamais la
-  conformité, il l'affiche (règle R1) ;
-- **côté portail** — trois choses seulement : marquer les locales exigées dans le
-  contrôle multilingue, faire apparaître une locale manquante dans la liste des
-  champs manquants de l'étape Conformité (cliquable, comme les autres), et
-  compter cette absence dans le score.
+Ce qui trompe le lecteur de la réponse : `formulateCatalog()` ne réémet **pas** ce
+tableau, il le **déplie** en une ligne de catalogue par langue, estampillée
+`locale` — et il écrit `locale: null` pour la locale de l'instance, ce que
+`JSONObject.put(key, null)` traduit par une **clé absente**. Un catalogue qui ne
+déclare rien ressemble donc trait pour trait à un catalogue qui exige la seule
+langue de l'instance. La règle de lecture, tenue par `catalogLocales()` : une ligne
+sans `locale` ne prouve rien quand elle est seule, et vaut la locale de l'instance
+(`$locale` du dictionnaire) dès qu'elle en accompagne d'autres.
+
+Ce que le portail en fait :
+
+- il propose exactement les langues du catalogue, les `$supportedLocales` du
+  dépôt à défaut ;
+- il **marque** celles qui viennent d'un catalogue — étoile, et « exigée par le
+  client » dans le nom accessible de la case. Celles qui viennent du dépôt ne
+  sont pas marquées : ce qu'une instance sait stocker n'est pas ce qu'un client
+  demande ;
+- le dépliant compte les langues exigées **encore vides**, avec une icône : une
+  case obligatoire cachée derrière un compteur est le silence que ce ticket
+  décrit ;
+- un champ manquant de l'étape Conformité porte déjà sa langue — *Dénomination
+  légale (EN)* — et le clic ouvre le dépliant puis place le curseur dans cette
+  case ;
+- le score, lui, n'est pas recalculé ici : beCPG compte déjà le champ manquant
+  par langue, et la ligne la plus sévère est celle qui est retenue.
 
 Deux choses à ne pas faire, et la raison :
 
@@ -690,10 +712,12 @@ Deux choses à ne pas faire, et la raison :
   une information de plus ; l'exigence porte sur un minimum, jamais sur un
   maximum.
 
-Tant que beCPG ne porte pas l'exigence, le portail ne doit **rien afficher** à ce
-sujet : une étoile « obligatoire » posée par défaut sur toutes les langues serait
-une exigence inventée, et le fournisseur la découvrirait comme un blocage sans
-origine.
+C'est pourquoi le marquage suit la **source** et rien d'autre. Une étoile posée
+par défaut sur toutes les langues proposées serait une exigence inventée : un
+catalogue muet fait retomber la liste sur les locales du dépôt, et le fournisseur
+découvrirait vingt-sept obligations sans origine. Marquer n'est pas non plus
+bloquer — une langue exigée et vide n'empêche rien côté portail, elle est comptée
+par beCPG et affichée ici.
 
 ### 4.5 Exigences documentaires et renouvellement — **exposer l'existant, combler 3 trous**
 

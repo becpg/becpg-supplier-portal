@@ -86,6 +86,7 @@ import { DocumentsStep } from '@/components/wizard/steps/DocumentsStep';
 import { SuggestionsStep } from '@/components/wizard/steps/SuggestionsStep';
 import { ComplianceStep, blockingCatalogs } from '@/components/wizard/steps/ReviewStep';
 import { ContentLocalesProvider } from '@/components/form/ContentLocalesProvider';
+import { FieldFocusProvider } from '@/components/form/FieldFocusProvider';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { formatDate } from '@/lib/format';
@@ -627,7 +628,15 @@ export function Wizard({
 
     const [anchor, setAnchor] = useState(null);
     const [commentTargets, setCommentTargets] = useState([]);
-    const [focusField, setFocusField] = useState(null);
+    /*
+     * Where a "missing field" link of the conformity step lands.
+     *
+     * `locale` because a multilingual field is missing *per language*, and
+     * `nonce` because asking twice for the same box is a legitimate request —
+     * the languages may have been folded back in between.
+     */
+    const [fieldFocus, setFieldFocus] = useState({ field: null, locale: null, nonce: 0 });
+    const focusField = fieldFocus.field;
     const [documentSummary, setDocumentSummary] = useState(null);
     const [formulating, setFormulating] = useState(false);
     const [finishing, setFinishing] = useState(false);
@@ -806,7 +815,11 @@ export function Wizard({
         async (stepId, options = {}) => {
             if (!stepId || stepId === currentId) {
                 if (options.field) {
-                    setFocusField(options.field);
+                    setFieldFocus((current) => ({
+                        field: options.field,
+                        locale: options.locale || null,
+                        nonce: current.nonce + 1,
+                    }));
                 }
                 return;
             }
@@ -856,7 +869,11 @@ export function Wizard({
                 currentId: stepId,
                 visited: current.visited.includes(stepId) ? current.visited : [...current.visited, stepId],
             }));
-            setFocusField(options.field || null);
+            setFieldFocus((current) => ({
+                field: options.field || null,
+                locale: options.locale || null,
+                nonce: current.nonce + 1,
+            }));
             setCommentTargets([]);
             persist(stepId);
 
@@ -871,13 +888,13 @@ export function Wizard({
     );
 
     const goToField = useCallback(
-        (name) => {
+        (name, locale = null) => {
             const known = fieldIndex[name];
             const target = known
                 ? known.stepId
                 : (steps.find((step) => step.type === 'form') || {}).id;
             if (target) {
-                goTo(target, { field: name });
+                goTo(target, { field: name, locale });
             }
         },
         [fieldIndex, steps, goTo],
@@ -1175,6 +1192,7 @@ export function Wizard({
                     : undefined
             }
             focusField={focusField}
+            focusLocale={fieldFocus.locale}
             onLoaded={handleDefinitionLoaded(currentStep.id)}
             onIssues={reportStepIssues}
         />
@@ -1198,7 +1216,9 @@ export function Wizard({
                 catalogs.refresh();
                 wizardCatalog.refresh();
             }}
-            onFieldClick={(field) => goToField(field.field || field.name)}
+            // `field.locale` is set when a catalogue reports the field missing in
+            // one language only — the box to land on, not just the field.
+            onFieldClick={(field) => goToField(field.field || field.name, field.locale || null)}
             blockingIds={gatingCatalogIds}
             documentSummary={documentSummary}
             onOpenDocuments={() => {
@@ -1276,6 +1296,7 @@ export function Wizard({
         /* Les langues de saisie de la fiche, mises à disposition des contrôles
            `d:mltext` sans traverser cinq composants — voir ContentLocalesProvider. */
         <ContentLocalesProvider value={wizardState.contentLocales}>
+        <FieldFocusProvider value={fieldFocus}>
         <AppShell
             title={entity.name || labels.step}
             fullWidth={gridStep}
@@ -1530,6 +1551,7 @@ export function Wizard({
                 ) : null}
             </Modal>
         </AppShell>
+        </FieldFocusProvider>
         </ContentLocalesProvider>
     );
 }

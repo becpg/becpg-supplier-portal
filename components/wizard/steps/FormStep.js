@@ -23,7 +23,10 @@
  *
  * `focusField` is how the conformity step's "champ manquant" links land: the
  * wizard switches to this step and passes the field name, which is scrolled to
- * and focused through `fieldDomId()`.
+ * and focused through `fieldDomId()`. When the link also names a language —
+ * a multilingual field is missing per language — the scrolling still happens
+ * here but the focusing does not: only `MlTextControl` can unfold the box that
+ * language lives in, and it does it from `useFieldFocus()`.
  */
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -120,6 +123,8 @@ export function StepReadOnlyNotice({ reason, lang = 'fr', className = '' }) {
  * @param {Object} [props.commentCounts] `{ 'bcpg:legalName': 2 }`
  * @param {Function} [props.onComment] `({ field, label }) => void`
  * @param {string|null} [props.focusField] a field to scroll to and focus
+ * @param {string|null} [props.focusLocale] the language box the link aims at;
+ *        scrolled to here, focused by `MlTextControl`
  * @param {Function} [props.onLoaded] `(definition) => void`
  * @param {Function} [props.onIssues] `(stepId, {count, labels}) => void` — the
  *        mandatory fields still blank, so the wizard can mark the step and refuse
@@ -136,6 +141,7 @@ export function FormStep({
     commentCounts = null,
     onComment,
     focusField = null,
+    focusLocale = null,
     onLoaded,
     onIssues,
     className = '',
@@ -265,11 +271,14 @@ export function FormStep({
             return;
         }
         node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (focusLocale) {
+            return;
+        }
         const focusable = node.querySelector('input, textarea, select, button');
         if (focusable) {
             focusable.focus({ preventScroll: true });
         }
-    }, [focusField, definition]);
+    }, [focusField, focusLocale, definition]);
 
     /*
      * `badgeFor` a été supprimé avec la notion de confiance.
