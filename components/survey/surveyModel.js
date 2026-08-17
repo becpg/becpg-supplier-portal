@@ -616,8 +616,25 @@ export function surveyProgress(questions, answerState, visible) {
  */
 export function questionLegend(question) {
     const label = plainText(question?.label || '');
+    const prefix = questionLegendPrefix(question);
+    return prefix ? `${prefix} - ${label}` : label;
+}
+
+/**
+ * The `"Q1"` part of that legend, alone.
+ *
+ * Split out because the label itself is **not** plain text on screen: a customer
+ * colours and bolds his question titles in Share, and the portal keeps those
+ * marks (see `RichText`). The prefix rule stays here so the two renderings — the
+ * flat one above, used for a screen reader and for the list of missing answers,
+ * and the marked one in `DecisionTree` — cannot drift apart.
+ *
+ * @param {Object} question
+ * @returns {string} empty when the id is a uuid rather than a human label
+ */
+export function questionLegendPrefix(question) {
     const id = String(question?.id || '');
-    return id && id.length < 10 ? `${id.toUpperCase()} - ${label}` : label;
+    return id && id.length < 10 ? id.toUpperCase() : '';
 }
 
 /**

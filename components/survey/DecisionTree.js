@@ -60,7 +60,7 @@ import {
     listChoiceOf,
     parseListItem,
     plainText,
-    questionLegend,
+    questionLegendPrefix,
     questionUrls,
     selectedOptions,
     serialiseAnswers,
@@ -479,6 +479,8 @@ function QuestionBlock({
         />
     );
 
+    const legendPrefix = questionLegendPrefix(question);
+
     return (
         <fieldset
             id={domId}
@@ -498,7 +500,14 @@ function QuestionBlock({
                 default rendering cuts the card's border, which at 360px with a
                 three-line question is unreadable. */}
             <legend className="float-left mb-2 w-full p-0 text-sm font-medium leading-snug text-[var(--becpg-blue)]">
-                <span className="align-middle">{questionLegend(question)}</span>
+                {/* The label keeps the marks its author gave it in Share — a
+                    coloured, bold title is how a customer separates a section
+                    from the questions under it. `inline`: a `<legend>` takes
+                    phrasing content, never a paragraph. */}
+                <span className="align-middle">
+                    {legendPrefix ? `${legendPrefix} - ` : null}
+                    <RichText inline value={question.label} />
+                </span>
                 {question.mandatory ? (
                     <span className="ml-0.5 align-middle text-[var(--status-danger)]" title={labels.required}>
                         *
