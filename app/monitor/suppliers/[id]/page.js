@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * `/monitor/suppliers/[id]` — **la fiche de pilotage d'un fournisseur**
+ * `/monitor/suppliers/[id]` — the steering sheet of one supplier
  * (spec §4.6.2, scorecard §4.6.4).
  *
  * One call, `GET /api/v1/monitor/suppliers/{nodeRef}`, brings the whole sheet:
@@ -366,7 +366,7 @@ function ApprovalReasons({ approval, local, lang }) {
  * launcher started a *referencing* process, whose templates are **discovered**.
  *
  * Two lists, one of them consulted and the other used. Measured on
- * portal.becpg.fr: `GET /api/v1/process/start` answered one discovered template
+ * the deployed portal: `GET /api/v1/process/start` answered one discovered template
  * while the panel displayed "aucun processus n'est autorisé sur cette instance
  * (PORTAL_PROCESS_TEMPLATES)" — naming a variable that governs a different
  * action. Asking the endpoint that will serve the request is the only way the
@@ -815,10 +815,10 @@ export default function MonitorSupplierSheetPage() {
                                             key={product.nodeRef}
                                             className="flex flex-wrap items-center gap-2 border-b border-[var(--becpg-grey)] pb-2 last:border-0 last:pb-0"
                                         >
-                                            {/* Un produit listé mène à sa fiche : la ligne
-                                                portait le nom, le code et la date sans jamais
-                                                être cliquable, et il fallait retrouver le
-                                                produit par la recherche pour l'ouvrir. */}
+                                            {/* A listed product leads to its record: the row
+                                                carried the name, the code and the date without
+                                                ever being clickable, and the product had to be
+                                                found again through search to open it. */}
                                             <Link
                                                 href={`/products/${encodeURIComponent(product.nodeRef)}`}
                                                 className="min-w-0 flex-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
@@ -888,10 +888,10 @@ export default function MonitorSupplierSheetPage() {
                                     {projects.map((project) => (
                                         <li key={project.nodeRef}>
                                             <div className="flex flex-wrap items-center gap-2">
-                                                {/* Aucune page par campagne n'existe : le lien
-                                                    mène à la liste déjà filtrée sur ce projet,
-                                                    ce qui est le plus proche de « ouvrir la
-                                                    campagne » sans inventer une route. */}
+                                                {/* No page per campaign exists: the link leads
+                                                    to the list already filtered on this project,
+                                                    which is the closest thing to "opening the
+                                                    campaign" without inventing a route. */}
                                                 <Link
                                                     href={`/monitor/campaigns?q=${encodeURIComponent(project.name || '')}`}
                                                     className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--becpg-blue)] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"

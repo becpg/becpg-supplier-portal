@@ -183,12 +183,11 @@ const TOPICS = {
         },
         {
             /*
-             * Les deux notions se ressemblent — l'une et l'autre disent « ce que
-             * mon client attend » — et elles se touchent à l'écran : le cahier des
-             * charges est dans le panneau Contexte, le catalogue dans l'étape
-             * Conformité. Rien ne les distinguait nulle part, alors que la
-             * différence est celle entre un texte à lire et un contrôle qui bloque
-             * le bouton Terminer.
+             * The two notions look alike — both say "what my customer expects" —
+             * and they sit next to each other on screen: the specification is in
+             * the Contexte panel, the catalogue in the Conformité step. Nothing
+             * told them apart anywhere, while the difference is the one between a
+             * text to read and a check that blocks the Terminer button.
              */
             id: 'specs',
             icon: 'menu_book',

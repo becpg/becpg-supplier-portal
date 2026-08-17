@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * **Vues par métier** (spec §4.6.5) — *"même donnée, quatre lectures"*.
+ * Business-role views (spec §4.6.5) — *"même donnée, quatre lectures"*.
  *
  * This is a **selector, not four applications**. There is one API, one payload
  * and one set of components; a profile only decides:

@@ -30,7 +30,8 @@ import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonList } from '@/components/ui/Skeleton';
 import { download } from '@/lib/client';
 import { DocumentUpload, AiValidationBadge } from '@/components/documents/DocumentUpload';
-import { ExpiryPill, ValidityRange, ExpiryBar } from '@/components/documents/ExpiryPill';
+import { DocumentValidity } from '@/components/documents/DocumentValidity';
+import { ExpiryPill, ExpiryBar } from '@/components/documents/ExpiryPill';
 import { entityTypeLabel } from '@/components/products/ProductHeader';
 
 const LABELS = {
@@ -53,7 +54,7 @@ const LABELS = {
         openCount: '{count} à traiter',
         blockingCount: '{count} bloquant(s)',
         category: 'Catégorie',
-        validity: 'Validité',
+        readOnly: 'Le dépôt est fermé sur cette fiche.',
         noEntity: 'Documents fournisseur',
         aiHints: 'Remarques de l’analyse',
         deposit: 'Déposer un fichier',
@@ -78,7 +79,7 @@ const LABELS = {
         openCount: '{count} to handle',
         blockingCount: '{count} blocking',
         category: 'Category',
-        validity: 'Validity',
+        readOnly: 'Uploads are closed on this sheet.',
         noEntity: 'Supplier documents',
         aiHints: 'Analysis notes',
         deposit: 'Upload a file',
@@ -148,9 +149,17 @@ function requirementLabel(requirement) {
  * @param {Function} [props.onUploaded]
  * @param {number} [props.noticeDays=60]
  * @param {boolean} [props.compact]
+ * @param {boolean} [props.readOnly] entry is closed: no deposit, no date
  * @param {number} [props.index] stagger position
  */
-function RequirementRow({ requirement, onUploaded, noticeDays = 60, compact = false, index = 0 }) {
+function RequirementRow({
+    requirement,
+    onUploaded,
+    noticeDays = 60,
+    compact = false,
+    readOnly = false,
+    index = 0,
+}) {
     const { lang } = useMessages();
     const labels = labelsFor(lang);
     const reduceMotion = useReducedMotion();
@@ -235,6 +244,24 @@ function RequirementRow({ requirement, onUploaded, noticeDays = 60, compact = fa
                                 date={requirement.aiValidationDate}
                             />
                         </div>
+
+                        {/*
+                            THE VALIDITY ON THE ROW, NOT INSIDE THE FOLD.
+
+                            It only showed once "Détails" was expanded, in grey,
+                            next to the category — yet it is the fact that decides
+                            whether a certificate is still worth anything, and on a
+                            MANUAL effectivity type the only one the supplier has to
+                            type. It sits here now, coloured as Share colours it,
+                            and editable in place.
+                        */}
+                        <DocumentValidity
+                            document={requirement}
+                            noticeDays={noticeDays}
+                            readOnly={readOnly}
+                            onSaved={onUploaded}
+                            className="mt-1"
+                        />
                     </div>
 
                     <div className="flex shrink-0 items-center gap-1">
@@ -265,7 +292,7 @@ function RequirementRow({ requirement, onUploaded, noticeDays = 60, compact = fa
                 {/* The compact call to action stays visible: a requirement whose
                     file is missing must never need a click to reveal the way to
                     fix it. */}
-                {!open && canAct ? (
+                {!open && canAct && !readOnly ? (
                     <div className="mt-2">
                         <Button
                             variant={requirement.blocking ? 'accent' : 'outline'}
@@ -295,14 +322,6 @@ function RequirementRow({ requirement, onUploaded, noticeDays = 60, compact = fa
                                             <dd className="break-words">{requirement.category}</dd>
                                         </>
                                     ) : null}
-                                    <dt className="text-[var(--becpg-dark-grey)]">{labels.validity}</dt>
-                                    <dd>
-                                        <ValidityRange
-                                            from={requirement.validFrom}
-                                            to={requirement.validTo}
-                                            withIcon={false}
-                                        />
-                                    </dd>
                                     {requirement.isProvided && requirement.name ? (
                                         <>
                                             <dt className="text-[var(--becpg-dark-grey)]">{labels.file}</dt>
@@ -332,6 +351,14 @@ function RequirementRow({ requirement, onUploaded, noticeDays = 60, compact = fa
                                         documentRef={requirement.nodeRef}
                                         entityRef={requirement.entity ? requirement.entity.nodeRef : undefined}
                                         dropRef={rowRef}
+                                        disabled={readOnly}
+                                        disabledReason={labels.readOnly}
+                                        validity={{
+                                            editable: Boolean(requirement.validityEditable),
+                                            required: Boolean(requirement.validityRequired),
+                                            from: requirement.validFrom,
+                                            to: requirement.validTo,
+                                        }}
                                         onUploaded={onUploaded}
                                         onCancel={() => setOpen(false)}
                                         autoFocus
@@ -356,7 +383,15 @@ function RequirementRow({ requirement, onUploaded, noticeDays = 60, compact = fa
  * @param {Function} [props.onUploaded]
  * @param {boolean} [props.defaultOpen=true]
  */
-function RequirementGroup({ group, onUploaded, noticeDays, compact, defaultOpen = true, index = 0 }) {
+function RequirementGroup({
+    group,
+    onUploaded,
+    noticeDays,
+    compact,
+    readOnly = false,
+    defaultOpen = true,
+    index = 0,
+}) {
     const { lang } = useMessages();
     const labels = labelsFor(lang);
     const [open, setOpen] = useState(defaultOpen);
@@ -436,6 +471,7 @@ function RequirementGroup({ group, onUploaded, noticeDays, compact, defaultOpen 
                             onUploaded={onUploaded}
                             noticeDays={noticeDays}
                             compact={compact}
+                            readOnly={readOnly}
                             index={position}
                         />
                     ))}
@@ -458,8 +494,10 @@ function RequirementGroup({ group, onUploaded, noticeDays, compact, defaultOpen 
  * @param {Error} [props.error]
  * @param {Function} [props.onRetry]
  * @param {Function} [props.onUploaded] called after every successful deposit
- * @param {number} [props.noticeDays=60] renewal notice, only used to size the countdown bar
+ * @param {number} [props.noticeDays=60] renewal notice, sizes the countdown bar and
+ *        the orange step of the validity line
  * @param {boolean} [props.compact] denser rows, for the wizard side panel
+ * @param {boolean} [props.readOnly] entry is closed: the rows show, nothing is writable
  * @param {boolean} [props.groupByEntity=true] `false` renders one flat list
  * @param {React.ReactNode} [props.emptyState] overrides the default empty surface
  */
@@ -473,6 +511,7 @@ export function RequirementChecklist({
     onUploaded,
     noticeDays = 60,
     compact = false,
+    readOnly = false,
     groupByEntity = true,
     emptyState,
     className = '',
@@ -547,6 +586,7 @@ export function RequirementChecklist({
                     onUploaded={onUploaded}
                     noticeDays={noticeDays}
                     compact={compact}
+                    readOnly={readOnly}
                     defaultOpen={ordered.length <= 4 || index === 0}
                 />
             ))}

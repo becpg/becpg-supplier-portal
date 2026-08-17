@@ -66,7 +66,7 @@ const RELOGIN_KEY = 'becpg_portal_relogin_attempts';
  * **Why a choice exists at all.** One contact can act for several supplier
  * records — a group and its subsidiaries, a parent and its plants. The session
  * already resolves them all (`suppliers[]`; measured on dev: **13** for
- * `supplier-test@becpg.fr`), but the payload's `supplier` was simply
+ * the test supplier account), but the payload's `supplier` was simply
  * `suppliers[0]`. So *Ma fiche*, the approval banner and the document checklist
  * all described **one arbitrary record**, and the other twelve were unreachable
  * from the UI — not hidden behind a filter, absent.
@@ -333,16 +333,16 @@ export function SessionProvider({ initialIdentity = null, children }) {
     }
 
     /*
-     * Le périmètre est recopié dans un cookie, parce que le rendu SERVEUR n'a
-     * aucun autre moyen de le connaître (voir `lib/scope.js`). Le tableau de
-     * bord composait sinon ses compteurs sur toutes les fiches du compte pendant
-     * que la barre en annonçait une seule.
+     * The scope is copied into a cookie, because the SERVER render has no other
+     * way of knowing it (see `lib/scope.js`). Otherwise the dashboard composed
+     * its counters over every record of the account while the bar announced a
+     * single one.
      *
-     * Dans un effet, et non au rendu : écrire un cookie est la synchronisation
-     * d'un système extérieur, exactement ce à quoi sert un effet. Il couvre les
-     * deux cas d'un seul geste — le choix qui vient d'être fait, et celui qui
-     * dormait déjà dans le stockage local d'un navigateur qui n'a jamais eu ce
-     * cookie.
+     * In an effect, and not during render: writing a cookie is the
+     * synchronisation of an external system, exactly what an effect is for. It
+     * covers both cases in one gesture — the choice that has just been made, and
+     * the one already sleeping in the local storage of a browser that never had
+     * this cookie.
      */
     useEffect(() => {
         writeScopeCookie(sub, { ref: chosenRef, all: scopeAll });

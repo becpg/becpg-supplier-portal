@@ -45,6 +45,9 @@ export const STATUS_VOCABULARY = Object.freeze({
     expiring: { tone: 'warn', icon: 'schedule', messageKey: 'status.expiring' },
     expired: { tone: 'danger', icon: 'error_outline', messageKey: 'status.expired' },
     missing: { tone: 'danger', icon: 'help_outline', messageKey: 'status.missing' },
+    // Share paints this one red and bold (`effectivity-mandatory`): a mandatory
+    // document whose validity window nobody has filled in.
+    validityMissing: { tone: 'danger', icon: 'event_busy', messageKey: 'status.validityMissing' },
     toValidate: { tone: 'info', icon: 'hourglass_top', messageKey: 'status.pending' },
     refused: { tone: 'danger', icon: 'cancel', messageKey: 'status.rejected' },
 

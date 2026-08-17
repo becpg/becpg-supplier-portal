@@ -2,11 +2,34 @@
   "name": "becpg-supplier-portal",
   "version": "0.1.0",
   "private": true,
+  "description": "Supplier-facing front end of beCPG PLM: onboarding, technical sheets, documents, electronic signature and supplier monitoring.",
+  "license": "LGPL-3.0-or-later",
+  "author": "beCPG (https://www.becpg.net)",
+  "homepage": "https://www.becpg.net",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/becpg/becpg-supplier-portal.git"
+  },
+  "bugs": {
+    "url": "https://github.com/becpg/becpg-supplier-portal/issues"
+  },
+  "keywords": [
+    "becpg",
+    "plm",
+    "supplier-portal",
+    "supplier-collaboration",
+    "alfresco",
+    "nextjs"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "licenses": "node scripts/generate-third-party-licenses.mjs"
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * **Les non-conformités fournisseur** (spec §4.6.5 « Qualité : conformité
+ * Supplier non-conformities (spec §4.6.5 « Qualité : conformité
  * documentaire, NC, certifications, audits », §4.2 `/monitor/quality`).
  *
  * A non-conformity *is* a `qa:nc` entity — the portal adds no second notion of
@@ -11,11 +11,11 @@
  *
  * | Column                | Question it answers                  | Source                    |
  * |-----------------------|--------------------------------------|---------------------------|
- * | État                  | *où en est-elle ?*                   | `qa:ncState`              |
- * | Priorité              | *est-elle bloquante ?*               | `qa:ncPriority` (1 = oui) |
- * | Délai de traitement   | *depuis combien de temps ?*          | `cm:created` → maintenant |
- * | Actions correctives   | *le plan d'action avance-t-il ?*     | `pjt:taskList` de la NC   |
- * | Coût                  | *combien nous coûte-t-elle ?*        | `qa:ncCost`               |
+ * | État                  | *where does it stand?*               | `qa:ncState`              |
+ * | Priorité              | *is it blocking?*                    | `qa:ncPriority` (1 = yes) |
+ * | Délai de traitement   | *for how long?*                      | `cm:created` → now        |
+ * | Actions correctives   | *is the action plan moving?*         | `pjt:taskList` of the NC  |
+ * | Coût                  | *what is it costing us?*             | `qa:ncCost`               |
  *
  * ## Two honesty rules this component keeps
  *
@@ -126,8 +126,8 @@ const LABELS = {
         noSupplier: 'Aucun fournisseur rattaché',
         search: 'Rechercher une non-conformité',
         empty: 'Aucune non-conformité sur ce périmètre',
-        // La consultation : jusqu'ici la NC ne s'ouvrait nulle part, l'écran en
-        // listait le code et le verdict sans jamais en donner le texte.
+        // Consultation: until now the NC opened nowhere, the screen listed its
+        // code and its verdict without ever giving its text.
         open: 'Consulter cette non-conformité',
         detail: {
             description: 'Description',
@@ -297,26 +297,26 @@ function Fact({ label, value }) {
 }
 
 /**
- * **Une non-conformité, ouverte.**
+ * One non-conformity, opened.
  *
- * ## Pourquoi une fenêtre et pas une route
+ * ## Why a modal window and not a route
  *
- * Une NC se consulte *depuis la liste* : on en ouvre trois de suite pour trier ce
- * qui bloque un agrément, et une navigation par NC ferait perdre le filtre, le
- * tri et la sélection à chaque aller-retour. La fenêtre garde l'écran de travail
- * derrière elle.
+ * An NC is consulted *from the list*: three are opened in a row to sort out what
+ * blocks an approval, and a navigation per NC would lose the filter, the sort
+ * and the selection on every round trip. The window keeps the working screen
+ * behind it.
  *
- * ## Ce qu'elle montre, et d'où ça vient
+ * ## What it shows, and where that comes from
  *
- * **Rien de plus que la ligne** — mêmes champs, même requête : `qa:ncComment` et
- * `cm:description` ont simplement été ajoutés à la projection déjà émise, donc
- * ouvrir une NC ne coûte aucun appel. S'y ajoutent les actions correctives que la
- * liste résumait en « 2 / 5 » et le fil de discussion de la NC — le même que
- * Share affiche, jamais un second canal (spec §7.1).
+ * Nothing more than the row — same fields, same query: `qa:ncComment` and
+ * `cm:description` were simply added to the projection already emitted, so
+ * opening an NC costs no call. To that are added the corrective actions the list
+ * summarised as « 2 / 5 » and the NC's discussion thread — the same one Share
+ * shows, never a second channel (spec §7.1).
  *
- * Le portail n'écrit pas sur la NC : le traitement se fait dans beCPG, et une
- * fenêtre de consultation qui proposerait de changer un état sans en porter le
- * circuit serait un deuxième modèle de qualité (règle R2).
+ * The portal does not write on the NC: the treatment happens in beCPG, and a
+ * consultation window that offered to change a state without carrying its
+ * circuit would be a second quality model (rule R2).
  *
  * @param {Object} props
  * @param {Object|null} props.nc the row being consulted, `null` closes the modal
@@ -361,7 +361,7 @@ function NonConformityDetail({ nc, onClose, labels, lang }) {
                         ) : null}
                     </div>
 
-                    {/* Le texte d'abord : c'est ce qu'on vient lire. */}
+                    {/* The text first: it is what the reader came for. */}
                     <div>
                         {nc.description ? (
                             <>
@@ -383,8 +383,8 @@ function NonConformityDetail({ nc, onClose, labels, lang }) {
                                 </p>
                             </>
                         ) : null}
-                        {/* Dire que beCPG ne porte pas de texte, plutôt que
-                            d'afficher un blanc qu'on prendrait pour un bug. */}
+                        {/* Say that beCPG carries no text, rather than showing a
+                            blank that would be taken for a bug. */}
                         {!nc.description && !nc.comment ? (
                             <p className="text-sm text-[var(--becpg-dark-grey)]">{words.noText}</p>
                         ) : null}
@@ -510,11 +510,11 @@ export function NonConformityList({
                 header: labels.columns.nc,
                 meta: { primary: true, label: labels.columns.nc, width: '18rem' },
                 /*
-                 * **La NC s'ouvre.** L'écran la listait sans jamais permettre de
-                 * la lire : ni sa description, ni le commentaire qualité, ni sa
-                 * discussion. Un vrai `<button>` — pas un `<div onClick>` — et
-                 * `stopPropagation`, pour que consulter ne coche pas la ligne au
-                 * passage.
+                 * The NC opens. The screen listed it without ever allowing it to
+                 * be read: neither its description, nor the quality comment, nor
+                 * its discussion. A real `<button>` — not a `<div onClick>` — and
+                 * `stopPropagation`, so that consulting does not tick the row on
+                 * the way.
                  */
                 cell: ({ row }) => (
                     <div className="min-w-0">

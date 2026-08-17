@@ -13,8 +13,8 @@
  *
  * DEV_FAKE_AUTH escape hatch (development only): instead of the OIDC dance, the
  * handler logs into Alfresco directly with BECPG_DEV_USER / BECPG_DEV_PASSWORD
- * and writes a normal session. It makes the portal runnable against
- * dev.becpg.fr without a fully configured OIDC client, and it is refused
+ * and writes a normal session. It makes the portal runnable against a
+ * remote instance without a fully configured OIDC client, and it is refused
  * outright when NODE_ENV === 'production'.
  */
 

@@ -70,19 +70,19 @@ export function DiscussionList({ threads = [], index = 0, className = '' }) {
     const reduceMotion = useReducedMotion();
 
     /*
-     * L'état de lecture vit dans `localStorage`, donc hors de React :
-     * `useSyncExternalStore` est fait pour cela. Son instantané serveur est vide
-     * — le serveur ne sait pas ce que cet utilisateur a lu — ce qui écarte tout
-     * écart d'hydratation, et l'abonnement fait disparaître le marqueur dans les
-     * autres onglets dès qu'un fil est ouvert ici.
+     * The read state lives in `localStorage`, hence outside React:
+     * `useSyncExternalStore` is made for that. Its server snapshot is empty
+     * — the server does not know what this user has read — which rules out any
+     * hydration mismatch, and the subscription makes the marker disappear in the
+     * other tabs as soon as a thread is opened here.
      */
     const seen = useSyncExternalStore(subscribe, readState, serverState);
 
     /*
-     * Les fils non lus d'abord, chacun des deux groupes restant trié par date
-     * décroissante — l'ordre dans lequel le serveur les a déjà rendus. Trier
-     * ainsi plutôt que masquer : un fil lu reste consultable, il cesse seulement
-     * de disputer la première place à un message auquel personne n'a répondu.
+     * Unread threads first, each of the two groups staying sorted by descending
+     * date — the order the server already rendered them in. Sorting rather than
+     * hiding: a read thread stays reachable, it merely stops competing for the
+     * first place with a message nobody has answered.
      */
     const ordered = useMemo(() => {
         const unread = [];

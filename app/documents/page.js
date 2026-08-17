@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * `/documents` — *"qu'est-ce que je dois fournir, et pour quand ?"*
+ * `/documents` — "what do I have to provide, and by when?"
  *
  * This is the screen spec §4.5 calls the biggest gain for the smallest cost: the
  * data already exists in beCPG (`DocumentFormulationHandler` materialises the
@@ -202,17 +202,18 @@ export default function DocumentsPage() {
     const depositRef = useRef(null);
 
     /*
-     * BORNÉ AU FOURNISSEUR CHOISI DANS LA BARRE, comme *Mes tâches* et *Mes produits*.
+     * BOUNDED TO THE SUPPLIER PICKED IN THE BAR, like "Mes tâches" and
+     * "Mes produits".
      *
-     * L'écran interrogeait `/documents/requirements` sans périmètre : il rendait
-     * donc les exigences des **seize** fiches fournisseur du compte pendant que
-     * la barre annonçait n'en montrer qu'une. Un fournisseur y lisait comme
-     * siennes des obligations qui ne le concernaient pas, et le compteur
-     * « à traiter » ne correspondait à rien de ce qu'il pouvait faire.
+     * The screen queried `/documents/requirements` without a scope: it therefore
+     * rendered the requirements of the sixteen supplier entities of the account
+     * while the bar announced showing only one. A supplier read as his own
+     * obligations that did not concern him, and the « à traiter » counter
+     * matched nothing he could act on.
      *
-     * Le paramètre est envoyé au serveur — l'endpoint l'accepte déjà — plutôt
-     * que filtré ici : un filtrage local laisserait le total et les compteurs
-     * calculés sur les seize.
+     * The parameter is sent to the server — the endpoint already accepts it —
+     * rather than filtered here: a local filter would leave the total and the
+     * counters computed over the sixteen.
      */
     const { scopedSupplier, scopeAll } = useSession();
     const scopeRef = !scopeAll && scopedSupplier ? scopedSupplier.nodeRef : null;
@@ -323,10 +324,10 @@ export default function DocumentsPage() {
                 ),
             },
             {
-                // `modified` est servi par /api/v1/documents depuis le début et
-                // n'était affiché nulle part : sur un écran qui sert à savoir quel
-                // document renouveler, la date du dernier dépôt est ce qui distingue
-                // un dossier suivi d'un dossier abandonné.
+                // `modified` has been served by /api/v1/documents from the start
+                // and was displayed nowhere: on a screen meant to tell which
+                // document to renew, the date of the last deposit is what tells a
+                // file that is kept up to date from an abandoned one.
                 id: 'modified',
                 accessorFn: (row) => row.modified || '',
                 header: labels.columns.modified,
@@ -371,8 +372,8 @@ export default function DocumentsPage() {
                     ) : null,
             },
         ],
-        // `lang` : la colonne « Modifié le » formate sa date avec la locale, donc
-        // un changement de langue doit reconstruire les colonnes.
+        // `lang`: the « Modifié le » column formats its date with the locale, so
+        // a language change must rebuild the columns.
         [labels, lang],
     );
 

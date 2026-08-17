@@ -1,26 +1,26 @@
 'use client';
 
 /**
- * L'étape / le panneau des suggestions de becpg-ai.
+ * The becpg-ai suggestions step / panel.
  *
- * ## Rien n'est appliqué sans un clic
+ * Nothing is applied without a click
  *
- * Ce composant classait les propositions par score de confiance et écrivait
- * d'autorité celles au-dessus de 90 % : « Appliqué · 100 % », badge vert, bouton
- * « annuler ». Tout cela est retiré.
+ * This component ranked proposals by confidence score and wrote the ones above
+ * 90 % on its own authority: « Appliqué · 100 % », green badge, « annuler »
+ * button. All of that is gone.
  *
- * Un pourcentage dit l'assurance d'un modèle sur sa propre lecture ; affiché
- * comme un verdict, il se lisait comme une garantie d'exactitude. Et appliquer
- * sans demander retirait au fournisseur la décision dont il répond : c'est lui
- * qui engage sa fiche, pas l'extraction. Il reste donc deux gestes — appliquer,
- * ignorer — et une seule liste.
+ * A percentage states a model's confidence in its own reading; displayed as a
+ * verdict, it read as a guarantee of correctness. And applying without asking
+ * took away from the supplier the decision he answers for: he is the one
+ * committing his sheet, not the extraction. Two gestures remain — apply,
+ * dismiss — and a single list.
  *
- * ## Le corps est rendu selon son type
+ * The body is rendered according to its type
  *
- * `description` n'a pas une forme mais six, selon le plugin qui l'a produite.
- * {@link SuggestionBody} les distingue comme le fait le client de becpg-ai, au
- * lieu de tout aplatir en une phrase — c'est ce qui rendait les analyses
- * illisibles. Les plus longues s'ouvrent en pleine largeur.
+ * `description` has not one shape but six, depending on the plugin that
+ * produced it. {@link SuggestionBody} tells them apart the way becpg-ai's own
+ * client does, instead of flattening everything into a sentence — which is
+ * what made analyses unreadable. The longest ones open at full width.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -67,10 +67,11 @@ const LABELS = {
             'La valeur précédente ne peut pas être rétablie automatiquement : modifiez le champ directement si besoin.',
         empty: 'Aucune suggestion',
         /*
-         * Plus « à l'étape précédente » : la fiche technique n'est plus une
-         * étape, et les suggestions sont désormais bornées à l'étape ouverte —
-         * « rien ici » veut dire « rien POUR CETTE ÉTAPE », pas « rien du tout ».
-         * Renvoyer vers un écran disparu était la pire des deux erreurs.
+         * No more « à l'étape précédente »: the technical sheet is no longer a
+         * step, and suggestions are now scoped to the open step — "nothing
+         * here" means "nothing FOR THIS STEP", not "nothing at all".
+         * Pointing at a screen that no longer exists was the worse of the two
+         * mistakes.
          */
         emptyHint:
             'Rien à proposer pour cette étape. La fiche technique se dépose juste au-dessus : '
@@ -78,10 +79,9 @@ const LABELS = {
         emptyEntityLevel:
             'L’analyse a bien tourné, mais elle n’a produit que des déductions faites sur la fiche '
             + 'elle-même, sans document à l’appui : elles ne vous sont pas proposées.',
-        // L'analyse est asynchrone : becpg-ai accuse réception, ses greffons
-        // tournent, et le résultat arrive plus tard. Tant que ce n'était pas dit,
-        // ce délai s'affichait « Aucune suggestion » — c'est-à-dire comme une
-        // panne.
+        // The analysis is asynchronous: becpg-ai acknowledges, its plugins run,
+        // and the result arrives later. Until that was stated, the wait was
+        // displayed as « Aucune suggestion » — that is, as a failure.
         analysing: 'Analyse en cours',
         analysingHint:
             'Le portail lit vos documents. Les propositions apparaîtront ici toutes seules, '
@@ -238,17 +238,17 @@ function readableValue(value, lang = 'fr') {
     }
     if (typeof value === 'object') {
         /*
-         * Une **carte de locales** — `{ fr: "Sucre cristal", en: "Caster sugar" }`,
-         * ce que l'IA renvoie pour un champ `d:mltext` comme `bcpg:legalName`.
+         * A locale map — `{ fr: "Sucre cristal", en: "Caster sugar" }`, what the
+         * AI returns for a `d:mltext` field such as `bcpg:legalName`.
          *
-         * Aucune des quatre clés testées ci-dessous n'existe sur une telle carte,
-         * si bien que la suggestion s'affichait « — », c'est-à-dire vide : le
-         * fournisseur voyait une proposition sans valeur, sur le champ que l'IA
-         * lit le plus souvent. Mesuré le 12/08.
+         * None of the four keys tested below exists on such a map, so the
+         * suggestion displayed « — », that is, empty: the supplier saw a
+         * proposal with no value, on the field the AI reads most often.
+         * Measured on 12/08.
          *
-         * On rend la langue de lecture si elle est renseignée, la première
-         * disponible sinon — préfixée de sa locale, pour ne pas faire passer une
-         * traduction anglaise pour du français.
+         * We render the reading language when it is present, the first one
+         * available otherwise — prefixed with its locale, so an English
+         * translation is not passed off as French.
          */
         const locales = Object.entries(value)
             .filter(([, text]) => typeof text === 'string' && text.trim() !== '');
@@ -260,8 +260,8 @@ function readableValue(value, lang = 'fr') {
             const [locale, text] = locales[0];
             return `${locale} : ${text}`;
         }
-        // `value.value` peut être une carte à son tour : on repasse par ici
-        // plutôt que de laisser `String()` produire « [object Object] ».
+        // `value.value` can be a map in turn: recurse through here rather than
+        // let `String()` produce "[object Object]".
         const inner = value.displayValue ?? value.name ?? value.label ?? value.value;
         return inner === undefined || inner === null ? '—' : readableValue(inner, lang);
     }
@@ -298,7 +298,7 @@ function SuggestionCard({
     const applied = status === STATE.APPLIED;
     const applying = status === STATE.APPLYING;
     const wide = isWideSuggestion(suggestion);
-    // Une analyse n'a rien à écrire : elle se lit, elle ne s'applique pas.
+    // An analysis has nothing to write: it is read, it is not applied.
     const applicable = isApplicableSuggestion(suggestion);
 
     return (
@@ -454,12 +454,12 @@ export function SuggestionsStep({
     const reduceMotion = useReducedMotion();
 
     /*
-     * La suggestion ouverte en grand, ou `null`.
+     * The suggestion opened at full size, or `null`.
      *
-     * Une analyse réglementaire ou une revue de document tient sur plusieurs
-     * paragraphes : dans une colonne de quinze rem, elle est illisible quel que
-     * soit le soin apporté à la carte. Plutôt que d'élargir le panneau pour tout
-     * le monde, la suggestion s'ouvre ici en pleine largeur, à la demande.
+     * A regulatory analysis or a document review spans several paragraphs: in a
+     * fifteen-rem column it is unreadable, however much care goes into the
+     * card. Rather than widening the panel for everyone, the suggestion opens
+     * here at full width, on demand.
      */
     const [expanded, setExpanded] = useState(null);
 
@@ -621,19 +621,18 @@ export function SuggestionsStep({
     );
 
     /*
-     * **Rien n'est appliqué tout seul.** Une suggestion à 95 % l'était à
-     * l'arrivée sur l'étape, badge vert et bouton « révoquer » — c'est ce que
-     * décrivait la spec §4.4, et c'est retiré sur demande.
+     * Nothing is applied on its own. A suggestion at 95 % used to be applied on
+     * arrival at the step, green badge and « révoquer » button — that is what
+     * spec §4.4 described, and it was removed on request.
      *
-     * La raison tient en une phrase : le fournisseur signe la fiche. Écrire dans
-     * ses champs sans qu'il ait cliqué lui fait endosser une valeur qu'une
-     * machine a lue dans un PDF, et le fait de pouvoir révoquer ne répare pas
-     * ça — il faut d'abord avoir remarqué. La confiance continue de trier et de
-     * colorer les propositions ; elle ne décide plus à sa place.
+     * The reason fits in one sentence: the supplier signs the sheet. Writing in
+     * his fields without a click of his makes him own a value a machine read in
+     * a PDF, and being able to revoke does not fix that — he has to notice
+     * first. Confidence still sorts and colours the proposals; it no longer
+     * decides in his place.
      *
-     * `autoApplicable` reste dans la charge utile de l'adaptateur : c'est une
-     * information de l'IA sur sa propre certitude, et rien n'oblige un écran à
-     * en faire une action.
+     * `autoApplicable` stays in the adapter payload: it is the AI reporting on
+     * its own certainty, and nothing forces a screen to turn it into an action.
      */
 
     const labelFor = useCallback(
@@ -649,16 +648,16 @@ export function SuggestionsStep({
     );
 
     /*
-     * UNE SEULE LISTE.
+     * A SINGLE LIST.
      *
-     * Elles étaient réparties en quatre sections — « Appliqué automatiquement »,
-     * « À confirmer », « Signalé », « Sans score » — selon le pourcentage de
-     * confiance. Le classement est retiré avec l'application automatique : il
-     * dispersait des propositions de même nature dans quatre encarts, et sa
-     * première section affirmait qu'une valeur était déjà posée.
+     * They used to be split across four sections — « Appliqué automatiquement »,
+     * « À confirmer », « Signalé », « Sans score » — by confidence percentage.
+     * The ranking went away with automatic application: it scattered proposals
+     * of the same nature across four boxes, and its first section claimed a
+     * value was already set.
      *
-     * L'ordre est celui de becpg-ai, qui envoie ses plugins dans l'ordre où il
-     * les exécute.
+     * The order is becpg-ai's, which sends its plugins in the order it runs
+     * them.
      */
 
     if (error) {
@@ -675,10 +674,10 @@ export function SuggestionsStep({
 
 
     /*
-     * En panneau, le titre et le sous-titre sont ceux de la section qui nous
-     * contient : les répéter volerait la moitié d'une colonne déjà étroite. Le
-     * bouton de relance reste — l'analyse peut être relancée à la main — mais
-     * sous sa forme la plus discrète.
+     * In panel mode, the title and subtitle are those of the containing
+     * section: repeating them would steal half of an already narrow column. The
+     * refresh button stays — the analysis can be restarted by hand — but in its
+     * most discreet form.
      */
     const inPanel = variant === 'panel';
 

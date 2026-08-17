@@ -166,15 +166,15 @@ export function SurveyStep({
     );
 
     /*
-     * Le même verdict, remonté à l'assistant.
+     * The same verdict, reported up to the wizard.
      *
-     * « Vérifier mes réponses » existait déjà, mais il ne parlait qu'à cet écran
-     * et il fallait le demander. Un fournisseur qui changeait d'onglet emportait
-     * l'information avec lui, et *Terminer* ne la connaissait pas du tout : un
-     * questionnaire à moitié rempli se rendait sans un mot.
+     * « Vérifier mes réponses » already existed, but it spoke to this screen
+     * only and had to be asked for. A supplier changing tab took the
+     * information away with him, and "Terminer" did not know it at all: a
+     * half-answered questionnaire was submitted without a word.
      *
-     * Une étape en lecture seule ne remonte rien : ses blancs ne sont pas au
-     * fournisseur de les combler.
+     * A read-only step reports nothing: its blanks are not the supplier's to
+     * fill.
      */
     useEffect(() => {
         if (!onIssues) {

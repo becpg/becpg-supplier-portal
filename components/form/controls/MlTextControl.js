@@ -39,7 +39,7 @@
  * two languages the portal's **chrome** is translated into. Those two are a
  * property of this application; they were never a statement about what a
  * customer expects a supplier to write, and a supplier shipping to Italy simply
- * could not enter Italian. Measured on dev.becpg.fr the 11/08: the repository
+ * could not enter Italian. Measured on the reference instance the 11/08: the repository
  * declares 27 locales, the portal offered 2.
  *
  * `SUPPORTED_LANGS` remains the floor for the case where nothing answered at
@@ -162,16 +162,16 @@ export function localesFor(field, valueMap, lang, policy = null) {
 }
 
 /**
- * Le code drapeau d'une locale — **la règle de beCPG Share, à l'identique**.
+ * The flag code of a locale — beCPG Share's rule, identically.
  *
- * `form.lib.ftl#renderLocaleImage` prend les caractères 3 et 4 quand la locale
- * porte un `_` (donc le PAYS : `en_US` → `us`), et les deux premiers sinon
- * (donc la LANGUE : `fr` → `fr`). Reprendre exactement cette règle garantit
- * qu'un fournisseur voit le même drapeau dans Share et dans le portail — les
- * images viennent d'ailleurs du même jeu, recopié dans `public/theme/images/flags`.
+ * `form.lib.ftl#renderLocaleImage` takes characters 3 and 4 when the locale
+ * carries a `_` (so the COUNTRY: `en_US` → `us`), and the first two otherwise
+ * (so the LANGUAGE: `fr` → `fr`). Reproducing that rule exactly guarantees that
+ * a supplier sees the same flag in Share and in the portal — the images come
+ * from the same set anyway, copied into `public/theme/images/flags`.
  *
  * @param {string} locale
- * @returns {string} un code de fichier, sans extension
+ * @returns {string} a file code, without extension
  */
 export function flagCode(locale) {
     const value = String(locale || '').replace('-', '_');
@@ -180,11 +180,11 @@ export function flagCode(locale) {
 }
 
 /**
- * Le code affiché sur la pastille : **la locale entière**, pas ses deux premières
- * lettres.
+ * The code shown on the badge: the whole locale, not its first two
+ * letters.
  *
- * `slice(0, 2)` rendait `en`, `en_US` et `en_AU` tous les trois « EN » : trois
- * cases identiques, et aucun moyen de savoir laquelle remplir. Signalé le 12/08.
+ * `slice(0, 2)` rendered `en`, `en_US` and `en_AU` all three as « EN » : three
+ * identical boxes, and no way to know which one to fill in.
  *
  * @param {string} locale
  * @returns {string}
@@ -260,8 +260,8 @@ function LocaleInput({ locale, lang, text, rows, maxLength, invalid, onChange, i
                     aria-hidden="true"
                     className="shrink-0"
                     onError={(event) => {
-                        // Une locale sans drapeau dans le jeu : le code seul
-                        // reste lisible, une icône cassée ne l'est pas.
+                        // A locale with no flag in the set: the code alone stays
+                        // readable, a broken icon does not.
                         event.currentTarget.style.visibility = 'hidden';
                     }}
                 />
@@ -393,7 +393,7 @@ export function MlTextControl({
      * `app/globals.css` turns that one wrapper into a row and folds the button
      * down to the grid's 26px icon size — which is the whole of the fix for the
      * 65px row pitch a multilingual column used to impose (see §4.1 of
-     * `doc/implementation-status.md`). The rule lives under `min-width: 768px`
+     * `enterprise/implementation-status.md`). The rule lives under `min-width: 768px`
      * and under `.becpg-grid`, so the phone layout — where a row is a card and
      * every target is 40px — is untouched by construction.
      */

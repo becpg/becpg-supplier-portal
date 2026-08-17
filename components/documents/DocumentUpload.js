@@ -9,10 +9,16 @@
  * It posts a file to `POST /api/v1/documents` with either `documentRef` (the
  * placeholder created by `DocumentFormulationHandler` — a *renewal* or a first
  * deposit against an expected document) or `entityRef` (a free deposit into the
- * entity's `SupplierDocuments` folder). It writes **no metadata**: validity
- * dates, state and naming are `DocumentAspectPolicy`'s job in beCPG, and
- * duplicating that rule in the portal is exactly what rule R2 forbids. So there
- * is no "validity date" field here, on purpose.
+ * entity's `SupplierDocuments` folder). State and naming are
+ * `DocumentAspectPolicy`'s job in beCPG, and duplicating that rule in the portal
+ * is exactly what rule R2 forbids.
+ *
+ * The **validity window** is the one exception, and only where the row says so:
+ * `validity.editable` is the server's verdict that this document type declares
+ * `MANUAL` effectivity (or none), i.e. that beCPG writes no date and nobody but
+ * the supplier knows them — they are printed on the certificate being uploaded.
+ * The two boxes then travel with the file, in the same request, because a date
+ * asked for in a second step is a date nobody comes back to type.
  *
  * ## AI validation
  *
@@ -39,6 +45,7 @@ import { api } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { Button, Icon, Spinner } from '@/components/ui/Button';
 import { useToast } from '@/components/providers/ToastProvider';
+import { ValidityFields, toInputDate } from '@/components/documents/DocumentValidity';
 import { formatDateTime, plainText } from '@/lib/format';
 
 const LABELS = {
@@ -66,6 +73,7 @@ const LABELS = {
         aiRefused: 'Document refusé par l’IA',
         aiOn: 'Analysé le {date}',
         selected: 'Fichier sélectionné',
+        validityHint: 'Les dates de validité portées sur le document.',
     },
     en: {
         drop: 'Drop a file here',
@@ -91,6 +99,7 @@ const LABELS = {
         aiRefused: 'Rejected by AI',
         aiOn: 'Analysed on {date}',
         selected: 'Selected file',
+        validityHint: 'The validity dates printed on the document.',
     },
 };
 
@@ -113,8 +122,8 @@ const AI_POLL_ATTEMPTS = 2;
 const AI_POLL_DELAY = 2000;
 
 /**
- * How long the *spinner* waits. Measured on dev-ai.becpg.fr, a real document
- * review is ~20 s; becpg-ai cuts a silent plugin off at 180 s.
+ * How long the *spinner* waits. Measured on an AI-enabled instance, a real
+ * document review is ~20 s; becpg-ai cuts a silent plugin off at 180 s.
  *
  * Deliberately **shorter** than the route's own 120 s ceiling: this number is a
  * UX limit, not a correctness one. If the browser stops waiting first, the route
@@ -226,15 +235,15 @@ export function AiValidationBadge({ state, hints, date, withHints = false, class
 
     const label = labels[descriptor.key];
     /*
-     * `bcpg:aiValidationHints` ARRIVE EN HTML.
+     * `bcpg:aiValidationHints` ARRIVES AS HTML.
      *
-     * becpg-ai y range le compte rendu de sa revue, mis en forme par ses
-     * gabarits. Posé tel quel dans un `title=`, l'attribut ne rend pas le
-     * balisage : il l'affiche. L'infobulle du badge « Document refusé par l'IA »
-     * montrait donc des `<p>` et des `<li>` à un fournisseur.
+     * becpg-ai stores the report of its review there, formatted by its own
+     * templates. Put as is in a `title=`, the attribute does not render the
+     * markup: it displays it. The tooltip of the « Document refusé par l'IA »
+     * badge therefore showed `<p>` and `<li>` tags to a supplier.
      *
-     * `plainText` en extrait les lignes — et, depuis le correctif de
-     * `richTextLines`, sans le contenu des blocs `<style>`.
+     * `plainText` extracts the lines from it — and, since the `richTextLines`
+     * fix, without the content of the `<style>` blocks.
      */
     const hintsText = hints ? plainText(hints) : '';
     const badge = (
@@ -289,6 +298,8 @@ export function AiValidationBadge({ state, hints, date, withHints = false, class
  *   fast path that avoids waiting for the index.
  * @param {Function} [props.onCancel] renders a cancel button in the inline variant
  * @param {{state: string|null, hints: string|null, date: string|null}} [props.aiValidation]
+ * @param {{editable: boolean, required: boolean, from: string|null, to: string|null}} [props.validity]
+ *   the row's validity verdict; the date boxes are rendered only when `editable`
  * @param {boolean} [props.autoFocus] focus the trigger on mount (row expanded by the user)
  */
 export function DocumentUpload({
@@ -306,6 +317,7 @@ export function DocumentUpload({
     onAiReview,
     onCancel,
     aiValidation,
+    validity = null,
     autoFocus = false,
     className = '',
 }) {
@@ -325,6 +337,19 @@ export function DocumentUpload({
     const [error, setError] = useState(null);
     const [done, setDone] = useState(null);
     const [waitingForAi, setWaitingForAi] = useState(false);
+    const [dates, setDates] = useState(() => ({
+        from: toInputDate(validity && validity.from),
+        to: toInputDate(validity && validity.to),
+    }));
+    // Mirrored in a ref: `upload` is memoised, and the drag & drop listeners are
+    // re-registered whenever it changes — rebuilding them on every keystroke in a
+    // date box would be absurd, and a date typed afterwards must still travel
+    // with the file.
+    const datesRef = useRef(dates);
+    const changeDates = useCallback((next) => {
+        datesRef.current = next;
+        setDates(next);
+    }, []);
 
     const maxBytes = maxSizeMb ? maxSizeMb * 1024 * 1024 : 0;
     const busy = progress !== null;
@@ -413,6 +438,15 @@ export function DocumentUpload({
                         ...(documentRef ? { documentRef } : {}),
                         ...(entityRef && !documentRef ? { entityRef } : {}),
                         majorVersion: majorVersion ? 'true' : 'false',
+                        // Only when the row says the supplier owns them: on an
+                        // AUTO or NONE type the route refuses the write, and
+                        // rightly so.
+                        ...(validity && validity.editable && datesRef.current.from
+                            ? { validFrom: datesRef.current.from }
+                            : {}),
+                        ...(validity && validity.editable && datesRef.current.to
+                            ? { validTo: datesRef.current.to }
+                            : {}),
                     },
                     { onProgress: (percent) => alive.current && setProgress(percent) },
                 );
@@ -465,7 +499,8 @@ export function DocumentUpload({
                 toast.error(cause);
             }
         },
-        [accept, maxBytes, labels, documentRef, entityRef, majorVersion, onUploaded, requestAiReview, toast],
+        [accept, maxBytes, labels, documentRef, entityRef, majorVersion, validity, onUploaded,
+            requestAiReview, toast],
     );
 
     const onFiles = useCallback(
@@ -628,11 +663,33 @@ export function DocumentUpload({
         </>
     );
 
+    /*
+        THE DATES BEFORE THE BUTTON, NOT AFTER IT.
+
+        They are printed on the document the supplier is holding at the moment he
+        files it. Asked for after the upload, they assume he comes back to a row
+        that already looks settled — which he does not.
+    */
+    const validityBoxes = validity && validity.editable ? (
+        <div className="mb-2">
+            <ValidityFields
+                from={dates.from}
+                to={dates.to}
+                onChange={changeDates}
+                required={validity.required}
+                disabled={busy}
+                idPrefix={`upload-${inputId}`}
+            />
+            <p className="mt-1 text-[0.6875rem] text-[var(--becpg-dark-grey)]">{labels.validityHint}</p>
+        </div>
+    ) : null;
+
     /* ----------------------------------------------------------- inline form */
     if (variant === 'inline') {
         return (
             <div ref={zoneRef} className={`min-w-0 ${className}`}>
                 {input}
+                {validityBoxes}
                 <div className="flex flex-wrap items-center gap-2">
                     <Button
                         ref={triggerRef}
@@ -663,6 +720,7 @@ export function DocumentUpload({
     return (
         <div className={`min-w-0 ${className}`}>
             {input}
+            {validityBoxes}
             <button
                 ref={(node) => {
                     zoneRef.current = node;

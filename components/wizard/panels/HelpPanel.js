@@ -28,14 +28,13 @@
 
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Button, Icon } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { SkeletonText } from '@/components/ui/Skeleton';
 import { SpecPanel } from '@/components/specs/SpecPanel';
 import { SuggestionsStep } from '@/components/wizard/steps/SuggestionsStep';
-import { TechnicalSheetPanel, useTechnicalSheet } from '@/components/wizard/panels/TechnicalSheetPanel';
-import { formatDate, formatDateTime, plainText } from '@/lib/format';
+import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
@@ -43,7 +42,6 @@ const LABELS = {
     fr: {
         title: 'Contexte',
         subtitle: 'Ce que votre client attend, et ce qui est déjà acté',
-        technicalSheet: 'Fiche technique',
         suggestions: 'Suggestions de l’IA',
         specs: 'Cahiers des charges',
         specsEmpty: 'Aucun cahier des charges rattaché à cette fiche.',
@@ -61,7 +59,6 @@ const LABELS = {
     en: {
         title: 'Context',
         subtitle: 'What your customer expects, and what is already settled',
-        technicalSheet: 'Technical sheet',
         suggestions: 'AI suggestions',
         specs: 'Specifications',
         specsEmpty: 'No specification attached to this sheet.',
@@ -130,10 +127,8 @@ function Section({ id, icon, title, count, open, onToggle, children }) {
 /**
  * @param {Object} props
  * @param {string} props.entityId entity nodeRef (or uuid) — the API accepts both
- * @param {string} props.entityNodeRef the entity nodeRef, for the discussion thread
- * @param {Object} [props.suggestions] ce que le wizard sait des suggestions de l'IA —
- *        voir `suggestionsPanel` dans `Wizard.js`. Absent = aucune section rendue.
- * @param {boolean} [props.readOnly] la saisie est-elle fermée sur cette fiche
+ * @param {Object} [props.suggestions] what the wizard knows of the AI suggestions —
+ *        see `suggestionsPanel` in `Wizard.js`. Absent = no section rendered.
  * @param {Array<Object>} [props.steps] the wizard's step view models (frozen ones are listed)
  * @param {Function} [props.onSelectStep] `(stepId) => void`
  * @param {Object} [props.discussion] a `useDiscussion` instance on the entity
@@ -144,9 +139,7 @@ function Section({ id, icon, title, count, open, onToggle, children }) {
  */
 export function HelpPanel({
     entityId,
-    entityNodeRef,
     suggestions = null,
-    readOnly = false,
     steps = [],
     onSelectStep,
     discussion,
@@ -157,18 +150,11 @@ export function HelpPanel({
 }) {
     const { lang } = useMessages();
     const labels = LABELS[lang] || LABELS.fr;
-    // Les suggestions ouvertes d'emblée : c'est ce que le fournisseur n'a pas
-    // demandé mais dont il se sert, et une section repliée ne se lit pas.
+    // Suggestions open from the start: this is what the supplier did not ask for
+    // but does use, and a collapsed section is not read.
     const [open, setOpen] = useState({
-        technicalSheet: true, suggestions: true, specs: true, frozen: false, refusals: true,
+        suggestions: true, specs: true, frozen: false, refusals: true,
     });
-
-    /*
-     * La fiche technique est lue ICI et non dans son composant, pour savoir
-     * s'il faut ouvrir la section : un client sans type « fiche technique »
-     * configuré ne doit pas se retrouver avec un encart vide.
-     */
-    const technicalSheet = useTechnicalSheet(entityNodeRef);
 
     const toggle = (id) => setOpen((current) => ({ ...current, [id]: !current[id] }));
 
@@ -183,20 +169,19 @@ export function HelpPanel({
     const frozenSteps = useMemo(() => (steps || []).filter((step) => step.frozen), [steps]);
 
     /*
-     * LES REFUS VIENNENT DU PROJET, PAS DU CARNET DE TÂCHES.
+     * REFUSALS COME FROM THE PROJECT, NOT FROM THE TASK LIST.
      *
-     * Ce panneau interrogeait `/tasks?state=completed` et retenait les entrées
-     * dont l'état valait `Refused`. Il n'en trouvait jamais, et ne le pouvait
-     * pas : `fetchWorkflowTasks` ramène l'état d'une tâche Activiti à
-     * `Completed` ou `InProgress`, et les tâches PROJET — les seules à porter
-     * `pjt:tlState = Refused` — n'étaient lues que pour `state=in_progress`.
-     * Mesuré sur dev : une tâche « Validation » refusée pendant que le panneau
-     * affichait « Aucun refus sur cette fiche ».
+     * This panel queried `/tasks?state=completed` and kept the entries whose
+     * state was `Refused`. It never found any, and could not: `fetchWorkflowTasks`
+     * reduces the state of an Activiti task to `Completed` or `InProgress`, and
+     * the PROJECT tasks — the only ones carrying `pjt:tlState = Refused` — were
+     * read for `state=in_progress` only. Measured on dev: a « Validation » task
+     * refused while the panel displayed « Aucun refus sur cette fiche ».
      *
-     * Ils arrivent désormais AVEC la tâche : `projectTaskInfo.get.json.ftl`
-     * remonte les associations sources de `pjt:tlRefusedTaskRef` et leur
-     * `pjt:tlTaskComment` — ce que `ProjectServiceImpl.refusedTask` y écrit.
-     * Lire le projet n'aurait rien donné : un fournisseur n'y a pas accès.
+     * They now arrive WITH the task: `projectTaskInfo.get.json.ftl` returns the
+     * source associations of `pjt:tlRefusedTaskRef` and their
+     * `pjt:tlTaskComment` — what `ProjectServiceImpl.refusedTask` writes there.
+     * Reading the project would have given nothing: a supplier has no access to it.
      */
     const refusals = useMemo(
         () => (task && Array.isArray(task.refusals) ? task.refusals : []),
@@ -219,30 +204,18 @@ export function HelpPanel({
                 l'étape, et `Wizard.js` les relit à chaque changement d'étape.
             */}
             {/*
-                LA FICHE TECHNIQUE, AU-DESSUS DES SUGGESTIONS.
+                LA FICHE TECHNIQUE N'EST PLUS ICI.
 
-                C'est le document dont elles sont tirées : l'ordre dit la
-                dépendance, et quand il n'y a rien à proposer, la zone de dépôt
-                est juste au-dessus de l'endroit où le fournisseur constate le
-                vide.
+                Elle ouvrait ce panneau, juste au-dessus des suggestions qu'elle
+                alimente : le bon endroit pour la consulter, le mauvais pour la
+                déposer. Sous `lg` le panneau est derrière un bouton, au-dessus
+                c'est la colonne qu'on regarde en dernier — et déposer la fiche
+                est la PREMIÈRE action attendue du fournisseur, celle sans
+                laquelle l'IA ne propose rien.
+
+                Elle est donc dans l'en-tête de l'assistant, en rouge tant
+                qu'elle manque : voir `TechnicalSheetBanner`.
             */}
-            {technicalSheet.loading || technicalSheet.sheet ? (
-                <Section
-                    id="technicalSheet"
-                    icon="description"
-                    title={labels.technicalSheet}
-                    open={open.technicalSheet}
-                    onToggle={toggle}
-                >
-                    <TechnicalSheetPanel
-                        entityNodeRef={entityNodeRef}
-                        state={technicalSheet}
-                        readOnly={readOnly}
-                        onUploaded={suggestions ? suggestions.refresh : undefined}
-                    />
-                </Section>
-            ) : null}
-
             {suggestions ? (
                 <Section
                     id="suggestions"

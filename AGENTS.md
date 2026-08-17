@@ -1,8 +1,9 @@
 # AGENTS.md — beCPG Supplier Portal V2
 
 Instructions for any AI agent working in this repository. Read this before touching a file.
-`spec.md` is the authoritative specification; this file is only the short form of the rules.
-Current state, known defects and remaining gaps: `doc/implementation-status.md`.
+`enterprise/spec_fr.md` is the authoritative specification; this file is only the short form of the rules.
+Current state, known defects and remaining gaps: `enterprise/implementation-status.md`
+(private, like the rest of that folder).
 
 `CLAUDE.md` and `GEMINI.md` are symlinks to this file — one document, whichever agent reads it.
 Edit `AGENTS.md`; the same layout is used in the `becpg` repository.
@@ -64,7 +65,7 @@ elsewhere that assumes no `.git`, it is stale.
 
 ## Non-negotiable UX rules
 
-These are audited; regressions get caught. Details in `doc/implementation-status.md`.
+These are audited; regressions get caught. Details in `enterprise/implementation-status.md`.
 
 - **Responsive down to 360 px.** One-handed use on a phone: primary navigation is a bottom
   bar inside the safe area, never a top-left hamburger.
@@ -119,16 +120,40 @@ components/               107 components — ui/ shell/ form/ datalist/ wizard/ 
                           documents/ dashboard/ signature/ products/ specs/ providers/
 lib/                      21 modules; adapters/ holds the 12 domain adapters
 config/                   chrome messages, default wizards
-doc/                      implementation-status.md, becpg-api-contracts.md
-e2e/                      Playwright — fixtures/, tests/; report/ and results/ are generated
+doc/                      becpg-api-contracts.md
+e2e/                      Playwright — fixtures/, tests/; internal only, stripped from the mirror
 legacy/                   archived V1 portal — read only
 proxy.js                  nothing is reachable without a session; resolves the tenant
-spec.md                   authoritative specification
+enterprise/               internal only, stripped from the public mirror:
+                          spec_fr.md (authoritative specification), TODO_fr.md,
+                          create-public-repo.sh, operations notes
 ```
 
 Packaging: `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `deployment.yml`,
 `cloudbuild.delivery.yaml`, `release.sh` — a **single** Next.js standalone image, no Java
 backend (spec §5.1.1, §5.5).
+
+## This repository is published
+
+The portal is open source under the **LGPL-3.0-or-later** (`LICENSE`, `NOTICE`), mirrored to
+`github.com/becpg/becpg-supplier-portal` by `enterprise/create-public-repo.sh`. The mirror is
+force-pushed: never commit into it, cherry-pick a contribution back here instead.
+
+What the mirror strips, from the tree **and** from the history: `enterprise/` — which holds
+`spec_fr.md`, `TODO_fr.md`, `implementation-status.md` and the operations notes — `legacy/`,
+`e2e/` (written against internal instances and accounts), and the delivery files
+(`cloudbuild.delivery.yaml`, `deployment.yml`, `deploy-fast.sh`, `release.sh`). Two
+consequences when you write:
+
+- **Assume every other file is public.** No internal host, no cloud project, no cluster name,
+  no account, no customer name outside the stripped list. Internal operations are documented
+  in `enterprise/README.md`, which is stripped.
+- **Do not link a stripped file from a file that ships.** `README.md` pointing at `enterprise/spec_fr.md`
+  is a broken link for everyone outside; the export script reports these, it does not fix them.
+
+`README.md` is the public front page and is written for someone who has never seen beCPG.
+`AGENTS.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CITATION.cff`,
+`THIRD-PARTY-LICENSES.md` (regenerate with `npm run licenses`) and `.github/` ship with it.
 
 ## Language: everything in the source is English
 
@@ -140,6 +165,7 @@ repository, and it applies to every file type here:
 - **Log messages** and error messages
 - **Commit messages** (see the Git section below)
 - The **key** side of `config/messages.js` — its values are the translations
+- **Documentation**: `README.md`, `AGENTS.md`, `doc/*.md`, `env.example`, the shell scripts
 
 French belongs to the *interface*, never to the source. Chrome wording lives in
 `config/messages.js`, business labels come from beCPG in the user's locale; a French sentence
@@ -147,9 +173,15 @@ anywhere else is either a defect or a quote. When it genuinely is a quote — a 
 error message the system really emits — keep the quote as it is and write the sentence around
 it in English.
 
+A document written in French carries the `_fr` suffix — `spec_fr.md`, `TODO_fr.md` — so that
+the unsuffixed name always means "the English one". A French document with a plain `.md` name
+is a defect; either translate it or rename it. `_fr.md` is for a translation or for an
+internal document that never leaves the private repository, never for the canonical version of
+something the public repository ships.
+
 This applies to the files you touch: fix the file you are working on, do not translate the
-whole repository in passing. There is a real backlog here, some 200 comment lines across
-`app/`, `lib/` and `components/`.
+whole repository in passing. There is a real backlog here, roughly a thousand comment lines
+across `app/`, `lib/`, `components/` and `e2e/`.
 
 ## Comments
 
@@ -217,7 +249,7 @@ Hard rules 5, 6 and 7 *are* the security model; everything here serves them.
   not truncated, not at debug level.
 - **Never put a credential in a URL.** Query strings are written to access logs, to the logs
   of every proxy traversed and to browser history. Headers or a POST body. (This is currently
-  violated between the portal and `becpg/portal/wizard` — see `TODO.md`.)
+  violated between the portal and `becpg/portal/wizard` — see `enterprise/TODO_fr.md`.)
 - **Validate at the boundary**: every value coming from the browser is untrusted, a `nodeRef`
   included. Check its shape before forwarding it.
 - Use `[Security]` as the commit type for a security fix.
@@ -250,17 +282,20 @@ npm install
 npm run dev        # http://localhost:3000, reads ./.env (DEV_FAKE_AUTH, no OIDC needed)
 ```
 
-Against **dev.becpg.fr**, supplier perspective (`.env.supplier`, gitignored, holds a real
-password — do not commit it or copy its credentials):
+Against a **remote** instance, from an environment file of your own (never committed — it
+holds a real password):
 
 ```bash
-set -a && . .env.supplier && set +a && npx next dev --port 3100
+set -a && . .env.<name> && set +a && npx next dev --port 3100
 ```
 
-`BECPG_SHARE_URL` **must be set explicitly** in any env file aimed at dev: Next.js loads
-`.env` *in addition to* the custom loaded environment, so the local `.env` would otherwise point Share at
-`localhost:8180`, and the portal would take its data from dev and its configuration from
-localhost — rendering ten wizard steps with zero fields, silently, with nothing in the logs.
+`BECPG_SHARE_URL` **must be set explicitly** in any such file: Next.js loads `.env` *in
+addition to* the environment you sourced, so the local `.env` would otherwise point Share at
+`localhost:8180`, and the portal would take its data from the remote instance and its
+configuration from localhost — rendering ten wizard steps with zero fields, silently, with
+nothing in the logs.
+
+Which instances we actually use, and with which accounts: `enterprise/README.md`.
 
 ```bash
 npm run build      # standalone output — green, 57 routes
@@ -277,17 +312,16 @@ cp env.example .env && docker compose up --build     # http://localhost:3000
 curl -s http://localhost:3000/api/health             # {"status":"ok","version":"..."}
 ```
 
-Release: `./release.sh` (must run from `main`, clean tree) tags the current
-`_VERSION` of `cloudbuild.delivery.yaml`, appends to `CHANGELOG.md`, then bumps the version.
-It pushes the branch and the tag, so it needs valid `gcloud` credentials — when they expire the
-tag is created locally and only the push fails.
+Release: `./release.sh` (must run from `main`, clean tree) tags the current `_VERSION` of
+`cloudbuild.delivery.yaml`, appends to `CHANGELOG.md`, then bumps the version and pushes.
 
-Fast deploy: `./deploy-fast.sh --yes` builds the image from the working tree, pushes it under
-`<_VERSION>-<sha>` and rolls the Deployment over — no tag, no CHANGELOG, no version bump.
-**There is only one portal deployment**: `becpg-supplier-portal` on cluster `becpg-front`
-(zone `europe-west9-a`), serving `portal.becpg.fr`. No staging, no second instance — whatever is
-deployed is what everyone sees, which is why `--yes` is mandatory; the tag is stamped into `/api/health` so an unreleased image
-is recognisable from outside. `latest` is never retagged — that one belongs to Cloud Build.
+Fast deploy: `./deploy-fast.sh --yes` builds the image from the working tree and rolls the
+Deployment over — no tag, no CHANGELOG, no version bump. **There is only one portal
+deployment, and it is the one everybody sees**, which is why `--yes` is mandatory; the tag is
+stamped into `/api/health` so an unreleased image is recognisable from outside.
+
+Which cluster, which registry, which host: `enterprise/README.md`. Neither script, nor the
+files they read, ships in the public repository.
 
 ## Git commits
 

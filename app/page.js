@@ -1,5 +1,5 @@
 /**
- * `/` — **Mon tableau de bord** (spec §4.3).
+ * `/` — the supplier dashboard, "Mon tableau de bord" (spec §4.3).
  *
  * The V1 dashboard (`external-dashboard` preset: Mes tâches, Mes discussions,
  * Mes produits) is kept structurally and given the compliance dimension it
@@ -44,7 +44,13 @@ import { NotificationList } from '@/components/dashboard/NotificationList';
 import { nodeRefToPath } from '@/lib/becpg';
 import { buildDashboard, createBecpgClient, getMyGroups, resolveSpace, scopeTasks } from '@/lib/adapters/session';
 import { listMyTasks, mapWithConcurrency, nodeRefFromId } from '@/lib/adapters/tasks';
-import { buildEntityIndex, buildEntityQuery, listMyEntities } from '@/lib/adapters/entities';
+import {
+    buildEntityIndex,
+    buildEntityQuery,
+    listMyEntities,
+    NO_SUPPLIER,
+    sessionSupplierAncestors,
+} from '@/lib/adapters/entities';
 import { listDocuments } from '@/lib/adapters/documents';
 import { getLiveSession } from '@/lib/session';
 import { SCOPE_COOKIE, parseScopeCookie } from '@/lib/scope';
@@ -91,6 +97,13 @@ const TASK_SCAN = 50;
 
 /** Entity window; mirrors what `buildDashboard` memoises, so the memo hits. */
 const ENTITY_SCAN = 200;
+
+/**
+ * An ancestor no node has: the way to write "this account has no park" in an
+ * AFTS query, without letting the clause drop — an absent clause would sweep
+ * everything the account is allowed to read.
+ */
+const NO_PARK_ANCESTOR = 'workspace://SpacesStore/00000000-0000-0000-0000-000000000000';
 
 /**
  * Runs a block and swallows its failure. A dashboard is an aggregate of
@@ -173,9 +186,27 @@ function excerpt(html, max = 140) {
  *
  * @param {Object} client
  * @param {Array<Object>} tasks
- * @param {string|null} [supplierNodeRef] borne la requête produits au fournisseur choisi
+ * @param {string|null} [supplierNodeRef] bounds the product query to the chosen supplier
  * @returns {Promise<Array<Object>>}
  */
+/**
+ * The scope of the discussion thread scan, aligned on the one used by
+ * "Mes produits". An account without a supplier has no park: `NO_SUPPLIER`
+ * becomes a list of ancestors nothing can satisfy, rather than a missing
+ * clause, which would make the scan universal.
+ *
+ * @param {Object} client
+ * @param {string|null} supplierNodeRef
+ * @returns {Promise<string[]>}
+ */
+async function discussionScope(client, supplierNodeRef) {
+    if (supplierNodeRef) {
+        return [supplierNodeRef];
+    }
+    const ancestors = await sessionSupplierAncestors(client);
+    return ancestors === NO_SUPPLIER ? [NO_PARK_ANCESTOR] : ancestors;
+}
+
 async function loadDiscussions(client, tasks, supplierNodeRef = null) {
     const candidates = [];
 
@@ -194,11 +225,12 @@ async function loadDiscussions(client, tasks, supplierNodeRef = null) {
     }
 
     const data = await safe(
-        () => client.getJson('becpg/remote/entity/list', {
+        async () => client.getJson('becpg/remote/entity/list', {
             query: {
-                // Même périmètre que le reste de l'écran : sans lui, la carte
-                // listait les fils des quinze fiches du compte.
-                query: buildEntityQuery(supplierNodeRef ? { ancestor: supplierNodeRef } : {}),
+                // Same scope as the rest of the screen: without it, the card
+                // listed the threads of every entity the account can read,
+                // including those of another supplier (#35846).
+                query: buildEntityQuery({ ancestors: await discussionScope(client, supplierNodeRef) }),
                 fields: 'cm:name,bcpg:code,fm:commentCount',
                 lists: 'none',
                 maxResults: ENTITY_SCAN,
@@ -296,15 +328,16 @@ export default async function DashboardPage() {
     const t = (key, vars) => translate(lang, key, vars);
 
     /*
-     * Le fournisseur choisi dans la barre du haut — voir `lib/scope.js`.
+     * The supplier picked in the top bar — see `lib/scope.js`.
      *
-     * C'est un composant serveur : le choix vit dans le navigateur, et sans ce
-     * cookie il composait ses compteurs sur les quinze fiches du compte pendant
-     * que la barre en annonçait une seule. Le cookie est une indication d'où
-     * regarder, jamais une autorisation : beCPG reste seul juge de l'accès.
+     * This is a server component: the choice lives in the browser, and without
+     * this cookie it composed its counters over the fifteen entities of the
+     * account while the bar announced a single one. The cookie is a hint of
+     * where to look, never an authorisation: beCPG stays the sole judge of
+     * access.
      *
-     * `all` — « Tous les fournisseurs » — ne borne rien, ce qui est bien ce que
-     * le libellé promet.
+     * `all` — « Tous les fournisseurs » — bounds nothing, which is exactly what
+     * the label promises.
      */
     const scope = parseScopeCookie(cookieStore.get(SCOPE_COOKIE)?.value, session.sub || null);
     const supplierNodeRef = scope.all ? null : scope.ref;
@@ -312,25 +345,24 @@ export default async function DashboardPage() {
     const client = createBecpgClient(session);
 
     /*
-     * L'ESPACE DÉCIDE DE LA PAGE D'ACCUEIL.
+     * THE SPACE DECIDES WHICH HOME PAGE IS SERVED.
      *
-     * Cette page est le tableau de bord **du fournisseur** : mes tâches, mes
-     * produits, mon dossier, mon statut d'agrément. Un utilisateur interne y
-     * atterrissait après connexion, avec une pastille « Suspendu » dans
-     * l'en-tête — un statut d'agrément affiché à quelqu'un qui n'est pas
-     * fournisseur.
+     * This page is the supplier's dashboard: my tasks, my products, my file, my
+     * approval status. An internal user used to land here after login, with a
+     * « Suspendu » pill in the header — an approval status shown to someone who
+     * is not a supplier.
      *
-     * **L'espace se calcule ici, il ne se lit pas sur la session.** La
-     * redirection existait déjà et testait `session.space` : or la session
-     * *chiffrée dans le cookie* ne porte pas cette clé — seul le payload de
-     * `/api/v1/session` la calcule, et il est construit ailleurs. `undefined`
-     * n'ayant jamais valu `'monitor'`, la redirection n'a jamais tiré et le
-     * défaut annoncé corrigé ne l'était pas. Mesuré le 06/08/2026 : compte
-     * `admin`, `space: "monitor"` sur `/api/v1/session`, `GET /` répond 200 avec
-     * l'espace fournisseur.
+     * The space is computed here, it is not read from the session. The redirect
+     * already existed and tested `session.space`: but the session encrypted in
+     * the cookie does not carry that key — only the `/api/v1/session` payload
+     * computes it, and that payload is built elsewhere. `undefined` never being
+     * equal to `'monitor'`, the redirect never fired and the default reported as
+     * fixed was not. Measured on 06/08/2026: account `admin`,
+     * `space: "monitor"` on `/api/v1/session`, `GET /` answers 200 with the
+     * supplier space.
      *
-     * `getMyGroups` est mémoïsé sur le client, et `buildDashboard` l'appelle
-     * juste après : la redirection ne coûte donc aucun appel supplémentaire.
+     * `getMyGroups` is memoised on the client, and `buildDashboard` calls it
+     * right after: the redirect therefore costs no extra call.
      */
     const { groups, capabilities } = await safe(() => getMyGroups(client), { groups: [], capabilities: {} });
     if (resolveSpace(groups, capabilities) === 'monitor') {
@@ -351,10 +383,10 @@ export default async function DashboardPage() {
              */
             () => client.memo(`tasks:${supplierNodeRef || 'all'}`, () => listMyTasks(client, {
                 pageSize: TASK_SCAN,
-                // Sous périmètre, la troncature de `enrichLimit` cacherait les
-                // tâches du fournisseur choisi — voir le commentaire détaillé
-                // dans `buildDashboard`. Ce memo est de toute façon rempli par
-                // lui, qui s'exécute avant ; les deux doivent dire la même chose.
+                // Under a scope, the `enrichLimit` truncation would hide the
+                // tasks of the chosen supplier — see the detailed comment in
+                // `buildDashboard`. This memo is filled by it anyway, since it
+                // runs first; the two must say the same thing.
                 enrichLimit: supplierNodeRef ? null : PREVIEW.tasks * 2,
             })),
             { items: [], counters: { total: 0, late: 0, open: 0, byType: {} } },
@@ -366,7 +398,7 @@ export default async function DashboardPage() {
              * It shows four products and a park counter, then uses the rest of the
              * scan only to recognise the entity a preview task points at. The full
              * projection costs 942-3614 ms for 200 rows against 166-191 ms for the
-             * cheap one (measured on dev.becpg.fr): eleven attributes fetched for
+             * cheap one (measured on the reference instance): eleven attributes fetched for
              * every product in the park so that four rows can show a name, a code
              * and a date.
              */
@@ -388,9 +420,9 @@ export default async function DashboardPage() {
     // --- Mes tâches ---------------------------------------------------------
     const entityByRef = new Map(entityResult.items.map((entity) => [entity.nodeRef, entity]));
     /*
-     * Bornées au fournisseur choisi, par le MÊME test que `buildDashboard` — d'où
-     * la fonction partagée : deux filtres écrits séparément finissent par compter
-     * différemment, et l'écran afficherait alors deux nombres pour une question.
+     * Bounded to the chosen supplier, by the SAME test as `buildDashboard` —
+     * hence the shared function: two filters written separately end up counting
+     * differently, and the screen would then show two numbers for one question.
      */
     const inScope = scopeTasks(taskResult.items, {
         supplierNodeRef,
@@ -488,7 +520,7 @@ export default async function DashboardPage() {
                 </div>
             </section>
 
-            {/* --------------------------------------------- zone centrale */}
+            {/* ----------------------------------------------- centre zone */}
             <section className="mt-6 sm:mt-8" aria-label={local.detail}>
                 <SectionHeader title={local.detail} subtitle={local.detailHint} />
                 {/*

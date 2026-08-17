@@ -216,22 +216,22 @@ export function FormStep({
     }, [definition, onLoaded]);
 
     /*
-     * **Les obligatoires encore vides, remontés à l'assistant.**
+     * The mandatory fields still empty, reported up to the wizard.
      *
-     * `useFormState` valide déjà au fil de la saisie, mais son verdict restait
-     * dans ce composant — qui est démonté dès qu'on change d'étape. D'où le
-     * défaut : rien n'indiquait, en quittant l'onglet, qu'il y restait un champ
-     * obligatoire vide, et *Terminer* ne s'en souciait pas.
+     * `useFormState` already validates as the supplier types, but its verdict
+     * stayed inside this component — which is unmounted as soon as the step
+     * changes. Hence the defect: nothing said, on leaving the tab, that a
+     * mandatory field was still empty, and "Terminer" did not care.
      *
-     * On ne remonte que le **manquant obligatoire**, pas les erreurs de format :
-     * une valeur déjà en base qui ne satisfait plus une contrainte n'est pas une
-     * saisie inachevée, et bloquer la clôture dessus interdirait de rendre une
-     * fiche que le fournisseur n'a aucun moyen de réparer.
+     * Only the missing mandatory values are reported, not the format errors: a
+     * value already stored that no longer satisfies a constraint is not an
+     * unfinished input, and blocking submission on it would forbid returning a
+     * sheet the supplier has no way to repair.
      *
-     * Les champs en lecture seule sont hors du compte : une section gelée par le
-     * client n'est pas au fournisseur de la remplir. `validateForm` les écarte
-     * de lui-même (`skipReadOnly`), et un pas en lecture seule voit tous ses
-     * champs marqués tels par le serveur.
+     * Read-only fields are out of the count: a section frozen by the customer is
+     * not the supplier's to fill. `validateForm` discards them on its own
+     * (`skipReadOnly`), and a read-only step sees all its fields marked as such
+     * by the server.
      */
     const missing = useMemo(() => {
         if (readOnly || !definition) {
@@ -281,13 +281,13 @@ export function FormStep({
     }, [focusField, focusLocale, definition]);
 
     /*
-     * `badgeFor` a été supprimé avec la notion de confiance.
+     * `badgeFor` was removed along with the whole notion of confidence.
      *
-     * Il posait sur le libellé d'un champ un badge « Confiance élevée / moyenne /
-     * faible » tiré du score de la suggestion qui l'avait touché. Le score dit
-     * l'assurance d'un modèle sur sa propre lecture, pas l'exactitude de la
-     * valeur : affiché à côté d'un champ, il se lisait comme un certificat. Le
-     * fournisseur reste seul juge de ce qu'il inscrit.
+     * It put a « Confiance élevée / moyenne / faible » badge next to a field
+     * label, taken from the score of the suggestion that had touched it. The
+     * score states a model's assurance about its own reading, not the accuracy
+     * of the value: shown beside a field, it read as a certificate. The supplier
+     * remains the sole judge of what he writes.
      */
 
     const actionFor = useCallback(

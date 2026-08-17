@@ -6,8 +6,10 @@
  * ## The order is the feature
  *
  * ```
- * 0 · Contexte         volet permanent : fiche technique, suggestions de l'IA,
- *                      cahier des charges, remarques, listes gelées, refus → HelpPanel
+ * header               the technical sheet, in red while it is missing
+ *                                                          → TechnicalSheetBanner
+ * 0 · Contexte         permanent panel: AI suggestions, specification,
+ *                      frozen lists, refusals                   → HelpPanel
  * 1..n · Sections      the wizard definition, as configured → Form / DataList /
  *                      Survey / Documents, in server order
  * n+1 · Conformité     catalogue check, gates "Terminer"    → ComplianceStep
@@ -24,8 +26,9 @@
  * It was, until the expected types were looked at closely: beCPG **computes
  * them from the data entered** — a "GMO free" claim calls for its attestation,
  * an organic label for its certificate (§4.5). Asked first, the list is empty or
- * wrong. Only the *supplier technical sheet* is expected unconditionally, so it
- * opens the wizard and it alone feeds the extraction suggestions; the documents
+ * wrong. Only the *supplier technical sheet* is expected unconditionally, and it
+ * alone feeds the extraction suggestions, which is why it sits in the header
+ * rather than in the flow; the documents
  * step keeps the place the configuration gives it, usually near the end, where
  * each upload gets its own AI help — its type and its dates, not the product's
  * properties.
@@ -78,6 +81,7 @@ import { WizardStepper } from '@/components/wizard/WizardStepper';
 import { WizardFooter } from '@/components/wizard/WizardFooter';
 import { useAutoSave } from '@/components/wizard/useAutoSave';
 import { HelpPanel } from '@/components/wizard/panels/HelpPanel';
+import { TechnicalSheetBanner, useTechnicalSheet } from '@/components/wizard/TechnicalSheetBanner';
 import { CommentsPanel, useDiscussion } from '@/components/wizard/panels/CommentsPanel';
 import { FormStep } from '@/components/wizard/steps/FormStep';
 import { DataListStep } from '@/components/wizard/steps/DataListStep';
@@ -94,8 +98,8 @@ import { portalCatalogs } from '@/lib/catalogs';
 import { suggestionScopeForStep } from '@/lib/suggestionScope';
 
 /**
- * Ce que le navigateur accorde à une analyse becpg-ai, aligné sur
- * `AI_SUGGESTIONS_TIMEOUT` de la route. Les deux doivent bouger ensemble.
+ * What the browser grants a becpg-ai analysis, aligned on the route's
+ * `AI_SUGGESTIONS_TIMEOUT`. The two must move together.
  */
 const AI_TIMEOUT_MS = 180_000;
 
@@ -119,8 +123,8 @@ const LABELS = {
         finish: 'Terminer',
         finished: 'Tâche envoyée à votre client',
         finishBlocked: 'Complétez les champs manquants de l’étape « Conformité » pour terminer.',
-        // Nommer l'étape et le nombre : « il manque quelque chose quelque part »
-        // n'aide personne à finir.
+        // Name the step and the count: "something is missing somewhere" helps
+        // nobody finish.
         finishMissingStep: '« {step} » : {count} réponse(s) obligatoire(s) manquante(s).',
         notFound: 'Fiche introuvable',
         notFoundHint: 'Cette fiche n’existe pas ou ne fait pas partie de votre périmètre.',
@@ -293,33 +297,32 @@ export function buildStepModel(state, { labels }) {
     const model = [];
 
     /*
-     * LA FICHE TECHNIQUE N'EST PLUS UNE ÉTAPE.
+     * THE TECHNICAL SHEET IS NO LONGER A STEP.
      *
-     * Elle ouvrait le parcours parce que c'est le document dont l'IA tire les
-     * valeurs. Mais quand elle est déjà déposée — le cas courant, un
-     * référencement précédent ou la matière première d'origine — l'étape ne
-     * demandait rien et il fallait la traverser ; et quand elle manque, c'est
-     * pendant la saisie qu'on s'en aperçoit, pas avant.
+     * It used to open the flow because it is the document the AI draws its
+     * values from. But when it is already uploaded — the common case, an
+     * earlier listing or the original raw material — the step asked for
+     * nothing and still had to be crossed; and when it is missing, that is
+     * noticed during data entry, not before.
      *
-     * Elle est donc dans le volet « Contexte », juste au-dessus des suggestions
-     * qu'elle alimente (voir `panels/TechnicalSheetPanel.js`) : consultable de
-     * partout, déposable au moment où son absence se voit.
+     * It therefore lives in the header (see `TechnicalSheetBanner`), visible
+     * from every step: one line when it is there, a red banner when it is
+     * missing — since without it the AI proposes nothing.
      */
 
     /*
-     * LES SUGGESTIONS NE SONT PLUS UNE ÉTAPE.
+     * THE SUGGESTIONS ARE NO LONGER A STEP.
      *
-     * Elles en étaient une, insérée en deuxième position dès que becpg-ai avait
-     * répondu. Deux défauts venaient de là et non du contenu : le nombre
-     * d'étapes changeait sous les pieds du fournisseur — « étape 2 sur 13 »
-     * devenait « sur 14 » en cours de route, et « Suivant » ne menait plus au
-     * même endroit — et surtout ce que l'IA a lu concerne TOUTES les étapes, pas
-     * un moment du parcours : rangé au rang 2, il n'était consultable qu'en
-     * revenant en arrière.
+     * They were one, inserted in second position as soon as becpg-ai had
+     * answered. Two defects came from that placement and not from the content:
+     * the number of steps changed under the supplier's feet — « étape 2 sur 13 »
+     * became « sur 14 » along the way, and « Suivant » no longer led to the same
+     * place — and above all what the AI read concerns EVERY step, not a moment
+     * of the flow: filed at rank 2, it could only be consulted by going back.
      *
-     * Elles vivent désormais dans le panneau « Contexte », à droite, à côté du
-     * cahier des charges et des remarques du client : visible pendant la saisie,
-     * quelle que soit l'étape en cours, et recalculé à chaque changement d'étape.
+     * They now live in the « Contexte » panel, on the right, next to the
+     * specification and the client's remarks: visible during data entry,
+     * whatever the current step, and recomputed on every step change.
      */
 
     model.push(...configured);
@@ -340,7 +343,7 @@ export function buildStepModel(state, { labels }) {
         });
     }
 
-    // Étape n+1 — always read-only: it reports, it does not edit.
+    // Step n+1 — always read-only: it reports, it does not edit.
     model.push({
         id: SYNTHETIC.COMPLIANCE,
         type: 'compliance',
@@ -387,8 +390,8 @@ export function Wizard({
     /* ------------------------------------------------------------- the state */
 
     const params = useMemo(() => ({ wizardId, siteId }), [wizardId, siteId]);
-    // `initialData` : quand la route de la tâche a déjà composé l'état, il est
-    // peint immédiatement et la requête se contente de le rafraîchir derrière.
+    // `initialData`: when the task route has already composed the state, it is
+    // painted immediately and the request only refreshes it behind.
     const state = useApi(entityId ? `wizard/${encodeURIComponent(entityId)}` : null, {
         params,
         initialData: initialState,
@@ -399,12 +402,19 @@ export function Wizard({
     // becpg-ai is optional: a 503 `aiDisabled` simply means no suggestions step.
 
     /*
-     * `suggestionsByField` a été supprimé avec les badges de confiance : il ne
-     * servait qu'à poser un niveau sur le libellé d'un champ.
+     * `suggestionsByField` was removed along with the confidence badges: it only
+     * served to put a level on a field's label.
      */
 
     const commentsEnabled = Boolean(wizardState && wizardState.comments);
     const discussion = useDiscussion({ nodeRef: entityNodeRef, enabled: commentsEnabled });
+
+    /*
+     * The technical sheet is read HERE, at the assistant level: the header is
+     * what carries it, and it must be known before any conditional rendering.
+     * A client with no « fiche technique » type configured gets nothing at all.
+     */
+    const technicalSheet = useTechnicalSheet(entityNodeRef);
 
     /* ------------------------------------------------------------- the steps */
 
@@ -439,21 +449,21 @@ export function Wizard({
     const [nav, setNav] = useState({ currentId: null, visited: [] });
 
     /*
-     * L'étape demandée peut n'exister QU'APRÈS le premier rendu.
+     * The requested step may exist ONLY AFTER the first render.
      *
-     * « Suggestions » n'est ajoutée que lorsque becpg-ai a répondu, ce qui prend
-     * de quelques secondes à une demi-minute. Ouvrir directement
-     * `?step=__suggestions` — le lien qu'on s'envoie, celui qu'on met en favori —
-     * demandait donc une étape que le modèle ne contenait pas encore : le repli
-     * sur la première étape s'appliquait, et comme il rendait `currentId` valide,
-     * plus rien ne ramenait ensuite le fournisseur là où il allait. La demande
-     * était perdue sans avoir jamais été refusée.
+     * « Suggestions » is added only once becpg-ai has answered, which takes from
+     * a few seconds to half a minute. Opening `?step=__suggestions` directly —
+     * the link one sends to oneself, the one one bookmarks — therefore asked for
+     * a step the model did not contain yet: the fallback to the first step
+     * applied, and since it made `currentId` valid, nothing brought the supplier
+     * back to where they were heading afterwards. The request was lost without
+     * ever having been refused.
      *
-     * Elle reste donc en attente tant qu'elle n'a pas pu être honorée, et ne
-     * l'est qu'une fois. Une navigation manuelle la périme sur-le-champ — `goTo`
-     * marque la reprise comme consommée — parce que rien ne doit déplacer un
-     * fournisseur qui vient de choisir son étape, fût-ce au nom de ce qu'il
-     * demandait dix secondes plus tôt.
+     * It therefore stays pending as long as it could not be honoured, and is
+     * honoured only once. A manual navigation expires it on the spot — `goTo`
+     * marks the resume as consumed — because nothing must move a supplier who
+     * has just chosen their step, not even in the name of what they asked for
+     * ten seconds earlier.
      */
     const [resumeDone, setResumeDone] = useState(false);
 
@@ -475,7 +485,7 @@ export function Wizard({
             anchor(resumeReachable ? resumeStepId : steps[0].id);
         }
         else if (!resumeDone && resumeReachable && nav.currentId !== resumeStepId) {
-            // L'étape demandée vient d'apparaître : on l'honore, enfin.
+            // The requested step has just appeared: honour it, at last.
             anchor(resumeStepId);
         }
     }
@@ -485,27 +495,27 @@ export function Wizard({
     const currentStep = currentIndex >= 0 ? steps[currentIndex] : null;
 
     /*
-     * LES SUGGESTIONS SONT DEMANDÉES POUR L'ÉTAPE OUVERTE, PAS POUR TOUT.
+     * SUGGESTIONS ARE REQUESTED FOR THE OPEN STEP, NOT FOR EVERYTHING.
      *
-     * becpg-ai borne son analyse quand on lui nomme la liste — c'est ce que fait
-     * l'action « Suggestions » de Share — et le portail transportait déjà ce
-     * paramètre sans jamais le renseigner. Il lançait donc les quinze plugins à
-     * chaque fois : sur l'étape « Nutriments », le fournisseur recevait aussi la
-     * correction orthographique de ses libellés et l'examen de ses certificats,
-     * après avoir attendu que tout ait tourné (~26 s mesurées sur dev).
+     * becpg-ai bounds its analysis when the list is named to it — that is what
+     * Share's « Suggestions » action does — and the portal already carried that
+     * parameter without ever filling it in. It therefore ran the fifteen plugins
+     * every time: on the « Nutriments » step, the supplier also received the
+     * spell check of their labels and the review of their certificates, after
+     * waiting for everything to run (~26 s measured on dev).
      *
-     * Le périmètre fait partie de la CLÉ de l'appel : changer d'étape change la
-     * clé, donc relit ce qu'il faut sans qu'on ait à l'orchestrer, et deux
-     * étapes de même périmètre partagent leur résultat.
+     * The scope is part of the call's KEY: changing step changes the key, so it
+     * re-reads what it must without anyone orchestrating it, and two steps with
+     * the same scope share their result.
      *
-     * `suggestionScopeForStep` ne renvoie que des identifiants vérifiés dans
-     * becpg-ai : un identifiant inconnu y répond vide, pas « tout ».
+     * `suggestionScopeForStep` only returns identifiers verified in becpg-ai: an
+     * unknown identifier answers empty there, not "everything".
      */
     const suggestionScope = suggestionScopeForStep(currentStep);
     const suggestionsCall = useApi(entityId ? `suggestions/${encodeURIComponent(entityId)}` : null, {
         params: suggestionScope ? { listId: suggestionScope } : undefined,
-        // Le même plafond que la route : 45 s côté navigateur coupaient une
-        // analyse que le serveur laissait aller jusqu'à 180 s.
+        // The same ceiling as the route: 45 s on the browser side cut short an
+        // analysis the server let run up to 180 s.
         timeout: AI_TIMEOUT_MS,
     });
     const suggestions = useMemo(
@@ -518,19 +528,19 @@ export function Wizard({
     /* ------------------------------------------------- mandatory-entry gaps */
 
     /*
-     * **Ce qui manque, étape par étape.**
+     * What is missing, step by step.
      *
-     * `{ [stepId]: { count, labels: string[] } }`, alimenté par les étapes
-     * elles-mêmes : `FormStep` y déclare ses champs obligatoires restés vides,
-     * `SurveyStep` ses questions obligatoires sans réponse. Rien n'est calculé
-     * ici — l'assistant ne connaît ni les définitions de formulaire ni l'arbre de
-     * décision, et il ne doit pas se mettre à les connaître.
+     * `{ [stepId]: { count, labels: string[] } }`, fed by the steps themselves:
+     * `FormStep` declares there its mandatory fields left empty, `SurveyStep`
+     * its mandatory questions left unanswered. Nothing is computed here — the
+     * assistant knows neither the form definitions nor the decision tree, and it
+     * must not start knowing them.
      *
-     * **Ce registre est partiel, et c'est assumé.** Une étape n'est montée que
-     * lorsqu'elle est l'étape courante, donc seules les étapes réellement
-     * ouvertes s'y déclarent. Il rend visible ce qui manque là où le fournisseur
-     * est passé ; l'autorité sur « la fiche est-elle complète » reste le
-     * catalogue, relu par `finish()` avant toute clôture (voir plus bas).
+     * This register is partial, and that is deliberate. A step is mounted only
+     * when it is the current step, so only the steps actually opened declare
+     * themselves in it. It makes visible what is missing where the supplier went
+     * through; authority over "is the sheet complete" stays with the catalogue,
+     * re-read by `finish()` before any completion (see below).
      */
     const [stepIssues, setStepIssues] = useState({});
 
@@ -681,22 +691,23 @@ export function Wizard({
     );
 
     /*
-     * Le catalogue propre à l'assistant, demandé nommément — et **en plus**, pas
-     * à la place.
+     * The assistant's own catalogue, asked for by name — and in addition, not
+     * instead.
      *
-     * `entity/catalog/node` sans `catalogId` renvoie le score enregistré, c'est-à-dire
-     * les catalogues du client (INCO, GS1…). Avec un `catalogId`, il renvoie ce
-     * catalogue-là et lui seul, formulé sur-le-champ. Les deux réponses sont donc
-     * disjointes, et remplacer la première par la seconde ferait disparaître de
-     * l'écran les exigences réglementaires du client — l'inverse de ce qu'on veut.
+     * `entity/catalog/node` without a `catalogId` returns the stored score, that
+     * is the client's catalogues (INCO, GS1…). With a `catalogId`, it returns
+     * that catalogue and it alone, formulated on the spot. The two answers are
+     * therefore disjoint, and replacing the first by the second would remove the
+     * client's regulatory requirements from the screen — the opposite of the aim.
      *
-     * D'où deux appels et une fusion. Le second n'existe que si la configuration
-     * nomme un catalogue, ce qui est le cas des assistants fournisseur par défaut
-     * et d'aucun autre : une instance qui n'en déclare pas ne paie rien.
+     * Hence two calls and a merge. The second exists only if the configuration
+     * names a catalogue, which is the case of the default supplier assistants
+     * and of no other: an instance that declares none pays nothing.
      */
-    // Porté par l'URL du livrable (`&catalogId=`), qui est la convention beCPG —
-    // la même que lit `wizard-mgr.get.js` dans Share. La tâche le transporte
-    // jusqu'ici sans que l'URL soit jamais réécrite (invariant I1).
+    // Carried by the deliverable URL (`&catalogId=`), which is the beCPG
+    // convention — the same one `wizard-mgr.get.js` reads in Share. The task
+    // carries it all the way here without the URL ever being rewritten
+    // (invariant I1).
     const wizardCatalogId = (task && task.catalogId) || null;
     const wizardCatalog = useApi(
         complianceTouched && entityId && wizardCatalogId
@@ -705,7 +716,7 @@ export function Wizard({
         { params: { catalogId: wizardCatalogId } },
     );
 
-    /** Score enregistré + catalogue de l'assistant, dédoublonnés sur l'id. */
+    /** Stored score plus the assistant's catalogue, de-duplicated on the id. */
     const catalogList = useMemo(() => {
         const stored = (catalogs.data && catalogs.data.catalogs) || [];
         const own = (wizardCatalog.data && wizardCatalog.data.catalogs) || [];
@@ -713,34 +724,34 @@ export function Wizard({
         for (const catalog of [...stored, ...own]) {
             const key = (catalog && (catalog.id || catalog.label)) || '';
             if (key) {
-                // Le second gagne : il vient d'être formulé, le premier est stocké.
+                // The second wins: it has just been formulated, the first is stored.
                 byId.set(key, catalog);
             }
         }
         return [...byId.values()];
     }, [catalogs.data, wizardCatalog.data]);
     /*
-     * QUELS CATALOGUES BLOQUENT : LE LIVRABLE LE DIT, COMME DANS SHARE.
+     * WHICH CATALOGUES BLOCK: THE DELIVERABLE SAYS SO, AS IN SHARE.
      *
-     * `project-task.js` (becpg-project-share) applique exactement cette règle sur
-     * la vue tâche : pour chaque livrable dont l'URL est un assistant **et porte
-     * un `catalogId`**, il masque le bouton de validation, interroge
-     * `becpg/entity/catalog/node/{nodeRef}?catalogId=…`, et ne le révèle que si
-     * le catalogue ne rapporte **aucun champ manquant**.
+     * `project-task.js` (becpg-project-share) applies exactly this rule on the
+     * task view: for every deliverable whose URL is an assistant and carries a
+     * `catalogId`, it hides the validation button, queries
+     * `becpg/entity/catalog/node/{nodeRef}?catalogId=…`, and reveals it only if
+     * the catalogue reports no missing field at all.
      *
-     * Le portail n'appliquait cette porte que sur `PORTAL_BLOCKING_CATALOGS`,
-     * une variable d'environnement non renseignée : rien ne bloquait, et une
-     * tâche de référencement se terminait sur un catalogue incomplet alors que
-     * Share l'interdit sur la même donnée. Le catalogue du livrable prime donc
-     * désormais — c'est le référentiel qui déclare, pas la configuration du
-     * portail, et les deux interfaces s'accordent.
+     * The portal applied that gate only on `PORTAL_BLOCKING_CATALOGS`, an
+     * environment variable that was never filled in: nothing blocked, and a
+     * listing task completed on an incomplete catalogue where Share forbids it
+     * on the same data. The deliverable's catalogue therefore now takes
+     * precedence — the repository is what declares, not the portal
+     * configuration, and the two interfaces agree.
      *
-     * L'ordre reste : une prop explicite (un appelant qui sait), puis le
-     * livrable, puis la variable d'environnement pour une instance qui veut
-     * élargir la règle à d'autres catalogues.
+     * The order stays: an explicit prop (a caller that knows), then the
+     * deliverable, then the environment variable for an instance that wants to
+     * extend the rule to other catalogues.
      */
-    // Mémoïsé : le tableau littéral changeait d'identité à chaque rendu, ce qui
-    // relançait le calcul des bloquants et la clôture à chaque frappe.
+    // Memoised: the array literal changed identity on every render, which re-ran
+    // the blocking computation and the completion check on every keystroke.
     const gatingCatalogIds = useMemo(
         () => blockingCatalogIds
             || (wizardCatalogId ? [wizardCatalogId] : null)
@@ -823,8 +834,8 @@ export function Wizard({
                 }
                 return;
             }
-            // Le fournisseur choisit : la reprise demandée par l'URL est
-            // consommée et ne le déplacera plus.
+            // The supplier chooses: the resume requested by the URL is consumed
+            // and will not move them any more.
             setResumeDone(true);
             const leaving = steps.find((step) => step.id === currentId);
 
@@ -845,23 +856,23 @@ export function Wizard({
             }
 
             /*
-             * L'IA relit APRÈS chaque étape.
+             * The AI re-reads AFTER every step.
              *
-             * Ce qu'elle propose dépend de ce qui est déjà saisi : une étape
-             * remplie change les valeurs encore manquantes, et une fiche déposée
-             * plus loin dans le parcours ouvre de nouvelles extractions. Calculées
-             * une seule fois à l'ouverture, les suggestions vieillissaient pendant
-             * toute la saisie — c'est précisément ce que leur ancienne place, une
-             * étape figée au rang 2, rendait invisible.
+             * What it proposes depends on what has already been entered: a
+             * filled step changes the values still missing, and a sheet uploaded
+             * further along the flow opens new extractions. Computed once when
+             * the wizard opened, the suggestions aged throughout the data entry —
+             * precisely what their former place, a step frozen at rank 2, made
+             * invisible.
              *
-             * `autoSave.flush()` vient d'avoir lieu juste au-dessus : la relecture
-             * porte donc bien sur ce qui a été écrit, jamais sur l'état d'avant.
-             * L'appel n'est pas attendu — la navigation ne doit rien à l'IA.
+             * `autoSave.flush()` has just happened right above: the re-read
+             * therefore bears on what was written, never on the earlier state.
+             * The call is not awaited — navigation owes nothing to the AI.
              *
-             * Il reste utile MALGRÉ la clé d'appel bornée à l'étape : deux étapes
-             * de même périmètre — deux formulaires, tous deux `View-properties` —
-             * ne changent pas la clé, et sans ce rappel la seconde afficherait ce
-             * qui avait été lu avant la saisie de la première.
+             * It stays useful DESPITE the call key being bounded to the step: two
+             * steps of the same scope — two forms, both `View-properties` — do
+             * not change the key, and without this refresh the second would show
+             * what had been read before the first was filled in.
              */
             suggestionsCall.refresh();
 
@@ -901,13 +912,13 @@ export function Wizard({
     );
 
     /*
-     * `goToChange` a été supprimé avec « Aller au champ ».
+     * `goToChange` was removed along with « Aller au champ ».
      *
-     * Il résolvait l'étape que visait une suggestion pour y envoyer le
-     * fournisseur. Le bouton posait plus de problèmes qu'il n'en réglait : il
-     * quittait l'étape en cours de saisie pour une autre, et les suggestions
-     * étant désormais dans le panneau permanent, la valeur proposée est lisible
-     * DEPUIS l'étape concernée — il n'y a plus nulle part où aller.
+     * It resolved the step a suggestion targeted, to send the supplier there.
+     * The button caused more problems than it solved: it left the step being
+     * filled in for another one, and since the suggestions now live in the
+     * permanent panel, the proposed value is readable FROM the step concerned —
+     * there is nowhere left to go.
      */
 
     /**
@@ -958,43 +969,43 @@ export function Wizard({
     /* ---------------------------------------------------------------- finish */
 
     /**
-     * Terminer, **une fois la fiche vérifiée**.
+     * Terminer, once the sheet has been checked.
      *
-     * ## Ce qui n'allait pas
+     * ## What was wrong
      *
-     * `finishDisabled` ne regardait que les catalogues — et ceux-ci n'étaient lus
-     * qu'*une fois l'étape « Conformité » ouverte* (`complianceTouched`). Un
-     * fournisseur qui ne l'ouvrait jamais avait donc `catalogs.data === undefined`,
-     * donc `blocking === []`, donc un bouton *Terminer* actif : il rendait une
-     * fiche incomplète sans que rien ne le lui dise, et sans avoir jamais vu
-     * l'écran qui le lui aurait dit. Le garde-fou existait et ne gardait que ceux
-     * qui étaient déjà passés devant.
+     * `finishDisabled` only looked at the catalogues — and those were read only
+     * once the « Conformité » step had been opened (`complianceTouched`). A
+     * supplier who never opened it therefore had `catalogs.data === undefined`,
+     * so `blocking === []`, so an active Terminer button: they submitted an
+     * incomplete sheet with nothing telling them so, and without ever seeing the
+     * screen that would have told them. The guard rail existed and only guarded
+     * those who had already walked past it.
      *
-     * ## Ce qui le remplace
+     * ## What replaces it
      *
-     * Deux verdicts, dans cet ordre, **avant** toute clôture :
+     * Two verdicts, in this order, before any completion:
      *
-     *  1. **ce que l'assistant sait** : les champs et les questions obligatoires
-     *     restés vides sur les étapes ouvertes (`stepIssues`). C'est ce que le
-     *     catalogue ne couvre pas — un questionnaire n'y figure pas ;
-     *  2. **ce que le client a déclaré bloquant** : les catalogues, relus *ici*,
-     *     à la demande, et pas seulement s'ils se trouvent avoir déjà été
-     *     chargés. La lecture reste tardive — elle déclenche une reformulation,
-     *     ce qu'on ne veut pas au premier rendu de l'assistant — mais elle n'est
-     *     plus conditionnelle.
+     *  1. what the assistant knows: the mandatory fields and questions left
+     *     empty on the steps opened (`stepIssues`). That is what the catalogue
+     *     does not cover — a questionnaire does not appear in it;
+     *  2. what the client declared blocking: the catalogues, re-read here, on
+     *     demand, and not only if they happen to have been loaded already. The
+     *     read stays late — it triggers a reformulation, which is not wanted on
+     *     the assistant's first paint — but it is no longer conditional.
      *
-     * **Un catalogue simplement incomplet ne bloque pas** : voir la note de
-     * `blockingCatalogs`. beCPG ne publie aucun marqueur « bloquant », et traiter
-     * l'absence de marqueur comme un blocage rendait tout assistant impossible à
-     * terminer sur une instance dont un catalogue n'est pas à 100 % — une règle
-     * que le dépôt n'a jamais énoncée, appliquée en son nom.
+     * A merely incomplete catalogue does not block: see the note on
+     * `blockingCatalogs`. beCPG publishes no "blocking" marker, and treating the
+     * absence of a marker as a block made every assistant impossible to complete
+     * on an instance where a catalogue is not at 100 % — a rule the repository
+     * never stated, applied in its name.
      *
-     * Un refus n'est pas un bouton grisé : il **emmène** à l'étape fautive et dit
-     * ce qui manque. Un bouton grisé sans explication laisse chercher.
+     * A refusal is not a greyed-out button: it takes the supplier to the
+     * offending step and says what is missing. A greyed-out button with no
+     * explanation leaves them searching.
      *
-     * beCPG reste l'autorité finale : il peut refuser la clôture pour ses propres
-     * raisons (liste figée, branche de refus, catalogue), et son refus est
-     * affiché tel quel.
+     * beCPG stays the final authority: it can refuse the completion for its own
+     * reasons (frozen list, refusal branch, catalogue), and its refusal is shown
+     * as is.
      */
     const finish = useCallback(async () => {
         if (!task) {
@@ -1004,11 +1015,11 @@ export function Wizard({
         try {
             await autoSave.flush();
 
-            // 1 — ce que l'assistant a vu de ses propres yeux. Sauf en mode
-            // brouillon, où le client a déclaré qu'une fiche partielle est
-            // recevable : le manque est alors signalé, pas opposé.
-            // Voir `finishDisabled` : `draft` autorise l'enregistrement, pas la
-            // soumission d'une fiche incomplète.
+            // 1 — what the assistant saw with its own eyes. Except in draft
+            // mode, where the client declared that a partial sheet is
+            // acceptable: the gap is then reported, not opposed.
+            // See `finishDisabled`: `draft` allows saving, not the submission
+            // of an incomplete sheet.
             const localGap = steps.find((step) => stepIssues[step.id]);
             if (localGap) {
                 const issues = stepIssues[localGap.id];
@@ -1021,15 +1032,15 @@ export function Wizard({
             }
 
             /*
-             * 2 — les catalogues **que l'instance a déclarés bloquants**.
+             * 2 — the catalogues the instance declared blocking.
              *
-             * Relus à la demande, parce que `catalogs.data` n'existe que si l'étape
-             * Conformité a été ouverte — le trou d'origine. Mais **seulement quand
-             * il y a quelque chose à vérifier** : sans id déclaré, `blockingCatalogs`
-             * ne peut par construction rien renvoyer (beCPG ne marque aucun
-             * catalogue), et l'appel serait un aller-retour réseau — qui déclenche
-             * une reformulation — inséré entre le clic et son effet, pour une
-             * réponse connue d'avance. « Terminer » doit partir tout de suite.
+             * Re-read on demand, because `catalogs.data` only exists if the
+             * Conformité step has been opened — the original hole. But only when
+             * there is something to check: with no declared id, `blockingCatalogs`
+             * can by construction return nothing (beCPG marks no catalogue), and
+             * the call would be a network round trip — which triggers a
+             * reformulation — inserted between the click and its effect, for an
+             * answer known in advance. « Terminer » must go out immediately.
              */
             let gateList = catalogList.length > 0 ? catalogList : null;
             if (!gateList && gatingCatalogIds && gatingCatalogIds.length > 0) {
@@ -1038,9 +1049,9 @@ export function Wizard({
                     gateList = (fresh && fresh.catalogs) || [];
                 }
                 catch {
-                    // Le score est indisponible : on ne bloque pas sur une lecture
-                    // qui a échoué. beCPG refusera de lui-même si la fiche ne peut
-                    // pas être rendue — c'est lui l'autorité, pas cet écran.
+                    // The score is unavailable: do not block on a read that
+                    // failed. beCPG will refuse by itself if the sheet cannot be
+                    // submitted — it is the authority, not this screen.
                     gateList = null;
                 }
             }
@@ -1084,15 +1095,15 @@ export function Wizard({
     /* ----------------------------------------------------------- the panels */
 
     /*
-     * Ce que le panneau « Contexte » doit savoir des suggestions, en un objet :
-     * les cartes, l'état de l'appel, et de quoi les relancer. Assemblé ici parce
-     * que c'est le wizard qui détient l'appel, et mémoïsé pour ne pas redessiner
-     * le panneau à chaque frappe dans un champ.
+     * What the « Contexte » panel must know about the suggestions, in one object:
+     * the cards, the state of the call, and what it takes to run it again.
+     * Assembled here because the wizard is what holds the call, and memoised so
+     * the panel is not redrawn on every keystroke in a field.
      */
     const suggestionsPanel = useMemo(() => ({
         entityId: entityNodeRef,
-        // `wizardState.entity` et non `entity` : celui-ci est déclaré plus bas,
-        // après les panneaux qui le consomment.
+        // `wizardState.entity` and not `entity`: the latter is declared further
+        // down, after the panels that consume it.
         entityType: (wizardState.entity || {}).type,
         items: suggestions,
         summary: suggestionsCall.data ? suggestionsCall.data.summary : null,
@@ -1117,9 +1128,7 @@ export function Wizard({
     const helpPanel = (
         <HelpPanel
             entityId={entityId}
-            entityNodeRef={entityNodeRef}
             suggestions={suggestionsPanel}
-            readOnly={Boolean(wizardState.readOnly)}
             steps={visitedSteps}
             onSelectStep={(stepId) => {
                 setSheet(null);
@@ -1240,26 +1249,25 @@ export function Wizard({
     );
 
     /*
-     * **`draft` NE GOUVERNE PAS LA SOUMISSION.**
+     * `draft` DOES NOT GOVERN SUBMISSION.
      *
-     * Il l'a fait ici, à tort : la clôture était autorisée sur des obligatoires
-     * vides dès que l'assistant portait `draft="true"` — ce qui est le cas de
-     * tous les assistants fournisseur. Un questionnaire à moitié rempli partait
-     * donc chez le client sans que rien ne s'y oppose.
+     * It did here, wrongly: completion was allowed on empty mandatory entries as
+     * soon as the assistant carried `draft="true"` — which is the case of every
+     * supplier assistant. A half-filled questionnaire therefore went off to the
+     * client with nothing standing in its way.
      *
-     * `draft` dit qu'on peut **enregistrer** en cours de route, pas qu'une fiche
-     * partielle est recevable. Les deux sont indépendants, et sur ce portail
-     * l'attribut n'a de toute façon plus grand sens : l'enregistrement est
-     * automatique à chaque frappe.
+     * `draft` says one may save along the way, not that a partial sheet is
+     * acceptable. The two are independent, and on this portal the attribute
+     * hardly means anything any more: saving is automatic on every keystroke.
      *
-     * Rendre, c'est engager la fiche : un obligatoire manquant l'empêche,
-     * toujours.
+     * Submitting commits the sheet: a missing mandatory entry prevents it,
+     * always.
      *
-     * Le manque reste **dit** avant d'être opposé — dans le rail, et sous le
-     * bouton (`finishReason` est rendu même quand il est actif). Le bouton se
-     * grise sur ce qui est **su** ; `finish()` revérifie sur ce qui est **vrai**
-     * au moment de rendre, les catalogues n'étant chargés qu'après passage par
-     * « Conformité ».
+     * The gap is still stated before it is opposed — in the rail, and under the
+     * button (`finishReason` is rendered even when the button is active). The
+     * button greys out on what is known; `finish()` re-checks on what is true at
+     * the moment of submitting, the catalogues being loaded only after a visit
+     * to « Conformité ».
      */
     const finishDisabled = blocking.length > 0 || incompleteSteps.length > 0;
     const finishReason = incompleteSteps.length > 0
@@ -1293,8 +1301,8 @@ export function Wizard({
         && currentStep.kind !== 'compliance' && currentStep.kind !== 'suggestions';
 
     return (
-        /* Les langues de saisie de la fiche, mises à disposition des contrôles
-           `d:mltext` sans traverser cinq composants — voir ContentLocalesProvider. */
+        /* The sheet's entry languages, made available to the `d:mltext` controls
+           without crossing five components — see ContentLocalesProvider. */
         <ContentLocalesProvider value={wizardState.contentLocales}>
         <FieldFocusProvider value={fieldFocus}>
         <AppShell
@@ -1333,12 +1341,12 @@ export function Wizard({
                             <StatusPill status="readonly" tone="neutral" icon="lock" size="sm" label={labels.readOnly} />
                         ) : null}
                         {/*
-                          * Only from `xl` up, et pas `lg` : c'est à `xl` que le
-                          * rail et les panneaux apparaissent
+                          * Only from `xl` up, and not `lg`: it is at `xl` that
+                          * the rail and the panels appear
                           * (`xl:grid-cols-[13rem_1fr]`, `hidden xl:block`).
-                          * Entre `lg` et `xl`, le bouton s'affichait sans rien
-                          * avoir à masquer — il ne produisait aucun changement
-                          * visible, ce qui est pire qu'une absence de bouton.
+                          * Between `lg` and `xl`, the button showed with nothing
+                          * to hide — it produced no visible change, which is
+                          * worse than no button at all.
                           */}
                         <Button
                             variant="outline"
@@ -1392,6 +1400,21 @@ export function Wizard({
                         {labels.readOnlyReasons[readOnlyReason] || labels.readOnlyReasons.wizardReadOnly}
                     </p>
                 ) : null}
+
+                {/*
+                    THE TECHNICAL SHEET, IN THE HEADER.
+
+                    The first move expected from the supplier, and the condition
+                    of the AI suggestions: while it is missing, the banner says
+                    so in red above every step, at every width. Once uploaded,
+                    only one line is left.
+                */}
+                <TechnicalSheetBanner
+                    entityNodeRef={entityNodeRef}
+                    state={technicalSheet}
+                    readOnly={Boolean(wizardState.readOnly)}
+                    onUploaded={suggestionsCall.refresh}
+                />
             </Card>
 
             <div className={`grid min-w-0 gap-4 ${wide ? 'xl:grid-cols-[3.25rem_1fr]' : 'xl:grid-cols-[13rem_1fr]'}`}>
@@ -1455,29 +1478,28 @@ export function Wizard({
                     </div>
 
                     {/*
-                        LE CORPS DE L'ÉTAPE N'EST DERRIÈRE AUCUNE ANIMATION DE SORTIE.
+                        THE STEP BODY SITS BEHIND NO EXIT ANIMATION.
 
-                        Il l'a été, dans un `<AnimatePresence mode="wait">`. Ce mode
-                        garde l'ancien enfant monté tant que sa sortie n'est pas
-                        terminée, puis monte le nouveau. Quand cette sortie ne se
-                        termine jamais — observé en production le 2026-08-13,
-                        framer-motion 12.43 — le nouvel enfant n'est jamais monté :
-                        le rail, qui est hors du bloc, marquait bien la nouvelle
-                        étape et l'URL suivait, pendant que le panneau restait
-                        figé sur l'étape d'arrivée. Un nœud du DOM marqué à la main
-                        survivait au changement d'étape, ce qui a écarté le
-                        remontage et l'animation en cours : l'ancien élément était
-                        simplement conservé.
+                        It did, inside an `<AnimatePresence mode="wait">`. That
+                        mode keeps the old child mounted until its exit is over,
+                        then mounts the new one. When that exit never ends —
+                        observed in production on 2026-08-13, framer-motion
+                        12.43 — the new child is never mounted: the rail, which
+                        is outside the block, did mark the new step and the URL
+                        followed, while the panel stayed frozen on the arrival
+                        step. A DOM node marked by hand survived the step change,
+                        which ruled out the remount and the running animation:
+                        the old element was simply kept.
 
-                        Conséquence : les suggestions de l'IA étaient inatteignables
-                        alors que le serveur les produisait, et toutes les autres
-                        étapes l'étaient tout autant.
+                        Consequence: the AI suggestions were unreachable while
+                        the server was producing them, and every other step was
+                        just as unreachable.
 
-                        Le remplacement est une animation d'ENTRÉE seule, remontée
-                        par la clé. Sans sortie il n'y a rien à attendre, donc rien
-                        qui puisse bloquer : le contenu ne peut plus dépendre de
-                        l'aboutissement d'une animation. On perd le fondu sortant,
-                        qui ne valait pas ce risque sur le contenu principal.
+                        The replacement is an ENTRY-only animation, remounted by
+                        the key. With no exit there is nothing to wait for, hence
+                        nothing that can block: the content can no longer depend
+                        on an animation completing. The outgoing fade is lost,
+                        and it was not worth that risk on the main content.
                     */}
                     <motion.div
                         key={currentId || 'empty'}
@@ -1517,9 +1539,7 @@ export function Wizard({
             >
                 <HelpPanel
                     entityId={entityId}
-                    entityNodeRef={entityNodeRef}
                     suggestions={suggestionsPanel}
-                    readOnly={Boolean(wizardState.readOnly)}
                     steps={visitedSteps}
                     onSelectStep={(stepId) => {
                         setSheet(null);

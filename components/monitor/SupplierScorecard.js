@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * **La scorecard fournisseur** (spec §4.6.4) — critère / poids / note, la
- * complétude des catalogues, et l'évolution *quand elle existe*.
+ * The supplier scorecard (spec §4.6.4) — criterion / weight / score, the
+ * completeness of the catalogues, and the trend *when it exists*.
  *
  * ## Where the numbers come from
  *
@@ -201,15 +201,14 @@ export function HistoryUnavailable({ history, compact = false, className = '' })
     const required = (history && history.required) || null;
 
     /*
-     * La raison EST dans la charge — autant la dire.
+     * The reason IS in the payload — so say it.
      *
-     * Ce bloc affichait toujours « sans cube OLAP … », y compris quand l'API
-     * répondait tout autre chose. Mesuré sur portal.becpg.fr :
-     * `{"available": false, "reason": "supplierAxisUnavailable"}` — le cube
-     * répondait bel et bien, il lui manquait l'axe fournisseur, et le message
-     * envoyait chercher un cube qui existait déjà. Une explication fausse coûte
-     * plus cher qu'une explication vague : elle envoie corriger le mauvais
-     * endroit.
+     * This block always showed « sans cube OLAP … », including when the API
+     * answered something else entirely. Measured on the deployed portal:
+     * `{"available": false, "reason": "supplierAxisUnavailable"}` — the cube did
+     * answer, it was only missing the supplier axis, and the message sent the
+     * reader looking for a cube that already existed. A wrong explanation costs
+     * more than a vague one: it sends someone to fix the wrong place.
      */
     const why = (history && local.historyWhyBy[history.reason]) || local.historyWhy;
 

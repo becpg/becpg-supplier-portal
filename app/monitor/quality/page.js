@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * `/monitor/quality` — **les non-conformités fournisseur, leur délai de
- * traitement et l'état de leurs actions correctives** (spec §4.6.5 « Qualité :
- * conformité documentaire, NC, certifications, audits », §4.2).
+ * `/monitor/quality` — the supplier non-conformities, their processing delay and
+ * the state of their corrective actions (spec §4.6.5 « Qualité : conformité
+ * documentaire, NC, certifications, audits », §4.2).
  *
  * Everything here comes from `GET /api/v1/monitor/quality`: `qa:ncState`,
  * `qa:ncType`, `qa:ncPriority` and `qa:ncCost` are indexed, so the counters are
@@ -30,14 +30,14 @@
  * A **park filter is different** and the tiles do follow it. A perimeter
  * (`family`, `site`, `q`…) changes *which suppliers* the screen is about, and a
  * counter for another perimeter is not an imprecise figure, it is a figure about
- * someone else. Measured on dev.becpg.fr before this: filtering on suppliers
+ * someone else. Measured on the reference instance before this: filtering on suppliers
  * owning no NC left the list empty under tiles still reading « 5 NC ouvertes ·
  * 2 bloquantes », while « Au-delà du délai » and « Délai moyen » — computed from
  * the filtered rows — correctly read 0. Four tiles, two populations. They are
  * now one: `summary.parkScoped` says which, and `scope.empty` says when the
  * perimeter matched no supplier at all (in which case nothing was queried).
  *
- * The processing delay is `maintenant − cm:created` while the NC is open, and
+ * The processing delay is `now − cm:created` while the NC is open, and
  * `cm:modified − cm:created` once it is closed: beCPG stores no closure date, and
  * the screen says so rather than presenting an invented lead time.
  */
@@ -83,11 +83,11 @@ const LABELS = {
             closing: 'Clôture moyenne {value} j',
             noClosing: 'Aucune NC fermée sur ce périmètre',
             /*
-             * Le délai de clôture se calcule sur les lignes listées, et les NC
-             * fermées sont exclues de la liste par défaut. Mesuré sur dev : la
-             * première tuile annonçait « 11 au total » (donc 1 fermée) pendant que
-             * celle-ci affirmait « Aucune NC fermée sur ce périmètre ». Il y en a
-             * une ; elle n'est simplement pas dans la population lue.
+             * The closing delay is computed on the listed rows, and closed NCs are
+             * excluded from the list by default. Measured on dev: the first tile
+             * announced « 11 au total » (so 1 closed) while this one claimed
+             * « Aucune NC fermée sur ce périmètre ». There is one; it simply is
+             * not in the population that was read.
              */
             closingHidden: '{count} NC fermée(s) — cochez « Inclure les NC fermées » pour le délai de clôture',
         },

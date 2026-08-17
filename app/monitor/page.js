@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * `/monitor` — **la vue d'ensemble du parc fournisseurs** (spec §4.6.1).
+ * `/monitor` — the overview of the supplier park (spec §4.6.1).
  *
  * This is the screen a quality officer opens every morning, and the reason this
  * lot exists: beCPG holds every figure below and restitutes none of them today,
@@ -29,9 +29,9 @@
  *    instance actually offers (`GET /monitor/actions`); the irreversible one
  *    (*suspendre*, which starts a real beCPG process) goes through an explicit
  *    danger confirmation that says what will happen.
- *  - **Filters live in the URL.** "Voici mon parc bio sans réponse" is a link,
- *    which is what makes this screen usable in a weekly review. The typed value
- *    is debounced before it becomes a query (`useDebouncedValue`).
+ *  - **Filters live in the URL.** "here is my organic park that never answered"
+ *    is a link, which is what makes this screen usable in a weekly review. The
+ *    typed value is debounced before it becomes a query (`useDebouncedValue`).
  */
 
 import { Suspense, useCallback, useMemo, useState } from 'react';

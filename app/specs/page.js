@@ -6,7 +6,7 @@
  * **This page used to scan the park.** `bcpg:productSpecifications` is a source
  * association — nothing queries a specification back to the products it applies
  * to — so the first implementation read every product's specifications one by
- * one, four at a time, and merged the result. Measured on dev.becpg.fr: **60
+ * one, four at a time, and merged the result. Measured on the reference instance: **60
  * repository calls and ~750 ms on every visit**, growing with the size of the
  * catalogue.
  *

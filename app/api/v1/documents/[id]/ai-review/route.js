@@ -23,7 +23,7 @@
  * from `bcpg:documentEntityRef`. That is undocumented and worth stating plainly,
  * because everything here rests on it.
  *
- * Measured on dev-ai.becpg.fr, `GET /api/suggestions/f7de9b31-…?locale=fr-FR`:
+ * Measured on an AI-enabled instance, `GET /api/suggestions/f7de9b31-…?locale=fr-FR`:
  * 200 in ~22 s, five items, of which one
  * `{"type":"DocumentReview","confidence":80,"documentId":"f7de9b31-…"}` whose
  * `suggestedChanges` set `bcpg:aiValidationState`, `bcpg:aiValidationHints` and

@@ -1,0 +1,42 @@
+name: Feature request
+description: Suggest a capability for the supplier portal
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: Who is blocked, and by what. Describe the situation, not the solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like to see
+    validations:
+      required: true
+
+  - type: dropdown
+    id: side
+    attributes:
+      label: Which side is affected
+      options:
+        - Supplier screens
+        - Monitoring space
+        - Both
+        - Neither / infrastructure
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Compatibility with the project rules
+      description: |
+        See [AGENTS.md](../blob/main/AGENTS.md). A proposal that needs one of these to be
+        broken will be discussed, but is unlikely to be accepted as such.
+      options:
+        - label: It does not require TypeScript, another UI kit, or an i18n library
+        - label: It does not require the OIDC token or the Alfresco ticket to reach the browser
+        - label: It does not require a hard-coded field or column list

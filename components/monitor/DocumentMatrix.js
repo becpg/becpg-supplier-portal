@@ -374,7 +374,7 @@ export function DocumentMatrix({
                 clips what is *drawn*, but the fixed-layout table inside it keeps
                 contributing its full width to the root's scrollable area, so the
                 **page itself** gained a horizontal scrollbar as soon as the matrix
-                was wider than its container. Measured on dev.becpg.fr at 1280 px:
+                was wider than its container. Measured on the reference instance at 1280 px:
                 `document.documentElement.scrollWidth` 1789 for a 1280 viewport, and
                 `window.scrollTo(600, 0)` really moved the page by 509 px — the
                 header, the tiles and the bottom bar sliding out of view while the

@@ -81,8 +81,8 @@ function readOptions(request) {
         page: url.searchParams.get('page') || undefined,
         pageSize: url.searchParams.get('pageSize') || undefined,
         sort: url.searchParams.get('sort') || undefined,
-        // Ce que l'écran sait déjà de l'assignation : le redemander coûte 5 s
-        // par onglet (voir `getWizardState`). Même mécanique que Share.
+        // What the screen already knows about the assignment: asking again costs 5 s
+        // per tab (see `getWizardState`). Same mechanism as Share.
         knownTaskAssigned: url.searchParams.get('taskAssigned') === '1' ? true
             : url.searchParams.get('taskAssigned') === '0' ? false : undefined,
     };
@@ -155,8 +155,8 @@ export async function PUT(request, context) {
         const state = await getWizardState(entityId, { ...options, session });
         const result = await saveStep(state, stepId, body, { ...options, session });
 
-        // L'écriture a changé l'entité et l'état de ses listes : purger APRÈS,
-        // sinon le `getWizardState` ci-dessus vient de re-mémoriser l'état d'avant.
+        // The write changed the entity and the state of its lists: purge AFTER,
+        // otherwise the `getWizardState` above has just re-memoized the previous state.
         invalidateWizardState(entityId);
 
         // The configuration can ask for a reformulation (or a folder resolution)
@@ -245,8 +245,8 @@ export async function POST(request, context) {
             { ...options, session },
         );
 
-        // L'écriture a changé l'entité et l'état de ses listes : purger APRÈS,
-        // sinon le `getWizardState` ci-dessus vient de re-mémoriser l'état d'avant.
+        // The write changed the entity and the state of its lists: purge AFTER,
+        // otherwise the `getWizardState` above has just re-memoized the previous state.
         invalidateWizardState(entityId);
 
         const response = NextResponse.json(result);
@@ -280,8 +280,8 @@ export async function DELETE(request, context) {
             { ...options, session },
         );
 
-        // L'écriture a changé l'entité et l'état de ses listes : purger APRÈS,
-        // sinon le `getWizardState` ci-dessus vient de re-mémoriser l'état d'avant.
+        // The write changed the entity and the state of its lists: purge AFTER,
+        // otherwise the `getWizardState` above has just re-memoized the previous state.
         invalidateWizardState(entityId);
 
         const response = NextResponse.json(result);

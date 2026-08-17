@@ -36,7 +36,7 @@ const FORMULATE_TIMEOUT = Number(process.env.BECPG_FORMULATE_TIMEOUT || 120000);
 export async function POST(request, context) {
     const { entityId } = await context.params;
     try {
-        // L'ecriture change l'etat des listes : l'etat memorise doit tomber.
+        // A write changes the state of the lists: the memoized state must be dropped.
         const session = await requireSession();
         const url = new URL(request.url);
 
@@ -56,7 +56,7 @@ export async function POST(request, context) {
         const started = Date.now();
         const result = await formulate(state.entity.nodeRef, { session, timeout: FORMULATE_TIMEOUT });
 
-        // La formulation recalcule les scores et l'état des listes : purger APRÈS.
+        // Formulation recomputes the scores and the state of the lists: purge AFTER.
         invalidateWizardState(entityId);
 
         const response = NextResponse.json({

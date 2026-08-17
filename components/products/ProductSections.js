@@ -288,9 +288,9 @@ export function readableValue(field, lang) {
             : field.value;
 
     const render = (entry) => {
-        // Une carte de locales — écrite comme telle, ou sérialisée en texte par
-        // le défaut décrit dans `lib/mltext.js` — se lit dans la langue de
-        // l'utilisateur, jamais sous sa forme de stockage.
+        // A map of locales — written as such, or serialised to text by the
+        // default described in `lib/mltext.js` — is read in the user's language,
+        // never in its storage form.
         const ml = readMlText(entry, lang);
         if (ml !== entry) {
             return ml || null;

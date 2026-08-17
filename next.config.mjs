@@ -16,7 +16,7 @@ const nextConfig = {
 
     // --- Security headers -------------------------------------------------
     //
-    // Measured on portal.becpg.fr the day it went live: the portal answered with
+    // Measured on the deployed portal the day it went live: the portal answered with
     // NO security header at all — no framing protection, no MIME sniffing
     // protection, no HSTS. On a public host serving supplier data that is the
     // widest and cheapest gap to close.

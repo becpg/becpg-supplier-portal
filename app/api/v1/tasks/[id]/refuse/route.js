@@ -39,12 +39,12 @@ export async function POST(request, context) {
         }
 
         /*
-         * LE MOTIF EST OBLIGATOIRE.
+         * THE REASON IS MANDATORY.
          *
-         * Un refus renvoie la fiche au fournisseur : sans raison, il ne peut que
-         * la redéposer à l'identique. La contrainte est posée ici, côté serveur,
-         * et pas seulement dans la boîte de dialogue — une action qui engage
-         * quelqu'un d'autre ne se valide pas sur la seule bonne volonté du client.
+         * A refusal sends the record back to the supplier: without a reason, all he
+         * can do is submit it again unchanged. The constraint is enforced here, on
+         * the server, and not only in the dialog box — an action that commits
+         * someone else is not validated on the client's good will alone.
          */
         let comment = '';
         try {
@@ -60,8 +60,8 @@ export async function POST(request, context) {
 
         const client = createBecpgClient(session);
 
-        // La tâche d'abord : c'est elle qui porte l'identifiant de tâche Activiti,
-        // seul chemin par lequel le motif parvient au moteur.
+        // The task first: it is the one carrying the Activiti task id, the only
+        // path by which the reason reaches the engine.
         const before = await getTask(client, id).catch(() => null);
         const result = await refuseTask(client, id, {
             comment,

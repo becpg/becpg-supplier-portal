@@ -115,7 +115,7 @@ const MAX_LENGTH = 20000;
  * This screen used to ask for 100 in one go, and the referential charged for all
  * of them: `becpg/remote/entity/list` bills roughly per row, and `listMyEntities`
  * reads a window that runs from the first row to the end of the requested page.
- * Measured on dev.becpg.fr, `supplier-test@becpg.fr`, median of four runs through
+ * Measured on the reference instance, the test supplier account, median of four runs through
  * `GET /api/v1/entities`:
  *
  * ```
@@ -323,13 +323,13 @@ function MessagesScreen() {
             });
         }
         /*
-         * Les sujets qui portent des messages remontent en tête.
+         * Subjects that carry messages come first.
          *
-         * Vingt-six produits présentés à l'identique, dont trois seulement ont un
-         * fil : l'écran répondait « voici tes produits » quand la question était
-         * « où sont mes échanges ? ». Le tri est **stable** — l'ordre du
-         * catalogue est conservé à l'intérieur de chaque groupe — et la fiche
-         * fournisseur garde sa place en tête, ce n'est pas un produit.
+         * Twenty-six products presented identically, only three of which have a
+         * thread: the screen answered "here are your products" when the question
+         * was "where are my exchanges?". The sort is stable — the catalogue order
+         * is kept inside each group — and the supplier's own record keeps its
+         * place at the top, it is not a product.
          */
         const [own, rest] = list[0] && list[0].isSupplier
             ? [[list[0]], list.slice(1)]
@@ -342,10 +342,10 @@ function MessagesScreen() {
     }, [loaded, search, session.supplier, labels.myRecord]);
 
     /*
-     * Ce que le fournisseur a déjà ouvert — le même magasin que la carte du
-     * tableau de bord (`lib/discussions.js`). Ici la comparaison se fait sur le
-     * NOMBRE de messages : lire la date du dernier message coûterait un appel par
-     * sujet, vingt-six pour afficher une liste.
+     * What the supplier has already opened — the same store as the dashboard
+     * card (`lib/discussions.js`). Here the comparison is made on the NUMBER of
+     * messages: reading the date of the last message would cost one call per
+     * subject, twenty-six of them to display a list.
      */
     const seenThreads = useSyncExternalStore(subscribe, readState, serverState);
     const unreadOf = useCallback(
@@ -400,8 +400,8 @@ function MessagesScreen() {
     const select = useCallback((nodeRef, count = null) => {
         setSelected(nodeRef);
         setDraft('');
-        // Ouvrir un sujet, c'est le lire : le nombre de messages vu à cet instant
-        // devient la référence à laquelle le prochain affichage se comparera.
+        // Opening a subject is reading it: the message count seen at that moment
+        // becomes the reference the next render will compare against.
         if (nodeRef) {
             markRead(nodeRef, null, count);
         }
@@ -526,10 +526,10 @@ function MessagesScreen() {
                                         </span>
                                     ) : null}
                                 </span>
-                                {/* Le nombre de messages : c'est LA question de cet
-                                    écran, et vingt-six sujets rendus à l'identique n'y
-                                    répondaient pas. Une ligne sans message n'affiche
-                                    rien plutôt qu'un « 0 » à lire. */}
+                                {/* The message count: it is THE question this screen
+                                    answers, and twenty-six subjects rendered identically
+                                    did not answer it. A row without a message shows
+                                    nothing rather than a « 0 » to read. */}
                                 {subject.count > 0 ? (
                                     <span
                                         className="pill pill-neutral pill-sm pill-no-dot shrink-0"

@@ -65,13 +65,13 @@ export const SUPPLIER_NAV = Object.freeze([
 /** Monitoring space (spec §4.6). */
 export const MONITOR_NAV = Object.freeze([
     { id: 'monitor', href: '/monitor', labelKey: 'nav.monitor', icon: 'insights', exact: true, primary: true },
-    // **Le pilotage a des tâches, lui aussi.** Un référencement se termine par une
-    // validation interne : le compte qui l'assure reçoit une tâche « Validation »
-    // (SupplierPortalInitRepoVisitor la crée sur GROUP_QualityMgr), et c'est de là
-    // qu'il relit la saisie, valide les listes et les documents, corrige une
-    // coquille et discute avec le fournisseur. Sans cette entrée, `/tasks`
-    // existait, répondait — mesuré sur l'instance locale, `/api/v1/tasks` sert
-    // bien un compte interne — et n'était atteignable par aucun lien.
+    // The monitoring space has tasks too. A referencing ends with an internal
+    // validation: the account that carries it receives a « Validation » task
+    // (SupplierPortalInitRepoVisitor creates it on GROUP_QualityMgr), and that is
+    // where it re-reads the input, validates the lists and the documents, fixes a
+    // typo and talks to the supplier. Without this entry, `/tasks` existed and
+    // answered — measured on the local instance, `/api/v1/tasks` does serve an
+    // internal account — and was reachable through no link at all.
     { id: 'monitor-tasks', href: '/tasks', labelKey: 'nav.monitor.tasks', icon: 'assignment_turned_in', primary: true, badgeKey: 'tasks' },
     { id: 'suppliers', href: '/monitor/suppliers', labelKey: 'nav.monitor.suppliers', icon: 'groups', primary: true },
     { id: 'monitor-documents', href: '/monitor/documents', labelKey: 'nav.monitor.documents', icon: 'fact_check' },

@@ -24,7 +24,37 @@
  * discussing — the entity, a datalist row, a document — and the optional
  * `field` is echoed in the message title so both front ends can filter on it.
  *
- * Query (GET): `nodeRef` (required), `page`, `pageSize`.
+ * Query (GET): `nodeRef` (required), `page`, `pageSize`, `scope`.
+ *
+ * ## `scope=entity` — what "the whole sheet" has to mean
+ *
+ * A row's discussion lives on **the row node**, which is a different forum from the
+ * entity's. So the sheet-level view, reading the entity forum alone, showed "Aucun
+ * message" while a remark sat on the *AG saturés* line right next to it (#35846) —
+ * a message the client had written and the supplier could not find.
+ *
+ * With `scope=entity` the route reads **every thread of the subtree**: the `fm:forum`
+ * nodes under the entity name the nodes that carry a discussion, and each one's
+ * thread is read the same way the entity's own is.
+ *
+ * Three things were measured on 26.1.0 before settling on that shape, and each rules
+ * out a shorter road:
+ *
+ *   - a bare `ANCESTOR:` with no `TYPE:` clause answers **nothing**, and
+ *     `TYPE:"bcpg:nutList"` does not match a datalist row of a live entity either:
+ *     "find the commented rows, then read their threads" cannot be written;
+ *   - `fm:forum` and `fm:post`, on the other hand, are found immediately — the
+ *     predicate is DB-supported, so a comment posted a second ago is already there;
+ *   - `api/forum/post/node/…/{post}` always answers with the **first** post of the
+ *     post's topic, and a node's comments are sibling posts of one topic: reading
+ *     them one by one returns the same message N times.
+ *
+ * The fan-out is capped: past {@link AGGREGATE_MAX_NODES} commented nodes the answer
+ * says `truncated: true` rather than issuing an unbounded number of reads.
+ *
+ * A message keeps its anchor in its title — `field:bcpg:legalName` for a field,
+ * `row:AG saturés` for a datalist row — which is what lets the panel say where a
+ * message belongs without resolving its node.
  *
  * Body (POST):
  * ```json
@@ -56,8 +86,16 @@
 
 import { NextResponse } from 'next/server';
 import { BadRequestError, toApiResponse } from '@/lib/errors';
-import { becpgJson, getJson, isNodeRef, nodeRefToPath, requireSession } from '@/lib/becpg';
+import {
+    becpgJson,
+    getJson,
+    getNodeParent,
+    isNodeRef,
+    nodeRefToPath,
+    requireSession,
+} from '@/lib/becpg';
 import { getEntityListsState } from '@/lib/adapters/datalists';
+import { logWarn } from '@/lib/http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -78,6 +116,15 @@ const MAX_CONTENT_LENGTH = 20000;
 const FIELD_PREFIX = 'field:';
 
 /**
+ * Same idea for a datalist row: the row has no name a human reads, so the label the
+ * supplier saw when writing travels with the message.
+ */
+const ROW_PREFIX = 'row:';
+
+/** Commented nodes read by `scope=entity` before the answer declares itself truncated. */
+const AGGREGATE_MAX_NODES = 20;
+
+/**
  * Normalises one Alfresco comment.
  *
  * @param {Object} raw
@@ -87,8 +134,10 @@ function normalizeMessage(raw) {
     const author = raw?.author || {};
     const title = raw?.title || '';
     const field = title.startsWith(FIELD_PREFIX) ? title.slice(FIELD_PREFIX.length).trim() : null;
+    const row = title.startsWith(ROW_PREFIX) ? title.slice(ROW_PREFIX.length).trim() : null;
 
     return {
+        source: row ? { label: row } : null,
         nodeRef: raw?.nodeRef || null,
         // `content` is already stripped of unsafe HTML by the repository
         // (`stringUtils.stripUnsafeHTML`); the UI still renders it as text.
@@ -178,6 +227,83 @@ async function explainDenial(nodeRef, session) {
 }
 
 /**
+ * The nodes of the sheet that carry a discussion.
+ *
+ * `fm:forum` is the queryable signal — Alfresco creates one under a node the first
+ * time it is commented — and its parent is the node being discussed. Both steps are
+ * needed: a bare `ANCESTOR:` with no `TYPE:` clause answers nothing, the datalist
+ * rows are not reachable by type at all, and the forum's own payload names its
+ * parent only by path, never by nodeRef.
+ *
+ * @param {string} entityNodeRef
+ * @param {Object} session
+ * @returns {Promise<{nodes: string[], truncated: boolean}>} commented nodeRefs
+ */
+async function commentedNodes(entityNodeRef, session) {
+    const payload = await getJson('becpg/remote/entity/list', {
+        query: {
+            query: `TYPE:"fm:forum" AND ANCESTOR:"${entityNodeRef}"`,
+            lists: 'none',
+            maxResults: AGGREGATE_MAX_NODES + 1,
+        },
+        session,
+    });
+
+    const forums = (Array.isArray(payload?.entities) ? payload.entities : [])
+        .map((row) => row && row.entity)
+        .filter((node) => node && node.id)
+        .map((node) => (node.id.includes('://') ? node.id : `workspace://SpacesStore/${node.id}`));
+
+    const parents = await Promise.all(forums.slice(0, AGGREGATE_MAX_NODES).map(async (forum) => {
+        try {
+            return await getNodeParent(forum, { session });
+        }
+        catch (error) {
+            logWarn('messages.forum.unresolved', {
+                route: 'messages',
+                forum: forum.slice(0, 80),
+                message: error.message,
+            });
+            return null;
+        }
+    }));
+
+    return {
+        nodes: [...new Set(parents.filter(Boolean))],
+        truncated: forums.length > AGGREGATE_MAX_NODES,
+    };
+}
+
+/**
+ * Reads one node's thread for the sheet-level view.
+ *
+ * A thread that cannot be read is skipped rather than fatal: the sheet-level view
+ * must survive one row whose ACL refuses the caller — showing the other twelve
+ * messages is better than showing none.
+ *
+ * @param {string} nodeRef
+ * @param {Object} options `{ session, pageSize }`
+ * @returns {Promise<Object[]>}
+ */
+async function readNodeThread(nodeRef, { session, pageSize }) {
+    try {
+        const payload = await getJson(`api/node/${nodeRefToPath(nodeRef)}/comments`, {
+            query: { reverse: 'true', startIndex: 0, pageSize },
+            session,
+        });
+        return (Array.isArray(payload?.items) ? payload.items : []).map(normalizeMessage);
+    }
+    catch (error) {
+        logWarn('messages.thread.unreadable', {
+            route: 'messages',
+            node: nodeRef.slice(0, 80),
+            message: error.message,
+        });
+        return [];
+    }
+}
+
+/**
  * @param {Request} request
  * @returns {Promise<Response>}
  */
@@ -223,10 +349,28 @@ export async function GET(request) {
             denial = await explainDenial(nodeRef, session);
         }
 
+        /*
+         * The sheet-level view replaces the list — it does not extend it: the topic
+         * search already covers the entity's own forum, so reading both would show
+         * every message of the sheet twice.
+         */
+        let messages = items.map(normalizeMessage);
+        let aggregate = null;
+        if (url.searchParams.get('scope') === 'entity') {
+            const { nodes, truncated } = await commentedNodes(nodeRef, session);
+            messages = (await Promise.all(
+                nodes.map((node) => readNodeThread(node, { session, pageSize })),
+            ))
+                .flat()
+                .sort((a, b) => Date.parse(b.createdOn || 0) - Date.parse(a.createdOn || 0));
+            aggregate = { scope: 'entity', sources: nodes.length, truncated };
+        }
+
         const response = NextResponse.json({
             nodeRef,
-            messages: items.map(normalizeMessage),
-            total: Number(payload?.total ?? items.length),
+            messages,
+            total: aggregate ? messages.length : Number(payload?.total ?? items.length),
+            aggregate,
             page,
             pageSize,
             permissions: nodePermissions,
@@ -281,12 +425,24 @@ export async function POST(request) {
             ? body.field.trim().slice(0, 120)
             : null;
 
+        /*
+         * A row's label, kept with the message.
+         *
+         * The row node is named after a uuid, so a sheet-level reader has nothing to
+         * show but "a row". The label the supplier had under his eyes when he wrote
+         * — "AG saturés" — travels in the title, the same way a field's name does.
+         */
+        const row = !field && typeof body.itemTitle === 'string' && body.itemTitle.trim()
+            ? body.itemTitle.trim().slice(0, 120)
+            : null;
+
         const payload = await becpgJson(`api/node/${nodeRefToPath(nodeRef)}/comments`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                // The title is the anchor: `field:bcpg:allergenList`, or empty.
-                title: field ? `${FIELD_PREFIX}${field}` : '',
+                // The title is the anchor: `field:bcpg:allergenList`, `row:AG saturés`,
+                // or empty for the sheet itself.
+                title: field ? `${FIELD_PREFIX}${field}` : row ? `${ROW_PREFIX}${row}` : '',
                 content,
                 itemTitle: body.itemTitle || '',
                 // Deep link back into the portal, used by the notification mail.

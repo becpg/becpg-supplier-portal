@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * **Top 10 des fournisseurs à risque** (spec §4.6.1) — the block under the
+ * Top 10 suppliers at risk (spec §4.6.1) — the block under the
  * header cards, *"avec le motif et l'action directe : relancer, escalader,
  * suspendre"*.
  *
@@ -599,10 +599,10 @@ function RiskRow({ item, rank, local, lang, onDone }) {
                         {typeof item.completion === 'number'
                             ? ` · ${interpolate(local.completion, { value: item.completion })}`
                             : ''}
-                        {/* `lastActivity` (cm:modified du fournisseur) était calculé par
-                            l'adaptateur, trié dessus et exporté en CSV, mais jamais rendu :
-                            le libellé existait sans point d'appel. Sur une carte de risque
-                            c'est la donnée qui dit si le dossier bouge encore. */}
+                        {/* `lastActivity` (the supplier's cm:modified) was computed by
+                            the adapter, sorted on and exported to CSV, but never rendered:
+                            the label existed with no call site. On a risk card it is the
+                            fact that says whether the file is still moving. */}
                         {item.lastActivity
                             ? ` · ${interpolate(local.lastActivity, {
                                 date: formatDate(item.lastActivity, lang),

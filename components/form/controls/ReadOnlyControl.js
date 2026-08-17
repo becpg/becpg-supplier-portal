@@ -71,7 +71,7 @@ export function formatValue(field, value, lang = 'fr') {
         // `displayValue`, no `value` and no `nodeRef`, so it used to fall into
         // the mltext branch below, whose "first filled-in entry" is the
         // repository `path`: `/app:company_home/cm:System/cm:ProductHierarchy/…`
-        // was printed as the value of *Famille*. Measured on dev.becpg.fr.
+        // was printed as the value of *Famille*. Measured on the reference instance.
         const node = nodeLabel(value, lang);
         if (node) {
             return node;

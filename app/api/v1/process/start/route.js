@@ -152,24 +152,24 @@ async function supplierProcessDefinition(params) {
     const formFields = definition.formFields || {};
 
     /*
-     * PAS DE COMPTE FOURNISSEUR RÉSOLU, PAS DE SOUMISSION.
+     * NO RESOLVED SUPPLIER ACCOUNT, NO SUBMISSION.
      *
-     * `create-supplier-project.js` appelle
-     * `bSupplier.createSupplierProject(items, tpl, accounts)` où `accounts` doit
-     * être un `String[]`. Quand le champ manque, le script passe `""` — une
-     * chaîne — et Rhino ne trouve aucune surcharge :
+     * `create-supplier-project.js` calls
+     * `bSupplier.createSupplierProject(items, tpl, accounts)` where `accounts`
+     * must be a `String[]`. When the field is missing, the script passes `""` —
+     * a string — and Rhino finds no matching overload:
      *
      *     La méthode 'SupplierPortalHelper.createSupplierProject(
      *       [LScriptNode;, ScriptNode, string)' est introuvable
      *
-     * Mesuré sur portal.becpg.fr en lançant le référencement depuis la fiche d'un
-     * `bcpg:supplier` : 502, message illisible pour l'utilisateur, projet non créé.
-     * beCPG n'évalue les comptes que pour les entités auxquelles le processus
-     * s'applique — un produit — et le portail soumettait quand même.
+     * Measured on the deployed portal by starting the referencing from the record of
+     * a `bcpg:supplier`: 502, a message the user cannot read, no project created.
+     * beCPG only evaluates the accounts for the entities the process applies to —
+     * a product — and the portal submitted anyway.
      *
-     * Refuser ici rend la cause lisible et évite une erreur serveur pour une
-     * situation parfaitement prévisible. Le correctif beCPG (passer `[]` au lieu
-     * de `""`) reste souhaitable ; celui-ci ne dépend pas de lui.
+     * Refusing here makes the cause readable and avoids a server error for a
+     * perfectly predictable situation. The beCPG fix (passing `[]` instead of
+     * `""`) remains desirable; this one does not depend on it.
      */
     const accounts = String(formFields.assoc_bcpg_supplierAccountRef ?? '').trim();
     if (!accounts) {
@@ -310,7 +310,7 @@ export async function POST(request) {
             // A refusal is a settled answer, not a transient upstream failure.
             // Wrapping it in an UpstreamError answered 502 `error.network` — "the
             // connection failed, try again" — for something no retry can fix.
-            // Measured on dev.becpg.fr the 03/08/2026: `supplier-test@becpg.fr`
+            // Measured on the reference instance the 03/08/2026: the test supplier account
             // starting a referencing gets "Accès refusé" out of
             // `create-supplier-project.js`, i.e. a 403, and the dialog told the
             // supplier it was a network problem.

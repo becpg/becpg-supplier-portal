@@ -1,0 +1,25 @@
+# GitGuardian configuration file
+# This file marks known false positives to reduce noise
+
+version: 2
+
+# Matches that are placeholders or local development defaults, not real credentials
+matches:
+  # env.example ships placeholder values, never a working secret
+  - match: change-me
+    type: password
+    severity: low
+
+  # becpg / admin are the local development instance defaults
+  - match: becpg
+    type: password
+    severity: low
+
+  - match: admin
+    type: password
+    severity: low
+
+ignores:
+  - path: env.example
+    type: path
+    severity: low

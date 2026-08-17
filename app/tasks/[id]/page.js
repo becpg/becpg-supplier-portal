@@ -133,7 +133,7 @@ function TaskHeader({ task, labels, lang, onDone }) {
     );
 }
 
-/** `workspace://SpacesStore/<uuid>` → `<uuid>`, ce qu'attend la route de contenu. */
+/** `workspace://SpacesStore/<uuid>` → `<uuid>`, what the content route expects. */
 function uuidOf(nodeRef) {
     return String(nodeRef || '').split('/').pop();
 }
@@ -145,16 +145,16 @@ function TaskRouter() {
     const labels = LABELS[lang] || LABELS.fr;
 
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
-    // `withWizard=1` : l'état de l'assistant est résolu côté serveur, en parallèle
-    // de la tâche, et voyage avec elle. Voir la route pour les mesures.
+    // `withWizard=1`: the wizard state is resolved on the server, in parallel with
+    // the task, and travels with it. See the route for the measurements.
     const task = useApi(id ? `tasks/${encodeURIComponent(id)}` : null, {
         params: { withWizard: 1 },
     });
 
     const step = search.get('step');
     const data = task.data;
-    // Le document de la tâche, ouvert à la demande : `DocumentViewer` est une
-    // modale, l'inscrire dans le flux la laisserait ouverte en permanence.
+    // The task document, opened on demand: `DocumentViewer` is a modal, putting it
+    // in the flow would leave it permanently open.
     const [viewing, setViewing] = useState(null);
 
     // The wizard id comes from the deliverable URL when it carries one — the
@@ -262,19 +262,19 @@ function TaskRouter() {
     /* --------------------------------------------------------------- review */
 
     /*
-     * La relecture est l'écran d'un **interne** : la tâche « Validation » du
-     * modèle de projet fournisseur lui échoit, et il y relit ce que le
-     * fournisseur a saisi avant de terminer ou de refuser.
+     * The review is an internal user's screen: the « Validation » task of the
+     * supplier project template falls to him, and there he reads back what the
+     * supplier entered before completing or refusing.
      *
-     * La discussion est donc à côté de la fiche, et pas ailleurs. Sans elle,
-     * « signaler une coquille » voulait dire quitter la tâche, retrouver la
-     * fiche depuis `/messages`, écrire, revenir — ou refuser la tâche en
-     * espérant que le motif se devine (`TaskActions` le dit lui-même : le motif
-     * d'un refus n'est pas enregistré sur la tâche).
+     * The discussion therefore sits next to the sheet, and nowhere else. Without
+     * it, reporting a typo meant leaving the task, finding the sheet again from
+     * `/messages`, writing, coming back — or refusing the task and hoping the
+     * reason would be guessed (`TaskActions` says so itself: the reason for a
+     * refusal is not recorded on the task).
      *
-     * Le fil est celui de l'entité : le même que celui du portail fournisseur et
-     * celui de Share (spec §7.1). Une remarque écrite ici est lue par le
-     * fournisseur dans son assistant, à l'endroit exact où il a saisi.
+     * The thread is the entity's: the same one as in the supplier portal and in
+     * Share (spec §7.1). A remark written here is read by the supplier in his
+     * wizard, at the exact place where he entered the data.
      */
     return (
         <AppShell
@@ -288,12 +288,12 @@ function TaskRouter() {
         >
             <TaskHeader task={data} labels={labels} lang={lang} onDone={task.refresh} />
             {/*
-                LE DOCUMENT SE LIT, IL NE SE TÉLÉCHARGE PAS SEULEMENT.
+                THE DOCUMENT IS READ, NOT ONLY DOWNLOADED.
 
-                Une tâche de validation de signature nomme le fichier signé. Sans
-                visionneuse, la relire supposait de la télécharger, l'ouvrir
-                ailleurs, puis revenir décider — pour une action dont tout
-                l'objet est de regarder ce document.
+                A signature validation task names the signed file. Without a
+                viewer, reading it back meant downloading it, opening it
+                somewhere else, then coming back to decide — for an action whose
+                whole point is to look at that document.
             */}
             {data.documentNodeRef ? (
                 <div className="mb-4">
@@ -303,8 +303,8 @@ function TaskRouter() {
                         onClick={() => setViewing({
                             nodeRef: data.documentNodeRef,
                             name: data.name || '',
-                            // `DocumentViewer` lit le contenu par le portail, jamais
-                            // par Alfresco — voir `lib/adapters/documents.js`.
+                            // `DocumentViewer` reads the content through the portal,
+                            // never through Alfresco — see `lib/adapters/documents.js`.
                             downloadUrl: `/api/v1/documents/${encodeURIComponent(uuidOf(data.documentNodeRef))}/content`,
                         })}
                     >
@@ -314,8 +314,8 @@ function TaskRouter() {
             ) : null}
             <DocumentViewer document={viewing} onClose={() => setViewing(null)} />
             <ReviewStep entityId={entityNodeRef} wizardId={wizardId} />
-            {/* Sous `lg` il n'y a pas de colonne latérale : le fil passe sous la
-                fiche plutôt que de disparaître. */}
+            {/* Below `lg` there is no side column: the thread moves under the
+                sheet rather than disappearing. */}
             <div className="mt-4 lg:hidden">
                 <CommentsPanel entityNodeRef={entityNodeRef} title={labels.discussion} />
             </div>

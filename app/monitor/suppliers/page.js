@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * `/monitor/suppliers` — **la liste de pilotage** (spec §4.6.2).
+ * `/monitor/suppliers` — the supplier steering list (spec §4.6.2).
  *
  * Columns: statut d'agrément, score de risque, complétude, documents expirants,
  * NC ouvertes, dernière activité, acheteur référent. Multi-criteria filters,

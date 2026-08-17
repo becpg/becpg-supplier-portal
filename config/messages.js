@@ -51,9 +51,9 @@ export const messages = {
         'nav.monitor.campaigns': 'Campagnes',
         'nav.monitor.quality': 'Non-conformités',
         'nav.monitor.reports': 'Rapports',
-        // Les mêmes tâches que côté fournisseur, sous le nom qu'un interne leur
-        // donne : il n'y valide pas *son* dossier, il fait avancer celui d'un
-        // fournisseur.
+        // The same tasks as on the supplier side, under the name an internal user
+        // gives them: he is not validating his own file there, he is moving a
+        // supplier's file forward.
         'nav.monitor.tasks': 'Mes tâches',
 
         // --- Account ---
@@ -120,6 +120,7 @@ export const messages = {
         'status.expiring': 'Expire bientôt',
         'status.expired': 'Expiré',
         'status.missing': 'Manquant',
+        'status.validityMissing': 'Validité à renseigner',
         'status.rejected': 'Refusé',
         'status.pending': 'En attente',
         'status.completed': 'Terminé',
@@ -219,6 +220,7 @@ export const messages = {
         'status.expiring': 'Expiring soon',
         'status.expired': 'Expired',
         'status.missing': 'Missing',
+        'status.validityMissing': 'Validity to be filled in',
         'status.rejected': 'Rejected',
         'status.pending': 'Pending',
         'status.completed': 'Completed',

@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use the beCPG Supplier Portal in your research or project, please cite it as below."
+title: "beCPG Supplier Portal - Open Source Supplier Collaboration for beCPG PLM"
+abstract: >
+  Supplier-facing front end of beCPG PLM, the open-source PLM platform for the Food, Beverage
+  and Cosmetics industries. Suppliers complete onboarding questionnaires, technical sheets and
+  certificates; quality and purchasing teams monitor compliance and document expiry from a
+  single space. Built as one Next.js application proxying the beCPG repository.
+type: software
+license: LGPL-3.0-or-later
+url: "https://www.becpg.net"
+repository-code: "https://github.com/becpg/becpg-supplier-portal"
+keywords:
+  - PLM
+  - supplier portal
+  - supplier collaboration
+  - product lifecycle management
+  - food industry
+  - cosmetics
+  - open source
+  - Next.js
+authors:
+  - name: "beCPG"
+    website: "https://www.becpg.net"

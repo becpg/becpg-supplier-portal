@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * `/monitor/campaigns` — **les campagnes de référencement et de renouvellement
- * en cours, et leur taux de réponse** (spec §4.6.1 « campagnes en cours et taux
- * de réponse », §4.2).
+ * `/monitor/campaigns` — the referencing and renewal campaigns in progress, and
+ * their response rate (spec §4.6.1 « campagnes en cours et taux de réponse »,
+ * §4.2).
  *
  * A campaign **is** a beCPG project (`pjt:project`). The portal adds no second
  * notion of campaign, no second notion of progress and no second reminder
@@ -163,13 +163,13 @@ export default function MonitorCampaignsPage() {
     const labels = LABELS[lang] || LABELS.fr;
 
     /*
-     * `?q=` amorce le filtre — la page devient adressable.
+     * `?q=` seeds the filter — the page becomes addressable.
      *
-     * Le filtre ne vivait qu'en état local, donc aucun écran ne pouvait pointer
-     * une campagne précise : la fiche fournisseur listait « Campagnes et projets
-     * en cours » sans qu'aucune ligne ne mène nulle part. Il n'existe pas de page
-     * par campagne, et en inventer une route serait pire ; amener l'utilisateur
-     * sur la liste **déjà filtrée** est ce que cette page sait faire.
+     * The filter only lived in local state, so no screen could point at a given
+     * campaign: the supplier record listed « Campagnes et projets en cours »
+     * without any row leading anywhere. There is no page per campaign, and
+     * inventing a route for one would be worse; landing the user on the list
+     * already filtered is what this page can do.
      */
     const searchParams = useSearchParams();
     const [state, setState] = useState('');

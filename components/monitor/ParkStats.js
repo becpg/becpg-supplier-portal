@@ -115,7 +115,7 @@ const LABELS = {
             },
             /*
              * A project, a tâche and an NC are not filed under a supplier, so no
-             * park filter can reach them — measured on dev.becpg.fr: with the park
+             * park filter can reach them — measured on the reference instance: with the park
              * scope applied these counters read 0 while 5 open NCs and 15 late
              * tasks existed. They are supplier-scoped, never park-scoped, and the
              * tile says so instead of letting the filter take credit for them.

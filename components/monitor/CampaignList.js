@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * **Les campagnes de référencement et de renouvellement en cours** (spec §4.6.1
+ * The referencing and renewal campaigns in progress (spec §4.6.1
  * "campagnes en cours et taux de réponse", §4.2 `/monitor/campaigns`).
  *
  * A campaign *is* a beCPG project (`pjt:project`): the portal adds no second
@@ -11,11 +11,11 @@
  *
  * | Column          | Question                          | Source                         |
  * |-----------------|-----------------------------------|--------------------------------|
- * | Taux de réponse  | *a-t-il répondu ?*               | `pjt:completionPercent`        |
- * | Ancienneté       | *depuis combien de temps ?*      | `pjt:projectStartDate`         |
- * | Dernière relance | *depuis quand est-ce silencieux ?* | `cm:modified` (voir plus bas)|
- * | Relances         | *combien de tâches en retard ?*  | overdue `pjt:taskList` rows    |
- * | Suivi            | *que faire maintenant ?*         | `suggestedAction` (§4.5 ladder)|
+ * | Taux de réponse  | *has the supplier answered?*     | `pjt:completionPercent`        |
+ * | Ancienneté       | *for how long?*                  | `pjt:projectStartDate`         |
+ * | Dernière relance | *how long has it been silent?*     | `cm:modified` (see below)    |
+ * | Relances         | *how many overdue tasks?*        | overdue `pjt:taskList` rows    |
+ * | Suivi            | *what to do now?*                | `suggestedAction` (§4.5 ladder)|
  *
  * **"Dernière relance" is not a beCPG property** — there is no reminder log on a
  * project. The column therefore shows the *last activity* on the campaign
@@ -227,15 +227,15 @@ export function CampaignList({
                 header: labels.columns.campaign,
                 meta: { primary: true, label: labels.columns.campaign, width: '18rem' },
                 /*
-                 * **La campagne s'ouvre.** Les lignes étaient inertes alors que la
-                 * charge utile publiait déjà `href` — une route qui ne répondait
-                 * pas. De là on atteint la fiche en cours de saisie et la
-                 * discussion, c'est-à-dire la réponse à « où en est ce
-                 * référencement ? », qui était jusqu'ici hors de cet écran.
+                 * The campaign opens. The rows were inert while the payload was
+                 * already publishing `href` — a route that answered nothing.
+                 * From there the record being filled in and the discussion are
+                 * reachable, that is the answer to "where does this referencing
+                 * stand?", which was until now outside this screen.
                  *
-                 * `stopPropagation` : la ligne porte aussi la case de sélection
-                 * des actions groupées, et ouvrir la campagne ne doit pas la
-                 * cocher au passage.
+                 * `stopPropagation`: the row also carries the selection box of
+                 * the bulk actions, and opening the campaign must not tick it on
+                 * the way.
                  */
                 cell: ({ row }) => (
                     <div className="min-w-0">

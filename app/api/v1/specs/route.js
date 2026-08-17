@@ -7,7 +7,7 @@
  * association: there is no query that goes from a specification back to the
  * products it applies to. The page therefore used to scan — one
  * `entities/{id}/specs` call per product, 60 products, on every visit. Measured
- * on dev.becpg.fr: 60 repository calls, ~750 ms. This route does the same work in
+ * on the reference instance: 60 repository calls, ~750 ms. This route does the same work in
  * **two** calls (see {@link listSupplierSpecifications}): one listing that carries
  * the association, then one read per *distinct* specification.
  *

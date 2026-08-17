@@ -20,7 +20,7 @@ legacy
 .gitignore
 .gitattributes
 
-# Documentation (spec.md alone is ~90 KB and is useless in the image)
+# Documentation (enterprise/spec_fr.md alone is ~90 KB and is useless in the image)
 *.md
 !README.md
 doc

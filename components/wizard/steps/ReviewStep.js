@@ -50,9 +50,9 @@ const LABELS = {
         blocking: 'Catalogue(s) bloquant(s) : {names}',
         blockingHint: 'Complétez les champs manquants ci-dessous pour pouvoir terminer.',
         ready: 'Tous les catalogues bloquants sont satisfaits',
-        // Un catalogue incomplet que personne n'a déclaré bloquant : à combler,
-        // mais il n'interdit pas de rendre. Le dire autrement que « bloquant »,
-        // sinon les deux mots finissent par vouloir dire la même chose.
+        // An incomplete catalogue nobody declared blocking: to be filled in, but
+        // it does not forbid submitting. Word it differently from « bloquant »,
+        // otherwise the two end up meaning the same thing.
         incomplete: 'Catalogue(s) à compléter : {names}',
         documents: 'Documents obligatoires',
         documentsMissing: '{count} document(s) obligatoire(s) manquant(s)',
@@ -183,9 +183,9 @@ export function ComplianceStep({
     const labels = LABELS[lang] || LABELS.fr;
 
     const blocking = useMemo(() => blockingCatalogs(catalogs, blockingIds), [catalogs, blockingIds]);
-    // Montré même quand rien ne bloque : c'est l'information que le fournisseur
-    // vient chercher ici. Ce qui change, c'est le mot et le ton — « à compléter »
-    // et non « bloquant » — parce que la conséquence n'est pas la même.
+    // Shown even when nothing blocks: this is the information the supplier comes
+    // here for. What changes is the wording and the tone — « à compléter » and
+    // not « bloquant » — because the consequence is not the same.
     const unsatisfied = useMemo(() => unsatisfiedCatalogs(catalogs), [catalogs]);
     const missingDocuments = documentSummary ? Number(documentSummary.blocking) || 0 : 0;
 

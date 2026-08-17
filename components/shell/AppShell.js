@@ -108,27 +108,27 @@ export function AppShell({
     const resolvedSpace = space || session.space || 'supplier';
 
     /*
-     * LES PASTILLES DU MENU SURVIVENT AU CHANGEMENT D'ÉCRAN.
+     * THE NAV COUNTERS SURVIVE A CHANGE OF SCREEN.
      *
-     * Chaque page ne passe que ce qu'elle sait compter — le tableau de bord les
-     * trois, `/tasks` les tâches seules, `/products` rien — et le menu affichait
-     * donc exactement ce que la page courante lui donnait : quitter le tableau
-     * de bord effaçait les compteurs de tâches et de discussions.
+     * Each page only passes what it knows how to count — the dashboard all
+     * three, `/tasks` the tasks alone, `/products` nothing — so the menu showed
+     * exactly what the current page handed it: leaving the dashboard wiped the
+     * task and discussion counters.
      *
-     * Ils sont désormais mémorisés pour l'onglet (voir `lib/badges.js`) et
-     * complétés ici. La page reste prioritaire sur ce qu'elle affirme : ses
-     * chiffres sont ceux de l'écran qu'on regarde, donc les plus frais.
-     * Faire recalculer les autres par chaque page coûterait, pour un « 3 », le
-     * balayage d'entités qu'exige le compteur de discussions.
+     * They are now memorised for the tab (see `lib/badges.js`) and completed
+     * here. The page still wins on what it asserts: its figures are those of the
+     * screen being looked at, hence the freshest. Making every page recompute
+     * the others would cost, for a single "3", the entity sweep the discussion
+     * counter requires.
      */
     const storedBadges = useSyncExternalStore(subscribeBadges, readBadges, serverBadges);
     const badgeKey = JSON.stringify(badges);
     const currentUser = session.user ? (session.user.username || session.user.sub || null) : null;
     useEffect(() => {
         publishBadges(JSON.parse(badgeKey), currentUser);
-        // `badges` est un littéral recréé à chaque rendu : c'est sa valeur, non
-        // son identité, qui doit déclencher la publication — d'où la clé
-        // sérialisée, qui sert à la fois de dépendance et de source.
+        // `badges` is a literal recreated on every render: it is its value, not
+        // its identity, that must trigger the publication — hence the serialised
+        // key, which serves both as the dependency and as the source.
     }, [badgeKey, currentUser]);
     const mergedBadges = { ...storedBadges, ...badges };
 

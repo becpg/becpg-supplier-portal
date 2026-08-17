@@ -156,6 +156,7 @@ export function DocumentsStep({
                 error={requirements.error}
                 onRetry={requirements.refresh}
                 onUploaded={handleUploaded}
+                readOnly={readOnly}
                 groupByEntity={false}
             />
 

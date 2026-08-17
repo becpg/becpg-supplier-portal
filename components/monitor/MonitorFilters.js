@@ -1,14 +1,14 @@
 'use client';
 
 /**
- * **Les filtres du parc** (spec §4.6.1: *"cartes d'en-tête, filtrables par
+ * The park filters (spec §4.6.1: *"cartes d'en-tête, filtrables par
  * famille de fournisseur, site, acheteur, marché"*).
  *
  * One filter bar for the whole monitoring space: the overview, the supplier
  * list, the documentary matrix and the campaigns all read the same eight
  * parameters, so they are declared **once** here and travelled in the URL.
- * That is what makes a link shareable — "voici mon parc bio en retard" is a URL,
- * not a screenshot.
+ * That is what makes a link shareable — "here are my late organic suppliers" is
+ * a URL, not a screenshot.
  *
  * ## What the API can and cannot filter, said out loud
  *
@@ -82,7 +82,7 @@ export const SUPPLIER_STATES = Object.freeze([
     { value: 'Stopped', fr: 'Arrêté', en: 'Stopped' },
 ]);
 
-/** `workspace://SpacesStore/<uuid>` — un identifiant de nœud, jamais un libellé. */
+/** `workspace://SpacesStore/<uuid>` — a node identifier, never a label. */
 const NODEREF_RE = /^workspace:\/\/SpacesStore\/[0-9a-f-]{36}$/i;
 
 const LABELS = {
@@ -271,7 +271,7 @@ export function mergeFilterOptions(previous, items) {
         }
     }
 
-    /** `workspace://SpacesStore/<uuid>` — un identifiant, jamais un libellé. */
+    /** `workspace://SpacesStore/<uuid>` — an identifier, never a label. */
     const put = (key, value, label) => {
         if (!value) {
             return;

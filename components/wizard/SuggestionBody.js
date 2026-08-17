@@ -1,57 +1,56 @@
 'use client';
 
 /**
- * **Le corps d'une suggestion, rendu selon ce que becpg-ai a réellement envoyé.**
+ * The body of a suggestion, rendered according to what becpg-ai actually sent.
  *
- * `Suggestion.description` n'est pas de la prose : chaque plugin y met la forme
- * qui lui convient, et le client officiel de becpg-ai
- * (`becpg-ai/src/main/frontend/components/Suggestions.js`) les distingue une à
- * une. Le portail les aplatissait toutes en une phrase — 4 ko d'analyse
- * réglementaire réduits à un paragraphe tronqué, un tableau de nutriments rendu
- * en `nom : valeur · nom : valeur` — ce qui donnait ces fiches illisibles.
+ * `Suggestion.description` is not prose: each plugin puts in it the shape that
+ * suits it, and becpg-ai's own client
+ * (`becpg-ai/src/main/frontend/components/Suggestions.js`) tells them apart one
+ * by one. The portal flattened them all into a sentence — 4 kB of regulatory
+ * analysis reduced to a truncated paragraph, a nutrient table rendered as
+ * `name : value · name : value` — which is what made those cards unreadable.
  *
- * | Type / famille | Contenu de `description` | Rendu |
+ * | Type / family | `description` content | Rendering |
  * |---|---|---|
- * | `DocumentReview`, `RegulatoryToxSummary` | HTML (gabarits FreeMarker de becpg-ai) | texte enrichi |
- * | famille `DocumentExtraction` | JSON `[{name, value, confidence}]` | tableau nom / valeur |
- * | `I18n` | `clé : valeur ; clé : valeur` | une ligne par langue |
- * | `SpellCheck` | JSON `[{value, state, order}]` | phrase, corrections mises en évidence |
- * | `CreationPlan` | — (les entités sont dans `plan`) | liste des créations |
- * | `Image` | — (base64 dans `suggestedChanges`) | vignette |
- * | tout le reste | texte, parfois du HTML | texte |
+ * | `DocumentReview`, `RegulatoryToxSummary` | HTML (becpg-ai FreeMarker templates) | rich text |
+ * | family `DocumentExtraction` | JSON `[{name, value, confidence}]` | name / value table |
+ * | `I18n` | `key : value ; key : value` | one row per language |
+ * | `SpellCheck` | JSON `[{value, state, order}]` | sentence, corrections highlighted |
+ * | `CreationPlan` | — (entities live in `plan`) | list of creations |
+ * | `Image` | — (base64 in `suggestedChanges`) | thumbnail |
+ * | everything else | text, sometimes HTML | text |
  *
- * **Le HTML n'est jamais injecté tel quel.** becpg-ai est un service interne,
- * mais il rend ce qu'un modèle a écrit à partir d'un document que le fournisseur
- * a lui-même déposé : c'est une entrée non maîtrisée jusqu'au bout de la chaîne.
- * `RichText` en extrait les paragraphes et les puces, sans `dangerouslySetInnerHTML`.
+ * The HTML is never injected as is. becpg-ai is an internal service, but it
+ * returns what a model wrote out of a document the supplier uploaded himself:
+ * it is untrusted input all the way down the chain.
+ * `RichText` extracts its paragraphs and bullets, without `dangerouslySetInnerHTML`.
  */
 
 import { RichText } from '@/components/ui/RichText';
 import { Icon } from '@/components/ui/Button';
 
-/** Types dont la description est du HTML produit par un gabarit de becpg-ai. */
+/** Types whose description is HTML produced by a becpg-ai template. */
 const HTML_TYPES = new Set(['DocumentReview', 'RegulatoryToxSummary']);
 
 /**
- * Types dont le corps mérite plus que la largeur du panneau : une analyse
- * rédigée, pas trois valeurs. Le panneau leur propose « Agrandir ».
+ * Types whose body deserves more than the panel width: a written analysis, not
+ * three values. The panel offers them « Agrandir ».
  */
 export const WIDE_TYPES = new Set(['DocumentReview', 'RegulatoryToxSummary', 'RecipeImprovement']);
 
 /**
- * Cette suggestion peut-elle être **appliquée** ?
+ * Can this suggestion be applied?
  *
- * Toutes ne le peuvent pas, et c'est normal : becpg-ai renvoie sous le même
- * enveloppe des propositions de valeurs — un nutriment lu dans une fiche — et
- * des **analyses** : l'examen d'un certificat, une synthèse réglementaire, une
- * suggestion d'amélioration de recette. Les secondes n'ont rien à écrire ; elles
- * se lisent.
+ * Not all of them can, and that is expected: becpg-ai returns under the same
+ * envelope value proposals — a nutrient read off a sheet — and analyses: the
+ * review of a certificate, a regulatory summary, a recipe improvement
+ * suggestion. The latter have nothing to write; they are meant to be read.
  *
- * `applySuggestion` côté beCPG prend un `RemoteEntity` à fusionner, ou un `plan`
- * d'entités à créer. Sans l'un ni l'autre, le bouton « Appliquer » postait
- * `{ suggestedChanges: null }` : rien ne se passait, et la carte passait quand
- * même à « appliqué ». Un bouton qui ne fait rien est pire qu'un bouton absent —
- * il fait croire que la valeur est posée.
+ * `applySuggestion` on the beCPG side takes a `RemoteEntity` to merge, or a
+ * `plan` of entities to create. With neither, the « Appliquer » button posted
+ * `{ suggestedChanges: null }`: nothing happened, and the card still switched
+ * to "applied". A button that does nothing is worse than a missing button —
+ * it makes the user believe the value is set.
  *
  * @param {Object} suggestion
  * @returns {boolean}
@@ -63,18 +62,18 @@ export function isApplicableSuggestion(suggestion) {
     if (Array.isArray(suggestion.plan) && suggestion.plan.length > 0) {
         return true;
     }
-    // `changes` est la mise à plat de `suggestedChanges` : non vide, il y a
-    // quelque chose à écrire ; vide, l'enveloppe l'était aussi.
+    // `changes` is the flattening of `suggestedChanges`: non-empty, there is
+    // something to write; empty, the envelope was empty too.
     return Array.isArray(suggestion.changes) && suggestion.changes.length > 0;
 }
 
 /**
- * Le corps rend-il déjà, à lui seul, ce que la suggestion propose ?
+ * Does the body already render, on its own, what the suggestion proposes?
  *
- * Quand c'est le cas, la carte n'affiche PAS en plus la liste brute des
- * changements : les deux disaient la même chose, l'une en clair — « Sel :
- * 0.008 g » — l'autre en qnames — « bcpg:nutList · nutListValue : 0.008 ».
- * Dans une colonne étroite, la répétition chassait le reste hors de l'écran.
+ * When it does, the card does NOT also display the raw list of changes: both
+ * said the same thing, one in plain words — « Sel : 0.008 g » — the other in
+ * qnames — « bcpg:nutList · nutListValue : 0.008 ».
+ * In a narrow column, the repetition pushed the rest off screen.
  *
  * @param {Object} suggestion
  * @returns {boolean}
@@ -112,7 +111,7 @@ export function hasTypedBody(suggestion) {
 }
 
 /**
- * Le corps est-il de ceux qu'on ne peut pas lire dans une colonne étroite ?
+ * Is this one of the bodies that cannot be read in a narrow column?
  *
  * @param {Object} suggestion
  * @returns {boolean}
@@ -125,11 +124,11 @@ export function isWideSuggestion(suggestion) {
         return true;
     }
     const raw = String(suggestion.rawDescription || '');
-    // Un HTML non déclaré : le même besoin de place, sans le type pour le dire.
+    // Undeclared HTML: the same need for room, without the type to say so.
     return raw.trim().startsWith('<') && raw.includes('>');
 }
 
-/** Une valeur lisible, quelle que soit la forme que le plugin lui a donnée. */
+/** A readable value, whatever shape the plugin gave it. */
 function plain(value) {
     if (value === null || value === undefined) {
         return '';
@@ -141,7 +140,7 @@ function plain(value) {
 }
 
 /**
- * Le tableau d'une extraction de document : ce que l'IA a lu, champ par champ.
+ * The table of a document extraction: what the AI read, field by field.
  *
  * @param {Object[]} rows
  */
@@ -164,7 +163,7 @@ function ExtractionRows({ rows }) {
 }
 
 /**
- * Une ligne par langue, pour une proposition de traduction.
+ * One row per language, for a translation proposal.
  *
  * @param {string} description
  */
@@ -200,7 +199,7 @@ function I18nRows({ description }) {
 }
 
 /**
- * La phrase corrigée, les mots repris mis en évidence.
+ * The corrected sentence, with the reworked words highlighted.
  *
  * @param {Object[]} words
  */
@@ -228,7 +227,7 @@ function SpellCheckText({ words }) {
 }
 
 /**
- * Les entités qu'un plan propose de créer, dans l'ordre.
+ * The entities a plan proposes to create, in order.
  *
  * @param {Object[]} plan
  */
@@ -255,18 +254,18 @@ function PlanRows({ plan }) {
 }
 
 /**
- * Le corps d'une suggestion.
+ * The body of a suggestion.
  *
  * @param {Object} props
- * @param {Object} props.suggestion la suggestion normalisée
- * @param {boolean} [props.compact] rendu dans le panneau étroit : on borne les listes
+ * @param {Object} props.suggestion the normalised suggestion
+ * @param {boolean} [props.compact] rendered in the narrow panel: lists are capped
  * @param {string} [props.className]
  */
 export function SuggestionBody({ suggestion, compact = false, className = '' }) {
     const raw = String(suggestion.rawDescription || '');
     const trimmed = raw.trim();
 
-    // Une image : becpg-ai la range en base64 dans les changements proposés.
+    // An image: becpg-ai stores it as base64 inside the proposed changes.
     if (suggestion.type === 'Image' && suggestion.suggestedChanges) {
         const content = suggestion.suggestedChanges?.attributes?.['cm:contains']?.[0]
             ?.attributes?.['cm:contains']?.[0]?.content;
@@ -290,7 +289,7 @@ export function SuggestionBody({ suggestion, compact = false, className = '' }) 
         return null;
     }
 
-    // Les charges utiles JSON, dans l'ordre où becpg-ai les distingue.
+    // The JSON payloads, in the order becpg-ai tells them apart.
     if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
         let parsed = null;
         try {
@@ -330,7 +329,7 @@ export function SuggestionBody({ suggestion, compact = false, className = '' }) 
         return <div className={className}><I18nRows description={raw} /></div>;
     }
 
-    // Du HTML — déclaré par le type, ou reconnu à sa forme.
+    // HTML — declared by the type, or recognised by its shape.
     if (HTML_TYPES.has(suggestion.type) || (trimmed.startsWith('<') && trimmed.includes('>'))) {
         return (
             <RichText

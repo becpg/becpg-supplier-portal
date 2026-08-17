@@ -1,0 +1,61 @@
+name: Bug report
+description: Something in the portal does not behave as documented
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report a security vulnerability here — see [SECURITY.md](../blob/main/SECURITY.md).
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you got instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Sign in as a supplier
+        2. Open the onboarding wizard
+        3. ...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Portal version
+      description: The `version` field returned by `GET /api/health`.
+    validations:
+      required: true
+
+  - type: input
+    id: becpg-version
+    attributes:
+      label: beCPG PLM version
+    validations:
+      required: false
+
+  - type: dropdown
+    id: auth-mode
+    attributes:
+      label: Authentication mode
+      options:
+        - Real OIDC (Keycloak / Identity Service)
+        - DEV_FAKE_AUTH
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Browser, screen width, server logs
+      description: |
+        Anything that narrows it down. Redact tickets, tokens and cookies before pasting logs.
+    validations:
+      required: false

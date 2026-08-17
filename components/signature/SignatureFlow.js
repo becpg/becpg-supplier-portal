@@ -112,12 +112,12 @@ const LABELS = {
         signedBody:
             'La signature a déjà été enregistrée pour cette tâche. Il n’y a rien à refaire — vous pouvez télécharger le document.',
         // Same card, without the promise of a download, when beCPG no longer serves
-        // the document (working copy remplacée à la signature, ou accès retiré).
+        // the document (working copy replaced on signature, or access revoked).
         signedBodyNoCopy:
             'La signature a déjà été enregistrée pour cette tâche. Il n’y a rien à refaire. Le document n’est plus accessible depuis le portail ; demandez-en une copie à votre client si nécessaire.',
         signedView: 'Consulter le document',
-        // Le document est signé mais la tâche reste ouverte : c'est le cas du
-        // valideur dans /monitor, qui doit clore l'étape comme dans Share.
+        // The document is signed but the task stays open: this is the case of the
+        // validator in /monitor, who must close the step as he would in Share.
         signedComplete: 'Terminer la tâche',
         signedCompleteDone: 'Tâche terminée.',
         signedCompleteError: 'La tâche n’a pas pu être terminée.',

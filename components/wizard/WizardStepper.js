@@ -43,8 +43,8 @@ const LABELS = {
         current: 'Étape en cours',
         todo: 'Pas encore vue',
         locked: 'Disponible plus tard',
-        // Ce que le rail ne savait pas dire : une étape ouverte, quittée, et
-        // incomplète. Elle s'affichait « Vue », coche verte comprise.
+        // What the rail could not express: a step opened, left, and incomplete.
+        // It showed as « Vue », green check included.
         incomplete: '{count} obligatoire(s) manquant(s)',
         progress: '{percent} % du parcours',
     },

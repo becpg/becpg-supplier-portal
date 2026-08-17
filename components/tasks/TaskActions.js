@@ -84,7 +84,7 @@ export function TaskActions({ task, onDone, backHref = '/tasks' }) {
     const router = useRouter();
     const [pending, setPending] = useState(null);
     const [confirming, setConfirming] = useState(null);
-    // Le motif du refus, obligatoire : voir la route, qui le refuse aussi vide.
+    // The refusal reason, mandatory: see the route, which also rejects it empty.
     const [reason, setReason] = useState('');
 
     if (!task || !task.isOpen) {

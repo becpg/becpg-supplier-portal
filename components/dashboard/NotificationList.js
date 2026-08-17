@@ -64,12 +64,11 @@ export const NOTIFICATION_LABELS = {
          * That is a configuration fact and it belongs on the screen, not only in
          * the payload.
          *
-         * `internalAccount` est le **même fait vu de l'autre côté**, et il ne se
-         * dit pas de la même façon : pour un compte interne, l'absence de
-         * périmètre fournisseur est normale, ce n'est pas une anomalie à
-         * signaler. Le texte `noSupplierIdentity` s'affichait aussi à un
-         * responsable référencement — à qui il conseillait de prévenir « son
-         * contact chez le client », c'est-à-dire lui-même.
+         * `internalAccount` is the same fact seen from the other side, and it is
+         * not said the same way: for an internal account, having no supplier
+         * scope is normal, not an anomaly to report. The `noSupplierIdentity`
+         * text was also shown to a referencing officer — advising them to warn
+         * « son contact chez le client », that is to say themselves.
          */
         scopeEmpty: {
             noSupplierIdentity: 'Votre compte n’est rattaché à aucun fournisseur : vos documents ne peuvent pas être identifiés. Seules vos tâches sont listées. Signalez-le à votre contact chez le client.',

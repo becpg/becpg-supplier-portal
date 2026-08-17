@@ -1,30 +1,29 @@
 'use client';
 
 /**
- * `/monitor/campaigns/[id]` — **une campagne de référencement, ouverte**
- * (spec §4.6.1).
+ * `/monitor/campaigns/[id]` — one referencing campaign, opened (spec §4.6.1).
  *
- * ## Pourquoi cet écran existe
+ * ## Why this screen exists
  *
- * `/monitor/campaigns` savait dire qu'une campagne était muette et ne savait pas
- * dire *ce que le fournisseur avait saisi* : ses lignes n'étaient cliquables
- * nulle part, alors même que la charge utile publiait déjà un `href` vers cette
- * route — qui ne répondait pas. Un responsable référencement devait passer par la
- * fiche fournisseur, et seulement quand la campagne nommait un fournisseur.
+ * `/monitor/campaigns` could tell that a campaign was silent but could not tell
+ * what the supplier had actually entered: its rows were clickable nowhere, even
+ * though the payload already published an `href` to this route — which answered
+ * nothing. A referencing manager had to go through the supplier record, and only
+ * when the campaign named a supplier.
  *
- * Trois blocs, et rien d'autre :
+ * Three blocks, and nothing else:
  *
- *  1. **la campagne** — les mêmes faits que la ligne de la liste, parce que c'est
- *     littéralement la même ligne (`toCampaignRow` côté serveur) ;
- *  2. **les tâches en cours** — qui doit quoi, pour quand, et depuis quand c'est
- *     en retard. C'est là que se lit « le fournisseur n'a pas répondu » ;
- *  3. **ce sur quoi porte la campagne** — produit ou fournisseur, chacun avec la
- *     route qui l'ouvre. C'est le lien qui manquait : de là, la fiche produit
- *     montre les données en cours de saisie, onglet par onglet, et la discussion
- *     porte le fil que le fournisseur lit dans son assistant.
+ *  1. the campaign — the same facts as the row of the list, because it is
+ *     literally the same row (`toCampaignRow`, server side);
+ *  2. the open tasks — who owes what, by when, and how long it has been late.
+ *     That is where "the supplier did not answer" is read;
+ *  3. what the campaign is about — a product or a supplier, each with the route
+ *     that opens it. That is the link that was missing: from there the product
+ *     record shows the data being entered, tab by tab, and the discussion
+ *     carries the thread the supplier reads in the assistant.
  *
- * Le fil de discussion du **projet** est affiché ici même : une relance se
- * discute sur la campagne, pas sur la fiche produit.
+ * The discussion thread of the project is shown right here: a reminder is
+ * discussed on the campaign, not on the product record.
  */
 
 import { useMemo } from 'react';
@@ -138,8 +137,8 @@ export default function CampaignPage() {
     const lateTasks = useMemo(() => tasks.filter((task) => task.late).length, [tasks]);
 
     if (call.error) {
-        // 403 et 404 partagent le même écran : le portail ne confirme jamais
-        // l'existence d'un nœud que les droits de l'appelant ne couvrent pas.
+        // 403 and 404 share the same screen: the portal never confirms the
+        // existence of a node the caller's permissions do not cover.
         const outOfScope = call.error.isNotFound || call.error.status === 403;
         return (
             <AppShell title={labels.notFound}>
@@ -264,9 +263,9 @@ export default function CampaignPage() {
                                             </span>
                                         ) : null}
                                     </span>
-                                    {/* Un renvoi que le compte ne peut pas lire garde
-                                        sa ligne et perd son lien : un bouton menant à
-                                        un 403 est pire qu'une mention. */}
+                                    {/* A reference the account cannot read keeps its
+                                        row and loses its link: a button leading to a
+                                        403 is worse than a plain mention. */}
                                     {entity.href && entity.readable ? (
                                         <Button
                                             variant="outline"
@@ -357,7 +356,7 @@ export default function CampaignPage() {
                 </Card>
             </div>
 
-            {/* Sous `lg` il n'y a pas de colonne latérale. */}
+            {/* Below `lg` there is no side column. */}
             <div className="mt-4 lg:hidden">
                 <CommentsPanel entityNodeRef={campaign.nodeRef} title={labels.discussion} />
             </div>

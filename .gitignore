@@ -41,3 +41,6 @@ playwright-report
 
 # vercel
 .vercel
+
+# open source mirror — enterprise/create-public-repo.sh clones into ./target
+target

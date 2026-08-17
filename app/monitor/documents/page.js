@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * `/monitor/documents` — **la conformité documentaire du parc** (spec §4.6.3).
+ * `/monitor/documents` — the documentary compliance of the park (spec §4.6.3).
  *
- * *"C'est la vue que les équipes qualité impriment avant un audit."* One row per
+ * "This is the view the quality teams print before an audit." One row per
  * supplier, one column per document type, and in each cell attendu / fourni /
  * valide jusqu'au / expiré / refusé. Everything on this page comes from
  * `GET /api/v1/monitor/documents`, which builds the whole matrix in ≈ 3 db-afts
@@ -73,8 +73,8 @@ const LABELS = {
             'Parc plus large que la fenêtre d’analyse ({scanned} fournisseurs sur {total}) : affinez les filtres pour une matrice complète.',
         scopeEmpty:
             'Aucun fournisseur ne correspond à ce périmètre. Aucune requête documentaire n’a été exécutée : les compteurs ci-dessus sont des zéros de construction, pas des mesures.',
-        /* Le dénominateur d’une tuile est la population sur laquelle elle a été
-           comptée — ici tout le parc lu, pas la page affichée. */
+        /* The denominator of a tile is the population it was counted over —
+           here the whole park that was read, not the displayed page. */
         cellsScope: 'cellules · sur les {total} fournisseurs du parc',
         statusScope:
             'Filtre d’affichage « {status} » : {kept} ligne(s) retenue(s) sur les {shown} affichées de cette page. Les compteurs ci-dessus portent sur les {total} fournisseurs du parc, pas sur cette page.',
@@ -246,7 +246,7 @@ export default function MonitorDocumentsPage() {
     /*
      * The status select — and the three status tiles that set it — filter the **page
      * in hand**, because that is all the client holds; `totals` above counts cells
-     * over the whole scanned park. Measured on dev.becpg.fr: the tile read
+     * over the whole scanned park. Measured on the reference instance: the tile read
      * « MANQUANTS 34 » while the 25 rows displayed under it carried 5 missing cells,
      * and clicking the tile narrowed those 25 rows. Two populations, one screen, and
      * nothing saying so. The figures stay as they are — both are right — and the

@@ -49,6 +49,7 @@ const LABELS = {
         whole: 'Toute la fiche',
         onField: 'Champ : {label}',
         onRow: 'Ligne : {label}',
+        row: 'une ligne',
         anchored: 'Sur {label}',
         clear: 'Retirer l’ancrage',
         readOnly: 'La discussion est en lecture seule.',
@@ -73,6 +74,7 @@ const LABELS = {
         whole: 'The whole sheet',
         onField: 'Field: {label}',
         onRow: 'Row: {label}',
+        row: 'a row',
         anchored: 'On {label}',
         clear: 'Remove the anchor',
         readOnly: 'The discussion is read-only.',
@@ -105,6 +107,8 @@ function fill(template, vars) {
  * @param {string|null} options.nodeRef the node the thread hangs on
  * @param {boolean} [options.enabled=true]
  * @param {number} [options.pageSize=100]
+ * @param {'entity'|null} [options.scope] `'entity'` reads the sheet **and** the forums of
+ *        its commented rows; every message then carries its `source`
  * @returns {{nodeRef: string|null, messages: Object[], total: number, counts: Object,
  *            countFor: Function, loading: boolean, error: Error|null, posting: boolean,
  *            canPost: boolean, denyReason: string|null,
@@ -114,11 +118,11 @@ function fill(template, vars) {
  * const discussion = useDiscussion({ nodeRef: entityNodeRef });
  * discussion.countFor('bcpg:legalName'); // 2
  */
-export function useDiscussion({ nodeRef, enabled = true, pageSize = 100 } = {}) {
+export function useDiscussion({ nodeRef, enabled = true, pageSize = 100, scope = null } = {}) {
     const [posting, setPosting] = useState(false);
 
     const thread = useApi(nodeRef && enabled ? 'messages' : null, {
-        params: { nodeRef, pageSize },
+        params: { nodeRef, pageSize, ...(scope ? { scope } : {}) },
     });
 
     const messages = useMemo(
@@ -216,10 +220,15 @@ function MessageItem({ message, index, lang, labels }) {
                     {formatDateTime(message.createdOn, lang)}
                 </span>
             </div>
-            {message.field ? (
+            {/* Where the message hangs: a field of the sheet, or the row whose own
+                forum it came from — without which the sheet-level view would pile
+                up remarks from a dozen lines with no way to tell them apart. */}
+            {message.field || message.source ? (
                 <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-[var(--becpg-grey)]/60 px-1.5 py-0.5 text-[11px] text-[var(--becpg-dark-grey)]">
                     <Icon name="my_location" size={12} />
-                    {fill(labels.anchored, { label: message.field })}
+                    {message.field
+                        ? fill(labels.anchored, { label: message.field })
+                        : fill(labels.onRow, { label: message.source.label || labels.row })}
                 </span>
             ) : null}
             {/*
@@ -275,12 +284,30 @@ export function CommentsPanel({
     const thread = onEntityThread ? (discussion || entityThread) : foreign;
 
     const field = (anchor && anchor.field) || null;
+
+    /*
+        "THE WHOLE SHEET" HAS TO MEAN THE WHOLE SHEET.
+
+        The option read the entity's forum, and only that one. A message written on
+        the "AG saturés" row lives on the row node, hence in another forum: the
+        panel showed "Aucun message" next to a remark the customer had just left.
+        `scope: 'entity'` asks the server for the sheet AND its commented rows, in
+        one go.
+    */
+    const sheetWide = onEntityThread && !field;
+    const wholeSheet = useDiscussion({
+        nodeRef: entityNodeRef,
+        scope: 'entity',
+        enabled: sheetWide,
+    });
+    const shown = sheetWide ? wholeSheet : thread;
+
     const messages = useMemo(() => {
         if (!field) {
-            return thread.messages;
+            return shown.messages;
         }
-        return thread.messages.filter((message) => message.field === field);
-    }, [thread.messages, field]);
+        return shown.messages.filter((message) => message.field === field);
+    }, [shown.messages, field]);
 
     const options = useMemo(() => {
         const list = [{ value: '', label: labels.whole }];
@@ -332,6 +359,9 @@ export function CommentsPanel({
             if (!onEntityThread) {
                 thread.refresh();
             }
+            if (shown !== thread) {
+                shown.refresh();
+            }
         }
         catch (error) {
             setSendError(error);
@@ -349,9 +379,9 @@ export function CommentsPanel({
                 />
             ) : null}
 
-            {thread.error ? (
-                <ErrorState error={thread.error} onRetry={thread.refresh} compact />
-            ) : thread.loading && messages.length === 0 ? (
+            {shown.error ? (
+                <ErrorState error={shown.error} onRetry={shown.refresh} compact />
+            ) : shown.loading && messages.length === 0 ? (
                 <SkeletonList rows={3} />
             ) : messages.length === 0 ? (
                 <EmptyState

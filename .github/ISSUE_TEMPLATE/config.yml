@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/becpg/becpg-supplier-portal/blob/main/SECURITY.md
+    about: Report it privately to security@becpg.fr, never as a public issue.
+  - name: beCPG PLM itself
+    url: https://github.com/becpg/becpg-community/issues
+    about: The portal only proxies the PLM. Issues about products, formulation or workflows belong there.
+  - name: Commercial support
+    url: https://www.becpg.net/contact-us/
+    about: Enterprise Edition, hosting, and integration questions.

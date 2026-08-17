@@ -15,8 +15,8 @@
  * `pageSize` is **not** the cost driver here, unlike `/api/v1/entities`. `listMyTasks`
  * reads both sources, scans up to `MAX_TASK_SCAN` (200) candidates, enriches every one
  * of them (`becpg/project/task`, one call each, six at a time) and only then slices the
- * requested page out of the result in memory. Measured on dev.becpg.fr,
- * `supplier-test@becpg.fr`, 15 open tasks, median of four runs:
+ * requested page out of the result in memory. Measured on the reference instance,
+ * the test supplier account, 15 open tasks, median of four runs:
  *
  * ```
  * pageSize=10 -> 994 ms      pageSize=25 -> 998 ms      pageSize=100 -> 1010 ms
@@ -103,7 +103,7 @@ export async function GET(request) {
         // Only for the entities `listMyTasks` could NOT name. It already runs
         // `resolveEntityIndex()` over every scanned task — db-afts first, an index-path
         // retry for what that missed — so asking again for the ones it resolved was a
-        // third query for a set already in hand. Measured on dev.becpg.fr, one call to
+        // third query for a set already in hand. Measured on the reference instance, one call to
         // this route logged three `entity/list` lookups of the SAME 15 uuids: 85 ms
         // (`=sys:node-uuid:`), 118 ms (`ID:` retry) and 88 ms here. The name is still
         // resolved for the rows the adapter left blank, so nothing degrades — what

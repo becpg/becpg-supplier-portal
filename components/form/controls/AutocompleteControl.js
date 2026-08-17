@@ -121,10 +121,10 @@ const LABELS = {
         remove: 'Retirer',
         browse: 'Afficher les valeurs',
         error: 'La recherche a échoué',
-        // Un champ dont la configuration ne nomme aucune source de données n'a
-        // pas « échoué » : il n'y a rien à interroger, et réessayer n'y changera
-        // rien. Le dire, plutôt que de laisser le fournisseur s'acharner sur un
-        // champ que son client n'a pas fini de paramétrer.
+        // A field whose configuration names no datasource has not « échoué »:
+        // there is nothing to query, and retrying will change nothing. Say so,
+        // rather than leaving the supplier struggling with a field his customer
+        // has not finished configuring.
         errorUnconfigured: 'Ce champ n’a pas de liste de valeurs configurée. Signalez-le à votre contact chez le client.',
         showing: 'Affichage des éléments 1 - {count} sur {total}',
         favourite: 'Favori',

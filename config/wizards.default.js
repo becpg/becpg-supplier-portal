@@ -1,19 +1,19 @@
 /**
- * BÉQUILLE DE DÉVELOPPEMENT — configuration standard des assistants fournisseur.
+ * DEVELOPMENT CRUTCH — standard configuration of the supplier wizards.
  *
- * Transcription du bloc <config condition="wizard"> de
+ * Transcription of the <config condition="wizard"> block of
  *   becpg/becpg-plm/becpg-plm-share/src/main/resources/alfresco/becpg-plm-share-config.xml
  *
- * ⚠ Ce n'est PAS la source de vérité. La configuration effective est résolue par SHARE
- * (cascade formId + entityType + siteId + list, surcharges client comprises) et doit être
- * consommée via le webscript Share décrit dans doc/becpg-api-contracts.md §8. On ne parse
- * aucun XML et on ne réimplémente pas la cascade.
+ * ⚠ This is NOT the source of truth. The effective configuration is resolved by SHARE
+ * (formId + entityType + siteId + list cascade, client overrides included) and must be
+ * consumed through the Share webscript described in doc/becpg-api-contracts.md §8. We parse
+ * no XML and we do not reimplement the cascade.
  *
- * Ce fichier n'existe que pour faire tourner le portail AVANT que ce webscript soit ajouté.
- * Il ignore les surcharges client (Bridor, Aryzta…). À supprimer dès que le webscript existe.
+ * This file only exists to run the portal BEFORE that webscript is added.
+ * It ignores client overrides (Bridor, Aryzta…). To be removed as soon as the webscript exists.
  *
- * Les libellés ne sont PAS traduits ici : `labelId` / `titleId` sont des clés résolues par
- * beCPG (spec — pas de couche i18n dans le portail pour les libellés métier).
+ * Labels are NOT translated here: `labelId` / `titleId` are keys resolved by
+ * beCPG (spec — no i18n layer in the portal for business labels).
  */
 
 const FORMULATE = 'becpg/remote/formulate?nodeRef={nodeRef}&format=json';
@@ -129,24 +129,24 @@ export const DEFAULT_WIZARDS = {
     },
 
     /*
-     * Cahier des charges — consultation, jamais saisie.
+     * Product specification — consultation only, never data entry.
      *
-     * beCPG ne définit **aucun** `<wizard id="supplier-productSpecification">` dans
-     * `becpg-plm-share-config.xml` : un `bcpg:productSpecification` est un
-     * `bcpg:entityV2` porteur de `bcpg:entityListsAspect`, donc ses listes sont
-     * une donnée, pas une structure fixe — les coder en dur ici reviendrait à
-     * inventer un modèle que le produit n'a pas.
+     * beCPG declares no `<wizard id="supplier-productSpecification">` at all in
+     * `becpg-plm-share-config.xml`: a `bcpg:productSpecification` is a
+     * `bcpg:entityV2` carrying `bcpg:entityListsAspect`, so its lists are
+     * data, not a fixed structure — hard-coding them here would amount to
+     * inventing a model the product does not have.
      *
-     * Ce défaut donne donc le seul contenu dont l'existence est certaine : les
-     * documents déposés sous `SupplierDocuments` du cahier des charges. Le jour où
-     * Share déclare un vrai assistant pour ce type, il gagne la priorité (voir
-     * `getWizard`) et ses listes apparaissent sans une ligne de code ici — c'est
-     * exactement la règle que le wizard applique déjà pour les produits.
+     * This default therefore gives the only content whose existence is certain: the
+     * documents deposited under `SupplierDocuments` of the product specification. The
+     * day Share declares a real wizard for this type, it wins priority (see
+     * `getWizard`) and its lists appear without a line of code here — that is
+     * exactly the rule the wizard already applies to products.
      *
-     * `enforceTask: true` : aucun fournisseur n'a de tâche assignée sur un cahier
-     * des charges, donc l'assistant se résout en lecture seule de lui-même. La
-     * consultation ne dépend pas d'un drapeau posé ici mais du contrôle de
-     * sécurité côté serveur, qui reste l'autorité (bug #25928).
+     * `enforceTask: true`: no supplier has a task assigned on a product
+     * specification, so the wizard resolves itself read-only. Consultation does
+     * not depend on a flag set here but on the server-side security check, which
+     * remains the authority (bug #25928).
      */
     'supplier-productSpecification': {
         id: 'supplier-productSpecification',
@@ -158,7 +158,7 @@ export const DEFAULT_WIZARDS = {
         ],
     },
 
-    /* Réclamation fournisseur */
+    /* Supplier claim */
     'supplier-nc': {
         id: 'supplier-nc',
         draft: true,
@@ -185,9 +185,9 @@ export const DEFAULT_WIZARDS = {
 };
 
 /**
- * L'identifiant de wizard est dérivé du type d'entité, comme dans l'URL de livrable
- * `/share/page/wizard?id=supplier-{pjt:projectEntity|@type}` : on prend le nom local du type.
- * Ex. "bcpg:rawMaterial" -> "supplier-rawMaterial".
+ * The wizard identifier is derived from the entity type, as in the deliverable URL
+ * `/share/page/wizard?id=supplier-{pjt:projectEntity|@type}`: we take the local name of the type.
+ * E.g. "bcpg:rawMaterial" -> "supplier-rawMaterial".
  */
 export function wizardIdForType(entityType) {
     if (!entityType) {
@@ -198,8 +198,8 @@ export function wizardIdForType(entityType) {
 }
 
 /**
- * Un listId peut porter un suffixe @N (ex. "surveyList@1") : plusieurs instances de la même
- * liste sur une entité — mécanisme des questionnaires multiples (spec §2ter.1).
+ * A listId can carry an @N suffix (e.g. "surveyList@1"): several instances of the same
+ * list on one entity — the mechanism behind multiple questionnaires (spec §2ter.1).
  */
 export function parseListId(listId) {
     if (!listId) {
