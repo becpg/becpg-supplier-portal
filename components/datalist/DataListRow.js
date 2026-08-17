@@ -880,6 +880,16 @@ export function DataListRow({
           ? 'draft'
           : undefined;
 
+    /*
+     * The colour the customer put on the line (`bcpg:color`), as Share paints it.
+     *
+     * Only while the row has nothing else to say: a row being written or a row
+     * whose save failed shows *that*, because it is about to be acted on, and an
+     * inline background would win over the state's own styling. Decoration gives
+     * way to state, never the reverse.
+     */
+    const paint = !summary && !rowState && row.color ? row.color : null;
+
     return (
         <>
             <tr
@@ -887,6 +897,7 @@ export function DataListRow({
                 onBlur={summary ? undefined : handleBlur}
                 onKeyDown={summary ? undefined : handleKeyDown}
                 aria-label={summary ? label('totalRow') : row.draft ? label('newRow') : label('row', { index })}
+                style={paint ? { backgroundColor: paint } : undefined}
                 // How a paste finds which line it was dropped on.
                 data-row-key={row.key}
                 data-total={summary ? 'true' : undefined}

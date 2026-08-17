@@ -118,6 +118,10 @@ export function DataListCardRow({
                 ref={containerRef}
                 onBlur={summary ? undefined : handleBlur}
                 aria-label={summary ? label('totalRow') : row.draft ? label('newRow') : label('row', { index })}
+                // `bcpg:color`, the same line and the same colour as on a wide
+                // screen — a list that carries meaning through colour must not
+                // lose it on a phone.
+                style={!summary && row.color ? { backgroundColor: row.color } : undefined}
                 // The editor focuses a new card through this, exactly as it does
                 // a new table row — one mechanism for both layouts.
                 data-row-key={row.key}

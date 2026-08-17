@@ -48,6 +48,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '@/components/ui/Button';
 import { Input, Select, Textarea } from '@/components/ui/Field';
 import { RichText } from '@/components/ui/RichText';
+import { rowColor } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import {
     COMMENT_INPUT_TYPES,
@@ -133,12 +134,14 @@ export function questionDomId(prefix, questionId) {
  * @param {Object} props
  */
 function MessageBlock({ question, domId }) {
+    const paint = rowColor(question.color);
     return (
         <div
             id={domId}
             data-question-id={question.id}
             data-question-kind="message"
-            className="flex min-w-0 items-start gap-2 rounded-xl border border-[var(--becpg-blue-lighter)] border-l-4 border-l-[var(--becpg-blue-light)] bg-[var(--becpg-grey)]/50 px-4 py-3"
+            style={paint ? { backgroundColor: paint } : undefined}
+            className={`flex min-w-0 items-start gap-2 rounded-xl border border-[var(--becpg-blue-lighter)] border-l-4 border-l-[var(--becpg-blue-light)] px-4 py-3${paint ? '' : ' bg-[var(--becpg-grey)]/50'}`}
         >
             <Icon name="campaign" size={18} className="mt-0.5 shrink-0 text-[var(--becpg-blue-light)]" />
             <RichText
@@ -480,6 +483,16 @@ function QuestionBlock({
     );
 
     const legendPrefix = questionLegendPrefix(question);
+    /*
+     * `bcpg:color` on the question row.
+     *
+     * A questionnaire is a datalist, and a customer colours its lines to mark a
+     * section the way he does anywhere else in beCPG. The card carries it, except
+     * when the question is flagged unanswered: that red border is about to be
+     * acted on, and a background of the author's choosing must not compete with
+     * it.
+     */
+    const paint = !invalid ? rowColor(question.color) : null;
 
     return (
         <fieldset
@@ -489,8 +502,10 @@ function QuestionBlock({
             data-question-kind="question"
             data-mandatory={question.mandatory ? 'true' : 'false'}
             data-answered={answered ? 'true' : 'false'}
+            style={paint ? { backgroundColor: paint } : undefined}
             className={[
-                'min-w-0 scroll-mt-24 rounded-xl border bg-white p-4 shadow-[var(--becpg-shadow-raised)] focus:outline-none',
+                'min-w-0 scroll-mt-24 rounded-xl border p-4 shadow-[var(--becpg-shadow-raised)] focus:outline-none',
+                paint ? '' : 'bg-white',
                 invalid
                     ? 'border-[var(--status-danger)]'
                     : 'border-[var(--becpg-blue-lighter)]',
