@@ -6,7 +6,7 @@
  *
  * ## What it is
  *
- * Reference material about *this* portal, mobile first: nine topics, all
+ * Reference material about *this* portal, mobile first: twelve topics, all
  * collapsed by default so the whole map fits on a phone screen, each one
  * addressable by URL (`/help#wizard`, `/help?topic=documents`) so any screen can
  * link to the paragraph that explains it. That is the "contextual" part — the
@@ -29,12 +29,17 @@
  * The wording is deliberately conservative: the 7-day threshold that turns an
  * overdue task red is `NOTIFICATION_CONFIG.taskDangerAfterDays`, the 60-day
  * notice is `DEFAULT_DOCUMENT_CONFIG.noticeDays`, the approval rules are
- * `DEFAULT_APPROVAL_CONFIG.rules`, the confidence buckets are rendered by the
- * wizard's own vocabulary, and the signature paragraph describes what
- * `SignatureFlow` actually does (read tracking, consent, server-side signing).
- * Graduated reminders and internal escalation (spec §4.5, gap 2) are **not**
- * described: they are not built yet, and help that promises a feature is worse
- * than no help.
+ * `DEFAULT_APPROVAL_CONFIG.rules`, the keyboard list is the one `useDataList`
+ * shows, and the signature paragraph describes what `SignatureFlow` actually
+ * does (read tracking, consent, server-side signing). Graduated reminders and
+ * internal escalation (spec §4.5, gap 2) are **not** described: they are not
+ * built yet, and help that promises a feature is worse than no help.
+ *
+ * **This page ages faster than any other**, because it describes behaviour rather
+ * than data: the technical sheet moved to the header, the suggestions and the
+ * documents stopped being fixed steps, the confidence badges and "Ignorer" were
+ * removed, the validity dates became editable. Each of those made a paragraph
+ * here false. When a screen changes, this file is part of the change.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -153,31 +158,61 @@ const TOPICS = {
             id: 'wizard',
             icon: 'auto_stories',
             title: 'L’ordre des étapes de l’assistant',
-            summary: 'Contexte, documents, suggestions, sections, conformité. Une fois visitée, chaque étape reste accessible.',
+            summary: 'Fiche technique en en-tête, panneau Contexte permanent, les sections de votre client, puis la conformité.',
             blocks: [
                 {
                     p: 'L’assistant suit toujours le même ordre. Ce n’est pas un tunnel : dès qu’une étape a été visitée, vous pouvez y revenir librement.',
                 },
                 {
                     ol: [
-                        '**Étape 0 · Contexte** — un panneau toujours visible, qui devient une feuille dépliable sur téléphone. Il contient le cahier des charges applicable, les remarques de votre client, les listes qu’il a déjà validées et les refus précédents. Vous n’avez pas à le traverser : il est là en permanence.',
-                        '**Documents** — les types de documents attendus sont affichés explicitement, avec la validité demandée pour chacun. Vous déposez les fichiers ici, par glisser-déposer ou depuis l’appareil photo du téléphone. Cette étape vient en premier : les documents alimentent la suite.',
-                        '**Suggestions** — si l’extraction automatique est activée chez votre client, les valeurs lues dans les documents que vous venez de déposer sont proposées ici, chacune avec un badge de confiance (voir la rubrique suivante). Si l’extraction n’est pas activée, l’étape ne s’affiche pas.',
-                        '**Sections** — propriétés, questionnaire, ingrédients, nutriments, allergènes, physico-chimie, allégations, microbiologie, organoleptique, matériaux d’emballage… Les sections affichées et leur ordre dépendent du type de produit et de la configuration de votre client : ce n’est pas le portail qui les choisit.',
+                        '**En-tête · Fiche technique** — c’est le premier geste attendu. Tant qu’elle manque, un bandeau rouge le dit au-dessus de toutes les étapes ; une fois déposée, il ne reste qu’une ligne avec sa date et sa validité. C’est le document dont l’IA tire ses propositions : sans lui, elle n’a rien à lire. Si votre client n’a pas configuré ce type de document, le bandeau ne s’affiche pas du tout.',
+                        '**Étape 0 · Contexte** — un panneau toujours visible, qui devient une feuille dépliable sur téléphone. Il contient les propositions de l’IA, le cahier des charges applicable, les listes que votre client a déjà validées et les refus précédents. Vous n’avez pas à le traverser : il est là en permanence, quelle que soit l’étape.',
+                        '**Les sections de votre client** — propriétés, questionnaire, ingrédients, nutriments, allergènes, physico-chimie, allégations, microbiologie, organoleptique, matériaux d’emballage, documents… Les sections affichées et leur ordre viennent de la configuration de votre client et du type de produit : ce n’est pas le portail qui les choisit.',
+                        '**Documents** — l’étape reste à la place que votre client lui a donnée, en général vers la fin. C’est volontaire : beCPG déduit les documents attendus de ce que vous avez saisi (une allégation « sans OGM » appelle son attestation), donc demandée trop tôt, la liste serait vide ou fausse. Seule la fiche technique est attendue dans tous les cas, et elle est en en-tête.',
                         '**Conformité** — la liste des champs encore manquants, cliquables pour y aller directement, et le score de complétion. Si votre client a défini un contrôle bloquant, la finalisation reste indisponible jusqu’à ce qu’il soit satisfait.',
                     ],
                 },
                 {
-                    note: 'Chaque section est enregistrée automatiquement, sans bouton à cliquer. L’indicateur « Enregistré à HH:MM » en haut de l’assistant vous le confirme, et vous reprenez exactement là où vous en étiez si vous fermez le portail, changez d’appareil ou perdez le réseau.',
+                    note: 'Chaque section est enregistrée automatiquement, sans bouton à cliquer. L’indicateur « Enregistré à HH:MM », en bas de l’assistant à côté des boutons de navigation, vous le confirme — et vous reprenez exactement là où vous en étiez si vous fermez le portail, changez d’appareil ou perdez le réseau.',
                 },
                 {
                     p: 'Entre certaines étapes, votre fiche est recalculée (allergènes, nutriments, coûts…). Ce calcul est lancé en arrière-plan et ne vous bloque jamais : vous pouvez continuer à saisir pendant qu’il tourne.',
                 },
                 {
-                    p: 'Les remarques de votre client sont ancrées au champ ou à la ligne concernée, pas seulement à la tâche : cherchez la bulle de commentaire à côté du champ qu’il vous demande de corriger.',
+                    p: 'Sur grand écran, « Élargir la saisie » masque les panneaux latéraux et réduit la liste des étapes à ses icônes, pour les tableaux larges. Le choix est retenu d’une fiche à l’autre ; les panneaux restent à un clic, par les icônes de l’en-tête.',
                 },
                 {
                     note: 'Si votre interlocuteur saisit à votre place, un bandeau « vous saisissez au nom de … » l’indique explicitement en haut de l’assistant.',
+                },
+            ],
+        },
+        {
+            id: 'grids',
+            icon: 'grid_on',
+            title: 'Saisir vite dans un tableau',
+            summary: 'Ingrédients, nutriments, allergènes : tout se fait au clavier, et un bloc de tableur se colle directement.',
+            blocks: [
+                {
+                    p: 'Les sections en tableau — ingrédients, nutriments, allergènes, physico-chimiques… — se saisissent sans quitter le clavier. Le bouton clavier, au-dessus du tableau, rappelle la liste à tout moment.',
+                },
+                {
+                    ul: [
+                        '**Tab / Maj+Tab** — cellule suivante / précédente.',
+                        '**Entrée** — enregistre la ligne et descend dans la même colonne ; sur la dernière ligne, en ajoute une.',
+                        '**↑ / ↓** — même colonne, ligne du dessus / dessous.',
+                        '**Échap** — annule les modifications de la ligne en cours de saisie.',
+                        '**Ctrl+D** — duplique la ligne courante.',
+                        '**Ctrl+V** — colle un bloc de cellules depuis un tableur.',
+                    ],
+                },
+                {
+                    p: 'Le collage depuis un tableur reprend plusieurs lignes et plusieurs colonnes d’un coup, crée les lignes manquantes et vous dit ce qu’il n’a pas pu reprendre — une valeur hors de la liste proposée, un nombre attendu là où il y a du texte, une colonne non modifiable. Rien n’est deviné : ce qui n’a pas de correspondance exacte vous est rendu à corriger.',
+                },
+                {
+                    note: 'Comme partout dans l’assistant, une ligne est enregistrée dès que vous la quittez. Le bouton d’enregistrement de la ligne et « Tout enregistrer » ne servent qu’à forcer l’envoi : ils ne conditionnent rien.',
+                },
+                {
+                    p: 'Sur téléphone, le tableau devient une carte par ligne : les mêmes champs, empilés, sans défilement horizontal.',
                 },
             ],
         },
@@ -251,17 +286,19 @@ const TOPICS = {
             summary: 'Des propositions, jamais des valeurs posées à votre place.',
             blocks: [
                 {
-                    p: 'Quand l’extraction automatique est activée chez votre client, le portail lit vos documents et vous propose les valeurs qu’il y a trouvées. Elles s’affichent dans le panneau « Contexte », à droite de la saisie, et sont relues à chaque changement d’étape.',
+                    p: 'Quand l’extraction automatique est activée chez votre client, le portail lit vos documents et vous propose les valeurs qu’il y a trouvées. Elles s’affichent dans le panneau « Contexte », à droite de la saisie, et sont relues à chaque changement d’étape — ce que vous venez de saisir change ce qu’il reste à proposer.',
+                },
+                {
+                    p: 'Tout part de la **fiche technique**, en en-tête de l’assistant. Tant qu’elle n’est pas déposée, il n’y a rien à lire et la liste des propositions reste vide : c’est le sens du bandeau rouge.',
                 },
                 {
                     ul: [
                         '**Appliquer** — la valeur est écrite dans la fiche. Rien ne l’est avant ce clic.',
-                        '**Ignorer** — la proposition disparaît de la liste et ne revient pas.',
                         '**Agrandir** — pour les analyses longues, qui ne tiennent pas dans le panneau.',
                     ],
                 },
                 {
-                    note: 'Aucune valeur n’est appliquée automatiquement, quel que soit le degré de certitude de la lecture. C’est vous qui engagez votre fiche : la décision vous revient, champ par champ.',
+                    note: 'Une proposition dont vous ne voulez pas ne se refuse pas : ne l’appliquez pas, c’est déjà l’action par défaut. Aucune valeur n’est appliquée automatiquement, quel que soit le degré de certitude de la lecture. C’est vous qui engagez votre fiche : la décision vous revient, champ par champ.',
                 },
                 {
                     p: 'Dans tous les cas, la valeur finale est la vôtre : vous restez responsable de ce que vous validez, et rien n’est envoyé à votre client avant que vous ne terminiez la tâche.',
@@ -287,7 +324,13 @@ const TOPICS = {
                     ],
                 },
                 {
-                    p: 'Chaque document porte une période de validité (début et fin). Selon le type, cette période est saisie par vous à partir des dates du document, ou déduite automatiquement de la date de dépôt et de la durée configurée par votre client.',
+                    p: 'Chaque document porte une période de validité (début et fin), affichée sur sa ligne et colorée comme dans beCPG : **vert** tant qu’il est dans sa fenêtre, **orange** à l’approche de l’échéance, **rouge** quand elle est passée.',
+                },
+                {
+                    p: 'Selon le type, cette période est déduite automatiquement de la date de dépôt et de la durée configurée par votre client, ou **c’est à vous de la saisir** : deux champs de date apparaissent alors dans la zone de dépôt, à remplir d’après le document que vous déposez. Elles partent avec le fichier, et restent modifiables ensuite par « Modifier » sur la ligne.',
+                },
+                {
+                    warn: 'Un document obligatoire dont la validité n’a pas été renseignée est signalé en rouge, « Validité à renseigner ». Sans date de fin, il n’expirera jamais, aucun rappel ne partira, et votre client ne saura pas depuis quand il vaut.',
                 },
                 {
                     p: 'Renouveler, c’est déposer une nouvelle version sur la même ligne — jamais créer une seconde ligne. La version précédente reste dans l’historique du document, avec sa période de validité : c’est ce qui permet de prouver que vous étiez couvert à une date passée.',
@@ -351,6 +394,34 @@ const TOPICS = {
                 {
                     warn: 'Une signature ne se refuse pas et ne s’annule pas depuis le portail. Si le document est erroné, ne signez pas : ouvrez la discussion et signalez-le à votre client.',
                 },
+            ],
+        },
+        {
+            id: 'discussion',
+            icon: 'forum',
+            title: 'Où arrivent les remarques de votre client',
+            summary: 'Une seule conversation par fiche, mais chaque message est accroché à ce dont il parle.',
+            blocks: [
+                {
+                    p: 'La discussion d’une fiche est la même des deux côtés : ce que votre client écrit depuis beCPG vous arrive ici, et vos réponses lui arrivent là-bas. Il n’y a pas de messagerie séparée à surveiller.',
+                },
+                {
+                    p: 'Un message peut être accroché à trois endroits, et le sélecteur en haut du panneau vous laisse choisir lequel vous lisez ou visez :',
+                },
+                {
+                    ul: [
+                        '**Toute la fiche** — la conversation complète, y compris les remarques posées sur un champ ou sur une ligne de tableau. C’est la vue par défaut.',
+                        '**Un champ** — « la dénomination légale est incomplète ». Une bulle apparaît alors à côté du champ concerné dans l’assistant.',
+                        '**Une ligne de tableau** — « l’AG saturé est faux ». La remarque suit la ligne, pas le numéro de ligne.',
+                    ],
+                },
+                {
+                    note: 'Écrire depuis un champ ou une ligne plutôt que depuis « Toute la fiche » fait gagner du temps à tout le monde : votre interlocuteur voit immédiatement de quoi vous parlez, sans avoir à chercher parmi deux cents champs.',
+                },
+                {
+                    p: 'La discussion est en lecture seule quand le référencement est clos : vous relisez l’échange, sans pouvoir y ajouter. L’écran vous dit laquelle de ces raisons s’applique.',
+                },
+                { links: [{ href: '/messages', icon: 'forum', label: 'Discussions' }] },
             ],
         },
         {
@@ -450,31 +521,61 @@ const TOPICS = {
             id: 'wizard',
             icon: 'auto_stories',
             title: 'The order of the assistant steps',
-            summary: 'Context, documents, suggestions, sections, conformity. Once visited, a step stays reachable.',
+            summary: 'Technical sheet in the header, a permanent Context panel, your customer’s sections, then compliance.',
             blocks: [
                 {
                     p: 'The assistant always follows the same order. It is not a tunnel: as soon as a step has been visited you can go back to it freely.',
                 },
                 {
                     ol: [
-                        '**Step 0 · Context** — a panel that is always visible, and becomes a sheet one tap away on a phone. It holds the applicable specification, your customer’s remarks, the lists already validated and previous rejections. You never walk through it: it is simply always there.',
-                        '**Documents** — the expected document types are listed explicitly, each with the validity that is asked for. You drop the files here, by drag and drop or straight from the phone camera. This step comes first: the documents feed everything after it.',
-                        '**Suggestions** — if automatic extraction is enabled at your customer, the values read from the documents you just uploaded are proposed here, each with a confidence badge (see the next topic). If extraction is not enabled, the step is not shown.',
-                        '**Sections** — properties, questionnaire, ingredients, nutrients, allergens, physico-chemistry, claims, microbiology, organoleptics, packaging materials… Which sections appear, and in which order, depends on the product type and on your customer’s configuration: the portal does not choose them.',
-                        '**Conformity** — the list of fields still missing, each clickable to go straight there, plus the completion score. If your customer defined a blocking check, completion stays unavailable until it is satisfied.',
+                        '**Header · Technical sheet** — the first move expected of you. While it is missing a red band says so above every step; once uploaded, one line is left with its date and its validity. It is the document the AI reads to propose values: without it there is nothing to read. If your customer configured no such document type, the band is not shown at all.',
+                        '**Step 0 · Context** — a panel that is always visible, and becomes a sheet one tap away on a phone. It holds the AI proposals, the applicable specification, the lists your customer already validated and previous rejections. You never walk through it: it is there whichever step you are on.',
+                        '**Your customer’s sections** — properties, questionnaire, ingredients, nutrients, allergens, physico-chemistry, claims, microbiology, organoleptics, packaging materials, documents… Which sections appear, and in which order, comes from your customer’s configuration and the product type: the portal does not choose them.',
+                        '**Documents** — the step keeps the place your customer gave it, usually near the end. That is deliberate: beCPG derives the expected documents from what you entered (a "GMO free" claim calls for its attestation), so asked too early the list would be empty or wrong. Only the technical sheet is expected in every case, and it sits in the header.',
+                        '**Compliance** — the list of fields still missing, each clickable to go straight there, plus the completion score. If your customer defined a blocking check, completion stays unavailable until it is satisfied.',
                     ],
                 },
                 {
-                    note: 'Every section is saved automatically, with no button to press. The "Saved at HH:MM" indicator at the top of the assistant confirms it, and you resume exactly where you were if you close the portal, switch device or lose the network.',
+                    note: 'Every section is saved automatically, with no button to press. The "Saved at HH:MM" indicator, at the bottom of the assistant next to the navigation buttons, confirms it — and you resume exactly where you were if you close the portal, switch device or lose the network.',
                 },
                 {
                     p: 'Between some steps your sheet is recalculated (allergens, nutrients, costs…). That calculation runs in the background and never blocks you: you can keep typing while it works.',
                 },
                 {
-                    p: 'Your customer’s remarks are anchored to the field or the row they are about, not only to the task: look for the comment bubble next to the field you are asked to fix.',
+                    p: 'On a wide screen, "Widen the entry area" hides the side panels and reduces the step list to its icons, for wide tables. The choice is remembered from one sheet to the next; the panels stay one click away, through the header icons.',
                 },
                 {
                     note: 'If your contact enters data on your behalf, a banner saying "you are entering data for …" states it explicitly at the top of the assistant.',
+                },
+            ],
+        },
+        {
+            id: 'grids',
+            icon: 'grid_on',
+            title: 'Typing fast in a table',
+            summary: 'Ingredients, nutrients, allergens: everything is done from the keyboard, and a spreadsheet block pastes straight in.',
+            blocks: [
+                {
+                    p: 'The table sections — ingredients, nutrients, allergens, physico-chemical… — are filled without leaving the keyboard. The keyboard button above the table brings the list back at any time.',
+                },
+                {
+                    ul: [
+                        '**Tab / Shift+Tab** — next / previous cell.',
+                        '**Enter** — saves the row and moves down the same column; on the last row, adds one.',
+                        '**↑ / ↓** — same column, row above / below.',
+                        '**Esc** — discards the changes of the row being edited.',
+                        '**Ctrl+D** — duplicates the current row.',
+                        '**Ctrl+V** — pastes a block of cells from a spreadsheet.',
+                    ],
+                },
+                {
+                    p: 'Pasting from a spreadsheet takes several rows and columns at once, creates the missing rows, and tells you what it could not take — a value outside the proposed list, a number expected where there is text, a read-only column. Nothing is guessed: whatever has no exact match is handed back to you to fix.',
+                },
+                {
+                    note: 'As everywhere in the assistant, a row is saved as soon as you leave it. The row’s save button and "Save all" only force the write: nothing depends on them.',
+                },
+                {
+                    p: 'On a phone the table becomes one card per row: the same fields, stacked, with no horizontal scrolling.',
                 },
             ],
         },
@@ -542,17 +643,19 @@ const TOPICS = {
             summary: 'Proposals — never values written in your place.',
             blocks: [
                 {
-                    p: 'When automatic extraction is enabled at your customer, the portal reads your documents and proposes the values it found. They appear in the "Context" panel, to the right of the form, and are re-read on every step change.',
+                    p: 'When automatic extraction is enabled at your customer, the portal reads your documents and proposes the values it found. They appear in the "Context" panel, to the right of the form, and are re-read on every step change — what you have just entered changes what is left to propose.',
+                },
+                {
+                    p: 'It all starts with the **technical sheet**, in the assistant’s header. While it is not uploaded there is nothing to read and the list of proposals stays empty: that is what the red band means.',
                 },
                 {
                     ul: [
                         '**Apply** — the value is written to the sheet. Nothing is written before that click.',
-                        '**Dismiss** — the proposal leaves the list and does not come back.',
                         '**Expand** — for long analyses that do not fit in the panel.',
                     ],
                 },
                 {
-                    note: 'No value is ever applied automatically, however certain the reading claims to be. You are the one committing the sheet: the decision is yours, field by field.',
+                    note: 'A proposal you do not want needs no refusing: do not apply it, which is already the default. No value is ever applied automatically, however certain the reading claims to be. You are the one committing the sheet: the decision is yours, field by field.',
                 },
                 {
                     p: 'In every case the final value is yours: you remain responsible for what you validate, and nothing reaches your customer before you complete the task.',
@@ -578,7 +681,13 @@ const TOPICS = {
                     ],
                 },
                 {
-                    p: 'Every document carries a validity period (start and end). Depending on the type, you enter it from the dates on the document, or it is derived automatically from the upload date and the duration your customer configured.',
+                    p: 'Every document carries a validity period (start and end), shown on its line and coloured the way beCPG colours it: **green** while it is inside its window, **orange** as the deadline approaches, **red** once it is past.',
+                },
+                {
+                    p: 'Depending on the type, that period is derived automatically from the upload date and the duration your customer configured, or **it is yours to enter**: two date boxes then appear in the upload area, to be filled from the document you are uploading. They travel with the file, and stay editable afterwards through "Edit" on the line.',
+                },
+                {
+                    warn: 'A mandatory document whose validity was never filled in is flagged in red, "Validity to be filled in". With no end date it will never expire, no reminder will be sent, and your customer will not know since when it holds.',
                 },
                 {
                     p: 'Renewing means uploading a new version on the same line — never creating a second line. The previous version stays in the document history with its own validity period: that is what proves you were covered at a past date.',
@@ -642,6 +751,34 @@ const TOPICS = {
                 {
                     warn: 'A signature cannot be refused or undone from the portal. If the document is wrong, do not sign: open the discussion and tell your customer.',
                 },
+            ],
+        },
+        {
+            id: 'discussion',
+            icon: 'forum',
+            title: 'Where your customer’s remarks land',
+            summary: 'One conversation per sheet, but every message is anchored to what it is about.',
+            blocks: [
+                {
+                    p: 'A sheet’s discussion is the same on both sides: what your customer writes from beCPG reaches you here, and your answers reach them there. There is no separate mailbox to watch.',
+                },
+                {
+                    p: 'A message can be anchored in three places, and the selector at the top of the panel lets you choose which one you read or aim at:',
+                },
+                {
+                    ul: [
+                        '**The whole sheet** — the complete conversation, remarks left on a field or on a table row included. This is the default view.',
+                        '**A field** — "the legal name is incomplete". A bubble then appears next to that field in the assistant.',
+                        '**A table row** — "the saturated fat is wrong". The remark follows the row, not the row number.',
+                    ],
+                },
+                {
+                    note: 'Writing from a field or a row rather than from "The whole sheet" saves everyone time: your contact sees straight away what you are talking about, without hunting through two hundred fields.',
+                },
+                {
+                    p: 'The discussion is read-only once the referencing is closed: you can read the exchange back, not add to it. The screen tells you which of those reasons applies.',
+                },
+                { links: [{ href: '/messages', icon: 'forum', label: 'Discussions' }] },
             ],
         },
         {
