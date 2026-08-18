@@ -179,3 +179,26 @@
 * Fix #35846 - [Bug] Read the requirement list under the key the endpoint actually returns
 * Fix #35846 - [Bug] Show the supplier the catalogues that are his, not only score them
 * [skip ci][Release]: Bump _VERSION to 0.0.14
+## [ 0.0.15 ] - 2026-08-18 17:32:02
+
+* Fix #35846 - [Bug] Keep the brand ink on a coloured row while it passes AA and fall back to black or white below it
+* Fix #35846 - [Bug] Write a coloured row with an ink chosen against its background, a customer colour being validated for nothing else
+* [Cleanup] Translate the remaining French comments in the read-only multilingual control, the campaign dialog and the monitor adapter
+* Fix #35846 - [Cleanup] Drop the model qnames from the monitoring wording, which name nothing to the user reading them
+* InProgress #35846 - [Bug] Start a supplier project through the process everywhere, the send-to-supplier webscript being gone from beCPG
+* InProgress #35846 - [Bug] Wait as long as beCPG asks when its remote API throttles the portal
+* InProgress #35846 - [Feature] Start a referencing campaign from the monitoring space, on a supplier, its whole park or one product
+* InProgress #35846 - [Feature] Show every translation on the read-only sheet, and let a reviewer expand and tick section by section
+* InProgress #35846 - [Feature] Score the park on the portal catalogues, serve monitoring figures while they refresh, and keep the matrix to the types the portal expects
+* InProgress #35846 - [Feature] Put the fields a catalogue is missing before the catalogue's own name
+* [Cleanup] Say what a monitoring screen means instead of quoting the specification
+* InProgress #35846 - [Bug] Stop the notification bell from scanning every task for a result it throws away
+* InProgress #35846 - [Bug] Do not mark a step checked when the supplier only walked past it
+* InProgress #35846 - [Bug] Stop the allergen source picker from searching the whole repository, and cap the wait
+* InProgress #35846 - [Feature] Restore the colour a customer paints a list row with, in the grids and in the questionnaire
+* [Cleanup] Bring the help back in line with the assistant, the documents and the discussion as they now work
+* InProgress #35846 - [Feature] Ask Share for the field control, so a datagrid picker knows its datasource
+* InProgress #35846 - [Feature] Keep the marks a customer writes his questions with, without ever rendering HTML
+* [Setup] Prepare the open source publication - English sources, generic comments and public repository files
+* Fix #33085 - [Feature] Read the supplier input languages from the catalogue and mark the required ones
+* [skip ci][Release]: Bump _VERSION to 0.0.15
