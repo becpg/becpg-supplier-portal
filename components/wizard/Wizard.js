@@ -55,9 +55,17 @@
  * (`POST /api/v1/wizard/{entityId}/step/{stepId}` with `action: "nextStep"`) —
  * once, in the background, never blocking the UI, with a thin hint in the footer
  * (spec §4.4). Two templates exist: a reformulation, and the resolution of the
- * `SupplierDocuments` folder the documents step writes into. The wizard used to
- * call the reformulation for both, which meant the folder resolution never
- * happened and every navigation paid for a formulation it had not been asked for.
+ * `SupplierDocuments` folder the documents step writes into. Calling the
+ * reformulation for both means the folder resolution never happens and every
+ * navigation pays for a formulation it had not been asked for.
+ *
+ * A step that declares nothing still formulates, but **only when the supplier
+ * actually wrote on it**. beCPG materialises the documents an entity requires at
+ * formulation, and it maps "formulate here" onto the steps of a wizard that only
+ * saved on Suivant; this one saves continuously, so a list left without a
+ * declared script — the claims, which decide which certificates are expected —
+ * would otherwise never trigger the generation. Browsing a step writes nothing
+ * and therefore costs nothing.
  * Per-keystroke saves always send `formulate: false`.
  *
  * ## Mobile
@@ -608,8 +616,20 @@ export function Wizard({
 
     /* ---------------------------------------------------------- the autosave */
 
+    /*
+     * Did the supplier write anything on the step being left?
+     *
+     * Every writer reports here — the forms and the questionnaire through
+     * `schedule`, the datalist rows through `markSaved` — because that is what
+     * decides whether leaving the step is worth a formulation.
+     */
+    const wroteRef = useRef(false);
+
     const autoSave = useAutoSave({
         onError: (error) => toast.error(error),
+        onSaved: () => {
+            wroteRef.current = true;
+        },
     });
 
     /* ------------------------------------------------------- side panel state */
@@ -809,20 +829,36 @@ export function Wizard({
 
 
     /**
-     * Runs a step's declared `nextStepWebScript` server-side, in the background.
+     * Runs the hook a step leaves behind, server-side and in the background.
      *
-     * Never blocking, never fatal — a background hook, as in Share. The
-     * route decides *which* script — the wizard only says which step was left.
+     * The step's own `nextStepWebScript` when it declares one — the route
+     * decides *which* script, the wizard only says which step was left — and a
+     * formulation otherwise, so what was just written is taken into account.
+     *
+     * Never blocking, never fatal: a background hook, as in Share.
+     *
+     * @param {Object} step the step being left
+     * @param {boolean} wrote whether the supplier wrote on it
+     * @returns {boolean} whether the hook was fired
      */
-    const runNextStep = useCallback(
-        (stepId) => {
+    const runStepHook = useCallback(
+        (step, wrote) => {
+            const stepId = step ? step.id : null;
             if (formulatingRef.current || !entityId || !stepId || (wizardState && wizardState.readOnly)) {
-                return;
+                // A hook already in flight: the caller keeps its "something was
+                // written" flag, so the next transition fires the one owed.
+                return false;
+            }
+            if (!step.nextStepWebScript && !wrote) {
+                return false;
             }
             formulatingRef.current = true;
             setFormulating(true);
-            api.post(`wizard/${encodeURIComponent(entityId)}/step/${encodeURIComponent(stepId)}`,
-                { action: 'nextStep' }, { params })
+            const hook = step.nextStepWebScript
+                ? api.post(`wizard/${encodeURIComponent(entityId)}/step/${encodeURIComponent(stepId)}`,
+                    { action: 'nextStep' }, { params })
+                : api.post(`wizard/${encodeURIComponent(entityId)}/formulate`, {}, { params });
+            hook
                 .then(() => {
                     // A formulation moves the score and the computed characteristics;
                     // a folder resolution does not. Refreshing when the compliance
@@ -839,6 +875,7 @@ export function Wizard({
                     formulatingRef.current = false;
                     setFormulating(false);
                 });
+            return true;
         },
         [entityId, params, wizardState, complianceTouched, catalogs],
     );
@@ -867,13 +904,17 @@ export function Wizard({
             //
             // Two templates exist in the configuration: `becpg/remote/formulate…`
             // and `becpg/project/path…&path=SupplierDocuments`, which resolves and
-            // creates the folder the documents step then writes into. This branch
-            // used to call a blanket formulation for both, so on a step declaring
+            // creates the folder the documents step then writes into. A blanket
+            // formulation for both means that on a step declaring
             // SupplierDocuments (organoList, contactList, packMaterialList, the
-            // `supplier-nc` form step) the folder resolution never ran — and every
-            // navigation paid for a formulation nobody asked for.
-            if (leaving && leaving.nextStepWebScript) {
-                runNextStep(leaving.id);
+            // `supplier-nc` form step) the folder resolution never runs — and every
+            // navigation pays for a formulation nobody asked for.
+            //
+            // A step declaring neither still formulates once the supplier has
+            // written on it: the claims list decides which certificates beCPG
+            // expects, and those documents are materialised by formulation.
+            if (runStepHook(leaving, wroteRef.current)) {
+                wroteRef.current = false;
             }
 
             /*
@@ -916,7 +957,7 @@ export function Wizard({
                 window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
             }
         },
-        [currentId, steps, autoSave, runNextStep, persist, reduceMotion, suggestionsCall],
+        [currentId, steps, autoSave, runStepHook, persist, reduceMotion, suggestionsCall],
     );
 
     const goToField = useCallback(

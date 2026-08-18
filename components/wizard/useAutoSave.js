@@ -101,7 +101,8 @@ function savedAtOf(result) {
  * @param {number} [options.delay=1200] debounce, in ms
  * @param {number} [options.retryDelay=2500] wait before the automatic retry
  * @param {number} [options.retries=1] automatic retries after a failure
- * @param {(result: *, savedAt: Date) => void} [options.onSaved]
+ * @param {(result: *|null, savedAt: Date) => void} [options.onSaved] every
+ *        successful write, whichever writer performed it
  * @param {(error: Error) => void} [options.onError] called once, when the retries are exhausted
  * @param {boolean} [options.warnOnLeave=true] `beforeunload` guard while unsaved
  * @returns {{status: string, savedAt: Date|null, error: Error|null,
@@ -335,11 +336,19 @@ export function useAutoSave({
      * Records a save performed by another writer (the datalist editor saves its
      * own rows). Keeps one coherent "enregistré à HH:MM" across step types.
      *
+     * `onSaved` fires here too: a caller that wants to know whether anything was
+     * written must hear about every writer, not only about the ones going
+     * through `schedule`. The result is `null` because a foreign writer keeps
+     * its own response; the timestamp is what it reported.
+     *
      * @param {Date|string} [at]
      */
     const markSaved = useCallback((at) => {
         const date = at instanceof Date ? at : savedAtOf(at ? { savedAt: at } : null);
         setState({ status: AUTOSAVE_STATUS.SAVED, savedAt: date, error: null });
+        if (handlers.current.onSaved) {
+            handlers.current.onSaved(null, date);
+        }
     }, []);
 
     /**
