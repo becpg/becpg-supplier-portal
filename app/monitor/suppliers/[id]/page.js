@@ -48,6 +48,7 @@ import {
     useMonitorActionCatalog,
 } from '@/components/monitor/RiskList';
 import { SupplierScorecard } from '@/components/monitor/SupplierScorecard';
+import { StartCampaignDialog } from '@/components/monitor/StartCampaignDialog';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api, apiUrl, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
@@ -56,6 +57,7 @@ const LABELS = {
     fr: {
         back: 'Fournisseurs',
         refresh: 'Rafraîchir',
+        startCampaign: 'Démarrer une campagne',
         notFound: 'Fournisseur introuvable',
         notFoundHint:
             'Ce fournisseur n’existe pas, ou il est hors de votre périmètre : le portail ne révèle jamais un nœud que vos droits beCPG ne couvrent pas.',
@@ -144,6 +146,7 @@ const LABELS = {
     en: {
         back: 'Suppliers',
         refresh: 'Refresh',
+        startCampaign: 'Start a campaign',
         notFound: 'Supplier not found',
         notFoundHint:
             'This supplier does not exist, or it is outside your perimeter: the portal never discloses a node your beCPG rights do not cover.',
@@ -449,6 +452,7 @@ export default function MonitorSupplierSheetPage() {
     const data = sheet.data;
 
     const supplier = (data && data.supplier) || null;
+    const [startingCampaign, setStartingCampaign] = useState(false);
     const approval = (data && data.approval) || null;
     const documents = (data && data.documents) || { items: [], summary: null };
     const projects = (data && data.projects) || [];
@@ -506,16 +510,35 @@ export default function MonitorSupplierSheetPage() {
                 </Link>
             }
             actions={
-                <Button
-                    variant="outline"
-                    size="sm"
-                    icon="refresh"
-                    label={local.refresh}
-                    loading={sheet.loading}
-                    onClick={sheet.refresh}
-                />
+                <div className="flex items-center gap-2">
+                    {supplier ? (
+                        <Button
+                            size="sm"
+                            icon="rocket_launch"
+                            onClick={() => setStartingCampaign(true)}
+                        >
+                            {local.startCampaign}
+                        </Button>
+                    ) : null}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        icon="refresh"
+                        label={local.refresh}
+                        loading={sheet.loading}
+                        onClick={sheet.refresh}
+                    />
+                </div>
             }
         >
+            {/* Le fournisseur est connu : la boîte ne demande plus que le
+                périmètre — tous ses produits, ou l'un d'eux. */}
+            <StartCampaignDialog
+                open={startingCampaign}
+                onClose={() => setStartingCampaign(false)}
+                supplier={supplier ? { nodeRef: supplier.nodeRef, name: supplier.name } : null}
+                onStarted={sheet.refresh}
+            />
             {!data ? (
                 <div className="flex flex-col gap-3">
                     <SkeletonCard lines={3} />

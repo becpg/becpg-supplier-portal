@@ -47,6 +47,7 @@ import {
     projectStateLabel,
 } from '@/components/monitor/CampaignList';
 import { BulkActionBar } from '@/components/monitor/BulkActionBar';
+import { StartCampaignDialog } from '@/components/monitor/StartCampaignDialog';
 
 const LABELS = {
     fr: {
@@ -69,6 +70,7 @@ const LABELS = {
             noEscalation: 'Aucune escalade requise',
             answered: '{count} ont répondu',
         },
+        startCampaign: 'Démarrer une campagne',
         allOpen: 'Toutes les campagnes ouvertes',
         state: 'État du projet',
         sortLabel: 'Trier par',
@@ -117,6 +119,7 @@ const LABELS = {
             noEscalation: 'No escalation needed',
             answered: '{count} answered',
         },
+        startCampaign: 'Start a campaign',
         allOpen: 'All open campaigns',
         state: 'Project state',
         sortLabel: 'Sort by',
@@ -159,6 +162,8 @@ function fill(template, vars) {
 }
 
 export default function MonitorCampaignsPage() {
+    // La campagne se démarre depuis cet écran : c'est là qu'on constate qu'il en manque une.
+    const [starting, setStarting] = useState(false);
     const { lang } = useMessages();
     const labels = LABELS[lang] || LABELS.fr;
 
@@ -253,16 +258,30 @@ export default function MonitorCampaignsPage() {
             space="monitor"
             title={labels.title}
             actions={
-                <Button
-                    variant="outline"
-                    size="sm"
-                    icon="refresh"
-                    label={labels.refresh}
-                    loading={campaigns.loading}
-                    onClick={campaigns.refresh}
-                />
+                <div className="flex items-center gap-2">
+                    <Button
+                        size="sm"
+                        icon="rocket_launch"
+                        onClick={() => setStarting(true)}
+                    >
+                        {labels.startCampaign}
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        icon="refresh"
+                        label={labels.refresh}
+                        loading={campaigns.loading}
+                        onClick={campaigns.refresh}
+                    />
+                </div>
             }
         >
+            <StartCampaignDialog
+                open={starting}
+                onClose={() => setStarting(false)}
+                onStarted={campaigns.refresh}
+            />
             <p className="mb-4 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
 
             {/* ------------------------------------------------------ KPI row */}
