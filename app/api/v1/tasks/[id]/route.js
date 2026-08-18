@@ -33,7 +33,7 @@ import { AuthError, NotFoundError, toApiResponse } from '@/lib/errors';
 import { createBecpgClient } from '@/lib/adapters/session';
 import { getTask, peekTaskEntity } from '@/lib/adapters/tasks';
 import { buildEntityIndex } from '@/lib/adapters/entities';
-import { getWizardState } from '@/lib/adapters/wizard';
+import { getWizardState, withoutStepDefinitions } from '@/lib/adapters/wizard';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -71,7 +71,9 @@ export async function GET(request, context) {
             throw new NotFoundError('Task not found');
         }
         if (wizard) {
-            task.wizard = wizard;
+            // Same rule as the wizard route: the per-step field definitions are
+            // large, per-step and fetched one at a time as the supplier advances.
+            task.wizard = withoutStepDefinitions(wizard);
         }
 
         if (task.entityNodeRef) {

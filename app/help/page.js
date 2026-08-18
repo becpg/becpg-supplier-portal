@@ -209,7 +209,7 @@ const TOPICS = {
                     p: 'Le collage depuis un tableur reprend plusieurs lignes et plusieurs colonnes d’un coup, crée les lignes manquantes et vous dit ce qu’il n’a pas pu reprendre — une valeur hors de la liste proposée, un nombre attendu là où il y a du texte, une colonne non modifiable. Rien n’est deviné : ce qui n’a pas de correspondance exacte vous est rendu à corriger.',
                 },
                 {
-                    note: 'Comme partout dans l’assistant, une ligne est enregistrée dès que vous la quittez. Le bouton d’enregistrement de la ligne et « Tout enregistrer » ne servent qu’à forcer l’envoi : ils ne conditionnent rien.',
+                    note: 'Comme partout dans l’assistant, une ligne est enregistrée dès que vous la quittez — ou dès la touche Entrée, ou dès que vous cochez une case. Il n’y a pas de bouton d’enregistrement : il n’y a rien à valider. Seul un collage propose « Enregistrer les N lignes », parce que personne n’est passé sur ces lignes-là.',
                 },
                 {
                     p: 'Sur téléphone, le tableau devient une carte par ligne : les mêmes champs, empilés, sans défilement horizontal.',
@@ -572,7 +572,7 @@ const TOPICS = {
                     p: 'Pasting from a spreadsheet takes several rows and columns at once, creates the missing rows, and tells you what it could not take — a value outside the proposed list, a number expected where there is text, a read-only column. Nothing is guessed: whatever has no exact match is handed back to you to fix.',
                 },
                 {
-                    note: 'As everywhere in the assistant, a row is saved as soon as you leave it. The row’s save button and "Save all" only force the write: nothing depends on them.',
+                    note: 'As everywhere in the assistant, a row is saved as soon as you leave it — or on Enter, or as soon as you tick a box. There is no save button: there is nothing to confirm. Only a paste offers "Save the N rows", because nobody went through those rows.',
                 },
                 {
                     p: 'On a phone the table becomes one card per row: the same fields, stacked, with no horizontal scrolling.',

@@ -163,9 +163,12 @@ function TaskRouter() {
     const wizardId = useMemo(() => (data ? data.wizardId || undefined : undefined), [data]);
 
     // Read here rather than inside the step: a hook cannot live behind the early
-    // returns below, and a document task is the one branch that renders it.
+    // returns below. Gated on the one branch that renders the check-list — the
+    // wizard has its own single read, and no other task type needs it.
     const documents = useDocumentRequirements(
-        data ? (data.entityNodeRef || (data.entity && data.entity.nodeRef) || null) : null,
+        data && data.type === 'document'
+            ? (data.entityNodeRef || (data.entity && data.entity.nodeRef) || null)
+            : null,
     );
 
     if (task.error) {

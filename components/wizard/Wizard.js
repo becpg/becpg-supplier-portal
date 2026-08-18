@@ -629,8 +629,21 @@ export function Wizard({
             if (step.kind === 'documents') {
                 map[step.id] = documentVerdict;
             }
+            /*
+             * The live report wins — unless it has not ruled yet.
+             *
+             * A mounted step reports `pending` while its definition loads, and
+             * that entry survives the unmount. Letting it override a verdict the
+             * server did rule on would erase the rail for the rest of the
+             * session, and briefly re-enable « Terminer » on a step known to be
+             * incomplete. "I have not looked" never beats "I looked".
+             */
+            const live = stepIssues[step.id];
+            if (live && !(live.pending && map[step.id])) {
+                map[step.id] = live;
+            }
         }
-        return { ...map, ...stepIssues };
+        return map;
     }, [steps, stepIssues, documentVerdict]);
 
     const incompleteSteps = useMemo(

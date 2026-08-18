@@ -174,6 +174,9 @@ export function SurveyStep({
 
     const [progress, setProgress] = useState(null);
     const [checked, setChecked] = useState(false);
+    // The questions beCPG acknowledged and stored nowhere. A notice, not an
+    // error state: retrying writes them to the same absent row.
+    const [dropped, setDropped] = useState([]);
 
     const missing = useMemo(() => (progress && progress.missing) || [], [progress]);
     // Derived, not frozen at check time. A check that keeps naming a question the
@@ -252,12 +255,23 @@ export function SurveyStep({
                          * with no row of its own is acknowledged and dropped. The
                          * adapter re-reads and names them; a supplier must never be
                          * told « enregistré » over that.
+                         *
+                         * Reported, NOT thrown. The autosave keeps a failed task
+                         * queued and retries it, and no number of retries will
+                         * make beCPG create that row: throwing here would replay
+                         * the same write for the rest of the session and block
+                         * every other writer behind it. The task is dequeued, and
+                         * the supplier is told once, in words.
                          */
                         if (Array.isArray(result?.dropped) && result.dropped.length > 0) {
-                            throw new Error(fill(labels.dropped, {
+                            setDropped(result.dropped);
+                            toast.error(new Error(fill(labels.dropped, {
                                 count: result.dropped.length,
                                 questions: questionLabels(data, result.dropped),
-                            }));
+                            })));
+                        }
+                        else if (dropped.length > 0) {
+                            setDropped([]);
                         }
                         return result;
                     }
@@ -269,7 +283,7 @@ export function SurveyStep({
                 { key: `survey:${step.id}` },
             );
         },
-        [autoSave, entityId, step.id, params, toast, labels, data],
+        [autoSave, entityId, step.id, params, toast, labels, data, dropped.length],
     );
 
     const check = useCallback(() => {
@@ -376,6 +390,23 @@ export function SurveyStep({
 
                     {readOnly ? null : (
                         <div className="mt-4 flex flex-col gap-2">
+                            {/* Persistent, because it survives no retry: the
+                                questionnaire has nowhere to store these answers
+                                until the customer gives them a row. */}
+                            {dropped.length > 0 ? (
+                                <div
+                                    role="alert"
+                                    className="rounded-xl border border-[var(--status-danger)] bg-[var(--status-danger-bg)] p-3"
+                                >
+                                    <p className="flex items-start gap-1.5 text-sm font-medium text-[var(--status-danger)]">
+                                        <Icon name="error_outline" size={18} className="mt-px shrink-0" />
+                                        {fill(labels.dropped, {
+                                            count: dropped.length,
+                                            questions: questionLabels(data, dropped),
+                                        })}
+                                    </p>
+                                </div>
+                            ) : null}
                             {checked && missing.length > 0 ? (
                                 <div
                                     role="alert"

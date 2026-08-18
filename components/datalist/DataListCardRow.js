@@ -37,6 +37,7 @@ import { useMessages } from '@/lib/messages';
  * @param {Object[]} [props.nestedColumns] nested columns, in the expandable section
  * @param {Object} props.list the `useDataList` instance
  * @param {Object} [props.context] `{ entityNodeRef, itemType, formId }`
+ * @param {Function} [props.onEditRow] `(row) => void` — opens the row editor
  * @param {Function} [props.onDelete] `(row) => void`
  * @param {Function} [props.onDuplicate] `(row) => void` — a new card pre-filled from this one
  * @param {boolean} [props.showOrder] renders the reorder buttons
@@ -49,6 +50,7 @@ export function DataListCardRow({
     nestedColumns = [],
     list,
     context,
+    onEditRow,
     onDelete,
     onDuplicate,
     showOrder = false,
@@ -178,6 +180,18 @@ export function DataListCardRow({
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => onDuplicate(row)}
+                            />
+                        ) : null}
+                        {/* The same editor the table layout offers: below `md`
+                            there is no other way to reach the fields the grid
+                            does not show. */}
+                        {onEditRow && list.rowForm && list.canEditRow(row) && !row.draft && !summary ? (
+                            <IconButton
+                                icon="edit"
+                                label={label('editRow')}
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => onEditRow(row)}
                             />
                         ) : null}
                         {list.canDeleteRow(row) && onDelete ? (

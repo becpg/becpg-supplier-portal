@@ -96,6 +96,17 @@ export function DataListStep({
         [autoSave],
     );
 
+    // The grid writes on its own; the wizard needs to know a write left, not
+    // whether it came back, so that leaving the step formulates what was typed.
+    const handleWriting = useCallback(
+        () => {
+            if (autoSave) {
+                autoSave.markWriting();
+            }
+        },
+        [autoSave],
+    );
+
     const handleError = useCallback(
         (error) => {
             if (autoSave) {
@@ -114,6 +125,7 @@ export function DataListStep({
         // says is read-only stays read-only whatever the grid thinks.
         readOnly: Boolean(step.readOnly),
         onSaved: handleSaved,
+        onWriting: handleWriting,
         onError: handleError,
     });
 

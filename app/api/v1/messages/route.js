@@ -307,6 +307,12 @@ async function commentedNodes(entityNodeRef, session) {
  * @returns {Promise<Object[]>} the same descriptors, `source` attached
  */
 async function describeSources(entityNodeRef, descriptors, session) {
+    // Nothing but the sheet's own forum: there is no list to name, so the call
+    // that names them is not worth making.
+    if (descriptors.every((descriptor) => descriptor.nodeRef === entityNodeRef)) {
+        return descriptors.map((descriptor) => ({ ...descriptor, source: null }));
+    }
+
     let lists = new Map();
     try {
         const state = await getEntityListsState(entityNodeRef, { session });
@@ -328,6 +334,12 @@ async function describeSources(entityNodeRef, descriptors, session) {
             .map((ancestor) => lists.get(ancestor.nodeRef))
             .filter(Boolean)
             .pop() || null;
+        // A commented node that hangs off no list is not a row: a document of
+        // the entity's folder, for one. Naming it « une ligne » would be worse
+        // than saying nothing, so the title-derived anchor keeps its say.
+        if (!holder) {
+            return { ...descriptor, source: null };
+        }
         return { ...descriptor, source: { nodeRef: descriptor.nodeRef, list: holder, label: null } };
     });
 }
@@ -414,7 +426,9 @@ export async function GET(request) {
          * search already covers the entity's own forum, so reading both would show
          * every message of the sheet twice.
          */
-        let messages = items.map(normalizeMessage);
+        // Called explicitly: `map` hands the index as the second argument, and
+        // the second argument is now the resolved source.
+        let messages = items.map((item) => normalizeMessage(item));
         let aggregate = null;
         if (url.searchParams.get('scope') === 'entity') {
             const { nodes, truncated } = await commentedNodes(nodeRef, session);

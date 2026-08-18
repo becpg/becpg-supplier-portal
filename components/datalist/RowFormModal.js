@@ -30,6 +30,9 @@ import { FormRenderer } from '@/components/form/FormRenderer';
 import { useFormState } from '@/components/form/useFormState';
 import { useMessages } from '@/lib/messages';
 
+/** Escape must find something to call, even while the write is in flight. */
+const NOOP = () => {};
+
 const LABELS = {
     fr: {
         title: 'Modifier la ligne',
@@ -37,6 +40,7 @@ const LABELS = {
         save: 'Enregistrer',
         cancel: 'Annuler',
         description: 'Les champs que la grille n’affiche pas se saisissent ici.',
+        refused: 'La ligne n’a pas été enregistrée. Vérifiez les champs obligatoires, puis réessayez.',
     },
     en: {
         title: 'Edit the row',
@@ -44,6 +48,7 @@ const LABELS = {
         save: 'Save',
         cancel: 'Cancel',
         description: 'The fields the grid does not show are entered here.',
+        refused: 'The row was not saved. Check the mandatory fields, then try again.',
     },
 };
 
@@ -72,13 +77,23 @@ export function RowFormModal({ list, row, rowForm, entityNodeRef, onClose }) {
     });
 
     const submit = useCallback(async () => {
-        if (!form.validate()) {
+        // `validate()` answers `{ valid, errors }`, never a boolean: testing the
+        // object itself is always true, and the box would submit an invalid row
+        // while painting its fields red.
+        if (!form.validate().valid) {
             return;
         }
         setSaving(true);
         setError(null);
         try {
-            await list.saveRowValues(row, form.changes());
+            const saved = await list.saveRowValues(row, form.changes());
+            if (!saved) {
+                // The write was refused, or held back because a mandatory column
+                // is still empty. Closing here would claim a save that did not
+                // happen — the row status says which, beside the row.
+                setError(new Error(labels.refused));
+                return;
+            }
             onClose();
         }
         catch (caught) {
@@ -89,12 +104,13 @@ export function RowFormModal({ list, row, rowForm, entityNodeRef, onClose }) {
         finally {
             setSaving(false);
         }
-    }, [form, list, row, onClose]);
+    }, [form, list, row, onClose, labels]);
 
     return (
         <Modal
             open
-            onClose={saving ? undefined : onClose}
+            // A no-op rather than `undefined`: Escape calls it unconditionally.
+            onClose={saving ? NOOP : onClose}
             title={row?.draft ? labels.create : labels.title}
             description={labels.description}
             size="lg"

@@ -437,6 +437,8 @@ let draftSequence = 0;
  * @param {number} [options.pageSize=25]
  * @param {{column: string, asc: boolean}} [options.initialSort]
  * @param {boolean} [options.readOnly] forces read-only on top of the server verdict
+ * @param {Function} [options.onWriting] `() => void` — a row write is leaving now,
+ *        whatever its outcome; the wizard uses it to know the step was written on
  * @param {Function} [options.onSaved] `(result, row) => void` — the wizard's "saved at HH:MM"
  * @param {Function} [options.onError] `(error, row) => void` — usually a toast
  * @returns {Object} see the properties listed at the end of the function
@@ -453,6 +455,7 @@ export function useDataList(options = {}) {
         initialSort = null,
         readOnly: forcedReadOnly = false,
         onSaved,
+        onWriting,
         onError,
     } = options;
 
@@ -478,7 +481,7 @@ export function useDataList(options = {}) {
     const refreshTimer = useRef(null);
     const savedTimers = useRef(new Map());
     const alive = useRef(true);
-    const handlers = useRef({ onSaved, onError });
+    const handlers = useRef({ onSaved, onError, onWriting });
     const paramsRef = useRef(params);
     // The rows as of the last committed render. `commitAll` walks whatever is
     // dirty at the moment it is called, and needs the row objects behind those
@@ -499,7 +502,7 @@ export function useDataList(options = {}) {
     // Kept in refs and refreshed after every render, so a caller may pass inline
     // callbacks and an inline `params` object without re-triggering anything.
     useEffect(() => {
-        handlers.current = { onSaved, onError };
+        handlers.current = { onSaved, onError, onWriting };
         paramsRef.current = params;
     });
 
@@ -1051,6 +1054,19 @@ export function useDataList(options = {}) {
                 if (column?.type === 'association' && emptied && !row.draft) {
                     outgoing[name] = { added: [], removed: toNodeRefList(row.values?.[column.formsName]) };
                 }
+            }
+
+            /*
+             * A write is going out NOW, not when it comes back.
+             *
+             * The wizard formulates on leaving a step the supplier wrote on, and
+             * it reads that fact when the step is left — which happens on the
+             * click that follows the blur that started this very request. Waiting
+             * for the answer would have the formulation skipped on the step that
+             * earned it and run on the next one.
+             */
+            if (handlers.current.onWriting) {
+                handlers.current.onWriting();
             }
 
             // --- optimistic write ------------------------------------------

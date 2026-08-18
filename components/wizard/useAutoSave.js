@@ -108,7 +108,8 @@ function savedAtOf(result) {
  * @returns {{status: string, savedAt: Date|null, error: Error|null,
  *            isPending: boolean, isSaving: boolean, hasUnsaved: boolean,
  *            schedule: Function, flush: Function, retry: Function,
- *            cancel: Function, markSaved: Function, markError: Function, reset: Function}}
+ *            cancel: Function, markSaved: Function, markWriting: Function,
+ *            markError: Function, reset: Function}}
  */
 export function useAutoSave({
     delay = DEFAULT_DELAY,
@@ -352,6 +353,20 @@ export function useAutoSave({
     }, []);
 
     /**
+     * A foreign writer has just sent a write, whose outcome is not known yet.
+     *
+     * Distinct from {@link markSaved}: nothing is saved at this point, so the
+     * timestamp must not move. It exists because a caller may need to know the
+     * step was written on before the answer arrives — the wizard decides on
+     * leaving the step, which happens between the two.
+     */
+    const markWriting = useCallback(() => {
+        if (handlers.current.onSaved) {
+            handlers.current.onSaved(null, null);
+        }
+    }, []);
+
+    /**
      * Records a failure from another writer, so the footer never claims
      * everything is saved when it is not.
      *
@@ -399,9 +414,10 @@ export function useAutoSave({
             retry,
             cancel,
             markSaved,
+            markWriting,
             markError,
             reset,
         }),
-        [state, hasUnsaved, schedule, flush, retry, cancel, markSaved, markError, reset],
+        [state, hasUnsaved, schedule, flush, retry, cancel, markSaved, markWriting, markError, reset],
     );
 }
