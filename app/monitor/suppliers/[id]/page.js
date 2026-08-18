@@ -86,7 +86,7 @@ const LABELS = {
         },
         documents: {
             title: 'Documents',
-            subtitle: 'Exigences dérivées de bcpg:documentType et validité cm:effectivity',
+            subtitle: 'Documents attendus et dates de validité',
             empty: 'Aucun document attendu ni fourni pour ce fournisseur',
             mandatory: 'obligatoire',
             download: 'Télécharger',
@@ -111,7 +111,7 @@ const LABELS = {
         },
         activity: {
             title: 'Historique des échanges',
-            subtitle: 'bcpg:activityList et fil de discussion — la même source que Share',
+            subtitle: 'Activité et fil de discussion — la même source que Share',
             empty: 'Aucun échange enregistré',
             message: 'Message',
             activity: 'Activité',
@@ -175,7 +175,7 @@ const LABELS = {
         },
         documents: {
             title: 'Documents',
-            subtitle: 'Requirements derived from bcpg:documentType, validity from cm:effectivity',
+            subtitle: 'Expected documents and validity dates',
             empty: 'No document expected or provided for this supplier',
             mandatory: 'mandatory',
             download: 'Download',
@@ -200,7 +200,7 @@ const LABELS = {
         },
         activity: {
             title: 'Exchange history',
-            subtitle: 'bcpg:activityList and the discussion thread — the source Share uses',
+            subtitle: 'Activity and the discussion thread — the source Share uses',
             empty: 'No exchange recorded',
             message: 'Message',
             activity: 'Activity',

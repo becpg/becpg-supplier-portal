@@ -57,7 +57,7 @@ import { useMessages } from '@/lib/messages';
 const LABELS = {
     fr: {
         title: 'Scorecard',
-        subtitle: 'Critères, poids et notes — paramétrés côté client (pjt:scoreList)',
+        subtitle: 'Critères, poids et notes — paramétrés côté client',
         weighted: 'Score pondéré',
         weightedHint: '{count} critère(s) · poids total {weight}',
         criterion: 'Critère',
@@ -66,12 +66,12 @@ const LABELS = {
         range: 'barème {range}',
         noScore: 'Non noté',
         scaleNote:
-            'Barème déduit de pjt:slScoreRange (ou de la note maximale observée) : la note brute est toujours affichée.',
+            'Barème déduit du paramétrage (ou de la note maximale observée) : la note brute est toujours affichée.',
         unavailable: 'Aucune scorecard pour ce fournisseur',
         unavailableHint:
-            'Les scorecards sont alimentées par les listes pjt:scoreList des projets du fournisseur. Aucun projet noté n’a été trouvé dans votre périmètre.',
+            'Les scorecards sont alimentées par les notes portées par les projets du fournisseur. Aucun projet noté n’a été trouvé dans votre périmètre.',
         completion: 'Complétude des catalogues',
-        completionSubtitle: 'bcpg:entityScore — les catalogues actifs sur les entités du fournisseur',
+        completionSubtitle: 'Les catalogues actifs sur les entités du fournisseur',
         completionEmpty: 'Aucun catalogue actif sur ce fournisseur',
         completionScore: 'Complétude moyenne',
         approval: 'Statut d’agrément',
@@ -100,7 +100,7 @@ const LABELS = {
     },
     en: {
         title: 'Scorecard',
-        subtitle: 'Criteria, weights and scores — configured client side (pjt:scoreList)',
+        subtitle: 'Criteria, weights and scores — configured client side',
         weighted: 'Weighted score',
         weightedHint: '{count} criteria · total weight {weight}',
         criterion: 'Criterion',
@@ -109,12 +109,12 @@ const LABELS = {
         range: 'scale {range}',
         noScore: 'Not scored',
         scaleNote:
-            'Scale inferred from pjt:slScoreRange (or from the highest observed score): the raw score is always shown.',
+            'Scale inferred from the configuration (or from the highest observed score): the raw score is always shown.',
         unavailable: 'No scorecard for this supplier',
         unavailableHint:
-            'Scorecards are fed by the pjt:scoreList rows of the supplier projects. No scored project was found in your perimeter.',
+            'Scorecards are fed by the scores carried by the supplier projects. No scored project was found in your perimeter.',
         completion: 'Catalog completeness',
-        completionSubtitle: 'bcpg:entityScore — the catalogs active on the supplier entities',
+        completionSubtitle: 'The catalogs active on the supplier entities',
         completionEmpty: 'No active catalog on this supplier',
         completionScore: 'Mean completeness',
         approval: 'Approval status',
