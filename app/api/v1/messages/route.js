@@ -89,7 +89,7 @@ import { BadRequestError, toApiResponse } from '@/lib/errors';
 import {
     becpgJson,
     getJson,
-    getNodeParent,
+    getNodeAncestry,
     isNodeRef,
     nodeRefToPath,
     requireSession,
@@ -130,14 +130,23 @@ const AGGREGATE_MAX_NODES = 20;
  * @param {Object} raw
  * @returns {Object}
  */
-function normalizeMessage(raw) {
+function normalizeMessage(raw, source = null) {
     const author = raw?.author || {};
     const title = raw?.title || '';
     const field = title.startsWith(FIELD_PREFIX) ? title.slice(FIELD_PREFIX.length).trim() : null;
     const row = title.startsWith(ROW_PREFIX) ? title.slice(ROW_PREFIX.length).trim() : null;
 
+    /*
+     * Where the message comes from, in order of what can be proved: the list the
+     * repository says the commented node belongs to, then the row the portal
+     * wrote in the comment title when it posted it, then nothing. A remark
+     * written from beCPG has no title, which is exactly why the list is resolved
+     * server-side rather than read out of it.
+     */
     return {
-        source: row ? { label: row } : null,
+        source: source
+            ? { ...source, label: source.label || row || null }
+            : (row ? { label: row, list: null } : null),
         nodeRef: raw?.nodeRef || null,
         // `content` is already stripped of unsafe HTML by the repository
         // (`stringUtils.stripUnsafeHTML`); the UI still renders it as text.
@@ -237,7 +246,8 @@ async function explainDenial(nodeRef, session) {
  *
  * @param {string} entityNodeRef
  * @param {Object} session
- * @returns {Promise<{nodes: string[], truncated: boolean}>} commented nodeRefs
+ * @returns {Promise<{nodes: Object[], truncated: boolean}>} one descriptor per
+ *          commented node: `{ nodeRef, name, ancestors }`
  */
 async function commentedNodes(entityNodeRef, session) {
     const payload = await getJson('becpg/remote/entity/list', {
@@ -256,7 +266,8 @@ async function commentedNodes(entityNodeRef, session) {
 
     const parents = await Promise.all(forums.slice(0, AGGREGATE_MAX_NODES).map(async (forum) => {
         try {
-            return await getNodeParent(forum, { session });
+            const ancestry = await getNodeAncestry(forum, { session });
+            return ancestry.nodeRef ? ancestry : null;
         }
         catch (error) {
             logWarn('messages.forum.unresolved', {
@@ -268,10 +279,57 @@ async function commentedNodes(entityNodeRef, session) {
         }
     }));
 
+    const byNodeRef = new Map();
+    for (const ancestry of parents.filter(Boolean)) {
+        if (!byNodeRef.has(ancestry.nodeRef)) {
+            byNodeRef.set(ancestry.nodeRef, ancestry);
+        }
+    }
+
     return {
-        nodes: [...new Set(parents.filter(Boolean))],
+        nodes: [...byNodeRef.values()],
         truncated: forums.length > AGGREGATE_MAX_NODES,
     };
+}
+
+/**
+ * Names the list each commented node belongs to.
+ *
+ * A row names neither its list nor itself in a way a reader recognises, and a
+ * remark written from beCPG carries no title at all — so the origin has to be
+ * resolved from the repository. `becpg/security/entitylists/check` already
+ * names every list of the entity, translated, and the ancestry came back with
+ * the forum: one call for the whole view, no read per row.
+ *
+ * @param {string} entityNodeRef
+ * @param {Object[]} descriptors what {@link commentedNodes} returned
+ * @param {Object} session
+ * @returns {Promise<Object[]>} the same descriptors, `source` attached
+ */
+async function describeSources(entityNodeRef, descriptors, session) {
+    let lists = new Map();
+    try {
+        const state = await getEntityListsState(entityNodeRef, { session });
+        lists = new Map((state.datalists || [])
+            .filter((list) => list.nodeRef)
+            .map((list) => [list.nodeRef, list.title || list.name]));
+    }
+    catch (error) {
+        // Degrade explicitly: the messages are still worth showing without the
+        // name of the list they came from.
+        logWarn('messages.lists.unresolved', { route: 'messages', message: error.message });
+    }
+
+    return descriptors.map((descriptor) => {
+        if (descriptor.nodeRef === entityNodeRef) {
+            return { ...descriptor, source: null };
+        }
+        const holder = (descriptor.ancestors || [])
+            .map((ancestor) => lists.get(ancestor.nodeRef))
+            .filter(Boolean)
+            .pop() || null;
+        return { ...descriptor, source: { nodeRef: descriptor.nodeRef, list: holder, label: null } };
+    });
 }
 
 /**
@@ -281,17 +339,19 @@ async function commentedNodes(entityNodeRef, session) {
  * must survive one row whose ACL refuses the caller — showing the other twelve
  * messages is better than showing none.
  *
- * @param {string} nodeRef
+ * @param {Object} descriptor `{ nodeRef, source }`
  * @param {Object} options `{ session, pageSize }`
  * @returns {Promise<Object[]>}
  */
-async function readNodeThread(nodeRef, { session, pageSize }) {
+async function readNodeThread(descriptor, { session, pageSize }) {
+    const nodeRef = descriptor.nodeRef;
     try {
         const payload = await getJson(`api/node/${nodeRefToPath(nodeRef)}/comments`, {
             query: { reverse: 'true', startIndex: 0, pageSize },
             session,
         });
-        return (Array.isArray(payload?.items) ? payload.items : []).map(normalizeMessage);
+        return (Array.isArray(payload?.items) ? payload.items : [])
+            .map((item) => normalizeMessage(item, descriptor.source));
     }
     catch (error) {
         logWarn('messages.thread.unreadable', {
@@ -358,8 +418,9 @@ export async function GET(request) {
         let aggregate = null;
         if (url.searchParams.get('scope') === 'entity') {
             const { nodes, truncated } = await commentedNodes(nodeRef, session);
+            const described = await describeSources(nodeRef, nodes, session);
             messages = (await Promise.all(
-                nodes.map((node) => readNodeThread(node, { session, pageSize })),
+                described.map((node) => readNodeThread(node, { session, pageSize })),
             ))
                 .flat()
                 .sort((a, b) => Date.parse(b.createdOn || 0) - Date.parse(a.createdOn || 0));

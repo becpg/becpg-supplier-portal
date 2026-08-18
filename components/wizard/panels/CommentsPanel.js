@@ -49,6 +49,8 @@ const LABELS = {
         whole: 'Toute la fiche',
         onField: 'Champ : {label}',
         onRow: 'Ligne : {label}',
+        onRowOfList: 'Ligne « {label} » de « {list} »',
+        inList: 'Une ligne de « {list} »',
         row: 'une ligne',
         anchored: 'Sur {label}',
         clear: 'Retirer l’ancrage',
@@ -74,6 +76,8 @@ const LABELS = {
         whole: 'The whole sheet',
         onField: 'Field: {label}',
         onRow: 'Row: {label}',
+        onRowOfList: 'Row "{label}" of "{list}"',
+        inList: 'A row of "{list}"',
         row: 'a row',
         anchored: 'On {label}',
         clear: 'Remove the anchor',
@@ -203,6 +207,23 @@ export function useDiscussion({ nodeRef, enabled = true, pageSize = 100, scope =
 /**
  * One message.
  */
+/**
+ * How a message names where it comes from, with what could actually be resolved.
+ *
+ * @param {{label: string|null, list: string|null}} source
+ * @param {Object} labels
+ * @returns {string}
+ */
+function anchorOf(source, labels) {
+    if (source.label && source.list) {
+        return fill(labels.onRowOfList, { label: source.label, list: source.list });
+    }
+    if (source.list) {
+        return fill(labels.inList, { list: source.list });
+    }
+    return fill(labels.onRow, { label: source.label || labels.row });
+}
+
 function MessageItem({ message, index, lang, labels }) {
     const reduceMotion = useReducedMotion();
     return (
@@ -221,14 +242,16 @@ function MessageItem({ message, index, lang, labels }) {
                 </span>
             </div>
             {/* Where the message hangs: a field of the sheet, or the row whose own
-                forum it came from — without which the sheet-level view would pile
-                up remarks from a dozen lines with no way to tell them apart. */}
+                forum it came from — named with its list, without which the
+                sheet-level view piles up remarks from a dozen lines with no way
+                to tell them apart. A remark written in beCPG carries no row
+                label, so it is named by its list alone rather than not at all. */}
             {message.field || message.source ? (
                 <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-[var(--becpg-grey)]/60 px-1.5 py-0.5 text-[11px] text-[var(--becpg-dark-grey)]">
                     <Icon name="my_location" size={12} />
                     {message.field
                         ? fill(labels.anchored, { label: message.field })
-                        : fill(labels.onRow, { label: message.source.label || labels.row })}
+                        : anchorOf(message.source, labels)}
                 </span>
             ) : null}
             {/*
