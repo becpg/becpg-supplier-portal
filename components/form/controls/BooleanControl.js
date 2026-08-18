@@ -13,6 +13,13 @@
  * preselected until the supplier answers), and an optional one renders as a
  * plain checkbox where unticked legitimately means `false`.
  *
+ * **Unless the model already answers it.** A column whose `<default>` is
+ * declared is never unanswered: the repository writes that default at creation,
+ * so unticked really does mean `false` and the three-state pair would force an
+ * answer to a question already settled — which is what turned four ingredient
+ * flags (OGM, ionisation, processing aid, carrier) into four mandatory choices
+ * instead of boxes to tick only when true.
+ *
  * `onChange` emits a real boolean, or `null` when the field was never answered.
  */
 
@@ -78,7 +85,9 @@ export function BooleanControl({
         return <ReadOnlyControl field={field} value={value} displayValue={displayValue} lang={lang} id={id} />;
     }
 
-    if (field?.mandatory) {
+    // A boolean the model already answers is not an unanswered question.
+    const answeredByModel = field?.defaultValue !== null && field?.defaultValue !== undefined;
+    if (field?.mandatory && !answeredByModel) {
         const name = `${id || field.id}-choice`;
         return (
             <div

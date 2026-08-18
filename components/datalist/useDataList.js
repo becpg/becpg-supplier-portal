@@ -780,6 +780,27 @@ export function useDataList(options = {}) {
         [canEditRow, isUnlocked],
     );
 
+    /**
+     * The values a new row starts with — the model defaults of its mandatory
+     * columns.
+     *
+     * Only the mandatory ones: those are the values beCPG writes anyway at
+     * creation, and the ones `commitRow` blocks on. Seeding anything else would
+     * put values on screen the supplier never typed.
+     */
+    const columnDefaults = useMemo(() => {
+        const initial = {};
+        for (const column of columns) {
+            if (!column.mandatory || column.readOnly || column.protectedField || isNestedColumn(column)) {
+                continue;
+            }
+            if (column.defaultValue !== null && column.defaultValue !== undefined) {
+                initial[column.name] = column.defaultValue;
+            }
+        }
+        return initial;
+    }, [columns]);
+
     const requestUnlock = useCallback((row, column) => {
         setPendingUnlock({ rowKey: row.key, column, row });
     }, []);
@@ -857,13 +878,14 @@ export function useDataList(options = {}) {
                 draft: true,
             };
             setDrafts((previous) => [...previous, draft]);
-            if (Object.keys(initialValues).length > 0) {
-                updateDirty((previous) => ({ ...previous, [key]: { ...initialValues } }));
+            const seeded = { ...columnDefaults, ...initialValues };
+            if (Object.keys(seeded).length > 0) {
+                updateDirty((previous) => ({ ...previous, [key]: { ...seeded } }));
             }
             setRowStatus(key, { state: ROW_STATUS.DIRTY });
             return draft;
         },
-        [payload.itemType, setRowStatus, updateDirty],
+        [payload.itemType, setRowStatus, updateDirty, columnDefaults],
     );
 
     /**
