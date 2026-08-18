@@ -131,7 +131,7 @@ const LABELS = {
         },
         park: {
             title: 'Composition du parc',
-            subtitle: "Statut d'agrément dérivé, jamais stocké (§5.4.3)",
+            subtitle: 'Recalculé à chaque affichage, à partir des dossiers',
             empty: 'Aucun fournisseur dans ce périmètre',
             share: '{share} %',
             unknown: '{count} fournisseur(s) lus sans statut d’agrément évalué : ils ne sont dans aucune barre.',
@@ -193,7 +193,7 @@ const LABELS = {
         },
         park: {
             title: 'Park composition',
-            subtitle: 'Approval status is derived, never stored (§5.4.3)',
+            subtitle: 'Recomputed on every render, from the files themselves',
             empty: 'No supplier in this perimeter',
             share: '{share} %',
             unknown: '{count} supplier(s) read with no evaluated approval status: they are in none of the bars.',

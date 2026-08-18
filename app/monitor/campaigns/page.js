@@ -95,7 +95,7 @@ const LABELS = {
             'Votre campagne en cours sur le portail attend encore votre réponse. Merci de compléter les tâches qui vous sont assignées dès que possible.',
         hintTargets: 'Fournisseurs des campagnes sélectionnées',
         noteReminder:
-            'beCPG ne journalise pas les relances : la colonne « Dernière relance » montre la dernière activité sur la campagne, le fait le plus proche réellement disponible. L’historique par état demanderait le cube OLAP (§4.6.6).',
+            'beCPG ne journalise pas les relances : la colonne « Dernière relance » montre la dernière activité sur la campagne, le fait le plus proche réellement disponible.',
     },
     en: {
         title: 'Campaigns',
@@ -143,7 +143,7 @@ const LABELS = {
             'Your open campaign on the portal is still waiting for your answer. Please complete the tasks assigned to you as soon as possible.',
         hintTargets: 'Suppliers of the selected campaigns',
         noteReminder:
-            'beCPG keeps no reminder log: the "Last reminder" column shows the last activity on the campaign, the closest fact actually available. Per-state history would require the OLAP cube (§4.6.6).',
+            'beCPG keeps no reminder log: the "Last reminder" column shows the last activity on the campaign, the closest fact actually available.',
     },
 };
 

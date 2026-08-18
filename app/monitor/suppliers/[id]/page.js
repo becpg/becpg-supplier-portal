@@ -75,7 +75,7 @@ const LABELS = {
         },
         why: {
             title: 'Pourquoi ce statut',
-            subtitle: 'Les lignes qui déclenchent le statut dérivé (§5.4.3)',
+            subtitle: 'Les lignes qui décident du statut',
             empty: 'Aucune anomalie : documents obligatoires valides, aucune NC bloquante, aucun catalogue bloquant.',
             more: '… et {count} autre(s)',
             entity: 'sur {name}',
@@ -163,7 +163,7 @@ const LABELS = {
         },
         why: {
             title: 'Why this status',
-            subtitle: 'The rows that trigger the derived status (§5.4.3)',
+            subtitle: 'The rows that decide the status',
             empty: 'No anomaly: mandatory documents valid, no blocking NC, no blocking catalog.',
             more: '… and {count} more',
             entity: 'on {name}',

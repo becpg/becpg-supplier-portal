@@ -75,7 +75,7 @@ const LABELS = {
         completionEmpty: 'Aucun catalogue actif sur ce fournisseur',
         completionScore: 'Complétude moyenne',
         approval: 'Statut d’agrément',
-        approvalDerived: 'Calculé à la volée, jamais stocké (§5.4.3)',
+        approvalDerived: 'Recalculé à chaque affichage',
         history: 'Évolution',
         historyUnavailable: 'Historique indisponible',
         historyWhy:
@@ -118,7 +118,7 @@ const LABELS = {
         completionEmpty: 'No active catalog on this supplier',
         completionScore: 'Mean completeness',
         approval: 'Approval status',
-        approvalDerived: 'Derived on the fly, never stored (§5.4.3)',
+        approvalDerived: 'Recomputed on every render',
         history: 'Trend',
         historyUnavailable: 'History unavailable',
         historyWhy:

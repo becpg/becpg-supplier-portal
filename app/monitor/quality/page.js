@@ -112,7 +112,7 @@ const LABELS = {
             'Une non-conformité ouverte vous concerne. Merci de traiter les actions correctives associées sur le portail dans les meilleurs délais.',
         hintTargets: 'Fournisseurs des NC sélectionnées',
         note:
-            'Délai de traitement : depuis la création de la NC ; pour une NC fermée, entre sa création et sa dernière modification — beCPG ne stocke pas de date de clôture. L’historique par état demanderait le cube OLAP (§4.6.6).',
+            'Délai de traitement : depuis la création de la NC ; pour une NC fermée, entre sa création et sa dernière modification — beCPG ne stocke pas de date de clôture.',
     },
     en: {
         title: 'Non-conformities',
@@ -156,7 +156,7 @@ const LABELS = {
             'An open non-conformity concerns you. Please handle the related corrective actions on the portal as soon as possible.',
         hintTargets: 'Suppliers of the selected NCs',
         note:
-            'Processing delay: since the NC was created; for a closed NC, between its creation and its last modification — beCPG stores no closure date. Per-state history would require the OLAP cube (§4.6.6).',
+            'Processing delay: since the NC was created; for a closed NC, between its creation and its last modification — beCPG stores no closure date.',
     },
 };
 
