@@ -7,7 +7,7 @@
  *
  * ```
  * form            { step, definition: { tabs, sets, fields } }   // values included
- * entityDataList  { step, columns, rows, total, page, pageSize }
+ * entityDataList  { step, columns, rowForm, rows, total, page, pageSize }
  * survey          { step, listId, questions, answers, disabled } // NOT a datalist
  * documents       { step, folderNodeRef, documents }
  * ```

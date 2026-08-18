@@ -92,6 +92,7 @@ export const DATALIST_LABELS = {
         rows: '{count} ligne(s)',
         addRow: 'Ajouter une ligne',
         deleteRow: 'Supprimer la ligne',
+        editRow: 'Modifier la ligne',
         moveUp: 'Monter',
         moveDown: 'Descendre',
         actions: 'Actions',
@@ -168,6 +169,7 @@ export const DATALIST_LABELS = {
         rows: '{count} row(s)',
         addRow: 'Add a row',
         deleteRow: 'Delete row',
+        editRow: 'Edit the row',
         moveUp: 'Move up',
         moveDown: 'Move down',
         actions: 'Actions',
@@ -409,6 +411,8 @@ function normalizePayload(raw) {
         listNodeRef: raw?.listNodeRef || step.listNodeRef || null,
         itemType: raw?.itemType || step.itemId || null,
         columns: Array.isArray(raw?.columns) ? raw.columns : [],
+        // The item's own form, when beCPG sent one — the row editor's fields.
+        rowForm: raw?.rowForm || null,
         rows: Array.isArray(raw?.rows) ? raw.rows : [],
         total: Number(raw?.total ?? (Array.isArray(raw?.rows) ? raw.rows.length : 0)),
         pageSize: Number(raw?.pageSize) || 0,
@@ -620,6 +624,13 @@ export function useDataList(options = {}) {
     }, [payload.rows, drafts]);
 
     const columns = payload.columns;
+    /*
+     * The item's own form, when beCPG sent one — see `RowFormModal`. It carries
+     * the fields the datagrid form deliberately leaves out, the parent of an
+     * ingredient first among them. `null` means "no row editor", never "no
+     * fields".
+     */
+    const rowForm = payload.rowForm || null;
 
     const readOnly = forcedReadOnly || payload.readOnly || payload.frozen;
     const frozen = payload.frozen;
@@ -862,6 +873,7 @@ export function useDataList(options = {}) {
         (rowKey) => Object.keys(dirty[rowKey] || {}).length > 0,
         [dirty],
     );
+
 
     /** Adds an empty local row. It is persisted by `commitRow`, not before. */
     const addRow = useCallback(
@@ -1143,6 +1155,23 @@ export function useDataList(options = {}) {
      *
      * @returns {Promise<{saved: number, failed: number}>}
      */
+    /**
+     * Writes a whole row at once — what the row editor submits.
+     *
+     * It goes through `setCells` and `commitRow` rather than around them, so the
+     * optimistic write, the rollback and the row status are the ones the grid
+     * already has. `updateDirty` writes its ref synchronously, so the commit
+     * that follows in the same tick really sees these values.
+     *
+     * @param {Object} row
+     * @param {Object} values keyed by prefixed column/field name
+     * @returns {Promise<Object|null>} what `commitRow` returned
+     */
+    const saveRowValues = useCallback(async (row, values) => {
+        setCells(row, values || {});
+        return commitRow(row);
+    }, [setCells, commitRow]);
+
     const commitAll = useCallback(async () => {
         const keys = Object.keys(dirtyRef.current);
         const byKey = new Map(rowsRef.current.map((row) => [row.key, row]));
@@ -1329,6 +1358,7 @@ export function useDataList(options = {}) {
         total,
         listNodeRef: payload.listNodeRef,
         itemType: payload.itemType,
+        rowForm,
         title: payload.title,
         step: payload.step,
 
@@ -1369,6 +1399,7 @@ export function useDataList(options = {}) {
         /* editing */
         setCell,
         setCells,
+        saveRowValues,
         commitRow,
         commitAll,
         discardRow,

@@ -714,6 +714,8 @@ function moveFocusHorizontally(rowEl, cellIndex, direction) {
  * @param {Object[]} props.nestedColumns nested columns, rendered in the sub-section
  * @param {Object} props.list the `useDataList` instance
  * @param {Object} [props.context] `{ entityNodeRef, itemType, formId }`
+ * @param {Function} [props.onEditRow] `(row) => void` — opens the row editor, only
+ *        offered when beCPG sent the item's own form
  * @param {Function} [props.onDelete] `(row) => void` — opens the confirmation
  * @param {boolean} [props.showOrder] renders the reorder column
  * @param {boolean} [props.showActions] renders the actions column
@@ -729,6 +731,7 @@ export function DataListRow({
     nestedColumns = [],
     list,
     context,
+    onEditRow,
     onDelete,
     onAddRow,
     onDuplicate,
@@ -1001,6 +1004,19 @@ export function DataListRow({
                                         size="icon"
                                         className="becpg-grid-icon"
                                         onClick={() => onDuplicate(row)}
+                                    />
+                                ) : null}
+                                {/* The fields the grid does not show — the parent of
+                                    an ingredient above all. Absent when beCPG sent
+                                    no default form for the item. */}
+                                {onEditRow && list.rowForm && list.canEditRow(row) && !row.draft ? (
+                                    <IconButton
+                                        icon="edit"
+                                        label={label('editRow')}
+                                        variant="ghost"
+                                        size="icon"
+                                        className="becpg-grid-icon"
+                                        onClick={() => onEditRow(row)}
                                     />
                                 ) : null}
                                 {list.canDeleteRow(row) && onDelete ? (

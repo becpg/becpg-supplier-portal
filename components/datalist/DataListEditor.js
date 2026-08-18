@@ -78,6 +78,7 @@ import { api } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { DataListRow, FOCUSABLE } from '@/components/datalist/DataListRow';
 import { DataListCardRow } from '@/components/datalist/DataListCardRow';
+import { RowFormModal } from '@/components/datalist/RowFormModal';
 import { DataListToolbar, ReadOnlyNotice } from '@/components/datalist/DataListToolbar';
 import { isNestedColumn, useDataList, useDataListLabels } from '@/components/datalist/useDataList';
 import { normalizeLabel, parseClipboardTable, planPaste } from '@/components/datalist/paste';
@@ -179,6 +180,8 @@ export function DataListEditor({
     // keeps the supplier in the column he was typing.
     const [focusTarget, setFocusTarget] = useState(null);
     const [pasteReport, setPasteReport] = useState(null);
+    // The row whose own form is open — see `RowFormModal`.
+    const [editingRow, setEditingRow] = useState(null);
     const [pasting, setPasting] = useState(false);
     const [shortcutsOpen, setShortcutsOpen] = useState(false);
     const [savingPaste, setSavingPaste] = useState(false);
@@ -710,6 +713,7 @@ export function DataListEditor({
                                         list={list}
                                         context={rowContext}
                                         onDelete={setPendingDelete}
+                                        onEditRow={setEditingRow}
                                         onAddRow={list.canCreate ? handleAdd : undefined}
                                         onDuplicate={list.canCreate ? handleDuplicate : undefined}
                                         showOrder={showOrder}
@@ -763,6 +767,7 @@ export function DataListEditor({
                                 list={list}
                                 context={rowContext}
                                 onDelete={setPendingDelete}
+                                onEditRow={setEditingRow}
                                 onDuplicate={list.canCreate ? handleDuplicate : undefined}
                                 showOrder={showOrder}
                                 autoFocus={row.key === focusTarget?.key}
@@ -824,6 +829,16 @@ export function DataListEditor({
                     ) : null}
                 </>
             )}
+
+            {editingRow && list.rowForm ? (
+                <RowFormModal
+                    list={list}
+                    row={editingRow}
+                    rowForm={list.rowForm}
+                    entityNodeRef={entityId}
+                    onClose={() => setEditingRow(null)}
+                />
+            ) : null}
 
             <ConfirmModal
                 open={Boolean(pendingDelete)}
