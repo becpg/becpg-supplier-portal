@@ -126,7 +126,7 @@ function CollapsedStepButton({ step, index, total, active, selectable, onSelect,
                             ? 'border-[var(--status-warn)] bg-[var(--status-warn-bg)] text-[var(--status-warn)]'
                             : active
                               ? 'border-[var(--becpg-blue)] bg-[var(--becpg-blue)] text-white'
-                              : step.visited
+                              : step.visited && step.evaluated !== false
                                 ? 'border-[var(--becpg-green)] bg-[var(--becpg-green)]/25 text-[var(--becpg-blue)]'
                                 : 'border-[var(--becpg-grey)] bg-white text-[var(--becpg-dark-grey)]',
                     ].join(' ')}
@@ -162,7 +162,18 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
     // It must NOT read as done: a green check on a step that blocks the
     // completion is the rail contradicting the button.
     const incomplete = Boolean(step.issues && step.issues.count > 0);
-    const done = step.visited && !active && !incomplete;
+    const seen = step.visited && !active && !incomplete;
+    /*
+     * VUE N'EST PAS VÉRIFIÉE.
+     *
+     * `evaluated === false` : l'étape a été ouverte mais n'a pas eu le temps de
+     * dire si elle était complète — le fournisseur n'a fait que passer. Le rail
+     * l'annonce toujours « Vue », parce qu'elle l'est, mais sans la coche verte :
+     * celle-ci affirmerait une vérification qui n'a pas eu lieu (#35846). Une
+     * étape qui ne rend jamais de verdict — une liste, les documents — n'a pas
+     * cette clé et reste terminée dès qu'elle est vue.
+     */
+    const done = seen && step.evaluated !== false;
     const icon = step.frozen
         ? 'lock'
         : incomplete
@@ -204,7 +215,7 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
             ? labels.frozen
             : step.readOnly
               ? labels.readOnly
-              : done
+              : seen
                 ? labels.done
                 : selectable
                   ? labels.todo

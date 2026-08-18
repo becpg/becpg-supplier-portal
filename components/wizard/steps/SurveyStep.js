@@ -180,10 +180,23 @@ export function SurveyStep({
         if (!onIssues) {
             return;
         }
+        /*
+         * Tant que l'arbre n'est pas lu, l'étape ne statue pas.
+         *
+         * `progress` est calculé par `DecisionTree` une fois les questions
+         * chargées ; avant cela `missing` vaut `[]`, et ce compte rendu disait
+         * donc « rien ne manque » dès le premier rendu. Passer vite sur
+         * l'onglet suffisait à le faire marquer validé alors qu'aucune réponse
+         * n'avait été relue (#35846).
+         */
+        if (!readOnly && (call.loading || !data || progress === null)) {
+            onIssues(step.id, { pending: true, count: 0, labels: [] });
+            return;
+        }
         onIssues(step.id, readOnly
             ? { count: 0, labels: [] }
             : { count: missing.length, labels: missing.map((question) => question.label) });
-    }, [onIssues, step.id, missing, readOnly]);
+    }, [onIssues, step.id, missing, readOnly, call.loading, data, progress]);
 
     // The answers to send are read at send time, never captured in the closure:
     // a failed write must re-read whatever has been answered since (§4.4 F2).

@@ -544,16 +544,31 @@ export function Wizard({
      */
     const [stepIssues, setStepIssues] = useState({});
 
+    /*
+     * TROIS VERDICTS, PAS DEUX.
+     *
+     * Le registre ne retenait que « il manque n réponses » et effaçait tout le
+     * reste : « rien ne manque » et « je n'ai pas encore regardé » y étaient la
+     * même absence d'entrée. Le rail lisant cette absence comme « étape vue et
+     * propre », il suffisait de passer vite sur le questionnaire pour le voir se
+     * marquer validé sans qu'une seule réponse ait été relue (#35846).
+     *
+     * Une entrée `pending` dit maintenant « pas encore statué », et une entrée à
+     * zéro dit « statué, rien ne manque ». Ce que l'absence signifie n'a pas
+     * changé : cette étape ne rend jamais de verdict — une liste, des documents.
+     */
     const reportStepIssues = useCallback((stepId, issues) => {
         setStepIssues((current) => {
-            const next = issues && issues.count > 0 ? issues : null;
+            const next = issues || null;
             const previous = current[stepId] || null;
-            // Same verdict, same object identity: without this the report fires
-            // on every keystroke and re-renders the whole rail for nothing.
             if (!next && !previous) {
                 return current;
             }
-            if (next && previous && next.count === previous.count
+            // Same verdict, same object identity: without this the report fires
+            // on every keystroke and re-renders the whole rail for nothing.
+            if (next && previous
+                && Boolean(next.pending) === Boolean(previous.pending)
+                && next.count === previous.count
                 && next.labels.join('|') === previous.labels.join('|')) {
                 return current;
             }
@@ -569,19 +584,25 @@ export function Wizard({
     }, []);
 
     const incompleteSteps = useMemo(
-        () => steps.filter((step) => stepIssues[step.id]),
+        () => steps.filter((step) => (stepIssues[step.id]?.count || 0) > 0),
         [steps, stepIssues],
     );
 
     const visitedSteps = useMemo(
-        () => steps.map((step) => ({
-            ...step,
-            visited: nav.visited.includes(step.id),
-            // The rail is where "which step is not finished" belongs: the answer
-            // used to live only inside the step the supplier happened to be on,
-            // so leaving it took the answer with it.
-            issues: stepIssues[step.id] || null,
-        })),
+        () => steps.map((step) => {
+            const reported = stepIssues[step.id] || null;
+            return {
+                ...step,
+                visited: nav.visited.includes(step.id),
+                // The rail is where "which step is not finished" belongs: the answer
+                // used to live only inside the step the supplier happened to be on,
+                // so leaving it took the answer with it.
+                issues: reported && reported.count > 0 ? reported : null,
+                // `undefined` for a step that never reports — a list, the
+                // documents — so the rail keeps treating those as done once seen.
+                ...(reported ? { evaluated: !reported.pending } : {}),
+            };
+        }),
         [steps, nav.visited, stepIssues],
     );
 
@@ -1020,7 +1041,7 @@ export function Wizard({
             // acceptable: the gap is then reported, not opposed.
             // See `finishDisabled`: `draft` allows saving, not the submission
             // of an incomplete sheet.
-            const localGap = steps.find((step) => stepIssues[step.id]);
+            const localGap = steps.find((step) => (stepIssues[step.id]?.count || 0) > 0);
             if (localGap) {
                 const issues = stepIssues[localGap.id];
                 toast.error(new Error(fill(labels.finishMissingStep, {

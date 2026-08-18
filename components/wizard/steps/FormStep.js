@@ -248,12 +248,25 @@ export function FormStep({
             .map((field) => field.label || field.name);
     }, [definition, readOnly, form.values]);
 
+    /*
+     * PAS ENCORE LU N'EST PAS RIEN À SIGNALER.
+     *
+     * Ce compte rendu partait au premier rendu, avant que la définition ne soit
+     * arrivée : `missing` valait `[]` et l'assistant enregistrait « rien ne
+     * manque ». Un fournisseur qui ne fait que passer sur l'étape la voyait donc
+     * se marquer terminée, obligatoires vides compris (#35846). Tant que la
+     * lecture est en cours, l'étape annonce qu'elle n'a pas encore statué.
+     */
     useEffect(() => {
         if (!onIssues || !step) {
             return;
         }
+        if (!definition) {
+            onIssues(step.id, { pending: true, count: 0, labels: [] });
+            return;
+        }
         onIssues(step.id, { count: missing.length, labels: missing });
-    }, [onIssues, step, missing]);
+    }, [onIssues, step, missing, definition]);
 
     // "Champ manquant" links from the conformity step land here.
     useEffect(() => {
