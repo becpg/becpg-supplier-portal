@@ -89,7 +89,13 @@ import { controlParams } from '@/components/form/validation';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
 
 /** Pause after the last keystroke before querying, in ms. */
-export const DEBOUNCE_MS = 250;
+export /**
+ * How long a suggestion request is given before it is called a failure.
+ * Deliberately shorter than the client default of 45 s.
+ */
+const SEARCH_TIMEOUT = 20000;
+
+const DEBOUNCE_MS = 250;
 
 /** Suggestions per page. Matches the adapter's default. */
 export const PAGE_SIZE = 25;
@@ -421,7 +427,18 @@ export function DatasourcePicker({
                     pageSize: PAGE_SIZE,
                     values: request.values || {},
                 },
-                signal ? { signal } : undefined,
+                {
+                    ...(signal ? { signal } : {}),
+                    /*
+                     * A picker that has not answered in twenty seconds is a
+                     * picker that will not answer. The client default is 45 s —
+                     * sized for a formulation round trip — and a supplier reads
+                     * that wait as "it spins and nothing comes" (#35846). Failing
+                     * visibly is better: the field then says it could not read
+                     * its list, instead of pretending to search.
+                     */
+                    timeout: SEARCH_TIMEOUT,
+                },
             );
         },
         [field.id],
