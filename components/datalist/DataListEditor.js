@@ -181,7 +181,7 @@ export function DataListEditor({
     const [pasteReport, setPasteReport] = useState(null);
     const [pasting, setPasting] = useState(false);
     const [shortcutsOpen, setShortcutsOpen] = useState(false);
-    const [savingAll, setSavingAll] = useState(false);
+    const [savingPaste, setSavingPaste] = useState(false);
     const resolveCache = useRef(new Map());
     const focusedRef = useRef(null);
 
@@ -286,15 +286,49 @@ export function DataListEditor({
         }
     }, [pendingDelete, list]);
 
-    const handleSaveAll = useCallback(async () => {
-        setSavingAll(true);
+    /*
+     * The one bulk save that is genuinely owed.
+     *
+     * Every other write commits itself — on blur, on Enter, on a final-value
+     * control. A paste is the exception: it fills rows nobody focused, so
+     * nothing would ever blur them. Only the pasted keys are committed, never
+     * the whole grid, so a row someone is still typing in is not swept up.
+     */
+    /*
+     * Unmounting is the one exit that produces no blur.
+     *
+     * A row commits itself when the focus leaves it, and leaving a step moves
+     * the focus to « Suivant », so navigation is covered. Closing the sheet or
+     * unmounting the grid is not: whatever is still dirty goes out here rather
+     * than being lost — spec §4.4 F2, no input can be lost.
+     */
+    const listRef = useRef(list);
+    useEffect(() => {
+        listRef.current = list;
+    });
+    useEffect(() => {
+        const flush = listRef;
+        return () => { flush.current.commitAll(); };
+    }, []);
+
+    const savePastedRows = useCallback(async () => {
+        if (!pasteReport) {
+            return;
+        }
+        setSavingPaste(true);
         try {
-            await list.commitAll();
+            for (const key of pasteReport.keys) {
+                const row = list.rows.find((entry) => entry.key === key);
+                if (row) {
+                    await list.commitRow(row);
+                }
+            }
+            setPasteReport(null);
         }
         finally {
-            setSavingAll(false);
+            setSavingPaste(false);
         }
-    }, [list]);
+    }, [list, pasteReport]);
 
     const showOrder = list.canReorder;
     const rows = list.rows;
@@ -480,8 +514,6 @@ export function DataListEditor({
                 title={title}
                 description={description}
                 onAdd={editable ? () => handleAdd() : undefined}
-                onSaveAll={editable ? handleSaveAll : undefined}
-                savingAll={savingAll}
                 onShowShortcuts={editable ? () => setShortcutsOpen(true) : undefined}
                 actions={actions}
             />
@@ -513,9 +545,22 @@ export function DataListEditor({
                                 : label('pasteNothing')}
                         </p>
                         {pasteReport.keys.length > 0 ? (
-                            <Button variant="outline" size="sm" icon="undo" onClick={undoPaste}>
-                                {label('pasteUndo')}
-                            </Button>
+                            <>
+                                <Button variant="outline" size="sm" icon="undo" onClick={undoPaste}>
+                                    {label('pasteUndo')}
+                                </Button>
+                                {editable ? (
+                                    <Button
+                                        variant="primary"
+                                        size="sm"
+                                        icon="save"
+                                        loading={savingPaste}
+                                        onClick={savePastedRows}
+                                    >
+                                        {label('pasteSave', { count: pasteReport.keys.length })}
+                                    </Button>
+                                ) : null}
+                            </>
                         ) : null}
                         <IconButton
                             icon="close"

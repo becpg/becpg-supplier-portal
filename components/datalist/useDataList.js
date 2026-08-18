@@ -103,8 +103,6 @@ export const DATALIST_LABELS = {
         sortBy: 'Trier par {column}',
         saving: 'Enregistrement…',
         saved: 'Enregistré',
-        unsaved: 'Modifications non enregistrées',
-        saveRow: 'Enregistrer la ligne',
         discard: 'Annuler les modifications',
         failed: 'Échec de l’enregistrement',
         retry: 'Réessayer',
@@ -134,9 +132,6 @@ export const DATALIST_LABELS = {
         mandatory: 'Champ obligatoire',
         detail: 'Détail',
         duplicate: 'Dupliquer cette ligne',
-        saveAll: 'Tout enregistrer',
-        pending: '{count} ligne(s) non enregistrée(s)',
-        allSaved: 'Tout est enregistré',
         shortcuts: 'Raccourcis clavier',
         shortcutsTitle: 'Saisir au clavier',
         shortcutList: [
@@ -153,6 +148,7 @@ export const DATALIST_LABELS = {
         pasteApplied: '{cells} valeur(s) collée(s) sur {rows} ligne(s), dont {created} nouvelle(s).',
         pasteNothing: 'Rien n’a pu être collé.',
         pasteUndo: 'Annuler le collage',
+        pasteSave: 'Enregistrer les {count} ligne(s)',
         pasteResolving: 'Recherche des libellés…',
         pasteUnmatched: '{count} valeur(s) non reprise(s) — corrigez-les à la main :',
         pasteExtraColumns: '{count} colonne(s) collée(s) au-delà de la dernière colonne de la liste : ignorée(s).',
@@ -183,8 +179,6 @@ export const DATALIST_LABELS = {
         sortBy: 'Sort by {column}',
         saving: 'Saving…',
         saved: 'Saved',
-        unsaved: 'Unsaved changes',
-        saveRow: 'Save row',
         discard: 'Discard changes',
         failed: 'Save failed',
         retry: 'Retry',
@@ -214,9 +208,6 @@ export const DATALIST_LABELS = {
         mandatory: 'Required field',
         detail: 'Detail',
         duplicate: 'Duplicate this row',
-        saveAll: 'Save everything',
-        pending: '{count} unsaved row(s)',
-        allSaved: 'Everything is saved',
         shortcuts: 'Keyboard shortcuts',
         shortcutsTitle: 'Typing with the keyboard',
         shortcutList: [
@@ -233,6 +224,7 @@ export const DATALIST_LABELS = {
         pasteApplied: '{cells} value(s) pasted over {rows} row(s), {created} of them new.',
         pasteNothing: 'Nothing could be pasted.',
         pasteUndo: 'Undo the paste',
+        pasteSave: 'Save the {count} row(s)',
         pasteResolving: 'Looking the labels up…',
         pasteUnmatched: '{count} value(s) not taken — fix them by hand:',
         pasteExtraColumns: '{count} pasted column(s) past the last column of the list: ignored.',
@@ -1364,9 +1356,6 @@ export function useDataList(options = {}) {
         deleteRow,
         moveRow,
         isRowDirty,
-        // How many rows are waiting to be written. The toolbar shows it, and it
-        // is the only number that can honestly answer "is my work saved?".
-        pendingCount: Object.keys(dirty).length,
         statusOf: (rowKey) => status[rowKey] || { state: ROW_STATUS.IDLE },
 
         /* protected fields */

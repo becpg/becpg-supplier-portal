@@ -37,8 +37,6 @@ import { entityTypeLabel } from '@/components/products/ProductHeader';
 const LABELS = {
     fr: {
         mandatory: 'Obligatoire',
-        optional: 'Facultatif',
-        blocking: 'Bloquant',
         satisfied: 'Fourni',
         upload: 'Déposer',
         renew: 'Renouveler',
@@ -52,7 +50,7 @@ const LABELS = {
         nothing: 'Aucune exigence documentaire',
         nothingHint: 'Le client n’a pas encore défini de documents attendus pour ce périmètre.',
         openCount: '{count} à traiter',
-        blockingCount: '{count} bloquant(s)',
+        blockingCount: '{count} obligatoire(s) à régulariser',
         category: 'Catégorie',
         readOnly: 'Le dépôt est fermé sur cette fiche.',
         noEntity: 'Documents fournisseur',
@@ -62,8 +60,6 @@ const LABELS = {
     },
     en: {
         mandatory: 'Mandatory',
-        optional: 'Optional',
-        blocking: 'Blocking',
         satisfied: 'Provided',
         upload: 'Upload',
         renew: 'Renew',
@@ -77,7 +73,7 @@ const LABELS = {
         nothing: 'No document requirement',
         nothingHint: 'The customer has not defined any expected document for this scope yet.',
         openCount: '{count} to handle',
-        blockingCount: '{count} blocking',
+        blockingCount: '{count} mandatory to fix',
         category: 'Category',
         readOnly: 'Uploads are closed on this sheet.',
         noEntity: 'Supplier documents',
@@ -226,16 +222,16 @@ function RequirementRow({
                                 daysToExpiry={requirement.daysToExpiry}
                                 size="sm"
                             />
+                            {/* One pill, not two: « Bloquant » was `isMandatory`
+                                AND a status of missing / expired / refused, both
+                                already written beside it in words and in icons.
+                                The tone emphasises, it never carries the meaning. */}
                             {requirement.isMandatory ? (
-                                <span className="pill pill-neutral pill-no-dot pill-sm">
+                                <span className={`pill pill-no-dot pill-sm ${
+                                    requirement.blocking ? 'pill-danger' : 'pill-neutral'}`}
+                                >
                                     <Icon name="push_pin" size={12} />
                                     <span>{labels.mandatory}</span>
-                                </span>
-                            ) : null}
-                            {requirement.blocking ? (
-                                <span className="pill pill-danger pill-no-dot pill-sm">
-                                    <Icon name="block" size={12} />
-                                    <span>{labels.blocking}</span>
                                 </span>
                             ) : null}
                             <AiValidationBadge
@@ -427,7 +423,8 @@ function RequirementGroup({
                         ) : null}
                         {blockingCount > 0 ? (
                             <span className="pill pill-danger pill-no-dot pill-sm">
-                                {fill(labels.blockingCount, { count: blockingCount })}
+                                <Icon name="priority_high" size={12} />
+                                <span>{fill(labels.blockingCount, { count: blockingCount })}</span>
                             </span>
                         ) : openCount > 0 ? (
                             <span className="pill pill-warn pill-no-dot pill-sm">

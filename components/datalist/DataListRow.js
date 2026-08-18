@@ -375,7 +375,7 @@ export function RowStatus({ row, list, compact = false }) {
                   * A draft that is still missing a mandatory column is held back
                   * by `commitRow` on purpose (a half-empty create earns a 400).
                   * That verdict used to be invisible: the row simply never
-                  * saved. It now says so, once, next to the save button.
+                  * saved. It now says so, once, beside the row.
                   */}
                 {status.incomplete ? (
                     <Tooltip content={label('incomplete')} placement="left">
@@ -385,14 +385,14 @@ export function RowStatus({ row, list, compact = false }) {
                         </span>
                     </Tooltip>
                 ) : null}
-                <IconButton
-                    icon="save"
-                    label={label('saveRow')}
-                    variant="ghost"
-                    size="icon"
-                    className="becpg-grid-icon"
-                    onClick={() => list.commitRow(row)}
-                />
+                {/*
+                  * No save button here. The row commits itself when the focus
+                  * leaves it, on Enter and on any final-value control; offering
+                  * a button beside that promised a step the supplier never had
+                  * to take, and made an automatic save look optional. A save
+                  * control appears only where one is genuinely owed — the error
+                  * branch above, and the paste report.
+                  */}
                 <IconButton
                     icon="undo"
                     label={label('discard')}

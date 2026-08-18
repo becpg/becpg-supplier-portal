@@ -79,6 +79,7 @@ const LABELS = {
         readOnly: 'Consultation seule',
         noneAnswered: 'Aucune réponse enregistrée',
         noneAnsweredHint: 'Le questionnaire s’affichera au fur et à mesure de vos réponses.',
+        dropped: 'Votre client n’a pas prévu de place pour {count} de vos réponses : {questions}. Elles ne sont pas enregistrées — signalez-le à votre client.',
     },
     en: {
         discuss: 'Discussion',
@@ -92,12 +93,31 @@ const LABELS = {
         readOnly: 'View only',
         noneAnswered: 'No answer recorded',
         noneAnsweredHint: 'The questionnaire unfolds as you answer it.',
+        dropped: 'Your customer left nowhere to store {count} of your answers: {questions}. They are not saved — tell your customer.',
     },
 };
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
         (vars[name] === undefined || vars[name] === null ? match : String(vars[name])));
+}
+
+/** At most three question ids, named the way the supplier read them. */
+const NAMED_QUESTIONS = 3;
+
+/**
+ * Names the questions behind a list of ids, for a message the supplier reads.
+ *
+ * @param {Object} survey the questionnaire payload, `{ questions }`
+ * @param {string[]} ids
+ * @returns {string}
+ */
+function questionLabels(survey, ids) {
+    const byId = new Map((survey?.questions || []).map((question) => [question.id, question]));
+    const labels = ids.map((id) => byId.get(id)?.label || id);
+    return labels.length > NAMED_QUESTIONS
+        ? `${labels.slice(0, NAMED_QUESTIONS).join(', ')}…`
+        : labels.join(', ');
 }
 
 /**
@@ -216,7 +236,7 @@ export function SurveyStep({
                         return null;
                     }
                     try {
-                        return await api.put(`wizard/${encodeURIComponent(entityId)}/step/${encodeURIComponent(step.id)}`, {
+                        const result = await api.put(`wizard/${encodeURIComponent(entityId)}/step/${encodeURIComponent(step.id)}`, {
                             answers: payload,
                             // A questionnaire answer changes no formulated value:
                             // reformulating on every click would cost a round trip
@@ -224,6 +244,22 @@ export function SurveyStep({
                             // runs when the user leaves the step.
                             formulate: false,
                         }, { params });
+
+                        /*
+                         * beCPG answers 200 for answers it stored nowhere: it
+                         * updates the rows the entity already has and creates
+                         * none, so a question reached through `survey:nextQuestion`
+                         * with no row of its own is acknowledged and dropped. The
+                         * adapter re-reads and names them; a supplier must never be
+                         * told « enregistré » over that.
+                         */
+                        if (Array.isArray(result?.dropped) && result.dropped.length > 0) {
+                            throw new Error(fill(labels.dropped, {
+                                count: result.dropped.length,
+                                questions: questionLabels(data, result.dropped),
+                            }));
+                        }
+                        return result;
                     }
                     catch (error) {
                         toast.error(error);
@@ -233,7 +269,7 @@ export function SurveyStep({
                 { key: `survey:${step.id}` },
             );
         },
-        [autoSave, entityId, step.id, params, toast],
+        [autoSave, entityId, step.id, params, toast, labels, data],
     );
 
     const check = useCallback(() => {
