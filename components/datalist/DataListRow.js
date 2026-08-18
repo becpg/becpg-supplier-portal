@@ -52,7 +52,7 @@
 import { createElement, useCallback, useRef, useState } from 'react';
 import { getControl } from '@/components/form/controls';
 import { renderDataListCell } from '@/components/datalist/renderers';
-import { isMachineValue } from '@/lib/format';
+import { isMachineValue, readableInk } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { Icon, IconButton, Spinner } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -897,7 +897,7 @@ export function DataListRow({
                 onBlur={summary ? undefined : handleBlur}
                 onKeyDown={summary ? undefined : handleKeyDown}
                 aria-label={summary ? label('totalRow') : row.draft ? label('newRow') : label('row', { index })}
-                style={paint ? { backgroundColor: paint } : undefined}
+                style={paint ? { backgroundColor: paint, color: readableInk(paint) } : undefined}
                 // How a paste finds which line it was dropped on.
                 data-row-key={row.key}
                 data-total={summary ? 'true' : undefined}

@@ -26,7 +26,7 @@ import {
 } from '@/components/datalist/DataListRow';
 import { renderDataListCell } from '@/components/datalist/renderers';
 import { isTotalRow, ROW_STATUS, useDataListLabels } from '@/components/datalist/useDataList';
-import { isMachineValue } from '@/lib/format';
+import { isMachineValue, readableInk } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 
 /**
@@ -121,7 +121,9 @@ export function DataListCardRow({
                 // `bcpg:color`, the same line and the same colour as on a wide
                 // screen — a list that carries meaning through colour must not
                 // lose it on a phone.
-                style={!summary && row.color ? { backgroundColor: row.color } : undefined}
+                style={!summary && row.color
+                    ? { backgroundColor: row.color, color: readableInk(row.color) }
+                    : undefined}
                 // The editor focuses a new card through this, exactly as it does
                 // a new table row — one mechanism for both layouts.
                 data-row-key={row.key}
