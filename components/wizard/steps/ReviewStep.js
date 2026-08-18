@@ -149,15 +149,20 @@ export function unsatisfiedCatalogs(catalogs) {
  * @example
  * blockingCatalogs(catalogs).length === 0; // "Terminer" may be enabled
  */
-export function blockingCatalogs(catalogs, blockingIds = null) {
+export function blockingCatalogs(catalogs, blockingIds = null, { translations = false } = {}) {
     const declaredAll = Array.isArray(blockingIds) && blockingIds.includes('*');
-    return unsatisfiedCatalogs(catalogs).filter((catalog) => {
-        const declared = catalog.blocking ?? catalog.isBlocking;
-        if (declared !== undefined && declared !== null) {
-            return Boolean(declared);
-        }
-        return declaredAll || (Array.isArray(blockingIds) && blockingIds.includes(catalog.id));
-    });
+    return unsatisfiedCatalogs(catalogs)
+        // A row carrying a `locale` is a required TRANSLATION: beCPG stamps the
+        // default language with null and expands one row per other language.
+        // Reported, never opposed, unless the instance asked for it.
+        .filter((catalog) => translations || !catalog.locale)
+        .filter((catalog) => {
+            const declared = catalog.blocking ?? catalog.isBlocking;
+            if (declared !== undefined && declared !== null) {
+                return Boolean(declared);
+            }
+            return declaredAll || (Array.isArray(blockingIds) && blockingIds.includes(catalog.id));
+        });
 }
 
 /**
@@ -171,6 +176,7 @@ export function blockingCatalogs(catalogs, blockingIds = null) {
  * @param {Function} [props.onRetry]
  * @param {Function} [props.onFieldClick] `(field, catalog) => void` — jumps to the field
  * @param {string[]} [props.blockingIds]
+ * @param {boolean} [props.blockingTranslations] a missing translation gates the completion
  * @param {Object} [props.documentSummary] the `summary` of `/documents/requirements`
  * @param {Function} [props.onOpenDocuments]
  * @param {string} [props.className]
@@ -183,6 +189,7 @@ export function ComplianceStep({
     onRetry,
     onFieldClick,
     blockingIds = null,
+    blockingTranslations = false,
     documentSummary = null,
     onOpenDocuments,
     className = '',
@@ -190,7 +197,10 @@ export function ComplianceStep({
     const { lang } = useMessages();
     const labels = LABELS[lang] || LABELS.fr;
 
-    const blocking = useMemo(() => blockingCatalogs(catalogs, blockingIds), [catalogs, blockingIds]);
+    const blocking = useMemo(
+        () => blockingCatalogs(catalogs, blockingIds, { translations: blockingTranslations }),
+        [catalogs, blockingIds, blockingTranslations],
+    );
     // Shown even when nothing blocks: this is the information the supplier comes
     // here for. What changes is the wording and the tone — « à compléter » and
     // not « bloquant » — because the consequence is not the same.

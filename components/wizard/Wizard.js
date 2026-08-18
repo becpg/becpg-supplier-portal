@@ -800,9 +800,12 @@ export function Wizard({
             || null,
         [blockingCatalogIds, wizardCatalogId, wizardState],
     );
+    // A missing translation is reported, not opposed, unless the instance said
+    // otherwise — see `blockingTranslations()` in the wizard adapter.
+    const blockingTranslations = Boolean(wizardState && wizardState.blockingTranslations);
     const blocking = useMemo(
-        () => blockingCatalogs(catalogList, gatingCatalogIds),
-        [catalogList, gatingCatalogIds],
+        () => blockingCatalogs(catalogList, gatingCatalogIds, { translations: blockingTranslations }),
+        [catalogList, gatingCatalogIds, blockingTranslations],
     );
 
     /* -------------------------------------------------------------- movement */
@@ -1118,7 +1121,8 @@ export function Wizard({
                 }
             }
             if (gateList) {
-                const stillBlocking = blockingCatalogs(gateList, gatingCatalogIds);
+                const stillBlocking = blockingCatalogs(gateList, gatingCatalogIds,
+                    { translations: blockingTranslations });
                 if (stillBlocking.length > 0) {
                     setComplianceSeen(true);
                     catalogs.refresh();
@@ -1151,7 +1155,7 @@ export function Wizard({
         }
     }, [
         task, autoSave, toast, labels, router, backHref, entityId,
-        steps, stepIssues, goTo, catalogs, catalogList, gatingCatalogIds, wizardState,
+        steps, stepIssues, goTo, catalogs, catalogList, gatingCatalogIds, blockingTranslations,
     ]);
 
     /* ----------------------------------------------------------- the panels */
@@ -1291,6 +1295,7 @@ export function Wizard({
             // one language only — the box to land on, not just the field.
             onFieldClick={(field) => goToField(field.field || field.name, field.locale || null)}
             blockingIds={gatingCatalogIds}
+            blockingTranslations={blockingTranslations}
             documentSummary={documentSummary}
             onOpenDocuments={() => {
                 const target = steps.find((step) => step.kind === 'documents');

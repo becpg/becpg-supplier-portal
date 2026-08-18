@@ -393,15 +393,17 @@ export function MlTextControl({
     // whole point of #33085: a required language left empty behind the counter.
     const missingRequired = others.filter((locale) => isRequired(locale) && !map[locale]).length;
 
+    /*
+     * A blanked box keeps its key, holding an empty string.
+     *
+     * Dropping the key meant the erasure never travelled: the write endpoint
+     * only touches the locales it is given, so a translation the supplier
+     * cleared stayed in the repository. An empty value is what makes it call
+     * `removeValue`, and everything that tests emptiness here reads `''` as
+     * empty anyway.
+     */
     const setLocale = (locale, text) => {
-        const next = { ...map };
-        if (text === '') {
-            delete next[locale];
-        }
-        else {
-            next[locale] = text;
-        }
-        onChange(next);
+        onChange({ ...map, [locale]: text });
     };
 
     const missingLabel = labels.missing.replace('{count}', String(missingRequired));
