@@ -30,7 +30,6 @@ import { DocumentUpload } from '@/components/documents/DocumentUpload';
 import { RequirementChecklist } from '@/components/documents/RequirementChecklist';
 import { DepositedDocuments } from '@/components/documents/DepositedDocuments';
 import { StepReadOnlyNotice } from '@/components/wizard/steps/FormStep';
-import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
 const LABELS = {
@@ -69,7 +68,9 @@ function fill(template, vars) {
  * @param {string|null} [props.readOnlyReason]
  * @param {Object} [props.autoSave] the wizard's indicator, notified on deposit
  * @param {Function} [props.onUploaded] `(result) => void` — the wizard refreshes the AI step
- * @param {Function} [props.onSummary] `(summary) => void` — feeds the finish gate
+ * @param {Object} props.requirements what `useDocumentRequirements` returns — read
+ *        once at wizard level, so the rail knows what is missing before this step
+ *        is ever opened and the payload is not fetched twice
  * @param {string} [props.className]
  */
 export function DocumentsStep({
@@ -78,26 +79,17 @@ export function DocumentsStep({
     readOnlyReason = null,
     autoSave,
     onUploaded,
-    onSummary,
+    requirements,
     className = '',
 }) {
     const { lang } = useMessages();
     const labels = LABELS[lang] || LABELS.fr;
 
-    const requirements = useApi(entityNodeRef ? 'documents/requirements' : null, {
-        params: { entity: entityNodeRef },
-        onSuccess: (data) => {
-            if (onSummary && data) {
-                onSummary(data.summary || null);
-            }
-        },
-    });
-
     // Bumped on every deposit so the folder listing re-reads: a file dropped
     // through the check-list must appear below without a page reload.
     const [depositCount, setDepositCount] = useState(0);
     const readOnly = Boolean(step && step.readOnly);
-    const summary = requirements.data ? requirements.data.summary : null;
+    const summary = requirements.summary;
 
     const handleUploaded = useCallback(
         (result) => {
@@ -149,8 +141,8 @@ export function DocumentsStep({
             <p className="mb-3 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
 
             <RequirementChecklist
-                groups={requirements.data ? requirements.data.groups : undefined}
-                requirements={requirements.data ? requirements.data.requirements : undefined}
+                groups={requirements.groups}
+                requirements={requirements.requirements}
                 summary={summary}
                 loading={requirements.loading}
                 error={requirements.error}

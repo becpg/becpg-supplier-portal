@@ -249,13 +249,13 @@ export function FormStep({
     }, [definition, readOnly, form.values]);
 
     /*
-     * PAS ENCORE LU N'EST PAS RIEN À SIGNALER.
+     * NOT READ YET IS NOT NOTHING TO REPORT.
      *
-     * Ce compte rendu partait au premier rendu, avant que la définition ne soit
-     * arrivée : `missing` valait `[]` et l'assistant enregistrait « rien ne
-     * manque ». Un fournisseur qui ne fait que passer sur l'étape la voyait donc
-     * se marquer terminée, obligatoires vides compris (#35846). Tant que la
-     * lecture est en cours, l'étape annonce qu'elle n'a pas encore statué.
+     * This report went out on the first render, before the definition had
+     * arrived: `missing` was `[]` and the wizard recorded "nothing is missing".
+     * A supplier merely walking past the step therefore saw it mark itself
+     * finished, empty mandatory fields included. While the read is in flight,
+     * the step says it has not ruled yet.
      */
     useEffect(() => {
         if (!onIssues || !step) {

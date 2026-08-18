@@ -61,7 +61,12 @@ function fill(template, vars) {
 }
 
 /**
- * The technical sheet expected on this entity, if there is one.
+ * What the customer expects on this entity, in documents.
+ *
+ * One read for the whole wizard. The banner takes the technical sheet out of
+ * it, the rail takes the count of mandatory documents still missing — which is
+ * why the Documents step can be marked incomplete before anyone opens it — and
+ * the Documents step itself is handed the payload instead of fetching it again.
  *
  * Kept apart from the rendering so a caller can decide **before** opening a
  * surface for it: a customer with no such type configured must not end up with
@@ -69,9 +74,11 @@ function fill(template, vars) {
  * during its own render without a side effect.
  *
  * @param {string} entityNodeRef
- * @returns {{loading: boolean, sheet: Object|null, refresh: Function}}
+ * @returns {{loading: boolean, error: Error|null, sheet: Object|null,
+ *            requirements: Object[], groups: Object[], summary: Object|null,
+ *            refresh: Function}}
  */
-export function useTechnicalSheet(entityNodeRef) {
+export function useDocumentRequirements(entityNodeRef) {
     const requirements = useApi(entityNodeRef ? 'documents/requirements' : null, {
         params: { entity: entityNodeRef },
     });
@@ -88,7 +95,13 @@ export function useTechnicalSheet(entityNodeRef) {
 
     return {
         loading: requirements.loading,
+        error: requirements.error,
         sheet: rows.find((row) => row.isTechnicalSheet) || null,
+        requirements: rows,
+        groups: (requirements.data && Array.isArray(requirements.data.groups))
+            ? requirements.data.groups
+            : [],
+        summary: (requirements.data && requirements.data.summary) || null,
         refresh: requirements.refresh,
     };
 }
@@ -96,7 +109,7 @@ export function useTechnicalSheet(entityNodeRef) {
 /**
  * @param {Object} props
  * @param {string} props.entityNodeRef the wizard's entity
- * @param {Object} props.state what {@link useTechnicalSheet} returns
+ * @param {Object} props.state what {@link useDocumentRequirements} returns
  * @param {boolean} [props.readOnly] entry is closed on this sheet
  * @param {Function} [props.onUploaded] called after a successful upload — the
  *        wizard re-reads the AI suggestions on it

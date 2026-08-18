@@ -532,6 +532,21 @@ Without a session, the endpoint returns a typed marker
 `{ "error": "no-form-config", "lookupKey": …, "requestedFormId": … }` — distinct from
 `definition: null`, which means "not applicable" (the `documents` step).
 
+### `completion` — the verdict the portal adds to each step
+
+`GET /api/v1/wizard/{entityId}` strips `definition` and adds, per step:
+
+```json
+"completion": { "evaluated": true, "count": 2, "labels": ["Nom légal", "Origine"] }
+```
+
+`evaluated: false` means **the portal cannot rule on this step**, and is a real answer: a
+datalist declares nothing mandatory, so "the list is empty" is not "the step is incomplete".
+It is computed from the definition Share just resolved and the entity that was just read, so
+it costs no extra call, and it uses the same predicate the browser applies to the step it has
+open — the two can never disagree. Its purpose is the step rail: without it, a reopened task
+showed no verdict at all, because the browser only knows the steps it has mounted.
+
 ### Authentication towards Share — resolved
 
 The point was open; it is settled and tested.

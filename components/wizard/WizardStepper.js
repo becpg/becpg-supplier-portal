@@ -40,6 +40,7 @@ const LABELS = {
         frozen: 'Validée par le client',
         readOnly: 'Lecture seule',
         done: 'Vue',
+        complete: 'Complète',
         current: 'Étape en cours',
         todo: 'Pas encore vue',
         locked: 'Disponible plus tard',
@@ -55,6 +56,7 @@ const LABELS = {
         frozen: 'Validated by the customer',
         readOnly: 'Read only',
         done: 'Visited',
+        complete: 'Complete',
         current: 'Current step',
         todo: 'Not visited yet',
         locked: 'Available later',
@@ -126,12 +128,14 @@ function CollapsedStepButton({ step, index, total, active, selectable, onSelect,
                             ? 'border-[var(--status-warn)] bg-[var(--status-warn-bg)] text-[var(--status-warn)]'
                             : active
                               ? 'border-[var(--becpg-blue)] bg-[var(--becpg-blue)] text-white'
-                              : step.visited && step.evaluated !== false
+                              : step.evaluated === true
                                 ? 'border-[var(--becpg-green)] bg-[var(--becpg-green)]/25 text-[var(--becpg-blue)]'
                                 : 'border-[var(--becpg-grey)] bg-white text-[var(--becpg-dark-grey)]',
                     ].join(' ')}
                 >
-                    {incomplete || step.visited || step.frozen || active ? <Icon name={icon} size={15} /> : index}
+                    {incomplete || step.evaluated === true || step.visited || step.frozen || active
+                        ? <Icon name={icon} size={15} />
+                        : index}
                 </span>
                 {/*
                   * The label, on hover and on focus. `pointer-events-none` so it
@@ -164,16 +168,16 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
     const incomplete = Boolean(step.issues && step.issues.count > 0);
     const seen = step.visited && !active && !incomplete;
     /*
-     * VUE N'EST PAS VÉRIFIÉE.
+     * SEEN IS NOT CHECKED.
      *
-     * `evaluated === false` : l'étape a été ouverte mais n'a pas eu le temps de
-     * dire si elle était complète — le fournisseur n'a fait que passer. Le rail
-     * l'annonce toujours « Vue », parce qu'elle l'est, mais sans la coche verte :
-     * celle-ci affirmerait une vérification qui n'a pas eu lieu (#35846). Une
-     * étape qui ne rend jamais de verdict — une liste, les documents — n'a pas
-     * cette clé et reste terminée dès qu'elle est vue.
+     * The green tick used to mean "the supplier walked past this step", which is
+     * why it survived nothing and asserted nothing: a reopened task lost it, and
+     * a step that never rules on itself earned it on sight. It now means what it
+     * says — somebody ruled on this step and found nothing missing. A step no
+     * one can rule on stays neutral, and the rail still says « Vue » for it,
+     * because that much is true.
      */
-    const done = seen && step.evaluated !== false;
+    const done = step.evaluated === true && !incomplete && !active;
     const icon = step.frozen
         ? 'lock'
         : incomplete
@@ -215,11 +219,13 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
             ? labels.frozen
             : step.readOnly
               ? labels.readOnly
-              : seen
-                ? labels.done
-                : selectable
-                  ? labels.todo
-                  : labels.locked;
+              : done
+                ? labels.complete
+                : seen
+                  ? labels.done
+                  : selectable
+                    ? labels.todo
+                    : labels.locked;
 
     if (collapsed) {
         return (

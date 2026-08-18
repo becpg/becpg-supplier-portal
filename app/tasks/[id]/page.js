@@ -47,6 +47,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Wizard } from '@/components/wizard/Wizard';
 import { ReviewStep } from '@/components/wizard/steps/ReviewStep';
 import { DocumentsStep } from '@/components/wizard/steps/DocumentsStep';
+import { useDocumentRequirements } from '@/components/wizard/TechnicalSheetBanner';
 import { SignatureFlow } from '@/components/signature/SignatureFlow';
 import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import { Button } from '@/components/ui/Button';
@@ -161,6 +162,12 @@ function TaskRouter() {
     // deliverable is the authority, not the entity type (invariant I1).
     const wizardId = useMemo(() => (data ? data.wizardId || undefined : undefined), [data]);
 
+    // Read here rather than inside the step: a hook cannot live behind the early
+    // returns below, and a document task is the one branch that renders it.
+    const documents = useDocumentRequirements(
+        data ? (data.entityNodeRef || (data.entity && data.entity.nodeRef) || null) : null,
+    );
+
     if (task.error) {
         return (
             <AppShell title={labels.notFound}>
@@ -243,6 +250,7 @@ function TaskRouter() {
                 <TaskHeader task={data} labels={labels} lang={lang} onDone={task.refresh} />
                 <DocumentsStep
                     entityNodeRef={entityNodeRef}
+                    requirements={documents}
                     step={{
                         id: '__documents',
                         type: 'documents',

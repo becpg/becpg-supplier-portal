@@ -89,7 +89,7 @@ import { WizardStepper } from '@/components/wizard/WizardStepper';
 import { WizardFooter } from '@/components/wizard/WizardFooter';
 import { useAutoSave } from '@/components/wizard/useAutoSave';
 import { HelpPanel } from '@/components/wizard/panels/HelpPanel';
-import { TechnicalSheetBanner, useTechnicalSheet } from '@/components/wizard/TechnicalSheetBanner';
+import { TechnicalSheetBanner, useDocumentRequirements } from '@/components/wizard/TechnicalSheetBanner';
 import { CommentsPanel, useDiscussion } from '@/components/wizard/panels/CommentsPanel';
 import { FormStep } from '@/components/wizard/steps/FormStep';
 import { DataListStep } from '@/components/wizard/steps/DataListStep';
@@ -422,7 +422,7 @@ export function Wizard({
      * what carries it, and it must be known before any conditional rendering.
      * A client with no « fiche technique » type configured gets nothing at all.
      */
-    const technicalSheet = useTechnicalSheet(entityNodeRef);
+    const documents = useDocumentRequirements(entityNodeRef);
 
     /* ------------------------------------------------------------- the steps */
 
@@ -591,14 +591,56 @@ export function Wizard({
         });
     }, []);
 
+    /*
+     * ONE VERDICT PER STEP, FROM THREE SOURCES, IN THIS ORDER.
+     *
+     * 1. the server, which ruled on every form step against the entity it had
+     *    just read — this is what survives a reopened task, where the browser
+     *    knows nothing until a step is mounted;
+     * 2. the documents, from the single wizard-level requirements read, so the
+     *    step is orange while a mandatory document is missing whether or not
+     *    anyone has opened it;
+     * 3. the step currently mounted, which reflects what has just been typed and
+     *    not yet saved, and therefore wins.
+     *
+     * A step nobody can rule on — a list, the conformity — carries
+     * `evaluated: false` and the rail leaves it neutral. That is an answer, not
+     * a gap: nothing declares a datalist mandatory, and painting it green
+     * because it was walked past is what this whole register exists to stop.
+     */
+    const documentVerdict = useMemo(() => {
+        if (documents.loading || !documents.summary) {
+            return { pending: true, count: 0, labels: [] };
+        }
+        const blocking = documents.requirements.filter((item) => item.blocking);
+        return {
+            count: blocking.length,
+            labels: blocking.map((item) => item.label || item.typeLabel || item.name).filter(Boolean),
+        };
+    }, [documents.loading, documents.summary, documents.requirements]);
+
+    const verdicts = useMemo(() => {
+        const map = {};
+        for (const step of steps) {
+            const served = step.completion;
+            if (served && served.evaluated) {
+                map[step.id] = { count: served.count || 0, labels: served.labels || [] };
+            }
+            if (step.kind === 'documents') {
+                map[step.id] = documentVerdict;
+            }
+        }
+        return { ...map, ...stepIssues };
+    }, [steps, stepIssues, documentVerdict]);
+
     const incompleteSteps = useMemo(
-        () => steps.filter((step) => (stepIssues[step.id]?.count || 0) > 0),
-        [steps, stepIssues],
+        () => steps.filter((step) => (verdicts[step.id]?.count || 0) > 0),
+        [steps, verdicts],
     );
 
     const visitedSteps = useMemo(
         () => steps.map((step) => {
-            const reported = stepIssues[step.id] || null;
+            const reported = verdicts[step.id] || null;
             return {
                 ...step,
                 visited: nav.visited.includes(step.id),
@@ -606,12 +648,10 @@ export function Wizard({
                 // used to live only inside the step the supplier happened to be on,
                 // so leaving it took the answer with it.
                 issues: reported && reported.count > 0 ? reported : null,
-                // `undefined` for a step that never reports — a list, the
-                // documents — so the rail keeps treating those as done once seen.
-                ...(reported ? { evaluated: !reported.pending } : {}),
+                evaluated: Boolean(reported) && !reported.pending,
             };
         }),
-        [steps, nav.visited, stepIssues],
+        [steps, nav.visited, verdicts],
     );
 
     /* ---------------------------------------------------------- the autosave */
@@ -688,7 +728,6 @@ export function Wizard({
      */
     const [fieldFocus, setFieldFocus] = useState({ field: null, locale: null, nonce: 0 });
     const focusField = fieldFocus.field;
-    const [documentSummary, setDocumentSummary] = useState(null);
     const [formulating, setFormulating] = useState(false);
     const [finishing, setFinishing] = useState(false);
     const formulatingRef = useRef(false);
@@ -1085,9 +1124,9 @@ export function Wizard({
             // acceptable: the gap is then reported, not opposed.
             // See `finishDisabled`: `draft` allows saving, not the submission
             // of an incomplete sheet.
-            const localGap = steps.find((step) => (stepIssues[step.id]?.count || 0) > 0);
+            const localGap = steps.find((step) => (verdicts[step.id]?.count || 0) > 0);
             if (localGap) {
-                const issues = stepIssues[localGap.id];
+                const issues = verdicts[localGap.id];
                 toast.error(new Error(fill(labels.finishMissingStep, {
                     step: localGap.label,
                     count: issues.count,
@@ -1155,7 +1194,7 @@ export function Wizard({
         }
     }, [
         task, autoSave, toast, labels, router, backHref, entityId,
-        steps, stepIssues, goTo, catalogs, catalogList, gatingCatalogIds, blockingTranslations,
+        steps, verdicts, goTo, catalogs, catalogList, gatingCatalogIds, blockingTranslations,
     ]);
 
     /* ----------------------------------------------------------- the panels */
@@ -1250,8 +1289,11 @@ export function Wizard({
             step={currentStep}
             readOnlyReason={stepReadOnlyReason}
             autoSave={autoSave}
-            onSummary={setDocumentSummary}
-            onUploaded={() => suggestionsCall.refresh()}
+            requirements={documents}
+            onUploaded={() => {
+                documents.refresh();
+                suggestionsCall.refresh();
+            }}
         />
     ) : currentStep.kind === 'form' ? (
         <FormStep
@@ -1296,7 +1338,7 @@ export function Wizard({
             onFieldClick={(field) => goToField(field.field || field.name, field.locale || null)}
             blockingIds={gatingCatalogIds}
             blockingTranslations={blockingTranslations}
-            documentSummary={documentSummary}
+            documentSummary={documents.summary}
             onOpenDocuments={() => {
                 const target = steps.find((step) => step.kind === 'documents');
                 if (target) {
@@ -1340,7 +1382,7 @@ export function Wizard({
     const finishReason = incompleteSteps.length > 0
         ? fill(labels.finishMissingStep, {
             step: incompleteSteps[0].label,
-            count: stepIssues[incompleteSteps[0].id].count,
+            count: verdicts[incompleteSteps[0].id].count,
         })
         : blocking.length > 0
             ? labels.finishBlocked
@@ -1478,7 +1520,7 @@ export function Wizard({
                 */}
                 <TechnicalSheetBanner
                     entityNodeRef={entityNodeRef}
-                    state={technicalSheet}
+                    state={documents}
                     readOnly={Boolean(wizardState.readOnly)}
                     onUploaded={suggestionsCall.refresh}
                 />
