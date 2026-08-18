@@ -47,6 +47,9 @@ const LABELS = {
         // What the rail could not express: a step opened, left, and incomplete.
         // It showed as « Vue », green check included.
         incomplete: '{count} obligatoire(s) manquant(s)',
+        // The customer's own verdict, not the portal's: what the catalogue
+        // expects on this tab and does not find.
+        catalogGap: '{count} information(s) attendue(s) par le catalogue',
         progress: '{percent} % du parcours',
     },
     en: {
@@ -62,6 +65,7 @@ const LABELS = {
         locked: 'Available later',
         /* See the note on the French key. */
         incomplete: '{count} mandatory missing',
+        catalogGap: '{count} field(s) expected by the catalogue',
         progress: '{percent}% of the path',
     },
 };
@@ -101,6 +105,7 @@ function fill(template, vars) {
 function CollapsedStepButton({ step, index, total, active, selectable, onSelect, labels, state, icon, listIconType }) {
     const name = `${step.label} · ${fill(labels.step, { index, total })} · ${state}`;
     const incomplete = Boolean(step.issues && step.issues.count > 0);
+    const catalogGap = Boolean(step.catalogGap && step.catalogGap.count > 0);
     return (
         <li>
             <button
@@ -137,6 +142,14 @@ function CollapsedStepButton({ step, index, total, active, selectable, onSelect,
                         ? <Icon name={icon} size={15} />
                         : index}
                 </span>
+                {/* The catalogue gap, on a rail too narrow for a pill. The words
+                    are already in the accessible name, so this is emphasis. */}
+                {catalogGap ? (
+                    <span
+                        aria-hidden="true"
+                        className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[var(--status-danger)]"
+                    />
+                ) : null}
                 {/*
                   * The label, on hover and on focus. `pointer-events-none` so it
                   * can never sit between the pointer and the next step, and
@@ -166,6 +179,10 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
     // It must NOT read as done: a green check on a step that blocks the
     // completion is the rail contradicting the button.
     const incomplete = Boolean(step.issues && step.issues.count > 0);
+    // The conformity analysis attributed a catalogue gap to this step. It informs,
+    // it does not gate: what forbids finishing stays `issues` and the blocking
+    // catalogues, and this mark is deliberately drawn apart from the bullet.
+    const catalogGap = step.catalogGap && step.catalogGap.count > 0 ? step.catalogGap : null;
     const seen = step.visited && !active && !incomplete;
     /*
      * SEEN IS NOT CHECKED.
@@ -226,6 +243,11 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
                   : selectable
                     ? labels.todo
                     : labels.locked;
+    // Appended rather than substituted: the two verdicts are independent, and a
+    // screen reader must hear both.
+    const spoken = catalogGap
+        ? `${state} · ${fill(labels.catalogGap, { count: catalogGap.count })}`
+        : state;
 
     if (collapsed) {
         return (
@@ -237,7 +259,7 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
                 selectable={selectable}
                 onSelect={onSelect}
                 labels={labels}
-                state={state}
+                state={spoken}
                 icon={icon}
                 listIconType={listIconType}
             />
@@ -300,6 +322,22 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
                         {fill(labels.step, { index, total })} · {state}
                     </span>
                 </span>
+
+                {catalogGap ? (
+                    <span
+                        className="mt-0.5 inline-flex shrink-0 items-center gap-0.5 rounded-md border border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] px-1 py-0.5 text-[10px] font-medium text-[var(--status-danger)]"
+                        title={catalogGap.labels.join(', ')}
+                    >
+                        <Icon name="report" size={12} />
+                        {catalogGap.count}
+                        {/* The count alone is a number without a subject: the
+                            wording is what a screen reader needs, and colour is
+                            never the carrier — AGENTS.md. */}
+                        <span className="sr-only-text">
+                            {fill(labels.catalogGap, { count: catalogGap.count })}
+                        </span>
+                    </span>
+                ) : null}
 
                 {step.badge ? (
                     <motion.span

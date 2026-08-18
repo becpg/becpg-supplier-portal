@@ -102,7 +102,7 @@ import { FieldFocusProvider } from '@/components/form/FieldFocusProvider';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { formatDate } from '@/lib/format';
-import { portalCatalogs } from '@/lib/catalogs';
+import { catalogGapsByStep, portalCatalogs, stepForMissingField } from '@/lib/catalogs';
 import { suggestionScopeForStep } from '@/lib/suggestionScope';
 
 /**
@@ -638,21 +638,6 @@ export function Wizard({
         [steps, verdicts],
     );
 
-    const visitedSteps = useMemo(
-        () => steps.map((step) => {
-            const reported = verdicts[step.id] || null;
-            return {
-                ...step,
-                visited: nav.visited.includes(step.id),
-                // The rail is where "which step is not finished" belongs: the answer
-                // used to live only inside the step the supplier happened to be on,
-                // so leaving it took the answer with it.
-                issues: reported && reported.count > 0 ? reported : null,
-                evaluated: Boolean(reported) && !reported.pending,
-            };
-        }),
-        [steps, nav.visited, verdicts],
-    );
 
     /* ---------------------------------------------------------- the autosave */
 
@@ -810,6 +795,59 @@ export function Wizard({
         }
         return [...byId.values()];
     }, [catalogs.data, wizardCatalog.data]);
+
+    // The step that edits a given list, so a catalogue check attached to a list
+    // lands on it. `listId` keeps its `@N` suffix, `listName` does not: both are
+    // registered because a catalogue may name either.
+    const listSteps = useMemo(() => {
+        const index = {};
+        for (const step of steps) {
+            for (const key of [step.listName, step.listId]) {
+                if (key && !index[key]) {
+                    index[key] = step.id;
+                }
+            }
+        }
+        return index;
+    }, [steps]);
+
+    const catalogIndex = useMemo(
+        () => ({ fieldSteps: (wizardState && wizardState.fieldSteps) || {}, listSteps }),
+        [wizardState, listSteps],
+    );
+
+    /*
+     * What the catalogue expects and does not find, tab by tab.
+     *
+     * `catalogs` is only armed once the conformity step has been reached — a
+     * catalogue read triggers a reformulation, which is not something to pay for
+     * on every wizard open — so these marks appear after the analysis, which is
+     * exactly when they are asked for. Before that there is nothing to show, and
+     * showing nothing is correct.
+     */
+    const catalogGaps = useMemo(
+        () => catalogGapsByStep(portalCatalogs(catalogList), catalogIndex),
+        [catalogList, catalogIndex],
+    );
+
+    const visitedSteps = useMemo(
+        () => steps.map((step) => {
+            const reported = verdicts[step.id] || null;
+            return {
+                ...step,
+                visited: nav.visited.includes(step.id),
+                // The rail is where "which step is not finished" belongs: the answer
+                // used to live only inside the step the supplier happened to be on,
+                // so leaving it took the answer with it.
+                issues: reported && reported.count > 0 ? reported : null,
+                evaluated: Boolean(reported) && !reported.pending,
+                // Distinct from `issues`: a mandatory field left blank is the
+                // portal's own verdict, a catalogue gap is the customer's.
+                catalogGap: catalogGaps.byStep[step.id] || null,
+            };
+        }),
+        [steps, nav.visited, verdicts, catalogGaps],
+    );
     /*
      * WHICH CATALOGUES BLOCK: THE DELIVERABLE SAYS SO, AS IN SHARE.
      *
@@ -1005,14 +1043,18 @@ export function Wizard({
     const goToField = useCallback(
         (name, locale = null) => {
             const known = fieldIndex[name];
-            const target = known
-                ? known.stepId
-                : (steps.find((step) => step.type === 'form') || {}).id;
+            // `bcpg:useByDate|bcpg:bestBeforeDate` is two alternatives beCPG found
+            // both absent; it matches no control, so the focus needs the one name
+            // the index really knows.
+            const routed = stepForMissingField({ field: name }, catalogIndex);
+            const target = (known && known.stepId)
+                || (routed && routed.stepId)
+                || (steps.find((step) => step.type === 'form') || {}).id;
             if (target) {
-                goTo(target, { field: name, locale });
+                goTo(target, { field: (routed && routed.name) || name, locale });
             }
         },
-        [fieldIndex, steps, goTo],
+        [fieldIndex, catalogIndex, steps, goTo],
     );
 
     /*
