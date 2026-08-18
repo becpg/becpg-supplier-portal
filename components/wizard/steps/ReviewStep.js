@@ -61,6 +61,10 @@ const LABELS = {
         reviewSubtitle: 'Vous consultez cette fiche : aucune modification n’est possible.',
         expand: 'Afficher',
         collapse: 'Masquer',
+        expandAll: 'Tout déplier',
+        collapseAll: 'Tout replier',
+        reviewed: 'Section relue',
+        reviewedHint: 'Cochez les sections au fur et à mesure : {done} sur {total} relues.',
         empty: 'Rien à afficher',
     },
     en: {
@@ -78,6 +82,10 @@ const LABELS = {
         reviewSubtitle: 'You are viewing this sheet: no modification is possible.',
         expand: 'Show',
         collapse: 'Hide',
+        expandAll: 'Expand all',
+        collapseAll: 'Collapse all',
+        reviewed: 'Section reviewed',
+        reviewedHint: 'Tick the sections as you go: {done} of {total} reviewed.',
         empty: 'Nothing to display',
     },
 };
@@ -264,29 +272,50 @@ export function ComplianceStep({
 /**
  * A collapsible section of the read-only review.
  */
-function ReviewSection({ step, open, onToggle, children, labels }) {
+function ReviewSection({ step, open, onToggle, reviewed, onReviewed, children, labels }) {
     const reduceMotion = useReducedMotion();
     return (
         <Card padding="none" className="overflow-hidden">
-            <button
-                type="button"
-                aria-expanded={open}
-                onClick={() => onToggle(step.id)}
-                className="touch-target flex w-full items-center gap-2 px-4 py-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
-            >
-                <Icon
-                    name={step.frozen ? 'lock' : 'description'}
-                    size={18}
-                    className="shrink-0 text-[var(--becpg-dark-grey)]"
-                />
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--becpg-blue)]">
-                    {step.label}
-                </span>
-                <span className="shrink-0 text-xs text-[var(--becpg-dark-grey)]">
-                    {open ? labels.collapse : labels.expand}
-                </span>
-                <Icon name={open ? 'expand_less' : 'expand_more'} size={18} className="shrink-0" />
-            </button>
+            <div className="flex items-center gap-2 pr-3">
+                <button
+                    type="button"
+                    aria-expanded={open}
+                    onClick={() => onToggle(step.id)}
+                    className="touch-target flex min-w-0 flex-1 items-center gap-2 px-4 py-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                >
+                    <Icon
+                        name={step.frozen ? 'lock' : reviewed ? 'check_circle' : 'description'}
+                        size={18}
+                        className={`shrink-0 ${reviewed ? 'text-[var(--status-ok)]' : 'text-[var(--becpg-dark-grey)]'}`}
+                    />
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--becpg-blue)]">
+                        {step.label}
+                    </span>
+                    <span className="shrink-0 text-xs text-[var(--becpg-dark-grey)]">
+                        {open ? labels.collapse : labels.expand}
+                    </span>
+                    <Icon name={open ? 'expand_less' : 'expand_more'} size={18} className="shrink-0" />
+                </button>
+                {/*
+                    RELIRE SECTION PAR SECTION.
+                    Une fiche fait douze sections, et le relecteur n'a que deux
+                    boutons au bout : valider ou refuser. Sans marque, il perd le
+                    fil dès qu'il quitte l'écran. La coche ne s'envoie nulle part
+                    — elle est à lui, pour tenir sa relecture — et n'empêche ni
+                    de valider ni de refuser.
+                */}
+                {onReviewed ? (
+                    <label className="flex shrink-0 cursor-pointer items-center gap-1.5 text-xs text-[var(--becpg-dark-grey)]">
+                        <input
+                            type="checkbox"
+                            checked={Boolean(reviewed)}
+                            onChange={() => onReviewed(step.id)}
+                            className="h-4 w-4 accent-[var(--becpg-blue)]"
+                        />
+                        <span className="hidden sm:inline">{labels.reviewed}</span>
+                    </label>
+                ) : null}
+            </div>
             <AnimatePresence initial={false}>
                 {open ? (
                     <motion.div
@@ -344,6 +373,11 @@ export function ReviewStep({ entityId, state = null, wizardId, withCompliance = 
 
     const [open, setOpen] = useState({});
     const toggle = useCallback((id) => setOpen((current) => ({ ...current, [id]: !current[id] })), []);
+    const [reviewed, setReviewed] = useState({});
+    const markReviewed = useCallback(
+        (id) => setReviewed((current) => ({ ...current, [id]: !current[id] })),
+        [],
+    );
 
     const catalogs = useApi(withCompliance && entityId ? `entities/${encodeURIComponent(entityId)}/catalogs` : null);
     const requirements = useApi(
@@ -365,12 +399,43 @@ export function ReviewStep({ entityId, state = null, wizardId, withCompliance = 
 
     const entityNodeRef = wizardState.entity ? wizardState.entity.nodeRef : entityId;
     const firstId = steps.length > 0 ? steps[0].id : null;
+    /*
+     * « Tout déplier » : une relecture se fait de haut en bas, et la fiche
+     * n'ouvrait qu'une section à la fois. Chaque section reste montée à la
+     * demande — les déplier toutes est donc une décision du relecteur, pas le
+     * défaut, sinon la fiche paie douze appels dès son ouverture.
+     */
+    const allOpen = steps.length > 0
+        && steps.every((step) => (open[step.id] === undefined ? step.id === firstId : open[step.id]));
+    const toggleAll = () => setOpen(
+        Object.fromEntries(steps.map((step) => [step.id, !allOpen])),
+    );
+    const reviewedCount = steps.filter((step) => reviewed[step.id]).length;
 
     return (
         <div className={`flex min-w-0 flex-col gap-3 ${className}`}>
             <div className="rounded-xl border border-[var(--becpg-grey)] bg-[var(--becpg-grey)]/40 p-3">
-                <p className="text-sm font-medium text-[var(--becpg-blue)]">{labels.reviewTitle}</p>
-                <p className="mt-0.5 text-sm text-[var(--becpg-dark-grey)]">{labels.reviewSubtitle}</p>
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0">
+                        <p className="text-sm font-medium text-[var(--becpg-blue)]">{labels.reviewTitle}</p>
+                        <p className="mt-0.5 text-sm text-[var(--becpg-dark-grey)]">{labels.reviewSubtitle}</p>
+                    </div>
+                    {steps.length > 1 ? (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            icon={allOpen ? 'unfold_less' : 'unfold_more'}
+                            onClick={toggleAll}
+                        >
+                            {allOpen ? labels.collapseAll : labels.expandAll}
+                        </Button>
+                    ) : null}
+                </div>
+                {steps.length > 1 ? (
+                    <p className="mt-2 text-xs text-[var(--becpg-dark-grey)]">
+                        {fill(labels.reviewedHint, { done: reviewedCount, total: steps.length })}
+                    </p>
+                ) : null}
             </div>
 
             {steps.length === 0 ? (
@@ -380,7 +445,15 @@ export function ReviewStep({ entityId, state = null, wizardId, withCompliance = 
             {steps.map((step) => {
                 const isOpen = open[step.id] === undefined ? step.id === firstId : open[step.id];
                 return (
-                    <ReviewSection key={step.id} step={step} open={isOpen} onToggle={toggle} labels={labels}>
+                    <ReviewSection
+                        key={step.id}
+                        step={step}
+                        open={isOpen}
+                        onToggle={toggle}
+                        reviewed={Boolean(reviewed[step.id])}
+                        onReviewed={markReviewed}
+                        labels={labels}
+                    >
                         {!isOpen ? null : step.type === 'form' ? (
                             <FormStep entityId={entityNodeRef} step={step} params={params} autoSave={null} />
                         ) : step.type === 'survey' ? (

@@ -353,7 +353,33 @@ export function MlTextControl({
     }, [targeted, foldedTarget, expanded, nonce, id, primary]);
 
     if (readOnly) {
-        return <ReadOnlyControl field={field} value={value} displayValue={displayValue} lang={lang} id={id} />;
+        /*
+         * EN LECTURE SEULE AUSSI, UN CHAMP MULTILINGUE A PLUSIEURS LANGUES.
+         *
+         * `ReadOnlyControl` n'affiche qu'une valeur : sur la fiche en lecture
+         * seule — celle que le client relit avant de valider ou de refuser — les
+         * traductions saisies par le fournisseur étaient invisibles. Il validait
+         * donc un libellé légal allemand qu'on ne lui montrait pas.
+         *
+         * Une seule langue renseignée : rien ne change, c'est une valeur comme
+         * une autre, et l'étiqueter d'un code de langue serait du bruit.
+         */
+        const filled = [primary, ...others].filter((locale) => map[locale]);
+        if (filled.length <= 1) {
+            return <ReadOnlyControl field={field} value={value} displayValue={displayValue} lang={lang} id={id} />;
+        }
+        return (
+            <div id={id} className="flex min-w-0 flex-col gap-0.5 text-sm">
+                {filled.map((locale) => (
+                    <p key={locale} className="flex min-w-0 items-baseline gap-2">
+                        <span className="shrink-0 rounded bg-[var(--becpg-grey)]/70 px-1 text-[10px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">
+                            {locale}
+                        </span>
+                        <span className="min-w-0 break-words">{map[locale]}</span>
+                    </p>
+                ))}
+            </div>
+        );
     }
 
     const isRequired = (locale) => Boolean(requiredLocales && requiredLocales.includes(locale));
