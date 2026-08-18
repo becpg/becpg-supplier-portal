@@ -545,17 +545,17 @@ export function Wizard({
     const [stepIssues, setStepIssues] = useState({});
 
     /*
-     * TROIS VERDICTS, PAS DEUX.
+     * THREE VERDICTS, NOT TWO.
      *
-     * Le registre ne retenait que « il manque n réponses » et effaçait tout le
-     * reste : « rien ne manque » et « je n'ai pas encore regardé » y étaient la
-     * même absence d'entrée. Le rail lisant cette absence comme « étape vue et
-     * propre », il suffisait de passer vite sur le questionnaire pour le voir se
-     * marquer validé sans qu'une seule réponse ait été relue (#35846).
+     * The register only held "n answers are missing" and erased everything
+     * else: "nothing is missing" and "I have not looked yet" were the same
+     * absent entry. The rail read that absence as "step seen and clean", so
+     * walking quickly past the questionnaire was enough to see it marked
+     * validated without a single answer having been read.
      *
-     * Une entrée `pending` dit maintenant « pas encore statué », et une entrée à
-     * zéro dit « statué, rien ne manque ». Ce que l'absence signifie n'a pas
-     * changé : cette étape ne rend jamais de verdict — une liste, des documents.
+     * A `pending` entry now says "no verdict yet", and an entry at zero says
+     * "ruled on, nothing missing". What an absent entry means is unchanged:
+     * this step never returns a verdict - a list, the documents.
      */
     const reportStepIssues = useCallback((stepId, issues) => {
         setStepIssues((current) => {
