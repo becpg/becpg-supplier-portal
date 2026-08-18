@@ -147,8 +147,8 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
         [processes.data],
     );
 
-    // Dérivé, jamais stocké : le premier modèle est proposé tant que personne
-    // n'a choisi, et une instance qui n'en publie qu'un ne pose pas la question.
+    // Derived, never stored: the first template stands as the proposal until
+    // someone picks one, so an instance publishing a single one asks nothing.
     const selectedProcess = process || (processOptions.length > 0 ? processOptions[0].value : '');
 
     const entityItems = useMemo(

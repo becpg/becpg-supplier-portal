@@ -354,15 +354,15 @@ export function MlTextControl({
 
     if (readOnly) {
         /*
-         * EN LECTURE SEULE AUSSI, UN CHAMP MULTILINGUE A PLUSIEURS LANGUES.
+         * A multilingual field still has several languages when it is read-only.
          *
-         * `ReadOnlyControl` n'affiche qu'une valeur : sur la fiche en lecture
-         * seule — celle que le client relit avant de valider ou de refuser — les
-         * traductions saisies par le fournisseur étaient invisibles. Il validait
-         * donc un libellé légal allemand qu'on ne lui montrait pas.
+         * `ReadOnlyControl` renders one value, so on the read-only sheet - the
+         * one the customer reads through before validating or refusing - the
+         * translations the supplier entered were invisible, and a German legal
+         * name was validated without ever being shown.
          *
-         * Une seule langue renseignée : rien ne change, c'est une valeur comme
-         * une autre, et l'étiqueter d'un code de langue serait du bruit.
+         * One language filled in: nothing changes, it is a value like any other
+         * and tagging it with a locale code would be noise.
          */
         const filled = [primary, ...others].filter((locale) => map[locale]);
         if (filled.length <= 1) {
