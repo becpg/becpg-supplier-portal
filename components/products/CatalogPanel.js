@@ -170,7 +170,9 @@ function MissingField({ field, onFieldClick, catalog, label }) {
     );
 
     const classes = [
-        'inline-flex max-w-full items-center gap-1.5 rounded-lg px-2 py-1 text-xs',
+        // `text-sm`, not `text-xs`: the field name is what the supplier has to
+        // act on, and it was set smaller than the catalogue title above it.
+        'inline-flex max-w-full items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm',
         'bg-[var(--status-danger-bg)] text-[var(--status-danger)]',
         onFieldClick
             ? 'cursor-pointer hover:brightness-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]'
@@ -229,14 +231,28 @@ function CatalogCard({ catalog, onFieldClick, compact = false, index = 0 }) {
                 aria-hidden="true"
             />
             <div className={`pl-4 ${compact ? 'p-3' : 'p-4'}`}>
+                {/*
+                    CE QUI MANQUE PASSE DEVANT LE NOM DU CATALOGUE.
+
+                    La carte titrait « Portail fournisseur - produit fini » en gras
+                    et posait les champs manquants en dessous, en petit. Or le nom
+                    du catalogue ne dit rien à un fournisseur — il ne l'a pas
+                    choisi, il ne peut pas le changer, et il est le même sur toutes
+                    les cartes de l'écran. Ce qu'il doit lire, c'est « Libellé
+                    légal ». Le catalogue reste, en surtitre, parce qu'il dit au
+                    nom de quoi on demande ces champs.
+                */}
                 <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                        <h3 className="break-words text-sm font-medium">{catalog.label || catalog.id}</h3>
-                        {catalog.locale ? (
-                            <p className="text-xs text-[var(--becpg-dark-grey)]">
-                                {String(catalog.locale).toUpperCase()}
-                            </p>
-                        ) : null}
+                        <p className="truncate text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">
+                            {catalog.label || catalog.id}
+                            {catalog.locale ? ` · ${String(catalog.locale).toUpperCase()}` : ''}
+                        </p>
+                        <h3 className="break-words text-sm font-medium text-[var(--becpg-blue)]">
+                            {missing.length > 0
+                                ? fill(labels.missingCount, { count: missing.length })
+                                : labels.complete}
+                        </h3>
                     </div>
                     <span
                         className={`pill pill-no-dot pill-sm ${
@@ -260,9 +276,6 @@ function CatalogCard({ catalog, onFieldClick, compact = false, index = 0 }) {
 
                 {missing.length > 0 ? (
                     <div className="mt-3">
-                        <p className="mb-1.5 text-xs font-medium text-[var(--becpg-blue)]">
-                            {fill(labels.missingCount, { count: missing.length })}
-                        </p>
                         <div className="flex flex-wrap gap-1.5">
                             {missing.map((field, position) => (
                                 <MissingField
