@@ -202,3 +202,18 @@
 * [Setup] Prepare the open source publication - English sources, generic comments and public repository files
 * Fix #33085 - [Feature] Read the supplier input languages from the catalogue and mark the required ones
 * [skip ci][Release]: Bump _VERSION to 0.0.15
+## [ 0.0.16 ] - 2026-08-19 11:54:13
+
+* Fix #35846 - [Cleanup] Assert the header names the tenant the session reports, not one instance's name
+* Fix #35846 - [Bug] Correct the twenty-six defects an adversarial review confirmed in this batch, the multilingual write path first
+* Fix #35846 - [Cleanup] Pin the two readings this recette got wrong: the locale map of a d:mltext, and which tab a catalogue gap belongs to
+* Fix #35846 - [Feature] Offer the row editor Share has, so a supplier can set the fields the grid does not show - the parent of an ingredient first
+* Fix #35846 - [Feature] Mark in the rail the tabs a catalogue reports incomplete, once the conformity analysis has run
+* Fix #35846 - [Bug] Name the list a remark came from, so a comment written in beCPG stops arriving in the sheet-wide view with no origin
+* Fix #35846 - [Bug] Read the model default of a column, so a boolean beCPG already answers is a box to tick and not a question to answer
+* Fix #35846 - [Bug] Rule on every step server-side, so a reopened task keeps its verdicts and Documents stops going green with a mandatory file missing
+* Fix #35846 - [Bug] Stop promising a save that already happened, and stop confirming a questionnaire answer beCPG stored nowhere
+* Fix #35846 - [Bug] Keep every translation a supplier types, which the form step wrote in one language and read back in another
+* Fix #35846 - [Bug] Formulate on leaving a step the supplier wrote on, so beCPG still materialises the documents it requires
+* [Cleanup] Write the step-verdict comment in English, as every comment in this repository is
+* [skip ci][Release]: Bump _VERSION to 0.0.16
