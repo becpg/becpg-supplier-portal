@@ -96,12 +96,14 @@ export function DataListStep({
         [autoSave],
     );
 
-    // The grid writes on its own; the wizard needs to know a write left, not
-    // whether it came back, so that leaving the step formulates what was typed.
+    // The grid writes on its own. The wizard needs both halves: that a write
+    // left — so leaving the step formulates what was typed — and when it lands,
+    // so the formulation bears on the row and not on the sheet as it was before
+    // it.
     const handleWriting = useCallback(
-        () => {
+        (inFlight) => {
             if (autoSave) {
-                autoSave.markWriting();
+                autoSave.markWriting(inFlight);
             }
         },
         [autoSave],

@@ -48,7 +48,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '@/components/ui/Button';
 import { Input, Select, Textarea } from '@/components/ui/Field';
 import { RichText } from '@/components/ui/RichText';
-import { readableInk, rowColor } from '@/lib/format';
+import { rowColor, tint } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import {
     COMMENT_INPUT_TYPES,
@@ -135,19 +135,18 @@ export function questionDomId(prefix, questionId) {
  */
 function MessageBlock({ question, domId }) {
     const paint = rowColor(question.color);
-    const ink = readableInk(paint);
     return (
         <div
             id={domId}
             data-question-id={question.id}
             data-question-kind="message"
-            style={paint ? { backgroundColor: paint, color: ink } : undefined}
+            style={paint ? { backgroundColor: tint(paint), borderLeftColor: paint } : undefined}
             className={`flex min-w-0 items-start gap-2 rounded-xl border border-[var(--becpg-blue-lighter)] border-l-4 border-l-[var(--becpg-blue-light)] px-4 py-3${paint ? '' : ' bg-[var(--becpg-grey)]/50'}`}
         >
-            <Icon name="campaign" size={18} className={`mt-0.5 shrink-0 ${paint ? 'text-current' : 'text-[var(--becpg-blue-light)]'}`} />
+            <Icon name="campaign" size={18} className="mt-0.5 shrink-0 text-[var(--becpg-blue-light)]" />
             <RichText
                 value={question.label}
-                className={`min-w-0 flex-1 text-sm leading-relaxed ${paint ? 'text-current' : 'text-[var(--becpg-blue)]'}`}
+                className="min-w-0 flex-1 text-sm leading-relaxed text-[var(--becpg-blue)]"
             />
         </div>
     );
@@ -485,16 +484,21 @@ function QuestionBlock({
 
     const legendPrefix = questionLegendPrefix(question);
     /*
-     * `bcpg:color` on the question row.
+     * `bcpg:color` on the question row — as a BAND, not as a flood.
      *
      * A questionnaire is a datalist, and a customer colours its lines to mark a
-     * section the way he does anywhere else in beCPG. The card carries it, except
-     * when the question is flagged unanswered: that red border is about to be
-     * acted on, and a background of the author's choosing must not compete with
-     * it.
+     * section the way he does anywhere else in beCPG. Painting the whole card
+     * with it said something else entirely: a solid red question reads as an
+     * error and a solid green one as an answer already validated, on a screen
+     * where red and green mean exactly that everywhere else. The colour is
+     * therefore kept where it is unmistakably an author's mark — a 4px edge and
+     * a wash of the same hue — and the text keeps the portal's ink, which also
+     * spares it the black-or-white inversion the flood needed to stay readable.
+     *
+     * Dropped entirely when the question is flagged unanswered: that red border
+     * is about to be acted on, and nothing may compete with it.
      */
     const paint = !invalid ? rowColor(question.color) : null;
-    const ink = readableInk(paint);
 
     return (
         <fieldset
@@ -504,10 +508,10 @@ function QuestionBlock({
             data-question-kind="question"
             data-mandatory={question.mandatory ? 'true' : 'false'}
             data-answered={answered ? 'true' : 'false'}
-            style={paint ? { backgroundColor: paint, color: ink } : undefined}
+            style={paint ? { backgroundColor: tint(paint), borderLeftColor: paint } : undefined}
             className={[
                 'min-w-0 scroll-mt-24 rounded-xl border p-4 shadow-[var(--becpg-shadow-raised)] focus:outline-none',
-                paint ? '' : 'bg-white',
+                paint ? 'border-l-4' : 'bg-white',
                 invalid
                     ? 'border-[var(--status-danger)]'
                     : 'border-[var(--becpg-blue-lighter)]',
@@ -516,7 +520,7 @@ function QuestionBlock({
             {/* `float-left w-full` turns the legend into a plain block: the
                 default rendering cuts the card's border, which at 360px with a
                 three-line question is unreadable. */}
-            <legend className={`float-left mb-2 w-full p-0 text-sm font-medium leading-snug ${paint ? 'text-current' : 'text-[var(--becpg-blue)]'}`}>
+            <legend className="float-left mb-2 w-full p-0 text-sm font-medium leading-snug text-[var(--becpg-blue)]">
                 {/* The label keeps the marks its author gave it in Share — a
                     coloured, bold title is how a customer separates a section
                     from the questions under it. `inline`: a `<legend>` takes
@@ -536,11 +540,11 @@ function QuestionBlock({
                 <Requirements requirements={question.requirements} />
                 <RichText
                     value={question.note}
-                    className={`mb-2 text-sm leading-relaxed ${paint ? 'text-current' : 'text-[var(--becpg-dark-grey-deep)]'}`}
+                    className="mb-2 text-sm leading-relaxed text-[var(--becpg-dark-grey-deep)]"
                 />
                 <RichText
                     value={question.upperNote}
-                    className={`mb-2 text-sm leading-relaxed ${paint ? 'text-current' : 'text-[var(--becpg-dark-grey-deep)]'}`}
+                    className="mb-2 text-sm leading-relaxed text-[var(--becpg-dark-grey-deep)]"
                 />
                 <QuestionUrls url={question.url} label={labels.openLink} />
 
@@ -556,7 +560,7 @@ function QuestionBlock({
 
                 <RichText
                     value={question.lowerNote}
-                    className={`mt-2 text-sm leading-relaxed ${paint ? 'text-current' : 'text-[var(--becpg-dark-grey-deep)]'}`}
+                    className="mt-2 text-sm leading-relaxed text-[var(--becpg-dark-grey-deep)]"
                 />
             </div>
         </fieldset>

@@ -1716,6 +1716,33 @@ body {
   }
 
   /*
+   * A number with its unit selector, at the grid's pitch.
+   *
+   * The selector carries a 5.5rem minimum so that `micro_g` and `fl oz` stay
+   * readable in a form. A table column is sized by its content, so in a cell
+   * that minimum is taken from the number instead — the input is the half that
+   * shrinks. MEASURED on `bcpg:ingList`: a « Quantité (%) » column left the
+   * input 18px against 24px of padding, so the quantities were invisible while
+   * the total row printed « 100 % ».
+   *
+   * The number is given the floor and the selector is allowed to shrink to what
+   * `%` and `ppm` need: both stay readable, and nothing is hidden.
+   */
+  .becpg-grid .becpg-number-unit {
+    gap: 4px;
+  }
+
+  .becpg-grid .becpg-number-unit-value {
+    min-width: 3.25rem;
+  }
+
+  .becpg-grid .becpg-number-unit-unit {
+    min-width: 0;
+    width: auto;
+    padding-inline: 4px 20px;
+  }
+
+  /*
    * A repeating LIST, at the grid's pitch.
    *
    * `SelectControl` renders a multi-value list as a checkbox group — the right

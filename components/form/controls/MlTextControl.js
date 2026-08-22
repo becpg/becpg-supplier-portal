@@ -382,7 +382,24 @@ export function MlTextControl({
         );
     }
 
-    const isRequired = (locale) => Boolean(requiredLocales && requiredLocales.includes(locale));
+    /*
+     * A TRANSLATION IS ONLY DUE ONCE THERE IS SOMETHING TO TRANSLATE.
+     *
+     * The languages the customer's catalogue asks for were marked on every
+     * multilingual field, filled or not — so an empty « Informations
+     * complémentaires » on a datalist row showed a red « 3 » and three starred
+     * boxes, for a field nobody had written a word in. That reads as three
+     * missing answers where there is one optional field, and it is exactly what
+     * made a supplier think the grid was holding the completion back.
+     *
+     * Nothing is relaxed by this: a field that carries a value in one language
+     * still marks the others, which is the case #33085 is about, and beCPG's own
+     * catalogue counts an entirely empty field as one missing field, not as one
+     * per language.
+     */
+    const hasAnyText = Object.values(map).some((text) => typeof text === 'string' && text.trim() !== '');
+    const isRequired = (locale) => hasAnyText
+        && Boolean(requiredLocales && requiredLocales.includes(locale));
     const params = controlParams(field);
     const configuredRows = toNumber(params.rows);
     const rows = configuredRows === null ? 0 : Math.max(2, Math.min(20, Math.round(configuredRows)));

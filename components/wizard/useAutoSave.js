@@ -109,7 +109,7 @@ function savedAtOf(result) {
  *            isPending: boolean, isSaving: boolean, hasUnsaved: boolean,
  *            schedule: Function, flush: Function, retry: Function,
  *            cancel: Function, markSaved: Function, markWriting: Function,
- *            markError: Function, reset: Function}}
+ *            markError: Function, track: Function, reset: Function}}
  */
 export function useAutoSave({
     delay = DEFAULT_DELAY,
@@ -306,6 +306,40 @@ export function useAutoSave({
         [clearTimer, delay, run],
     );
 
+    /*
+     * WRITES THIS HOOK DOES NOT OWN.
+     *
+     * The datalist editor sends its rows itself, so the queue above knows
+     * nothing about them — and `flush()` returned while a cell was still in the
+     * air. Every writer that hands over its promise is waited for here, which is
+     * what makes "leave the step, then formulate" mean what it says.
+     */
+    const trackedRef = useRef(new Set());
+
+    /**
+     * Registers a write performed by another writer.
+     *
+     * @param {Promise} promise settled when that write lands, refusal included
+     */
+    const track = useCallback((promise) => {
+        trackedRef.current.add(promise);
+        const forget = () => trackedRef.current.delete(promise);
+        promise.then(forget, forget);
+    }, []);
+
+    /**
+     * Waits for every tracked write, including the ones started while waiting.
+     *
+     * @returns {Promise<void>}
+     */
+    const settled = useCallback(async () => {
+        // Bounded: a writer that re-arms on every settle must not hold the
+        // navigation for ever.
+        for (let round = 0; round < 3 && trackedRef.current.size > 0; round += 1) {
+            await Promise.allSettled([...trackedRef.current]);
+        }
+    }, []);
+
     /**
      * Writes whatever is pending, now, and waits for it. Called before leaving
      * a step, before completing the task, and on unmount.
@@ -313,12 +347,16 @@ export function useAutoSave({
      * @returns {Promise<*>}
      */
     const flush = useCallback(async () => {
+        // The foreign writers first: the grid sends its own PUTs, and what
+        // follows a flush — a formulation, a completion — must bear on a
+        // repository that has already received them.
+        await settled();
         if (tasksRef.current.size === 0 && !runningRef.current) {
             return null;
         }
         attemptRef.current = 0;
         return run();
-    }, [run]);
+    }, [run, settled]);
 
     /** Manual retry, from the indicator's button. */
     const retry = useCallback(() => {
@@ -360,11 +398,14 @@ export function useAutoSave({
      * step was written on before the answer arrives — the wizard decides on
      * leaving the step, which happens between the two.
      */
-    const markWriting = useCallback(() => {
+    const markWriting = useCallback((inFlight) => {
+        if (inFlight && typeof inFlight.then === 'function') {
+            track(inFlight);
+        }
         if (handlers.current.onSaved) {
             handlers.current.onSaved(null, null);
         }
-    }, []);
+    }, [track]);
 
     /**
      * Records a failure from another writer, so the footer never claims
@@ -416,8 +457,9 @@ export function useAutoSave({
             markSaved,
             markWriting,
             markError,
+            track,
             reset,
         }),
-        [state, hasUnsaved, schedule, flush, retry, cancel, markSaved, markWriting, markError, reset],
+        [state, hasUnsaved, schedule, flush, retry, cancel, markSaved, markWriting, markError, track, reset],
     );
 }

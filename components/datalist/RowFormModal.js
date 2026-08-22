@@ -133,6 +133,16 @@ export function RowFormModal({ list, row, rowForm, entityNodeRef, onClose }) {
                 errors={form.errors}
                 entityNodeRef={entityNodeRef}
                 itemType={list.itemType}
+                /*
+                 * The same context the grid gives its cells, and for the same
+                 * reason: `POST /api/v1/autocomplete/{formId}/{fieldId}` resolves
+                 * a datasource declared **on the list**, so without `listId` every
+                 * picker of this box answered « Ce champ n'a pas de liste de
+                 * valeurs configurée » — the field of an ingredient, the parent,
+                 * the alias — while the very same field worked in the grid.
+                 */
+                formId={list.step?.formId || undefined}
+                listId={list.step?.listId || undefined}
                 lang={lang}
             />
             {error ? (

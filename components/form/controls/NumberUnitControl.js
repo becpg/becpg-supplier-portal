@@ -32,6 +32,16 @@
  * - The label is not rewritten. Share rewrites `Poids (kg)` into `Poids (mg)`;
  *   here the unit selector sits next to the input and says the same thing
  *   without touching a label that beCPG already translated.
+ *
+ * ## In a datalist cell
+ *
+ * The two halves carry `becpg-number-unit-value` / `becpg-number-unit-unit` so
+ * that `app/globals.css` can give the number a floor inside `.becpg-grid`. The
+ * selector declares a 5.5rem minimum, a table column is sized by its content,
+ * and the number — `flex-1 min-w-0` — is what gave way: measured on
+ * `bcpg:ingList`, a « Quantité (%) » column 90px wide left the input **18px**
+ * for 24px of padding, so every quantity in the grid was invisible while the
+ * total row printed « 100 % ».
  */
 
 import { useState } from 'react';
@@ -266,8 +276,8 @@ export function NumberUnitControl({
     }
 
     return (
-        <div className="flex items-start gap-2">
-            <div className="min-w-0 flex-1">
+        <div className="becpg-number-unit flex items-start gap-2">
+            <div className="becpg-number-unit-value min-w-0 flex-1">
                 <NumberControl
                     field={field}
                     value={shown}
@@ -282,7 +292,7 @@ export function NumberUnitControl({
                 value={unit}
                 onChange={(event) => setUnit(event.target.value)}
                 aria-label={`${field?.label ? `${field.label} — ` : ''}${(LABELS[lang] || LABELS.fr).unit}`}
-                className="w-auto min-w-[5.5rem]"
+                className="becpg-number-unit-unit w-auto min-w-[5.5rem]"
                 options={family.map((entry) => ({ value: entry, label: unitLabel(entry, lang) }))}
             />
         </div>

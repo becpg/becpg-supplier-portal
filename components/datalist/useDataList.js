@@ -437,7 +437,7 @@ let draftSequence = 0;
  * @param {number} [options.pageSize=25]
  * @param {{column: string, asc: boolean}} [options.initialSort]
  * @param {boolean} [options.readOnly] forces read-only on top of the server verdict
- * @param {Function} [options.onWriting] `() => void` — a row write is leaving now,
+ * @param {Function} [options.onWriting] `(inFlight: Promise) => void` — a row write is leaving now,
  *        whatever its outcome; the wizard uses it to know the step was written on
  * @param {Function} [options.onSaved] `(result, row) => void` — the wizard's "saved at HH:MM"
  * @param {Function} [options.onError] `(error, row) => void` — usually a toast
@@ -1057,16 +1057,24 @@ export function useDataList(options = {}) {
             }
 
             /*
-             * A write is going out NOW, not when it comes back.
+             * A write is going out NOW, not when it comes back — and the caller
+             * is handed the promise that says when it lands.
              *
              * The wizard formulates on leaving a step the supplier wrote on, and
-             * it reads that fact when the step is left — which happens on the
-             * click that follows the blur that started this very request. Waiting
-             * for the answer would have the formulation skipped on the step that
-             * earned it and run on the next one.
+             * it reads that fact when the step is left, which happens on the very
+             * click that follows the blur that started this request. Announcing
+             * the write only on its return would skip the formulation on the step
+             * that earned it; announcing it without the promise ran the
+             * formulation *beside* the write, so beCPG recomputed the sheet as it
+             * was **before** the cell — a claim set to « certifié » then produced
+             * no certificate, which is defect 4 of the 21/08 recette.
              */
+            let settleInFlight;
+            const inFlight = new Promise((resolve) => {
+                settleInFlight = resolve;
+            });
             if (handlers.current.onWriting) {
-                handlers.current.onWriting();
+                handlers.current.onWriting(inFlight);
             }
 
             // --- optimistic write ------------------------------------------
@@ -1156,6 +1164,11 @@ export function useDataList(options = {}) {
                     handlers.current.onError(cause, row);
                 }
                 return null;
+            }
+            finally {
+                // Whatever happened: a caller waiting on this write must not be
+                // left waiting on a refusal.
+                settleInFlight();
             }
         },
         [readOnly, path, columns, isUnlocked, setRowStatus, scheduleRefresh, refresh, updateDirty, lang],

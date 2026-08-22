@@ -226,6 +226,40 @@ export function parentValueOf(field, values) {
 }
 
 /**
+ * The labels the value carries with it.
+ *
+ * A datalist row holds its associations as `{ value, displayValue }` pairs —
+ * that is what `becpg/remote/entity/list` sends — so the label of each target is
+ * right there, and no guessing is needed. It was being dropped: `toValueArray`
+ * keeps only `value`, so the row editor painted
+ * `workspace://SpacesStore/0dd9…` in every chip while the grid, which is handed
+ * the field's `displayValue` apart, showed « acidifiant ».
+ *
+ * @param {*} value the value as it arrived, before {@link toValueArray}
+ * @returns {Object<string, string>} nodeRef -> label
+ */
+export function labelsFromValue(value) {
+    const labels = {};
+    const harvest = (entry) => {
+        if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+            return;
+        }
+        const target = entry.value ?? entry.nodeRef;
+        const label = entry.displayValue ?? entry.label;
+        if (typeof target === 'string' && target !== '' && typeof label === 'string' && label !== '') {
+            labels[target] = label;
+        }
+    };
+    if (Array.isArray(value)) {
+        value.forEach(harvest);
+    }
+    else {
+        harvest(value);
+    }
+    return labels;
+}
+
+/**
  * Guesses the labels of values that were already stored.
  *
  * `displayValue` is what beCPG sent for the whole field; for a single value it
@@ -233,26 +267,28 @@ export function parentValueOf(field, values) {
  * counts do not line up the raw value is kept — a visible nodeRef is ugly, an
  * invented label is a lie.
  *
+ * A label the value carries itself wins over that guess: it is stated, not
+ * inferred (see {@link labelsFromValue}).
+ *
  * @param {string[]} values
  * @param {string|null} displayValue
+ * @param {*} [raw] the value as it arrived, when the caller still has it
  * @returns {Object<string, string>}
  */
-export function initialLabels(values, displayValue) {
+export function initialLabels(values, displayValue, raw) {
     const labels = {};
-    if (!displayValue || values.length === 0) {
-        return labels;
-    }
-    if (values.length === 1) {
+    if (displayValue && values.length === 1) {
         labels[values[0]] = String(displayValue);
-        return labels;
     }
-    const parts = String(displayValue).split(',').map((entry) => entry.trim());
-    if (parts.length === values.length) {
-        values.forEach((entry, index) => {
-            labels[entry] = parts[index];
-        });
+    else if (displayValue && values.length > 1) {
+        const parts = String(displayValue).split(',').map((entry) => entry.trim());
+        if (parts.length === values.length) {
+            values.forEach((entry, index) => {
+                labels[entry] = parts[index];
+            });
+        }
     }
-    return labels;
+    return { ...labels, ...labelsFromValue(raw) };
 }
 
 /**
@@ -365,7 +401,7 @@ export function DatasourcePicker({
     const [term, setTerm] = useState('');
     const [focused, setFocused] = useState(false);
     const [active, setActive] = useState(-1);
-    const [known, setKnown] = useState(() => initialLabels(selected, displayValue));
+    const [known, setKnown] = useState(() => initialLabels(selected, displayValue, value));
 
     /**
      * The request context is read at request time and never depended on: the
@@ -594,7 +630,7 @@ export function DatasourcePicker({
     const [seenDisplay, setSeenDisplay] = useState(displayValue);
     if (displayValue !== seenDisplay) {
         setSeenDisplay(displayValue);
-        const resolved = initialLabels(selected, displayValue);
+        const resolved = initialLabels(selected, displayValue, value);
         if (Object.keys(resolved).length > 0) {
             setKnown((current) => ({ ...resolved, ...current }));
         }

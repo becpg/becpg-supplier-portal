@@ -42,7 +42,11 @@ const LABELS = {
         duplicates: 'Valeurs déjà utilisées',
         duplicateOn: 'Déjà utilisé par',
         duplicateUnnamed: '{count} autre(s) produit(s)',
-        protectedFields: '{count} champ(s) verrouillé(s) par le client',
+        // « verrouillé » alone left the supplier guessing: it is neither a
+        // refusal nor an error, it is a field the customer keeps for itself.
+        protectedFields: '{count} champ(s) de ce catalogue sont renseignés par votre client',
+        protectedFieldsHint:
+            'Ces champs comptent dans le score mais ne vous sont pas demandés : vous ne pouvez pas les saisir, votre client s’en charge.',
         none: 'Aucun catalogue applicable',
         noneHint:
             'Aucun catalogue de conformité n’est configuré pour ce produit. Il n’y a donc pas de contrôle de complétude à passer.',
@@ -63,7 +67,10 @@ const LABELS = {
         duplicates: 'Values already in use',
         duplicateOn: 'Already used by',
         duplicateUnnamed: '{count} other product(s)',
-        protectedFields: '{count} field(s) locked by the customer',
+        /* See the note on the French key. */
+        protectedFields: '{count} field(s) of this catalogue are filled in by your customer',
+        protectedFieldsHint:
+            'They count towards the score but are not asked of you: you cannot enter them, your customer does.',
         none: 'No applicable catalogue',
         noneHint:
             'No compliance catalogue is configured for this product, so there is no completeness check to pass.',
@@ -320,9 +327,16 @@ function CatalogCard({ catalog, onFieldClick, compact = false, index = 0 }) {
                 ) : null}
 
                 {protectedCount > 0 ? (
-                    <p className="mt-3 flex items-center gap-1.5 text-xs text-[var(--becpg-dark-grey)]">
-                        <Icon name="lock_outline" size={13} />
-                        {fill(labels.protectedFields, { count: protectedCount })}
+                    <p
+                        className="mt-3 flex items-start gap-1.5 text-xs text-[var(--becpg-dark-grey)]"
+                        title={labels.protectedFieldsHint}
+                    >
+                        <Icon name="lock_outline" size={13} className="mt-0.5 shrink-0" />
+                        <span>
+                            {fill(labels.protectedFields, { count: protectedCount })}
+                            {' — '}
+                            {labels.protectedFieldsHint}
+                        </span>
                     </p>
                 ) : null}
             </div>

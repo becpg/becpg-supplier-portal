@@ -366,6 +366,25 @@ export function buildStepModel(state, { labels }) {
 }
 
 /**
+ * Merges catalogue lists, the later ones winning on the same id.
+ *
+ * @param {Object[][]} lists least fresh first
+ * @returns {Object[]}
+ */
+function mergeCatalogs(lists) {
+    const byId = new Map();
+    for (const list of lists) {
+        for (const catalog of list || []) {
+            const key = (catalog && (catalog.id || catalog.label)) || '';
+            if (key) {
+                byId.set(key, catalog);
+            }
+        }
+    }
+    return [...byId.values()];
+}
+
+/**
  * @param {Object} props
  * @param {string} props.entityId the entity **nodeRef** (the API also accepts a uuid)
  * @param {string} [props.wizardId] `supplier-rawMaterial` — parsed from the deliverable URL
@@ -794,20 +813,30 @@ export function Wizard({
         { params: { catalogId: wizardCatalogId } },
     );
 
-    /** Stored score plus the assistant's catalogue, de-duplicated on the id. */
-    const catalogList = useMemo(() => {
-        const stored = (catalogs.data && catalogs.data.catalogs) || [];
-        const own = (wizardCatalog.data && wizardCatalog.data.catalogs) || [];
-        const byId = new Map();
-        for (const catalog of [...stored, ...own]) {
-            const key = (catalog && (catalog.id || catalog.label)) || '';
-            if (key) {
-                // The second wins: it has just been formulated, the first is stored.
-                byId.set(key, catalog);
-            }
-        }
-        return [...byId.values()];
+    /**
+     * What the two live reads answered, or `null` while neither has answered.
+     *
+     * Kept apart from {@link catalogList} because « Terminer » may only be
+     * gated on a **fresh** verdict: the score the entity carries is what beCPG
+     * recorded at the last formulation, which is the right thing to paint on the
+     * rail and the wrong thing to refuse a completion with.
+     */
+    const freshCatalogs = useMemo(() => {
+        const stored = (catalogs.data && catalogs.data.catalogs) || null;
+        const own = (wizardCatalog.data && wizardCatalog.data.catalogs) || null;
+        return stored || own ? mergeCatalogs([stored || [], own || []]) : null;
     }, [catalogs.data, wizardCatalog.data]);
+
+    /**
+     * The catalogues to show, from the least fresh source to the freshest: what
+     * the entity already carried when the wizard opened (`bcpg:entityScore`,
+     * served with the state at no cost — this is what puts the marks back on the
+     * rail when a task is reopened), then the two live reads.
+     */
+    const catalogList = useMemo(
+        () => mergeCatalogs([(wizardState && wizardState.catalogs) || [], freshCatalogs || []]),
+        [wizardState, freshCatalogs],
+    );
 
     // The step that edits a given list, so a catalogue check attached to a list
     // lands on it. `listId` keeps its `@N` suffix, `listName` does not: both are
@@ -1201,7 +1230,7 @@ export function Wizard({
              * reformulation — inserted between the click and its effect, for an
              * answer known in advance. « Terminer » must go out immediately.
              */
-            let gateList = catalogList.length > 0 ? catalogList : null;
+            let gateList = freshCatalogs;
             if (!gateList && gatingCatalogIds && gatingCatalogIds.length > 0) {
                 try {
                     const fresh = await api.get(`entities/${encodeURIComponent(entityId)}/catalogs`);
@@ -1249,7 +1278,7 @@ export function Wizard({
         }
     }, [
         task, autoSave, toast, labels, router, backHref, entityId,
-        steps, verdicts, goTo, catalogs, catalogList, gatingCatalogIds, blockingTranslations,
+        steps, verdicts, goTo, catalogs, freshCatalogs, gatingCatalogIds, blockingTranslations,
     ]);
 
     /* ----------------------------------------------------------- the panels */
@@ -1586,10 +1615,24 @@ export function Wizard({
                     steps={visitedSteps}
                     currentId={currentId}
                     onSelect={goTo}
-                    // No strict tunnel: a step already visited is freely
-                    // reachable, and so is the next one (spec §4.4).
-                    isSelectable={(step, index) =>
-                        step.visited || index <= currentIndex + 1 || Boolean(wizardState.allSteps)}
+                    /*
+                     * NO TUNNEL AT ALL — every step is reachable.
+                     *
+                     * The rule used to be "the ones already seen, plus the next
+                     * one", which is Share's `enableAllSteps` read literally. On
+                     * a twelve-step assistant that leaves nine buttons greyed
+                     * out on opening, and a supplier who has the nutritional
+                     * table in front of him cannot go and type it: he has to
+                     * walk through every tab in between. It also contradicted
+                     * the conformity step, whose « champ manquant » links aim
+                     * straight at the tab that holds the gap.
+                     *
+                     * Order is a suggestion here, never a gate: what may not be
+                     * written is decided server-side, per step (`readOnly`,
+                     * `frozen`), and what is missing is said by the rail and by
+                     * « Terminer ».
+                     */
+                    isSelectable={() => true}
                     variant="rail"
                     collapsed={wide}
                     footer={wide ? (
@@ -1612,8 +1655,8 @@ export function Wizard({
                             steps={visitedSteps}
                             currentId={currentId}
                             onSelect={goTo}
-                            isSelectable={(step, index) =>
-                                step.visited || index <= currentIndex + 1 || Boolean(wizardState.allSteps)}
+                            /* Same rule as the rail above — see the note there. */
+                            isSelectable={() => true}
                             variant="compact"
                         />
                         <div className="flex gap-2 lg:hidden">

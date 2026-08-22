@@ -298,7 +298,15 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
                               ? 'border-[var(--becpg-blue)] bg-[var(--becpg-blue)] text-white'
                               : done
                                 ? 'border-[var(--becpg-green)] bg-[var(--becpg-green)]/25 text-[var(--becpg-blue)]'
-                                : 'border-[var(--becpg-grey)] bg-white text-[var(--becpg-dark-grey)]',
+                                // A step walked through, on which nobody can rule —
+                                // a list, the conformity. Still its number, so it is
+                                // never read as "complete", but no longer identical
+                                // to a step never opened: the rail is also a map of
+                                // where the supplier has been, and the state line
+                                // already says « Vue » in words.
+                                : seen
+                                  ? 'border-[var(--becpg-blue-lighter)] bg-[var(--becpg-grey)]/70 text-[var(--becpg-blue)]'
+                                  : 'border-[var(--becpg-grey)] bg-white text-[var(--becpg-dark-grey)]',
                     ].join(' ')}
                 >
                     {incomplete || done || step.frozen || active ? <Icon name={icon} size={14} /> : index}
