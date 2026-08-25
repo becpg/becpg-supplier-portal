@@ -593,8 +593,9 @@ export function Wizard({
      * re-reads what it must without anyone orchestrating it, and two steps with
      * the same scope share their result.
      *
-     * `suggestionScopeForStep` only returns identifiers verified in becpg-ai: an
-     * unknown identifier answers empty there, not "everything".
+     * The step's list is sent as it is, exactly as Share sends the list open on
+     * screen. What a supplier may act on is settled on the way back, in
+     * `isDocumentGrounded`, not by picking here which lists are worth naming.
      */
     const suggestionScope = suggestionScopeForStep(currentStep);
     const suggestionsCall = useApi(entityId ? `suggestions/${encodeURIComponent(entityId)}` : null, {
