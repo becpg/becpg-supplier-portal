@@ -8,8 +8,8 @@
 [![Website](https://img.shields.io/badge/website-becpg.net-blue)](https://www.becpg.net)
 
 **Collect specifications, certificates and questionnaires from your suppliers — in their
-language, on their phone, straight into your PLM. Open source, self-hosted, and free of
-per-supplier licence fees.**
+language, on their phone, straight into your PLM. Open source, self-hosted, and driven by your
+own PLM configuration.**
 
 👉 [**Request a Live Demo**](https://www.becpg.net/community/) · [**Contact Us**](https://www.becpg.net/contact-us/) · [**Documentation**](https://docs.becpg.fr)
 
@@ -112,14 +112,14 @@ never sees a portal-specific password, and the portal never stores one.
 
 ## 🥊 Why this rather than a proprietary supplier portal
 
-Supplier collaboration is usually sold as a closed SaaS module, priced by the number of
-suppliers you invite, with its own data model to keep in sync with your PLM. This project takes
-the opposite position on each of those points.
+Supplier collaboration is usually sold as a closed SaaS module, hosted by the vendor, with its
+own data model to keep in sync with your PLM. This project takes the opposite position on each
+of those points.
 
 | | **beCPG Supplier Portal** | **Typical proprietary supplier portal** |
 |---|---|---|
 | **Licence** | LGPL-3.0-or-later, full source on GitHub | Closed source, annual subscription |
-| **Cost per supplier** | None — invite as many supplier accounts as you like | Commonly priced per supplier seat or per document |
+| **Running it yourself** | Yes — the community edition is this repository, one Docker image, no vendor hosting required | Vendor-hosted only |
 | **Where your data lives** | In your own beCPG PLM, on your own infrastructure | In the vendor's cloud, exported on request |
 | **Source of truth** | Forms, columns, lists and statuses come from *your* PLM configuration | A second data model to synchronise with your PLM |
 | **Deployment** | One Docker image (standalone Next.js), Kubernetes-ready, air-gappable | Vendor-hosted, on the vendor's release calendar |
