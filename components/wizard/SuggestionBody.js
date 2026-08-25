@@ -28,6 +28,8 @@
 
 import { RichText } from '@/components/ui/RichText';
 import { Icon } from '@/components/ui/Button';
+import { formatDate } from '@/lib/format';
+import { useMessages } from '@/lib/messages';
 
 /** Types whose description is HTML produced by a becpg-ai template. */
 const HTML_TYPES = new Set(['DocumentReview', 'RegulatoryToxSummary']);
@@ -128,6 +130,35 @@ export function isWideSuggestion(suggestion) {
     return raw.trim().startsWith('<') && raw.includes('>');
 }
 
+/**
+ * A date becpg-ai extracted, printed as a date.
+ *
+ * The extraction table showed « Valide de 2024-11-05 00:00:00 » — a timestamp,
+ * in a panel a supplier reads at a glance.
+ *
+ * ONLY MIDNIGHT IS CONVERTED, and only the day is printed. becpg-ai sends a
+ * validity window as a naked local timestamp at midnight, with no time zone
+ * anywhere in the payload; a value carrying a real hour could not be placed
+ * without inventing that zone, and printing an hour we cannot situate is worse
+ * than printing what was sent. `toDate` anchors a bare day at noon UTC, which is
+ * why the day alone is handed to it — the calendar date can then not slip either
+ * side of midnight, on the server or in the browser.
+ */
+const MIDNIGHT_DATE = /^(\d{4}-\d{2}-\d{2})(?:[T ]00:00(?::00(?:\.0+)?)?Z?)?$/;
+
+/**
+ * The value of one extracted field, readable.
+ *
+ * @param {*} value
+ * @param {string} lang
+ * @returns {string}
+ */
+function readableValue(value, lang) {
+    const text = plain(value);
+    const day = MIDNIGHT_DATE.exec(text.trim());
+    return day ? formatDate(day[1], lang) : text;
+}
+
 /** A readable value, whatever shape the plugin gave it. */
 function plain(value) {
     if (value === null || value === undefined) {
@@ -145,6 +176,7 @@ function plain(value) {
  * @param {Object[]} rows
  */
 function ExtractionRows({ rows }) {
+    const { lang } = useMessages();
     return (
         <ul className="mt-1.5 flex flex-col gap-0.5">
             {rows.map((row, index) => (
@@ -155,7 +187,9 @@ function ExtractionRows({ rows }) {
                     <span className="min-w-0 flex-1 truncate text-[var(--becpg-dark-grey)]">
                         {plain(row.name)}
                     </span>
-                    <span className="font-medium text-[var(--becpg-blue)]">{plain(row.value)}</span>
+                    <span className="font-medium text-[var(--becpg-blue)]">
+                        {readableValue(row.value, lang)}
+                    </span>
                 </li>
             ))}
         </ul>
