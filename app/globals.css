@@ -776,6 +776,19 @@ body {
   color: var(--becpg-orange-light);
 }
 
+/*
+ * The sidebar folded to its icons.
+ *
+ * Only the box changes: the active entry keeps the 3px orange bar of
+ * `.nav-item-active::before`, which is what still names the current screen once
+ * the words are gone.
+ */
+.nav-item-collapsed {
+  justify-content: center;
+  gap: 0;
+  padding: 0.5rem 0;
+}
+
 /* ---------------------------------------------------------------------- */
 /* Brand surfaces — login, empty states                                   */
 /* ---------------------------------------------------------------------- */

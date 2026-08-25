@@ -29,7 +29,7 @@
  * collapses to nothing under `prefers-reduced-motion`.
  */
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Header } from '@/components/shell/Header';
@@ -37,6 +37,57 @@ import { Nav } from '@/components/shell/Nav';
 import { useSession } from '@/components/providers/SessionProvider';
 import { publishBadges, readBadges, serverBadges, subscribeBadges } from '@/lib/badges';
 import { Skeleton } from '@/components/ui/Skeleton';
+
+/** The sidebar's fold, remembered for the browser. */
+const NAV_COLLAPSED_KEY = 'becpg.portal.nav.collapsed';
+
+/** Dispatched on the window so every mounted shell follows the same fold. */
+const NAV_COLLAPSED_EVENT = 'portalnavcollapsed';
+
+/** Where the preference lives when there is no storage — a private window. */
+let navCollapsedFallback = false;
+
+function subscribeNavCollapsed(onChange) {
+    window.addEventListener(NAV_COLLAPSED_EVENT, onChange);
+    // Another tab folded its rail: this one follows, as it does for the language.
+    window.addEventListener('storage', onChange);
+    return () => {
+        window.removeEventListener(NAV_COLLAPSED_EVENT, onChange);
+        window.removeEventListener('storage', onChange);
+    };
+}
+
+function readNavCollapsed() {
+    try {
+        return window.localStorage.getItem(NAV_COLLAPSED_KEY) === '1';
+    }
+    catch {
+        return navCollapsedFallback;
+    }
+}
+
+/*
+ * The server knows nothing of a browser preference, and says so.
+ *
+ * This is the whole reason the fold is an external store rather than a
+ * `useState` seeded from `localStorage`, as the wizard's own folds are:
+ * `AppShell` frames every server-rendered page, so a first client render that
+ * disagreed with the HTML Next.js sent would be a hydration mismatch on the
+ * entire application. `useSyncExternalStore` is what makes the two agree — the
+ * same mechanism `lib/badges.js` uses for the nav counters.
+ */
+const serverNavCollapsed = () => false;
+
+function setNavCollapsed(next) {
+    navCollapsedFallback = next;
+    try {
+        window.localStorage.setItem(NAV_COLLAPSED_KEY, next ? '1' : '0');
+    }
+    catch {
+        // No storage: the fold still works, it just does not survive the reload.
+    }
+    window.dispatchEvent(new Event(NAV_COLLAPSED_EVENT));
+}
 
 /**
  * @param {Object} props
@@ -106,6 +157,10 @@ export function AppShell({
     const setDrawerOpen = (open) => setDrawer({ open, pathname });
 
     const resolvedSpace = space || session.space || 'supplier';
+    const navCollapsed = useSyncExternalStore(
+        subscribeNavCollapsed, readNavCollapsed, serverNavCollapsed,
+    );
+    const toggleNavCollapsed = useCallback(() => setNavCollapsed(!readNavCollapsed()), []);
 
     /*
      * THE NAV COUNTERS SURVIVE A CHANGE OF SCREEN.
@@ -162,10 +217,20 @@ export function AppShell({
                     scrolls away with the page, which is fine — it is part of the
                     header, which is itself sticky. */}
                 {hideNav ? null : (
-                    /* `w-64`, the reference `Layout.js` rail width. It was `w-60`,
-                       which leaves the label 157px: "Conformité documentaire" needs
-                       165 and was the one nav entry rendering ellipsised at 1440. */
-                    <aside className="hidden w-64 shrink-0 border-r border-[var(--becpg-grey)] bg-white lg:block lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)]">
+                    /* Unfolded: `w-64`, the reference `Layout.js` rail width. It
+                       was `w-60`, which leaves the label 157px: "Conformité
+                       documentaire" needs 165 and was the one nav entry rendering
+                       ellipsised at 1440. Folded: `3.25rem`, the same 52px column
+                       the wizard's step rail folds to — one width for "a rail
+                       reduced to its icons" across the portal. */
+                    <aside
+                        className={[
+                            'hidden shrink-0 border-r border-[var(--becpg-grey)] bg-white',
+                            'lg:block lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)]',
+                            navCollapsed ? 'w-[3.25rem]' : 'w-64',
+                            reduceMotion ? '' : 'transition-[width] duration-200 ease-out',
+                        ].filter(Boolean).join(' ')}
+                    >
                         {session.loading ? (
                             <div className="flex flex-col gap-2 p-3">
                                 {Array.from({ length: 6 }, (_, index) => (
@@ -173,7 +238,13 @@ export function AppShell({
                                 ))}
                             </div>
                         ) : (
-                            <Nav variant="sidebar" space={resolvedSpace} badges={mergedBadges} />
+                            <Nav
+                                variant="sidebar"
+                                space={resolvedSpace}
+                                badges={mergedBadges}
+                                collapsed={navCollapsed}
+                                onToggleCollapsed={toggleNavCollapsed}
+                            />
                         )}
                     </aside>
                 )}

@@ -93,8 +93,16 @@ export const MONITOR_NAV = Object.freeze([
 
 /** Chrome strings that are pure navigation mechanics, not portal vocabulary. */
 const LOCAL_LABELS = {
-    fr: { more: 'Plus', menu: 'Menu', close: 'Fermer le menu', supplierSpace: 'Espace fournisseur', monitorSpace: 'Espace pilotage' },
-    en: { more: 'More', menu: 'Menu', close: 'Close menu', supplierSpace: 'Supplier space', monitorSpace: 'Monitoring space' },
+    fr: {
+        more: 'Plus', menu: 'Menu', close: 'Fermer le menu',
+        supplierSpace: 'Espace fournisseur', monitorSpace: 'Espace pilotage',
+        collapse: 'Replier le menu', expand: 'Déplier le menu',
+    },
+    en: {
+        more: 'More', menu: 'Menu', close: 'Close menu',
+        supplierSpace: 'Supplier space', monitorSpace: 'Monitoring space',
+        collapse: 'Collapse the menu', expand: 'Expand the menu',
+    },
 };
 
 /**
@@ -166,11 +174,59 @@ function Badge({ count, tone = 'accent' }) {
 }
 
 /**
+ * The label of a folded sidebar entry, on hover **and on keyboard focus**.
+ *
+ * `title` alone would leave a keyboard user with nothing — a native tooltip
+ * never opens on focus — and a rail folded to its icons is exactly where the
+ * label cannot be read off the item. `aria-hidden`, because the link already
+ * carries the same words as its accessible name and a screen reader must not
+ * hear them twice.
+ *
+ * @param {Object} props
+ * @param {string} props.label
+ */
+function NavFlyout({ label }) {
+    return (
+        <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 hidden -translate-y-1/2 whitespace-nowrap rounded-lg border border-[var(--becpg-grey)] bg-white px-2 py-1 text-xs font-normal text-[var(--becpg-blue)] shadow-[var(--becpg-shadow-overlay)] group-hover:block group-focus-visible:block"
+        >
+            {label}
+        </span>
+    );
+}
+
+/**
+ * The counter of a folded entry: there is no room for the chip, so it rides the
+ * corner of the icon. The figure is also in the link's accessible name — this
+ * mark is emphasis, never the only carrier.
+ *
+ * @param {Object} props
+ * @param {number} [props.count]
+ */
+function CollapsedBadge({ count }) {
+    if (!count) {
+        return null;
+    }
+    return (
+        <span
+            aria-hidden="true"
+            className="absolute right-0.5 top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--becpg-blue)] px-1 text-[10px] font-semibold leading-none text-white ring-1 ring-[var(--becpg-orange)]"
+        >
+            {count > 9 ? '9+' : count}
+        </span>
+    );
+}
+
+/**
  * @param {Object} props
  * @param {'sidebar'|'bottom'|'drawer'} [props.variant='sidebar']
  * @param {'supplier'|'monitor'|'unknown'} [props.space] overrides the session's space
  * @param {Array<Object>} [props.items] overrides the item list entirely
  * @param {Object} [props.badges] counts keyed by `badgeKey` (`{ tasks: 3 }`)
+ * @param {boolean} [props.collapsed=false] sidebar folded to its icons
+ * @param {Function} [props.onToggleCollapsed] sidebar only; the fold button is
+ *   drawn only when a caller owns that state
  * @param {boolean} [props.open] drawer only
  * @param {Function} [props.onClose] drawer / bottom-bar "Plus"
  * @param {Function} [props.onOpenMore] bottom bar only: called by the "Plus" button
@@ -180,6 +236,8 @@ export function Nav({
     space,
     items,
     badges = {},
+    collapsed = false,
+    onToggleCollapsed,
     open = false,
     onClose,
     onOpenMore,
@@ -212,29 +270,79 @@ export function Nav({
 
     // ---------------------------------------------------------------- sidebar
     if (variant === 'sidebar') {
+        const foldLabel = collapsed ? local.expand : local.collapse;
         return (
             <nav
                 aria-label={local.menu}
-                className={`flex h-full flex-col gap-1 overflow-y-auto p-3 ${className}`}
+                /*
+                 * `overflow-y-auto` is dropped once folded: `overflow-y` clips
+                 * horizontally too, and a folded entry's label flyout is drawn
+                 * outside the 52px column — it would show as a sliver. Seven
+                 * entries of 40px never need to scroll anyway.
+                 */
+                className={[
+                    'flex h-full flex-col gap-1',
+                    collapsed ? 'overflow-visible px-1.5 py-3' : 'overflow-y-auto p-3',
+                    className,
+                ].filter(Boolean).join(' ')}
             >
                 {list.map((item) => {
                     const active = isActive(pathname, item);
+                    const label = t(item.labelKey);
+                    const count = badges[item.badgeKey];
                     return (
                         <Link
                             key={item.id}
                             href={item.href}
                             aria-current={active ? 'page' : undefined}
-                            className={`nav-item ${active ? 'nav-item-active' : ''}`}
+                            // Folded, the words leave the screen but not the
+                            // accessible name — the count included, since the
+                            // corner mark is `aria-hidden`.
+                            aria-label={collapsed ? (count ? `${label} (${count})` : label) : undefined}
+                            title={collapsed ? label : undefined}
+                            className={[
+                                'nav-item group',
+                                collapsed ? 'nav-item-collapsed' : '',
+                                active ? 'nav-item-active' : '',
+                            ].filter(Boolean).join(' ')}
                         >
                             <Icon name={item.icon} size={20} className="nav-item-icon" />
-                            <span className="truncate">{t(item.labelKey)}</span>
-                            <Badge count={badges[item.badgeKey]} tone={active ? 'onBlue' : 'accent'} />
+                            {collapsed ? null : <span className="truncate">{label}</span>}
+                            {collapsed
+                                ? <CollapsedBadge count={count} />
+                                : <Badge count={count} tone={active ? 'onBlue' : 'accent'} />}
+                            {collapsed ? <NavFlyout label={label} /> : null}
                         </Link>
                     );
                 })}
-                {canSwitchSpace ? (
-                    <SpaceSwitch space={resolvedSpace} local={local} className="mt-auto" />
-                ) : null}
+
+                <div className="mt-auto flex flex-col gap-1 pt-2">
+                    {canSwitchSpace ? (
+                        <SpaceSwitch space={resolvedSpace} local={local} collapsed={collapsed} />
+                    ) : null}
+                    {onToggleCollapsed ? (
+                        <button
+                            type="button"
+                            onClick={onToggleCollapsed}
+                            aria-expanded={!collapsed}
+                            aria-label={foldLabel}
+                            title={foldLabel}
+                            className={[
+                                'nav-item group text-[var(--becpg-dark-grey)]',
+                                collapsed ? 'nav-item-collapsed' : '',
+                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]',
+                            ].filter(Boolean).join(' ')}
+                        >
+                            <Icon
+                                name={collapsed ? 'chevron_right' : 'chevron_left'}
+                                size={20}
+                                className="nav-item-icon"
+                            />
+                            {collapsed ? null : <span className="truncate">{foldLabel}</span>}
+                            {collapsed ? <NavFlyout label={foldLabel} /> : null}
+                        </button>
+                    ) : null}
+                </div>
             </nav>
         );
     }
@@ -394,14 +502,21 @@ export function Nav({
  * rare account that legitimately has both (an internal user delegated to enter
  * data on behalf of a supplier, spec §4.4).
  */
-function SpaceSwitch({ space, local, onNavigate, className = '' }) {
+function SpaceSwitch({ space, local, onNavigate, collapsed = false, className = '' }) {
     const target = space === 'monitor' ? '/' : '/monitor';
     const label = space === 'monitor' ? local.supplierSpace : local.monitorSpace;
     return (
-        <div className={`border-t border-[var(--becpg-grey)] p-2 ${className}`}>
-            <Link href={target} onClick={onNavigate} className="nav-item touch-target">
+        <div className={`border-t border-[var(--becpg-grey)] ${collapsed ? 'px-0 pt-2' : 'p-2'} ${className}`}>
+            <Link
+                href={target}
+                onClick={onNavigate}
+                aria-label={collapsed ? label : undefined}
+                title={collapsed ? label : undefined}
+                className={`nav-item group touch-target ${collapsed ? 'nav-item-collapsed' : ''}`}
+            >
                 <Icon name="swap_horiz" size={20} className="nav-item-icon" />
-                <span className="truncate">{label}</span>
+                {collapsed ? null : <span className="truncate">{label}</span>}
+                {collapsed ? <NavFlyout label={label} /> : null}
             </Link>
         </div>
     );
