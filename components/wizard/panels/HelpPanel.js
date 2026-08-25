@@ -12,25 +12,27 @@
  *
  * | Section | Source | Question it answers |
  * |---|---|---|
+ * | Suggestions de l'IA | `becpg/ai/*` through the wizard | what has already been read for me? |
  * | Cahiers des charges | `entities/{id}/specs` (`SpecPanel`) | what am I contractually asked for? |
- * | Remarques du client | `messages` on the entity | what did they tell me? |
- * | Listes validées | the wizard state's frozen steps | what is settled and untouchable? |
- * | Refus précédents | `tasks?entity=…&state=completed` | why did it come back to me? |
+ * | Refus précédents | the task's `pjt:tlRefusedTaskRef` | why did it come back to me? |
+ *
+ * Two sections were removed rather than kept for symmetry — « Remarques du
+ * client » and « Listes validées » — and the reason is the same for both: each
+ * repeated, in a narrower and less actionable form, something the screen beside
+ * it already said. See the notes at their former places below.
  *
  * Every section is collapsible, and on a phone the whole panel is a sheet the
  * wizard opens on demand — at 360px it cannot be permanently on screen, so it
  * becomes permanently *one tap away*, which is the same promise.
  *
- * Nothing here is computed: frozen steps come from the single security call
- * (bug #25928), the specifications are read-only by construction (spec §4.5 F9),
- * and the refusal history is the project's own task history.
+ * Nothing here is computed: the specifications are read-only by construction
+ * (spec §4.5 F9), and the refusal history comes with the task.
  */
 
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { StatusPill } from '@/components/ui/StatusPill';
 import { SkeletonText } from '@/components/ui/Skeleton';
 import { SpecPanel } from '@/components/specs/SpecPanel';
 import { SuggestionsStep } from '@/components/wizard/steps/SuggestionsStep';
@@ -41,14 +43,9 @@ import { useMessages } from '@/lib/messages';
 const LABELS = {
     fr: {
         title: 'Contexte',
-        subtitle: 'Ce que votre client attend, et ce qui est déjà acté',
         suggestions: 'Suggestions de l’IA',
         specs: 'Cahiers des charges',
         specsEmpty: 'Aucun cahier des charges rattaché à cette fiche.',
-        frozen: 'Listes validées',
-        frozenHint:
-            'Votre client a validé ces sections : elles sont figées. Pour une correction, demandez leur réouverture via la discussion.',
-        frozenEmpty: 'Aucune section n’est figée : tout reste modifiable.',
         refusals: 'Refus précédents',
         refusalsEmpty: 'Aucun refus sur cette fiche.',
         refusalsHint: 'Ces étapes vous ont été renvoyées : relisez la remarque associée avant de renvoyer.',
@@ -58,14 +55,9 @@ const LABELS = {
     },
     en: {
         title: 'Context',
-        subtitle: 'What your customer expects, and what is already settled',
         suggestions: 'AI suggestions',
         specs: 'Specifications',
         specsEmpty: 'No specification attached to this sheet.',
-        frozen: 'Validated lists',
-        frozenHint:
-            'Your customer validated these sections: they are frozen. For a correction, ask for them to be reopened through the discussion.',
-        frozenEmpty: 'No section is frozen: everything can still be edited.',
         refusals: 'Previous rejections',
         refusalsEmpty: 'No rejection on this sheet.',
         refusalsHint: 'These steps were sent back to you: read the associated remark before sending again.',
@@ -129,8 +121,6 @@ function Section({ id, icon, title, count, open, onToggle, children }) {
  * @param {string} props.entityId entity nodeRef (or uuid) — the API accepts both
  * @param {Object} [props.suggestions] what the wizard knows of the AI suggestions —
  *        see `suggestionsPanel` in `Wizard.js`. Absent = no section rendered.
- * @param {Array<Object>} [props.steps] the wizard's step view models (frozen ones are listed)
- * @param {Function} [props.onSelectStep] `(stepId) => void`
  * @param {Object} [props.discussion] a `useDiscussion` instance on the entity
  * @param {Function} [props.onOpenComments] opens the discussion panel / sheet
  * @param {Object} [props.task] the task the wizard was opened from
@@ -140,8 +130,6 @@ function Section({ id, icon, title, count, open, onToggle, children }) {
 export function HelpPanel({
     entityId,
     suggestions = null,
-    steps = [],
-    onSelectStep,
     discussion,
     onOpenComments,
     task = null,
@@ -153,7 +141,7 @@ export function HelpPanel({
     // Suggestions open from the start: this is what the supplier did not ask for
     // but does use, and a collapsed section is not read.
     const [open, setOpen] = useState({
-        suggestions: true, specs: true, frozen: false, refusals: true,
+        suggestions: true, specs: true, refusals: true,
     });
 
     const toggle = (id) => setOpen((current) => ({ ...current, [id]: !current[id] }));
@@ -165,8 +153,6 @@ export function HelpPanel({
         () => (specs.data && Array.isArray(specs.data.specifications) ? specs.data.specifications : []),
         [specs.data],
     );
-
-    const frozenSteps = useMemo(() => (steps || []).filter((step) => step.frozen), [steps]);
 
     /*
      * REFUSALS COME FROM THE PROJECT, NOT FROM THE TASK LIST.
@@ -266,7 +252,17 @@ export function HelpPanel({
             </Section>
 
             {/*
-                « Remarques de votre client » a été supprimé.
+                « LISTES VALIDÉES » A ÉTÉ SUPPRIMÉ.
+
+                La section listait les étapes gelées et rappelait qu'une
+                correction passe par une demande de réouverture. Le rail le dit
+                déjà de chaque étape concernée — cadenas et « Validée par le
+                client » — et l'étape ouverte porte la phrase complète, avec la
+                marche à suivre (`useDataList.frozenText`, `FormStep.frozenText`).
+                Ce panneau n'en donnait qu'un troisième exemplaire, à droite,
+                dans la colonne qu'on regarde en dernier.
+
+                « REMARQUES DE VOTRE CLIENT » A ÉTÉ SUPPRIMÉ.
 
                 La section lisait le MÊME fil que le panneau Discussion —
                 `discussion.messages.slice(0, 3)` — et en donnait un aperçu
@@ -274,39 +270,6 @@ export function HelpPanel({
                 seule conversation, dont l'un ne servait qu'à renvoyer vers
                 l'autre. Le fil complet, avec sa saisie, est à un clic.
             */}
-            <Section
-                id="frozen"
-                icon="lock"
-                title={labels.frozen}
-                count={frozenSteps.length}
-                open={open.frozen}
-                onToggle={toggle}
-            >
-                {frozenSteps.length === 0 ? (
-                    <p className="text-sm text-[var(--becpg-dark-grey)]">{labels.frozenEmpty}</p>
-                ) : (
-                    <>
-                        <p className="mb-2 text-xs text-[var(--becpg-dark-grey)]">{labels.frozenHint}</p>
-                        <ul className="flex flex-col gap-1">
-                            {frozenSteps.map((step) => (
-                                <li key={step.id} className="flex items-center gap-2">
-                                    <StatusPill status="valid" label={step.label} tone="ok" size="sm" icon="lock" />
-                                    {onSelectStep ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => onSelectStep(step.id)}
-                                            className="text-xs text-[var(--becpg-blue)] underline underline-offset-2"
-                                        >
-                                            {labels.seeStep}
-                                        </button>
-                                    ) : null}
-                                </li>
-                            ))}
-                        </ul>
-                    </>
-                )}
-            </Section>
-
             <Section
                 id="refusals"
                 icon="history"
@@ -363,7 +326,10 @@ export function HelpPanel({
     }
 
     return (
-        <Card title={labels.title} subtitle={labels.subtitle} icon="lightbulb" padding="md" className={className}>
+        /* No subtitle: « Ce que votre client attend, et ce qui est déjà acté »
+           described the panel to someone already reading it, and cost two lines
+           at the top of a 320px column. The section headers say what is inside. */
+        <Card title={labels.title} icon="lightbulb" padding="md" className={className}>
             {content}
         </Card>
     );

@@ -24,7 +24,6 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { apiUrl } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { Button, Icon } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { SearchInput } from '@/components/ui/Field';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
@@ -112,15 +111,27 @@ function SpecRow({ specification, variant, index = 0 }) {
             initial={reduceMotion ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22, delay: Math.min(index, 10) * 0.04 }}
-            className={[
-                'rounded-xl border border-[var(--becpg-grey)] bg-white',
-                panel ? 'p-2.5' : 'p-3 sm:p-4',
-            ].join(' ')}
+            /*
+             * In a panel this row is ALREADY inside a card, itself inside a
+             * collapsible section: a border here made three nested boxes for one
+             * specification. Embedded, it is a plain row on a hairline; standing
+             * on its own page it keeps its card.
+             */
+            className={
+                panel
+                    ? 'border-b border-[var(--becpg-grey)] py-2.5 first:pt-0 last:border-b-0 last:pb-0'
+                    : 'rounded-xl border border-[var(--becpg-grey)] bg-white p-3 sm:p-4'
+            }
         >
             <div className="flex items-start gap-2.5">
-                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--becpg-blue-lighter)] text-[var(--becpg-blue)]">
-                    <Icon name="menu_book" size={18} />
-                </span>
+                {/* The section header already carries this glyph, once, for the
+                    whole list — repeating it per row is a plate that names
+                    nothing. */}
+                {panel ? null : (
+                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--becpg-blue-lighter)] text-[var(--becpg-blue)]">
+                        <Icon name="menu_book" size={18} />
+                    </span>
+                )}
 
                 <div className="min-w-0 flex-1">
                     <p className="break-words text-sm font-medium leading-snug">{title}</p>
@@ -161,6 +172,9 @@ function SpecRow({ specification, variant, index = 0 }) {
                         </p>
                     ) : null}
 
+                    {/* One wrapping row, not two stacked ones: on the 320px
+                        context panel, three actions on three lines were taller
+                        than the specification they act on. */}
                     <div className="mt-2 flex flex-wrap gap-2">
                         {/*
                          * The cahier des charges as an *entity*: its properties and
@@ -171,8 +185,8 @@ function SpecRow({ specification, variant, index = 0 }) {
                          * security check rather than from a flag set here.
                          *
                          * This is the consultation half of the feature; the file
-                         * download below only exists when the node carries content,
-                         * which a specification need not.
+                         * download beside it only exists when the node carries
+                         * content, which a specification need not.
                          */}
                         {specification.uuid ? (
                             <Button
@@ -184,9 +198,7 @@ function SpecRow({ specification, variant, index = 0 }) {
                                 {labels.consult}
                             </Button>
                         ) : null}
-                    </div>
-                    {href ? (
-                        <div className="mt-2 flex flex-wrap gap-2">
+                        {href ? (
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -196,8 +208,10 @@ function SpecRow({ specification, variant, index = 0 }) {
                             >
                                 {labels.open}
                             </Button>
-                            {/* A real `download` anchor: same-origin, the cookie
-                                authenticates it, nothing is buffered client-side. */}
+                        ) : null}
+                        {/* A real `download` anchor: same-origin, the cookie
+                            authenticates it, nothing is buffered client-side. */}
+                        {href ? (
                             <a
                                 href={href}
                                 download
@@ -206,8 +220,8 @@ function SpecRow({ specification, variant, index = 0 }) {
                                 <Icon name="download" size={16} />
                                 <span>{labels.download}</span>
                             </a>
-                        </div>
-                    ) : null}
+                        ) : null}
+                    </div>
                 </div>
             </div>
         </motion.li>
@@ -302,7 +316,7 @@ export function SpecPanel({
     }
     else {
         body = (
-            <ul className="flex list-none flex-col gap-2 p-0">
+            <ul className={`flex list-none flex-col p-0 ${panel ? '' : 'gap-2'}`}>
                 {list.map((specification, index) => (
                     <SpecRow
                         key={specification.nodeRef || specification.uuid || index}
@@ -328,12 +342,11 @@ export function SpecPanel({
         </>
     );
 
-    if (panel) {
-        return (
-            <Card padding="md" className={className}>
-                {content}
-            </Card>
-        );
-    }
+    /*
+     * `panel` is the EMBEDDED shape — today the wizard's context panel, which is
+     * already a card. It used to wrap itself in one more, so a specification sat
+     * three boxes deep: context card, section, spec card, spec row. It carries no
+     * surface of its own any more.
+     */
     return <div className={className}>{content}</div>;
 }
