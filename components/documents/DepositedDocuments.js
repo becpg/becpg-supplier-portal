@@ -18,8 +18,17 @@
  * fournisseur*, a single `Halal` requirement in the check-list.
  *
  * This component renders `GET /api/v1/entities/{id}/documents`, the folder as it
- * is. The two are shown together: the check-list says what is missing, this says
- * what is there.
+ * is.
+ *
+ * ## `exclude`: the two lists stopped repeating each other
+ *
+ * Shown whole beside the check-list, it listed every provided requirement a
+ * second time — on the wizard's documents step, a file dropped on the « Certificat
+ * IFS » line appeared once in its slot and once in the folder below, with a
+ * different set of actions each time. The caller now passes the nodeRefs the
+ * check-list already draws, and what is left is the honest remainder: the files
+ * that belong to no requirement, which is exactly what the signed technical sheet
+ * is. Pass nothing and the whole folder is listed, as on the `/documents` screen.
  *
  * Read-only on purpose. Depositing goes through the check-list line (renewing a
  * requirement) or the "other document" drop zone, which are the two paths beCPG
@@ -27,7 +36,7 @@
  * same file.
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import { Icon } from '@/components/ui/Button';
@@ -87,9 +96,18 @@ function formatSize(bytes) {
  * @param {Object} props
  * @param {string} props.entityNodeRef the entity whose folder is listed
  * @param {number} [props.refreshKey] bump to re-read after a deposit
+ * @param {string[]} [props.exclude] nodeRefs another list already shows
+ * @param {boolean} [props.bare=false] no card of its own — the caller owns the
+ *   surface, and an empty folder renders nothing at all
  * @param {string} [props.className]
  */
-export function DepositedDocuments({ entityNodeRef, refreshKey = 0, className = '' }) {
+export function DepositedDocuments({
+    entityNodeRef,
+    refreshKey = 0,
+    exclude,
+    bare = false,
+    className = '',
+}) {
     const { lang } = useMessages();
     const labels = LABELS[lang] || LABELS.fr;
 
@@ -98,17 +116,28 @@ export function DepositedDocuments({ entityNodeRef, refreshKey = 0, className = 
         { params: { v: refreshKey || undefined } },
     );
 
-    const items = list.data && Array.isArray(list.data.items) ? list.data.items : [];
+    const excludeKey = (exclude || []).join('|');
+    const items = useMemo(() => {
+        const all = list.data && Array.isArray(list.data.items) ? list.data.items : [];
+        if (!excludeKey) {
+            return all;
+        }
+        const hidden = new Set(excludeKey.split('|'));
+        return all.filter((item) => !hidden.has(item.nodeRef));
+        // The array identity changes on every render of the caller; its content
+        // is what selects, hence the serialised key.
+    }, [list.data, excludeKey]);
+
     const [viewing, setViewing] = useState(null);
 
-    return (
-        <Card
-            title={labels.title}
-            subtitle={labels.subtitle}
-            icon="folder_open"
-            padding="md"
-            className={className}
-        >
+    // Bare and empty: the caller's drop zone already says the folder is open for
+    // business, and an empty state above it would be a second way of saying so.
+    if (bare && !list.loading && !list.error && items.length === 0) {
+        return null;
+    }
+
+    const body = (
+        <>
             {list.loading ? <SkeletonCard lines={3} /> : null}
 
             {!list.loading && list.error ? (
@@ -183,6 +212,22 @@ export function DepositedDocuments({ entityNodeRef, refreshKey = 0, className = 
             ) : null}
 
             <DocumentViewer document={viewing} onClose={() => setViewing(null)} />
+        </>
+    );
+
+    if (bare) {
+        return <div className={`min-w-0 ${className}`}>{body}</div>;
+    }
+
+    return (
+        <Card
+            title={labels.title}
+            subtitle={labels.subtitle}
+            icon="folder_open"
+            padding="md"
+            className={className}
+        >
+            {body}
         </Card>
     );
 }

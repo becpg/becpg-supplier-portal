@@ -22,7 +22,7 @@
  * later.
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { ListIcon } from '@/components/ui/ListIcon';
@@ -36,9 +36,9 @@ const LABELS = {
     fr: {
         title: 'Documents attendus',
         subtitle: 'Ce que votre client attend, et pour quand.',
-        otherTitle: 'Autre document',
+        otherTitle: 'Autres documents',
         otherSubtitle:
-            'Déposez ici tout document utile qui ne correspond à aucune exigence ci-dessus (fiche technique, photo, analyse…).',
+            'Les fichiers du dossier qui ne répondent à aucune exigence ci-dessus. Déposez ici tout document utile (photo, analyse…).',
         blocking: '{count} document(s) obligatoire(s) manquant(s)',
         allGood: 'Tous les documents obligatoires sont fournis',
         readOnly: 'Vous ne pouvez pas déposer de document sur cette fiche.',
@@ -46,9 +46,9 @@ const LABELS = {
     en: {
         title: 'Expected documents',
         subtitle: 'What your customer expects, and by when.',
-        otherTitle: 'Other document',
+        otherTitle: 'Other documents',
         otherSubtitle:
-            'Drop here any useful document that matches none of the requirements above (data sheet, photo, analysis…).',
+            'The files in the folder that answer none of the requirements above. Drop here any useful document (photo, analysis…).',
         blocking: '{count} mandatory document(s) missing',
         allGood: 'Every mandatory document is provided',
         readOnly: 'You cannot deposit a document on this sheet.',
@@ -90,6 +90,24 @@ export function DocumentsStep({
     const [depositCount, setDepositCount] = useState(0);
     const readOnly = Boolean(step && step.readOnly);
     const summary = requirements.summary;
+
+    /*
+     * WHAT THE CHECK-LIST ALREADY DRAWS.
+     *
+     * The step used to show the requirements and then the whole folder, so every
+     * provided document appeared twice, with a different pair of actions each
+     * time. The check-list keeps the documents it can attribute to a requirement
+     * — and now reads and downloads them in place; the list below keeps the
+     * remainder, which is what a supplier deposited outside any expectation and
+     * what the signature flow writes with no document type at all.
+     */
+    const shownByChecklist = useMemo(
+        () => (requirements.requirements || [])
+            .filter((requirement) => requirement.isProvided)
+            .map((requirement) => requirement.nodeRef)
+            .filter(Boolean),
+        [requirements.requirements],
+    );
 
     const handleUploaded = useCallback(
         (result) => {
@@ -152,12 +170,6 @@ export function DocumentsStep({
                 groupByEntity={false}
             />
 
-            <DepositedDocuments
-                entityNodeRef={entityNodeRef}
-                refreshKey={depositCount}
-                className="mt-4"
-            />
-
             <Card
                 title={labels.otherTitle}
                 subtitle={labels.otherSubtitle}
@@ -165,6 +177,15 @@ export function DocumentsStep({
                 padding="md"
                 className="mt-4"
             >
+                {/* The remainder of the folder and the way to add to it, in one
+                    card: they are the same subject, and they were two. */}
+                <DepositedDocuments
+                    entityNodeRef={entityNodeRef}
+                    refreshKey={depositCount}
+                    exclude={shownByChecklist}
+                    bare
+                    className="mb-3"
+                />
                 <DocumentUpload
                     entityRef={entityNodeRef}
                     variant="zone"

@@ -31,6 +31,7 @@ import { SkeletonList } from '@/components/ui/Skeleton';
 import { download } from '@/lib/client';
 import { DocumentUpload, AiValidationBadge } from '@/components/documents/DocumentUpload';
 import { DocumentValidity } from '@/components/documents/DocumentValidity';
+import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import { ExpiryPill, ExpiryBar } from '@/components/documents/ExpiryPill';
 import { entityTypeLabel } from '@/components/products/ProductHeader';
 
@@ -42,6 +43,7 @@ const LABELS = {
         renew: 'Renouveler',
         replace: 'Remplacer',
         download: 'Télécharger',
+        consult: 'Consulter',
         details: 'Détails',
         hide: 'Masquer',
         of: '{done} / {total} documents obligatoires',
@@ -65,6 +67,7 @@ const LABELS = {
         renew: 'Renew',
         replace: 'Replace',
         download: 'Download',
+        consult: 'View',
         details: 'Details',
         hide: 'Hide',
         of: '{done} / {total} mandatory documents',
@@ -161,6 +164,7 @@ function RequirementRow({
     const reduceMotion = useReducedMotion();
     const rowRef = useRef(null);
     const [open, setOpen] = useState(false);
+    const [viewing, setViewing] = useState(false);
 
     const label = requirementLabel(requirement);
     const canAct = Boolean(requirement.action) || requirement.status !== 'missing';
@@ -261,6 +265,25 @@ function RequirementRow({
                     </div>
 
                     <div className="flex shrink-0 items-center gap-1">
+                        {/*
+                            READING THE FILE HAPPENS HERE.
+
+                            The row offered the download alone, so checking that
+                            the certificate one deposited is the right one meant
+                            saving it and opening it from the file manager — or
+                            scrolling to the folder listing below, which is the
+                            duplicate this step no longer has. `downloadUrl` is
+                            null on a slot still empty, so both actions appear
+                            exactly when there is something to look at.
+                        */}
+                        {requirement.downloadUrl ? (
+                            <IconButton
+                                icon="visibility"
+                                label={labels.consult}
+                                variant="ghost"
+                                onClick={() => setViewing(true)}
+                            />
+                        ) : null}
                         {requirement.downloadUrl ? (
                             <IconButton
                                 icon="download"
@@ -365,6 +388,11 @@ function RequirementRow({
                     ) : null}
                 </AnimatePresence>
             </div>
+
+            <DocumentViewer
+                document={viewing ? requirement : null}
+                onClose={() => setViewing(false)}
+            />
         </motion.li>
     );
 }
