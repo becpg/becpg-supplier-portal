@@ -8,6 +8,11 @@ Current state, known defects and remaining gaps: `enterprise/implementation-stat
 `CLAUDE.md` and `GEMINI.md` are symlinks to this file — one document, whichever agent reads it.
 Edit `AGENTS.md`; the same layout is used in the `becpg` repository.
 
+**If you are reading this on GitHub**, every path below under `enterprise/`, `legacy/` or `e2e/`,
+and the delivery files (`cloudbuild.delivery.yaml`, `deployment.yml`, `deploy-fast.sh`,
+`release.sh`), exists only in the private repository this mirror is exported from — see
+"This repository is published". Nothing else in the file depends on them.
+
 ## Read this first
 
 **This repository IS under version control** — `main`, pushed to Google Source. That was not
