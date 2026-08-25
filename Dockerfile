@@ -16,7 +16,7 @@
 # -----------------------------------------------------------------------------
 # Stage 1 — dependencies
 # -----------------------------------------------------------------------------
-FROM node:22-alpine AS deps
+FROM node:26-alpine AS deps
 
 WORKDIR /app
 
@@ -30,7 +30,7 @@ RUN if [ -f package-lock.json ]; then \
 # -----------------------------------------------------------------------------
 # Stage 2 — build (produces .next/standalone)
 # -----------------------------------------------------------------------------
-FROM node:22-alpine AS builder
+FROM node:26-alpine AS builder
 
 WORKDIR /app
 
@@ -48,7 +48,7 @@ RUN mkdir -p public && npm run build
 # -----------------------------------------------------------------------------
 # Stage 3 — runner
 # -----------------------------------------------------------------------------
-FROM node:22-alpine AS runner
+FROM node:26-alpine AS runner
 
 ARG PORTAL_VERSION=dev
 
