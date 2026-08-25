@@ -7,7 +7,7 @@
 [![Documentation](https://img.shields.io/badge/docs-docs.becpg.fr-brightgreen)](https://docs.becpg.fr)
 [![Website](https://img.shields.io/badge/website-becpg.net-blue)](https://www.becpg.net)
 
-**Collect specifications, certificates and questionnaires from your suppliers — in their
+**Collect specifications, certificates and surveys from your suppliers — in their
 language, on their phone, straight into your PLM. Open source, self-hosted, and driven by your
 own PLM configuration.**
 
@@ -24,7 +24,7 @@ The **beCPG Supplier Portal** is the supplier-facing front end of
 Food, Beverage and Cosmetics industries.
 
 Suppliers sign in with their own account and do the work a manufacturer needs from them:
-onboarding questionnaires, product technical sheets, certificates and audit documents,
+onboarding surveys, product technical sheets, certificates and audit documents,
 electronic signature of agreements. Quality and purchasing teams get a monitoring space showing,
 at a glance, which supplier is compliant and which document is about to expire.
 
@@ -55,7 +55,7 @@ confidence level, never silently.
 
 ![The referencing wizard](doc/images/wizard.png)
 
-### One page for the quality team
+### Monitoring page for the Quality Team
 
 Approval, document compliance, expiry horizon, campaigns and non-conformities across the whole
 supplier park — recomputed live from the repository, no OLAP cube required. When a figure
@@ -64,7 +64,7 @@ publishing a number it cannot justify.
 
 ![Supplier park monitoring](doc/images/monitoring.png)
 
-### Built for a supplier on a phone
+### Also designed to work on a phone
 
 <img src="doc/images/mobile-dashboard.png" alt="The portal on a 390 px screen" width="320" align="right">
 
@@ -82,7 +82,7 @@ Accessibility is part of the review, not a later phase:
 
 <br clear="right">
 
-### Sign-in your suppliers already understand
+### Secure login for suppliers, with no extra password
 
 <img src="doc/images/login.png" alt="The sign-in screen" width="100%">
 
@@ -101,8 +101,8 @@ never sees a portal-specific password, and the portal never stores one.
   directly against the manufacturer's data model, in their own language.
 * **Approval status** – derived on the fly from the repository, never persisted: no data model
   change, no state to keep in sync.
-* **Electronic signature** – draw-to-sign agreements, with the signed artefact stored back in
-  the PLM.
+* **Electronic signature** – draw-to-sign agreements, signed documents are stored back in the
+  PLM.
 * **Monitoring space** – supplier park overview, supplier × document-type matrix, campaigns and
   quality indicators, closed to supplier accounts.
 * **AI-assisted capture** – optional: extracted values are shown with a confidence level, and a
