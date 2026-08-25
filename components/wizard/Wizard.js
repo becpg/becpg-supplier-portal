@@ -86,7 +86,7 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useToast } from '@/components/providers/ToastProvider';
 import { WizardStepper } from '@/components/wizard/WizardStepper';
-import { WizardFooter } from '@/components/wizard/WizardFooter';
+import { WizardFooter, StepGapChip } from '@/components/wizard/WizardFooter';
 import { useAutoSave } from '@/components/wizard/useAutoSave';
 import { HelpPanel } from '@/components/wizard/panels/HelpPanel';
 import { TechnicalSheetBanner, useDocumentRequirements } from '@/components/wizard/TechnicalSheetBanner';
@@ -134,6 +134,10 @@ const LABELS = {
         // Name the step and the count: "something is missing somewhere" helps
         // nobody finish.
         finishMissingStep: '« {step} » : {count} réponse(s) obligatoire(s) manquante(s).',
+        // The same gaps, short enough to be pressed rather than read.
+        finishGapStep: '{step} · {count} champ(s)',
+        finishGapCatalog: '{step} · {count} attendu(s)',
+        finishGapCatalogPlain: '{step} à compléter',
         notFound: 'Fiche introuvable',
         notFoundHint: 'Cette fiche n’existe pas ou ne fait pas partie de votre périmètre.',
         delegated: 'Vous saisissez au nom de {supplier}',
@@ -165,6 +169,10 @@ const LABELS = {
         finishBlocked: 'Fill in the missing fields of the "Compliance" step to finish.',
         /* See the note on the French keys. */
         finishMissingStep: '"{step}": {count} mandatory answer(s) missing.',
+        /* See the note on the French keys. */
+        finishGapStep: '{step} · {count} field(s)',
+        finishGapCatalog: '{step} · {count} expected',
+        finishGapCatalogPlain: '{step} to complete',
         notFound: 'Sheet not found',
         notFoundHint: 'This sheet does not exist, or is not part of your scope.',
         delegated: 'You are filling in on behalf of {supplier}',
@@ -198,6 +206,56 @@ function resumeKey(entityId) {
  * button you press twelve times an afternoon.
  */
 const WIDE_KEY = 'becpg.portal.wizard.wide';
+
+/**
+ * The rail folded on its own, panels kept. Same reasoning as {@link WIDE_KEY}:
+ * a working habit survives the reload.
+ *
+ * It is a separate preference and not a degree of `wide` because the two answer
+ * different questions — "I want the table wider" and "I am done with the help
+ * and the discussion". Folding the rail from the rail itself must not take the
+ * panels away with it.
+ */
+const RAIL_KEY = 'becpg.portal.wizard.rail';
+
+/**
+ * A boolean layout preference kept in `localStorage`.
+ *
+ * Read once in a lazy initialiser: it is an entry condition, not a value that
+ * changes under the wizard while it is open.
+ *
+ * @param {string} key storage key
+ * @returns {[boolean, Function]} the flag and the function that flips it
+ */
+function useStoredFlag(key) {
+    const [value, setValue] = useState(() => {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+        try {
+            return window.localStorage.getItem(key) === '1';
+        }
+        catch {
+            return false;
+        }
+    });
+
+    const toggle = useCallback(() => {
+        setValue((current) => {
+            const next = !current;
+            try {
+                window.localStorage.setItem(key, next ? '1' : '0');
+            }
+            catch {
+                // No storage (private window): the mode still works, it just
+                // does not survive the reload.
+            }
+            return next;
+        });
+    }, [key]);
+
+    return [value, toggle];
+}
 
 /**
  * DOM id of the discussion column, so `openComments` can bring it into view when
@@ -708,31 +766,16 @@ export function Wizard({
      * its icons. Read once, in a lazy initialiser, because it is an entry
      * condition and not a value that changes while the wizard is open.
      */
-    const [wide, setWide] = useState(() => {
-        if (typeof window === 'undefined') {
-            return false;
-        }
-        try {
-            return window.localStorage.getItem(WIDE_KEY) === '1';
-        }
-        catch {
-            return false;
-        }
-    });
-
-    const toggleWide = useCallback(() => {
-        setWide((current) => {
-            const next = !current;
-            try {
-                window.localStorage.setItem(WIDE_KEY, next ? '1' : '0');
-            }
-            catch {
-                // No storage (private window): the mode still works, it just
-                // does not survive the reload.
-            }
-            return next;
-        });
-    }, []);
+    const [wide, toggleWide] = useStoredFlag(WIDE_KEY);
+    /*
+     * The rail folded on its own — the chevron drawn on the rail's own head.
+     *
+     * `wide` forces it: that mode is defined as "panels out, rail reduced to its
+     * icons", so the rail has no say while it is on, and its chevron gives way
+     * to the "rétablir les panneaux" button underneath.
+     */
+    const [railFolded, toggleRail] = useStoredFlag(RAIL_KEY);
+    const railCollapsed = wide || railFolded;
 
     const [anchor, setAnchor] = useState(null);
     const [commentTargets, setCommentTargets] = useState([]);
@@ -1318,11 +1361,6 @@ export function Wizard({
         <HelpPanel
             entityId={entityId}
             suggestions={suggestionsPanel}
-            steps={visitedSteps}
-            onSelectStep={(stepId) => {
-                setSheet(null);
-                goTo(stepId);
-            }}
             discussion={commentsEnabled ? discussion : null}
             onOpenComments={commentsEnabled ? openComments : undefined}
             task={task}
@@ -1463,14 +1501,50 @@ export function Wizard({
      * to « Conformité ».
      */
     const finishDisabled = blocking.length > 0 || incompleteSteps.length > 0;
-    const finishReason = incompleteSteps.length > 0
-        ? fill(labels.finishMissingStep, {
-            step: incompleteSteps[0].label,
-            count: verdicts[incompleteSteps[0].id].count,
-        })
-        : blocking.length > 0
-            ? labels.finishBlocked
-            : null;
+    /*
+     * WHAT IS MISSING, AS A PLACE TO GO.
+     *
+     * This used to be one sentence naming the first incomplete step, which left
+     * the supplier three problems: the other gaps were not named, none of them
+     * was clickable, and a wizard whose rail is twelve tabs long makes "go and
+     * look for it yourself" an expensive instruction. Every gap is now a chip
+     * that lands on the step holding it, the catalogue's included.
+     */
+    const complianceStep = steps.find((step) => step.kind === 'compliance') || null;
+    const blockingFields = blocking.reduce(
+        (total, catalog) => total + (Array.isArray(catalog.missingFields) ? catalog.missingFields.length : 0),
+        0,
+    );
+    const catalogGapLabel = fill(
+        // A catalogue can block on `isComplete: false` alone, with no field to
+        // count. Announcing « 0 attendu(s) » would be a fabricated figure.
+        blockingFields > 0 ? labels.finishGapCatalog : labels.finishGapCatalogPlain,
+        {
+            step: complianceStep ? complianceStep.label : labels.compliance,
+            count: blockingFields,
+        },
+    );
+    const finishReason = finishDisabled ? (
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+            {incompleteSteps.map((step) => (
+                <StepGapChip
+                    key={step.id}
+                    label={fill(labels.finishGapStep, {
+                        step: step.label,
+                        count: verdicts[step.id].count,
+                    })}
+                    onClick={() => goTo(step.id)}
+                />
+            ))}
+            {blocking.length > 0 ? (
+                <StepGapChip
+                    tone="danger"
+                    label={catalogGapLabel}
+                    onClick={complianceStep ? () => goTo(complianceStep.id) : undefined}
+                />
+            ) : null}
+        </div>
+    ) : null;
 
     // "Terminer" is an action, not a decoration: it is shown only when there is
     // something to submit. On a task that is already `Completed` — or on a
@@ -1610,7 +1684,7 @@ export function Wizard({
                 />
             </Card>
 
-            <div className={`grid min-w-0 gap-4 ${wide ? 'xl:grid-cols-[3.25rem_1fr]' : 'xl:grid-cols-[13rem_1fr]'}`}>
+            <div className={`grid min-w-0 gap-4 ${railCollapsed ? 'xl:grid-cols-[3.25rem_1fr]' : 'xl:grid-cols-[13rem_1fr]'}`}>
                 <WizardStepper
                     steps={visitedSteps}
                     currentId={currentId}
@@ -1634,7 +1708,8 @@ export function Wizard({
                      */
                     isSelectable={() => true}
                     variant="rail"
-                    collapsed={wide}
+                    collapsed={railCollapsed}
+                    onToggleCollapsed={wide ? undefined : toggleRail}
                     footer={wide ? (
                         <button
                             type="button"

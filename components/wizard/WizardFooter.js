@@ -10,10 +10,12 @@
  *    only flushes what is pending, which is normally nothing. The wording says
  *    "Suivant", not "Enregistrer et continuer" — promising a save on click is
  *    exactly the V1 behaviour the redesign removes.
- * 2. **Finishing can be blocked, and the reason is written down.** A blocking
+ * 2. **Finishing can be blocked, and the reason is somewhere to go.** A blocking
  *    catalogue that is not satisfied disables "Terminer" *and* says which
  *    catalogue and where to fix it — a disabled button with no explanation is
- *    the single most reported frustration of the current portal.
+ *    the single most reported frustration of the current portal. The reason is
+ *    rendered as {@link StepGapChip}s rather than as a paragraph: a supplier
+ *    working alone must be able to press what is missing, not go looking for it.
  * 3. **Reformulation is discreet.** It runs in the background between two steps
  *    (`nextStepWebScript`); the footer shows a thin hint, never a spinner over
  *    the form, and never prevents the user from carrying on.
@@ -50,6 +52,49 @@ const LABELS = {
         incomplete: 'Sheet incomplete',
     },
 };
+
+/**
+ * One gap standing between the supplier and « Terminer », drawn as the place to
+ * go and fix it.
+ *
+ * Static when there is nowhere to send him: a catalogue the assistant has no
+ * conformity step for is still worth naming, and a chip that looks pressable and
+ * does nothing is worse than a label.
+ *
+ * @param {Object} props
+ * @param {string} props.label
+ * @param {'warn'|'danger'} [props.tone='warn']
+ * @param {Function} [props.onClick]
+ */
+export function StepGapChip({ label, tone = 'warn', onClick }) {
+    const classes = [
+        'inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs font-medium',
+        tone === 'danger'
+            ? 'border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] text-[var(--status-danger)]'
+            : 'border-[var(--status-warn-border)] bg-[var(--status-warn-bg)] text-[var(--status-warn)]',
+    ].join(' ');
+
+    if (!onClick) {
+        return (
+            <span className={classes}>
+                <Icon name="error_outline" size={14} />
+                {label}
+            </span>
+        );
+    }
+
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={`${classes} touch-target hover:brightness-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]`}
+        >
+            <Icon name="error_outline" size={14} />
+            {label}
+            <Icon name="chevron_right" size={14} />
+        </button>
+    );
+}
 
 /**
  * @param {Object} props
@@ -127,25 +172,19 @@ export function WizardFooter({
                 le refus de son client. Le ton suit la conséquence — barrière
                 orange quand c'est bloquant, note grise quand c'est un avis. */}
             {finishReason && showFinish ? (
-                <div
-                    className={[
-                        'mb-2 flex items-start gap-2 rounded-xl border p-3',
-                        finishDisabled
-                            ? 'border-[var(--becpg-orange)] bg-[var(--becpg-orange)]/8'
-                            : 'border-[var(--becpg-grey)] bg-[var(--becpg-grey)]/40',
-                    ].join(' ')}
-                >
-                    <Icon
-                        name={finishDisabled ? 'report' : 'info'}
-                        size={20}
-                        className={`shrink-0 ${finishDisabled ? 'text-[var(--becpg-orange)]' : 'text-[var(--becpg-dark-grey)]'}`}
-                    />
-                    <div className="min-w-0 text-sm">
-                        <p className="font-medium text-[var(--becpg-blue)]">
-                            {finishDisabled ? labels.blocked : labels.incomplete}
-                        </p>
-                        <div className="mt-0.5 text-[var(--becpg-dark-grey)]">{finishReason}</div>
-                    </div>
+                <div className="mb-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
+                    <span
+                        className={[
+                            'inline-flex shrink-0 items-center gap-1.5 text-xs font-medium',
+                            finishDisabled
+                                ? 'text-[var(--becpg-orange-deep)]'
+                                : 'text-[var(--becpg-dark-grey)]',
+                        ].join(' ')}
+                    >
+                        <Icon name={finishDisabled ? 'report' : 'info'} size={16} />
+                        {finishDisabled ? labels.blocked : labels.incomplete}
+                    </span>
+                    {finishReason}
                 </div>
             ) : null}
 

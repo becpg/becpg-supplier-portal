@@ -5,13 +5,14 @@
  *
  * - `variant="rail"` — the desktop left rail: the whole path is visible at once,
  *   which is what makes the redesign's inverted order legible (documents first,
- *   conformity last). Every visited step is a button.
- * - `variant="compact"` — the phone: a progress bar, the current step's name,
- *   and a selector opening the same list in a sheet. A vertical rail at 360px
- *   would eat the screen the form needs (spec §4.4, "utilisable sur un
+ *   conformity last). Every visited step is a button, and the rail folds down to
+ *   its bullets (`collapsed`) to give the width back to the form.
+ * - `variant="compact"` — the phone: the summary, then one selector carrying the
+ *   current step's name and opening the same list in a sheet. A vertical rail at
+ *   360px would eat the screen the form needs (spec §4.4, "utilisable sur un
  *   téléphone").
  *
- * ## Two rules
+ * ## Three rules
  *
  * 1. **No strict tunnel.** A step already visited is freely reachable
  *    (`isSelectable`); the wizard decides, the stepper only renders the verdict.
@@ -19,6 +20,10 @@
  *    the single server-side security call (bug #25928) and is displayed with a
  *    lock: the supplier must understand that the client validated that list, not
  *    that he completed it.
+ * 3. **Nothing is written that the drawing already says.** The position and the
+ *    plain states are carried by the shape of the rail and by every button's
+ *    `aria-label`; the visible words are kept for what remains to be done. See
+ *    {@link StepsSummary}.
  *
  * Nothing about any particular wizard is written here: the steps are whatever
  * the definition returned, in the order the wizard model built.
@@ -50,7 +55,14 @@ const LABELS = {
         // The customer's own verdict, not the portal's: what the catalogue
         // expects on this tab and does not find.
         catalogGap: '{count} information(s) attendue(s) par le catalogue',
-        progress: '{percent} % du parcours',
+        // The headline of the rail. « Signalé » and not « restant » on purpose:
+        // see the note on `StepsSummary`.
+        remaining: '{count} section(s) à compléter',
+        remainingNone: 'Aucun manque signalé',
+        remainingHint: 'Votre client attend ces informations pour valider la fiche.',
+        remainingHintNone: 'Vous pouvez revenir sur chaque étape à tout moment.',
+        collapse: 'Replier les étapes',
+        expand: 'Déplier les étapes',
     },
     en: {
         title: 'Steps',
@@ -66,7 +78,13 @@ const LABELS = {
         /* See the note on the French key. */
         incomplete: '{count} mandatory missing',
         catalogGap: '{count} field(s) expected by the catalogue',
-        progress: '{percent}% of the path',
+        /* See the note on the French key. */
+        remaining: '{count} section(s) to complete',
+        remainingNone: 'Nothing reported missing',
+        remainingHint: 'Your customer is waiting for this information to validate the sheet.',
+        remainingHintNone: 'You can come back to any step at any time.',
+        collapse: 'Collapse the steps',
+        expand: 'Expand the steps',
     },
 };
 
@@ -84,6 +102,134 @@ const KIND_ICONS = {
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
         (vars[name] === undefined || vars[name] === null ? match : String(vars[name])),
+    );
+}
+
+/**
+ * The one state a step is in, as a single word.
+ *
+ * Priority order is "what stops the supplier first": a missing mandatory entry
+ * and a catalogue gap come before « you are here », because the rail is read to
+ * find out what is left to do, not to find out where one stands.
+ *
+ * @returns {'missing'|'gap'|'current'|'complete'|'locked'|'seen'|'todo'}
+ */
+function stepTone(step, active) {
+    if (step.issues && step.issues.count > 0) {
+        return 'missing';
+    }
+    if (step.catalogGap && step.catalogGap.count > 0) {
+        return 'gap';
+    }
+    if (active) {
+        return 'current';
+    }
+    if (step.evaluated === true) {
+        return 'complete';
+    }
+    if (step.frozen || step.readOnly) {
+        return 'locked';
+    }
+    return step.visited ? 'seen' : 'todo';
+}
+
+/** The four tones the summary bar draws; everything else stays neutral. */
+const BAR_TONES = {
+    missing: 'bg-[var(--status-warn)]',
+    gap: 'bg-[var(--status-danger)]',
+    current: 'bg-[var(--becpg-blue)]',
+    complete: 'bg-[var(--status-ok)]',
+};
+
+/**
+ * The head of the stepper: what is left to do, then the whole path as one bar.
+ *
+ * WHY NOT « ÉTAPE 5 SUR 12 ».
+ *
+ * The ordinal is the vocabulary of a tunnel, and this assistant is not one any
+ * more — `isSelectable` returns true for every step, so « 5 » names no
+ * prerequisite and no remaining work. It was also written under each of the
+ * twelve rows, so a twelve-step wizard said « sur 12 » twelve times. What a
+ * supplier working alone needs instead is the sentence below: how many sections
+ * still hold something his customer is waiting for.
+ *
+ * THE COUNT IS OF WHAT IS *SIGNALLED*, AND THE WORDING KEEPS THAT PROMISE.
+ *
+ * Only a step that rules on itself can be counted (`issues`, `catalogGap`); a
+ * datalist and the conformity before its analysis rule on nothing. So zero is
+ * said as « aucun manque signalé » and never as « fiche complète » — the portal
+ * does not know that, and claiming it would be the kind of fabricated verdict
+ * AGENTS.md forbids.
+ *
+ * The bar is `aria-hidden`: it repeats, as a shape, the sentence above it and
+ * the rail below it, and a screen reader must not hear the same verdict three
+ * times.
+ */
+function StepsSummary({ steps, currentId, labels, variant = 'rail', onToggleCollapsed, collapsed = false }) {
+    const tones = steps.map((step) => stepTone(step, step.id === currentId));
+    const remaining = tones.filter((tone) => tone === 'missing' || tone === 'gap').length;
+    const headline = remaining > 0 ? fill(labels.remaining, { count: remaining }) : labels.remainingNone;
+    const hint = remaining > 0 ? labels.remainingHint : labels.remainingHintNone;
+
+    const toggle = onToggleCollapsed ? (
+        <button
+            type="button"
+            onClick={onToggleCollapsed}
+            aria-expanded={!collapsed}
+            aria-label={collapsed ? labels.expand : labels.collapse}
+            title={collapsed ? labels.expand : labels.collapse}
+            className="-mr-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)]/60 hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+        >
+            <Icon name={collapsed ? 'chevron_right' : 'chevron_left'} size={18} />
+        </button>
+    ) : null;
+
+    // Collapsed, the rail is 52px wide: the sentence cannot be written, so the
+    // count alone is shown — with the sentence as its accessible name, and the
+    // warning icon beside it so the state never rests on the colour.
+    if (collapsed) {
+        return (
+            <div className="mb-1 flex flex-col items-center gap-1">
+                {toggle}
+                {remaining > 0 ? (
+                    <span
+                        title={headline}
+                        aria-label={headline}
+                        role="img"
+                        className="inline-flex items-center gap-0.5 rounded-md border border-[var(--status-warn-border)] bg-[var(--status-warn-bg)] px-1 py-0.5 text-[10px] font-medium text-[var(--status-warn)]"
+                    >
+                        <Icon name="error_outline" size={12} />
+                        {remaining}
+                    </span>
+                ) : null}
+            </div>
+        );
+    }
+
+    return (
+        <div
+            className={
+                variant === 'rail'
+                    ? 'mb-2 rounded-xl border border-[var(--becpg-blue-lighter)] bg-white px-3 py-2.5'
+                    : 'mb-2'
+            }
+        >
+            <div className="flex items-start gap-1">
+                <p className="min-w-0 flex-1 text-[13px] font-medium leading-5 text-[var(--becpg-blue)]">
+                    {headline}
+                </p>
+                {toggle}
+            </div>
+            <div className="mt-2 flex gap-[3px]" aria-hidden="true">
+                {tones.map((tone, index) => (
+                    <span
+                        key={steps[index].id}
+                        className={`h-1.5 flex-1 rounded-full ${BAR_TONES[tone] || 'bg-[var(--becpg-grey)]'}`}
+                    />
+                ))}
+            </div>
+            <p className="mt-1.5 text-[11px] leading-4 text-[var(--becpg-dark-grey)]">{hint}</p>
+        </div>
     );
 }
 
@@ -248,6 +394,36 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
     const spoken = catalogGap
         ? `${state} · ${fill(labels.catalogGap, { count: catalogGap.count })}`
         : state;
+    /*
+     * THE SUB-LINE ONLY SPEAKS WHEN THERE IS SOMETHING TO SAY.
+     *
+     * It used to carry « Étape 6 sur 12 · Pas encore vue » on every row, which
+     * is the rail describing itself: the position is the row's place in the
+     * list, and « pas encore vue » is the absence of any mark. Twelve rows, two
+     * facts already drawn, twenty-four words. What is left is what the drawing
+     * cannot say — a count of what is missing, a step the customer froze.
+     *
+     * Nothing is lost for a screen reader: the full sentence, position and
+     * state included, is the button's `aria-label` below.
+     */
+    const details = [];
+    if (incomplete) {
+        details.push(fill(labels.incomplete, { count: step.issues.count }));
+    }
+    if (catalogGap) {
+        details.push(fill(labels.catalogGap, { count: catalogGap.count }));
+    }
+    if (details.length === 0 && step.frozen) {
+        details.push(labels.frozen);
+    }
+    if (details.length === 0 && step.readOnly) {
+        details.push(labels.readOnly);
+    }
+    const detailTone = incomplete
+        ? 'text-[var(--status-warn)]'
+        : catalogGap
+          ? 'text-[var(--status-danger)]'
+          : 'text-[var(--becpg-dark-grey)]';
 
     if (collapsed) {
         return (
@@ -272,6 +448,7 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
                 type="button"
                 disabled={!selectable}
                 aria-current={active ? 'step' : undefined}
+                aria-label={`${step.label} · ${fill(labels.step, { index, total })} · ${spoken}`}
                 onClick={() => onSelect(step.id)}
                 className={[
                     'group flex w-full items-start gap-2.5 rounded-xl px-2 text-left transition-colors',
@@ -326,26 +503,16 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
                         {listIconType ? <ListIcon type={listIconType} size={14} /> : null}
                         <span className="min-w-0 truncate">{step.label}</span>
                     </span>
-                    <span className="mt-0.5 block truncate text-[11px] opacity-70">
-                        {fill(labels.step, { index, total })} · {state}
-                    </span>
-                </span>
-
-                {catalogGap ? (
-                    <span
-                        className="mt-0.5 inline-flex shrink-0 items-center gap-0.5 rounded-md border border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] px-1 py-0.5 text-[10px] font-medium text-[var(--status-danger)]"
-                        title={catalogGap.labels.join(', ')}
-                    >
-                        <Icon name="report" size={12} />
-                        {catalogGap.count}
-                        {/* The count alone is a number without a subject: the
-                            wording is what a screen reader needs, and colour is
-                            never the carrier — AGENTS.md. */}
-                        <span className="sr-only-text">
-                            {fill(labels.catalogGap, { count: catalogGap.count })}
+                    {details.length > 0 ? (
+                        <span
+                            aria-hidden="true"
+                            title={catalogGap ? catalogGap.labels.join(', ') : undefined}
+                            className={`mt-0.5 block truncate text-[11px] ${detailTone}`}
+                        >
+                            {details.join(' · ')}
                         </span>
-                    </span>
-                ) : null}
+                    ) : null}
+                </span>
 
                 {step.badge ? (
                     <motion.span
@@ -370,6 +537,8 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
  * @param {'rail'|'compact'} [props.variant='rail']
  * @param {boolean} [props.collapsed=false] rail reduced to its bullets — see
  *   {@link CollapsedStepButton} for how the labels stay reachable
+ * @param {Function} [props.onToggleCollapsed] folds and unfolds the rail; the
+ *   chevron is only drawn when a caller owns that state
  * @param {React.ReactNode} [props.footer] rendered under the rail (the expand button)
  * @param {string} [props.className]
  */
@@ -380,6 +549,7 @@ export function WizardStepper({
     isSelectable,
     variant = 'rail',
     collapsed = false,
+    onToggleCollapsed,
     footer = null,
     className = '',
 }) {
@@ -403,46 +573,35 @@ export function WizardStepper({
 
     if (variant === 'compact') {
         const current = list[currentIndex];
-        const percent = total > 1 ? Math.round((currentIndex / (total - 1)) * 100) : 100;
+        /*
+         * One control, one label.
+         *
+         * The phone used to stack four encodings of the same position in 70px:
+         * the step's name, « Étape 5 sur 12 », the « 5/12 » of the selector, and
+         * a progress bar. The selector now carries the name — it is the thing
+         * you press to change step, so it is the thing that should say which
+         * step you are on — and the summary above says what is left. The
+         * position stays in the button's accessible name, where it costs no
+         * pixel.
+         */
+        const currentIcon = current ? (KIND_ICONS[current.kind] || 'list') : 'list';
 
         return (
             <div className={`min-w-0 ${className}`}>
-                <div className="flex items-center gap-2">
-                    <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-[var(--becpg-blue)]">
-                            {current ? current.label : ''}
-                        </p>
-                        <p className="text-xs text-[var(--becpg-dark-grey)]">
-                            {fill(labels.step, { index: currentIndex + 1, total })}
-                            {current && current.frozen ? ` · ${labels.frozen}` : ''}
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setSheetOpen(true)}
-                        aria-label={labels.open}
-                        className="touch-target inline-flex shrink-0 items-center gap-1 rounded-lg border border-[var(--becpg-grey)] bg-white px-2.5 py-1.5 text-xs text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
-                    >
-                        <Icon name="list" size={16} />
-                        <span>{`${currentIndex + 1}/${total}`}</span>
-                    </button>
-                </div>
+                <StepsSummary steps={list} currentId={currentId} labels={labels} variant="compact" />
 
-                <div
-                    className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--becpg-grey)]"
-                    role="progressbar"
-                    aria-valuenow={percent}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-label={fill(labels.progress, { percent })}
+                <button
+                    type="button"
+                    onClick={() => setSheetOpen(true)}
+                    aria-label={`${current ? current.label : ''} · ${fill(labels.step, { index: currentIndex + 1, total })} · ${labels.open}`}
+                    className="touch-target flex w-full items-center gap-2 rounded-lg border border-[var(--becpg-grey)] bg-white px-3 py-2 text-left text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
                 >
-                    <motion.div
-                        className="h-full rounded-full bg-[var(--becpg-blue)]"
-                        initial={false}
-                        animate={{ width: `${Math.max(percent, 4)}%` }}
-                        transition={{ duration: 0.3, ease: 'easeOut' }}
-                    />
-                </div>
+                    <Icon name={currentIcon} size={18} className="shrink-0" />
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                        {current ? current.label : ''}
+                    </span>
+                    <Icon name="expand_more" size={18} className="shrink-0" />
+                </button>
 
                 <Modal open={sheetOpen} onClose={() => setSheetOpen(false)} title={labels.title} size="sm">
                     <ol className="flex flex-col gap-0.5">
@@ -480,6 +639,13 @@ export function WizardStepper({
             aria-label={labels.title}
             className={`relative z-30 min-w-0 ${className}`}
         >
+            <StepsSummary
+                steps={list}
+                currentId={currentId}
+                labels={labels}
+                collapsed={collapsed}
+                onToggleCollapsed={onToggleCollapsed}
+            />
             <ol className="flex flex-col gap-0.5">
                 {list.map((step, index) => (
                     <StepButton
