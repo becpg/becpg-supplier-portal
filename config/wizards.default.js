@@ -182,6 +182,36 @@ export const DEFAULT_WIZARDS = {
             { id: 'step3', label: 'Sample survey 2', title: 'Sample survey 2', type: 'survey', listId: 'surveyList@1', itemId: 'survey:surveyList', nextStepWebScript: FORMULATE },
         ],
     },
+
+    /*
+     * A CAHIER DES CHARGES IS READ, NEVER FILLED IN.
+     *
+     * `readOnly` is the wizard-level flag `normalizeWizard` already understands:
+     * `computeReadOnly` turns it into `wizardReadOnly`, every step comes back
+     * read-only, and no completion button is offered. `enforceTask` is false
+     * because a specification carries no task — requiring one would close the
+     * only screen this wizard exists for.
+     *
+     * A `bcpg:productSpecification` is a `bcpg:entityV2`, so `/products/{uuid}`
+     * already reaches it and `ProductSections` already builds its tabs from this
+     * step list. There is nothing to add on the portal side beyond this
+     * transcription: the steps ARE the tabs.
+     */
+    'supplier-productSpecification': {
+        id: 'supplier-productSpecification',
+        draft: false,
+        comments: false,
+        enforceTask: false,
+        skipSecurityRules: false,
+        readOnly: true,
+        steps: [
+            { id: 'step1', labelId: 'becpg.wizard.spec.forbiddenIngList.label', titleId: 'becpg.wizard.spec.forbiddenIngList.title', type: 'entityDataList', listId: 'forbiddenIngList', itemId: 'bcpg:forbiddenIngList' },
+            { id: 'step2', labelId: 'becpg.wizard.spec.allergenList.label', titleId: 'becpg.wizard.spec.allergenList.title', type: 'entityDataList', listId: 'allergenList', itemId: 'bcpg:allergenList' },
+            { id: 'step3', labelId: 'becpg.wizard.spec.microbioList.label', titleId: 'becpg.wizard.spec.microbioList.title', type: 'entityDataList', listId: 'microbioList', itemId: 'bcpg:microbioList' },
+            { id: 'step4', labelId: 'becpg.wizard.spec.nutList.label', titleId: 'becpg.wizard.spec.nutList.title', type: 'entityDataList', listId: 'nutList', itemId: 'bcpg:nutList' },
+            { id: 'step5', labelId: 'becpg.wizard.spec.physicoChemList.label', titleId: 'becpg.wizard.spec.physicoChemList.title', type: 'entityDataList', listId: 'physicoChemList', itemId: 'bcpg:physicoChemList' },
+        ],
+    },
 };
 
 /**
