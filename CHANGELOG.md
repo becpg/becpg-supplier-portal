@@ -217,3 +217,21 @@
 * Fix #35846 - [Bug] Formulate on leaving a step the supplier wrote on, so beCPG still materialises the documents it requires
 * [Cleanup] Write the step-verdict comment in English, as every comment in this repository is
 * [skip ci][Release]: Bump _VERSION to 0.0.16
+## [ 0.0.17 ] - 2026-08-25 15:23:55
+
+* [Setup] Remove replica
+* Fix #35846 - [Feature] Declare the read-only wizard that lets a supplier consult a product specification
+* Fix #35846 - [Bug] Print a date extracted by the AI as a date, not as a timestamp
+* Fix #35846 - [Bug] Ask beCPG for the language the supplier chose in the portal, not the browser's
+* Fix #35846 - [Bug] Hold back a datalist row whose edit empties a mandatory column
+* Fix #35846 - [Cleanup] Show a document once: the folder listing folds into the requirement check-list
+* Fix #35846 - [Cleanup] Drop the context panel's repeated sections and its nested boxes
+* Fix #35846 - [Feature] Let the navigation sidebar fold to its icons, and remember it
+* Fix #35846 - [Feature] Replace the wizard step ordinal with the sections left to complete, and fold the rail
+* Fix #35846 - [Cleanup] Drop the per-supplier pricing claim from the README, the enterprise edition is licensed
+* Fix #35846 - [Cleanup] Make the public README a showcase: screenshots, comparison, architecture and security moved to doc/architecture.md
+* Fix #35846 - [Cleanup] Tell a GitHub reader which paths of AGENTS.md live only in the private repository
+* Fix #35846 - [Bug] Check out main before stripping, the mirror was exported from the empty master branch
+* Fix #35846 - [Bug] Route the three checks the portal catalogues shipped before they named their list, so the tab is marked without re-importing the file
+* Fix #35846 - [Bug] Correct the eight defects of the 21/08 recette: the invisible quantity, the row editor, the marks that did not survive, and the formulation that ran beside the write
+* [skip ci][Release]: Bump _VERSION to 0.0.17
