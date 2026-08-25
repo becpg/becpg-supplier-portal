@@ -7,6 +7,14 @@
 [![Documentation](https://img.shields.io/badge/docs-docs.becpg.fr-brightgreen)](https://docs.becpg.fr)
 [![Website](https://img.shields.io/badge/website-becpg.net-blue)](https://www.becpg.net)
 
+**Collect specifications, certificates and questionnaires from your suppliers — in their
+language, on their phone, straight into your PLM. Open source, self-hosted, and free of
+per-supplier licence fees.**
+
+👉 [**Request a Live Demo**](https://www.becpg.net/community/) · [**Contact Us**](https://www.becpg.net/contact-us/) · [**Documentation**](https://docs.becpg.fr)
+
+![The supplier dashboard](doc/images/supplier-dashboard.png)
+
 ---
 
 ## 🚀 What is the beCPG Supplier Portal?
@@ -15,17 +23,71 @@ The **beCPG Supplier Portal** is the supplier-facing front end of
 [**beCPG PLM**](https://github.com/becpg/becpg-community), the open-source PLM platform for the
 Food, Beverage and Cosmetics industries.
 
-Suppliers log in with their own account and complete the work a manufacturer needs from them:
+Suppliers sign in with their own account and do the work a manufacturer needs from them:
 onboarding questionnaires, product technical sheets, certificates and audit documents,
-electronic signature of agreements. On the other side, quality and purchasing teams get a
-monitoring space showing, at a glance, which supplier is compliant and which document is
-about to expire.
+electronic signature of agreements. Quality and purchasing teams get a monitoring space showing,
+at a glance, which supplier is compliant and which document is about to expire.
 
 It is a **single Next.js application**: pages and route handlers in one runtime, no dedicated
 Java back end. The portal proxies and composes the webscripts that beCPG PLM already exposes —
 the same role Alfresco Share plays with `/share/proxy/alfresco`.
 
-👉 [**Request a Live Demo**](https://www.becpg.net/community/) | [**Contact Us**](https://www.becpg.net/contact-us/)
+---
+
+## 🖼 See it
+
+### The supplier knows exactly what is expected, and by when
+
+Every requirement your PLM declares becomes a line the supplier can act on: mandatory or not,
+expired or expiring, with the upload button right there. No email thread, no shared drive.
+
+![Document requirements](doc/images/documents.png)
+
+### A guided wizard, driven by *your* configuration
+
+Steps, fields, validations and lists come from the beCPG configuration cascade — the same one
+that drives your internal forms, client overrides included. Nothing is hard-coded in the
+portal, so a new field on your side is a new field in the portal, with no release.
+
+Fields are multilingual out of the box (here English plus 34 other languages), and an optional
+AI assist pre-fills the sheet from the technical document the supplier uploads — always with a
+confidence level, never silently.
+
+![The referencing wizard](doc/images/wizard.png)
+
+### One page for the quality team
+
+Approval, document compliance, expiry horizon, campaigns and non-conformities across the whole
+supplier park — recomputed live from the repository, no OLAP cube required. When a figure
+cannot be computed on the full park, the portal says so in the screen instead of quietly
+publishing a number it cannot justify.
+
+![Supplier park monitoring](doc/images/monitoring.png)
+
+### Built for a supplier on a phone
+
+<img src="doc/images/mobile-dashboard.png" alt="The portal on a 390 px screen" width="320" align="right">
+
+The portal is responsive down to **360 px**, with primary navigation in a bottom bar inside the
+safe area — one-handed use, not a desktop layout squeezed onto a phone.
+
+Accessibility is part of the review, not a later phase:
+
+* status is **never conveyed by colour alone** — every status resolves to a
+  (tone, icon, label) triple, readable in greyscale and by a screen reader;
+* every interactive element is a real `<button>` / `<a>` / `<input>`, keyboard reachable, with a
+  visible focus ring;
+* no bare white page and no raw stack trace: every screen has a loading, empty and error state
+  with a retry.
+
+<br clear="right">
+
+### Sign-in your suppliers already understand
+
+<img src="doc/images/login.png" alt="The sign-in screen" width="100%">
+
+One Keycloak realm per tenant, OIDC authorization-code flow, SSO if you have it. The supplier
+never sees a portal-specific password, and the portal never stores one.
 
 ---
 
@@ -48,27 +110,31 @@ the same role Alfresco Share plays with `/share/proxy/alfresco`.
 
 ---
 
-## 🏗 Architecture in ten lines
+## 🥊 Why this rather than a proprietary supplier portal
 
-1. One Next.js 16 application (App Router), React 18, Tailwind CSS 4, framer-motion,
-   `output: 'standalone'` — **JavaScript only, no TypeScript**.
-2. Authentication is **server side only**: OIDC authorization-code flow inside route handlers,
-   never `keycloak-js`.
-3. The session — OIDC token plus Alfresco ticket — is encrypted as a JWE in an `httpOnly`
-   cookie, so any instance can serve any request without sticky sessions.
-4. Neither the token nor the ticket ever reaches the browser: the portal is a **proxy**.
-5. Multitenant: one Keycloak realm per tenant, with mandatory `becpg_url` and `becpg_instance`
-   claims. A missing claim is a 401, never a fallback to a default tenant.
-6. The tenant is resolved by subdomain, then by a `/t/<tenant>/…` prefix, then by a selector on
-   the login screen.
-7. The internal API lives under `/api/v1`: either a proxy of an existing webscript, or a
-   composition of several of them in the route handler.
-8. On the beCPG side the portal adds a single Share webscript; the accompanying repository
-   changes are additive and **ship disabled by default**.
-9. Rendering is driven by server-supplied definitions — columns and fields come from the PLM
-   cascade, never from a hard-coded list.
-10. No i18n library: business labels come from beCPG in the user's locale, and only the
-    portal's own chrome strings live in `config/messages.js`.
+Supplier collaboration is usually sold as a closed SaaS module, priced by the number of
+suppliers you invite, with its own data model to keep in sync with your PLM. This project takes
+the opposite position on each of those points.
+
+| | **beCPG Supplier Portal** | **Typical proprietary supplier portal** |
+|---|---|---|
+| **Licence** | LGPL-3.0-or-later, full source on GitHub | Closed source, annual subscription |
+| **Cost per supplier** | None — invite as many supplier accounts as you like | Commonly priced per supplier seat or per document |
+| **Where your data lives** | In your own beCPG PLM, on your own infrastructure | In the vendor's cloud, exported on request |
+| **Source of truth** | Forms, columns, lists and statuses come from *your* PLM configuration | A second data model to synchronise with your PLM |
+| **Deployment** | One Docker image (standalone Next.js), Kubernetes-ready, air-gappable | Vendor-hosted, on the vendor's release calendar |
+| **Identity** | Your OIDC provider, one realm per tenant, SSO | The vendor's account system |
+| **A new field on your side** | Appears in the portal with no release — rendering is definition-driven | Usually a change request |
+| **Extensibility** | Fork it, patch it, contribute back | Feature request queue |
+| **Auditability** | Read the code that handles your suppliers' credentials | Trust the certification |
+
+> The right-hand column describes the pattern common to the category, not any one product —
+> always check a vendor's own terms. The left-hand column is verifiable in this repository:
+> every claim maps to code you can read.
+
+**And it is not a silo.** The portal is one Next.js application in front of the beCPG PLM you
+already run: same repository, same permissions, same audit trail. What a supplier submits *is*
+the PLM record — there is nothing to import afterwards.
 
 ---
 
@@ -136,6 +202,16 @@ design, and no OIDC configuration on the client side.
 
 ---
 
+## 🏗 Architecture and security
+
+How it is built, why authentication stays on the server, and the three rules that keep an
+Alfresco ticket out of the browser: [`doc/architecture.md`](./doc/architecture.md).
+
+The webscripts the portal consumes, and the traps they hide:
+[`doc/becpg-api-contracts.md`](./doc/becpg-api-contracts.md).
+
+---
+
 ## 📁 Repository layout
 
 ```
@@ -156,24 +232,9 @@ components/               React components (Tailwind only, no UI kit)
 lib/                      session, beCPG proxy, errors, tenant
   adapters/               one adapter per business domain
 config/                   chrome messages, default wizards
-doc/                      becpg-api-contracts.md
+doc/                      architecture.md, becpg-api-contracts.md, images/
 proxy.js                  nothing is reachable without a session; resolves the tenant
 ```
-
-The webscripts the portal consumes, and the traps they hide:
-[`doc/becpg-api-contracts.md`](./doc/becpg-api-contracts.md).
-
----
-
-## 🔐 Security model in three rules
-
-* The OIDC token and the Alfresco ticket **never** reach the browser, and never appear in a URL.
-* A client component **never** imports the beCPG or session modules; client code talks to the
-  API and nothing else.
-* Everything coming from the browser is untrusted and validated at the boundary, a `nodeRef`
-  included.
-
-Found a vulnerability? See [SECURITY.md](SECURITY.md) — please do not open a public issue.
 
 ---
 
@@ -207,3 +268,6 @@ and [NOTICE](NOTICE). Third-party dependencies are listed in
 ---
 
 ⚡ **beCPG – Accelerate innovation, stay compliant, and reduce PLM costs for CPG companies.**
+
+<sub>Screenshots taken from a demo instance; supplier names and figures are demonstration
+data.</sub>
