@@ -1033,6 +1033,40 @@ export function useDataList(options = {}) {
                 }
             }
 
+            /*
+             * EMPTYING A MANDATORY COLUMN IS NOT A WRITE EITHER.
+             *
+             * A persisted row had no such guard: clearing the mandatory
+             * association of a line — `nutListNut` on the nutrients, the
+             * characteristic of any characteristic list — sent the removal, and
+             * beCPG answered « Erreur de multiplicité de cible d'association ».
+             * The supplier got a red row and a message from the repository's
+             * internals for doing something the column itself declares
+             * impossible.
+             *
+             * The verdict is the same as for a half-filled draft, and so is the
+             * treatment: the edit stays pending — `dirty` is untouched, so the
+             * cell keeps showing itself empty and marks itself invalid — the row
+             * says « Renseignez les champs obligatoires », and nothing goes out.
+             * Filling the column again is what sends the row.
+             *
+             * Only what THIS edit empties is examined, never the whole row: a
+             * line that already reached the portal with a mandatory column blank
+             * must stay editable on its other columns.
+             */
+            const emptiedMandatory = Object.entries(changes).some(([name, value]) => {
+                const column = columnByName.get(name);
+                if (!column?.mandatory || column.readOnly || isNestedColumn(column)) {
+                    return false;
+                }
+                return value === null || value === undefined || value === ''
+                    || (Array.isArray(value) && value.length === 0);
+            });
+            if (emptiedMandatory) {
+                setRowStatus(row.key, { state: ROW_STATUS.DIRTY, incomplete: true });
+                return null;
+            }
+
             // --- clearing an association is a delta, not a value ------------
             //
             // Alfresco persists associations from `assoc_x_added` / `assoc_x_removed`
@@ -1043,9 +1077,9 @@ export function useDataList(options = {}) {
             // says saved and did not save is worse than one that fails.
             //
             // So a cleared association names what must be removed: its current
-            // value. beCPG then answers for real — including, on a *mandatory*
-            // association, `Erreur de multiplicité de cible d'association`, which is
-            // the honest outcome and is surfaced as a row error.
+            // value, and beCPG then answers for real. A *mandatory* association
+            // never reaches this point — the guard above holds the row back
+            // rather than let the repository refuse it.
             const outgoing = { ...changes };
             for (const [name, value] of Object.entries(changes)) {
                 const column = columnByName.get(name);
