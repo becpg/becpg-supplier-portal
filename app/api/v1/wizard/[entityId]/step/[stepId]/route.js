@@ -51,7 +51,7 @@
 
 import { NextResponse } from 'next/server';
 import { BadRequestError, toApiResponse } from '@/lib/errors';
-import { requireSession } from '@/lib/becpg';
+import { requireSession, upstreamLang } from '@/lib/becpg';
 import {
     deleteStepRows,
     findStep,
@@ -69,15 +69,19 @@ export const dynamic = 'force-dynamic';
 /**
  * Reads the shared query parameters.
  *
+ * Async because the locale is one of them and it comes from the portal's own
+ * language cookie, which Next.js hands over asynchronously.
+ *
  * @param {Request} request
- * @returns {Object}
+ * @returns {Promise<Object>}
  */
-function readOptions(request) {
+async function readOptions(request) {
     const url = new URL(request.url);
     return {
         wizardId: url.searchParams.get('wizardId') || undefined,
         siteId: url.searchParams.get('siteId') || undefined,
-        locale: url.searchParams.get('locale') || request.headers.get('accept-language') || undefined,
+        // The field labels of this step. See `upstreamLang`.
+        locale: url.searchParams.get('locale') || await upstreamLang(),
         page: url.searchParams.get('page') || undefined,
         pageSize: url.searchParams.get('pageSize') || undefined,
         sort: url.searchParams.get('sort') || undefined,
@@ -97,7 +101,7 @@ export async function GET(request, context) {
     const { entityId, stepId } = await context.params;
     try {
         const session = await requireSession();
-        const options = readOptions(request);
+        const options = await readOptions(request);
 
         const state = await getWizardState(entityId, { ...options, session });
         const data = await getStepData(state, stepId, { ...options, session });
@@ -148,7 +152,7 @@ export async function PUT(request, context) {
     const { entityId, stepId } = await context.params;
     try {
         const session = await requireSession();
-        const options = readOptions(request);
+        const options = await readOptions(request);
 
         const body = await readJsonObject(request);
 
@@ -205,7 +209,7 @@ export async function POST(request, context) {
     const { entityId, stepId } = await context.params;
     try {
         const session = await requireSession();
-        const options = readOptions(request);
+        const options = await readOptions(request);
         const body = await readJsonObject(request);
 
         if (body.action === 'nextStep') {
@@ -269,7 +273,7 @@ export async function DELETE(request, context) {
     const { entityId, stepId } = await context.params;
     try {
         const session = await requireSession();
-        const options = readOptions(request);
+        const options = await readOptions(request);
         const body = await readJsonObject(request);
 
         const state = await getWizardState(entityId, { ...options, session });

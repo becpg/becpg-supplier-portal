@@ -61,7 +61,7 @@
 
 import { NextResponse } from 'next/server';
 import { BadRequestError, toApiResponse } from '@/lib/errors';
-import { requireSession } from '@/lib/becpg';
+import { requireSession, upstreamLang } from '@/lib/becpg';
 import { applySuggestion, getSuggestions } from '@/lib/adapters/suggestions';
 
 export const runtime = 'nodejs';
@@ -248,10 +248,8 @@ export async function POST(request, context) {
             throw new BadRequestError('Expected a JSON object');
         }
 
-        const locale = body.locale
-            || (request.headers.get('accept-language') || '').split(',')[0]
-            || process.env.PORTAL_DEFAULT_LANG
-            || 'fr';
+        // The portal's switcher, not Chrome's language — see `upstreamLang`.
+        const locale = body.locale || await upstreamLang();
 
         let suggestions = [];
         try {

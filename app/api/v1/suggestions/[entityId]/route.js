@@ -32,6 +32,7 @@
 import { NextResponse } from 'next/server';
 import { toApiResponse } from '@/lib/errors';
 import { requireSession } from '@/lib/becpg';
+import { upstreamLang } from '@/lib/becpg';
 import { getSuggestions } from '@/lib/adapters/suggestions';
 
 export const runtime = 'nodejs';
@@ -69,10 +70,15 @@ export async function GET(request, context) {
         const result = await getSuggestions({
             entityId,
             listId: url.searchParams.get('listId') || undefined,
-            locale: url.searchParams.get('locale')
-                || (request.headers.get('accept-language') || '').split(',')[0]
-                || process.env.PORTAL_DEFAULT_LANG
-                || 'fr',
+            /*
+             * The portal's own switcher, not `Accept-Language`: the header is
+             * Chrome's installation language, and becpg-ai writes the suggestion
+             * titles and the field labels in whatever locale it is handed. An
+             * English chrome on a French Chrome read « Champs extraits de la
+             * fiche technique ». `upstreamLang` is the single answer to that
+             * question — see it for what wins over what.
+             */
+            locale: url.searchParams.get('locale') || await upstreamLang(),
             session,
             timeout: AI_SUGGESTIONS_TIMEOUT,
             // A suggestion run is idempotent in the HTTP sense but *not* free:

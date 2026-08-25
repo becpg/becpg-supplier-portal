@@ -17,7 +17,7 @@
 
 import { NextResponse } from 'next/server';
 import { toApiResponse } from '@/lib/errors';
-import { requireSession } from '@/lib/becpg';
+import { requireSession, upstreamLang } from '@/lib/becpg';
 import { getWizardState, withoutStepDefinitions } from '@/lib/adapters/wizard';
 
 export const runtime = 'nodejs';
@@ -37,7 +37,9 @@ export async function GET(request, context) {
         const state = await getWizardState(entityId, {
             wizardId: url.searchParams.get('wizardId') || undefined,
             siteId: url.searchParams.get('siteId') || undefined,
-            locale: url.searchParams.get('locale') || request.headers.get('accept-language') || undefined,
+            // The step names and the form definitions come back in this
+            // language — see `upstreamLang` for why it is not `Accept-Language`.
+            locale: url.searchParams.get('locale') || await upstreamLang(),
             session,
         });
 

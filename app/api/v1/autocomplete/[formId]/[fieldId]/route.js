@@ -31,7 +31,7 @@
 
 import { NextResponse } from 'next/server';
 import { BadRequestError, toApiResponse } from '@/lib/errors';
-import { requireSession } from '@/lib/becpg';
+import { requireSession, upstreamLang } from '@/lib/becpg';
 import { createContext } from '@/lib/adapters/wizardConfig';
 import { autocomplete } from '@/lib/adapters/autocomplete';
 
@@ -67,7 +67,9 @@ export async function POST(request, context) {
             entityType: body.entityType || url.searchParams.get('entityType') || undefined,
             entityNodeRef: body.entityNodeRef || url.searchParams.get('entityNodeRef') || undefined,
             siteId: body.siteId || url.searchParams.get('siteId') || undefined,
-            locale: body.locale || request.headers.get('accept-language') || undefined,
+            // The supplier's chosen chrome language, not Chrome's own — see
+            // `upstreamLang`. An autocomplete lists beCPG's translated labels.
+            locale: body.locale || await upstreamLang(),
         });
 
         const result = await autocomplete(ctx, {
