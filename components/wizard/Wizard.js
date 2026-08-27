@@ -792,6 +792,8 @@ export function Wizard({
     const [formulating, setFormulating] = useState(false);
     const [finishing, setFinishing] = useState(false);
     const formulatingRef = useRef(false);
+    /** The background hook in flight, so a caller can wait on someone else's. */
+    const hookRef = useRef(null);
 
     // Collected from the form steps as they load: the only place the portal
     // learns which step holds which field (the definition is the authority).
@@ -995,36 +997,18 @@ export function Wizard({
 
 
     /**
-     * Runs the hook a step leaves behind, server-side and in the background.
+     * Tracks one background repository hook: the footer hint while it runs, the
+     * conformity re-read when it lands, and never a failure that stops a
+     * supplier from moving on.
      *
-     * The step's own `nextStepWebScript` when it declares one — the route
-     * decides *which* script, the wizard only says which step was left — and a
-     * formulation otherwise, so what was just written is taken into account.
-     *
-     * Never blocking, never fatal: a background hook, as in Share.
-     *
-     * @param {Object} step the step being left
-     * @param {boolean} wrote whether the supplier wrote on it
-     * @returns {boolean} whether the hook was fired
+     * @param {Promise<*>} call the request already sent
+     * @returns {Promise<void>} settled, never rejected
      */
-    const runStepHook = useCallback(
-        (step, wrote) => {
-            const stepId = step ? step.id : null;
-            if (formulatingRef.current || !entityId || !stepId || (wizardState && wizardState.readOnly)) {
-                // A hook already in flight: the caller keeps its "something was
-                // written" flag, so the next transition fires the one owed.
-                return false;
-            }
-            if (!step.nextStepWebScript && !wrote) {
-                return false;
-            }
+    const runHook = useCallback(
+        (call) => {
             formulatingRef.current = true;
             setFormulating(true);
-            const hook = step.nextStepWebScript
-                ? api.post(`wizard/${encodeURIComponent(entityId)}/step/${encodeURIComponent(stepId)}`,
-                    { action: 'nextStep' }, { params })
-                : api.post(`wizard/${encodeURIComponent(entityId)}/formulate`, {}, { params });
-            hook
+            const settled = call
                 .then(() => {
                     // A formulation moves the score and the computed characteristics;
                     // a folder resolution does not. Refreshing when the compliance
@@ -1041,9 +1025,63 @@ export function Wizard({
                     formulatingRef.current = false;
                     setFormulating(false);
                 });
-            return true;
+            // Kept so a later caller can wait on the hook it did not start —
+            // `goTo` chains the documents re-read onto whichever one is running.
+            hookRef.current = settled;
+            return settled;
         },
-        [entityId, params, wizardState, complianceTouched, catalogs],
+        [complianceTouched, catalogs],
+    );
+
+    /**
+     * Runs the hook a step leaves behind, server-side and in the background.
+     *
+     * The step's own `nextStepWebScript` when it declares one — the route
+     * decides *which* script, the wizard only says which step was left — and a
+     * formulation otherwise, so what was just written is taken into account.
+     *
+     * Never blocking, never fatal: a background hook, as in Share.
+     *
+     * @param {Object} step the step being left
+     * @param {boolean} wrote whether the supplier wrote on it
+     * @returns {Promise<void>|null} the hook in flight, or null when none was owed
+     */
+    const runStepHook = useCallback(
+        (step, wrote) => {
+            const stepId = step ? step.id : null;
+            if (formulatingRef.current || !entityId || !stepId || (wizardState && wizardState.readOnly)) {
+                // A hook already in flight: the caller keeps its "something was
+                // written" flag, so the next transition fires the one owed.
+                return null;
+            }
+            if (!step.nextStepWebScript && !wrote) {
+                return null;
+            }
+            return runHook(step.nextStepWebScript
+                ? api.post(`wizard/${encodeURIComponent(entityId)}/step/${encodeURIComponent(stepId)}`,
+                    { action: 'nextStep' }, { params })
+                : api.post(`wizard/${encodeURIComponent(entityId)}/formulate`, {}, { params }));
+        },
+        [entityId, params, wizardState, runHook],
+    );
+
+    /**
+     * Formulates on demand — `POST …/formulate`, outside any step hook.
+     *
+     * The documents step is what needs it: beCPG materialises the documents an
+     * entity requires **at formulation**, so the certificates a claim calls for
+     * do not exist until one has run. See {@link goTo}.
+     *
+     * @returns {Promise<void>|null}
+     */
+    const formulateNow = useCallback(
+        () => {
+            if (formulatingRef.current || !entityId || (wizardState && wizardState.readOnly)) {
+                return null;
+            }
+            return runHook(api.post(`wizard/${encodeURIComponent(entityId)}/formulate`, {}, { params }));
+        },
+        [entityId, params, wizardState, runHook],
     );
 
     const goTo = useCallback(
@@ -1062,6 +1100,7 @@ export function Wizard({
             // and will not move them any more.
             setResumeDone(true);
             const leaving = steps.find((step) => step.id === currentId);
+            const target = steps.find((step) => step.id === stepId);
 
             // Nothing is ever left behind: whatever is pending goes out first.
             await autoSave.flush();
@@ -1079,8 +1118,37 @@ export function Wizard({
             // A step declaring neither still formulates once the supplier has
             // written on it: the claims list decides which certificates beCPG
             // expects, and those documents are materialised by formulation.
-            if (runStepHook(leaving, wroteRef.current)) {
+            const hook = runStepHook(leaving, wroteRef.current);
+            if (hook) {
                 wroteRef.current = false;
+            }
+
+            /*
+             * THE DOCUMENTS STEP IS PAINTED FROM A FORMULATION, NOT FROM A CACHE.
+             *
+             * beCPG materialises the documents an entity requires **at
+             * formulation** (`DocumentFormulationHandler`), so a certificate a
+             * claim calls for does not exist before one has run: tick « Halal »
+             * on the claims and open Documents, and the halal attestation was
+             * simply not in the check-list. Two holes made that the normal
+             * outcome — the step in between (organoList and friends) declares
+             * `SupplierDocuments`, which resolves a folder and formulates
+             * nothing, and the requirements were read once when the wizard
+             * opened and never again.
+             *
+             * So arriving on the step formulates when nothing else already is,
+             * and re-reads the check-list once that lands, whichever hook it
+             * was. Neither is awaited: navigation owes nothing to the
+             * repository, and the step has its own loading state.
+             */
+            if (target && target.kind === 'documents') {
+                const formulated = hook || formulateNow() || hookRef.current;
+                if (formulated) {
+                    formulated.then(() => documents.refresh());
+                }
+                else {
+                    documents.refresh();
+                }
             }
 
             /*
@@ -1123,7 +1191,8 @@ export function Wizard({
                 window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
             }
         },
-        [currentId, steps, autoSave, runStepHook, persist, reduceMotion, suggestionsCall],
+        [currentId, steps, autoSave, runStepHook, formulateNow, documents, persist, reduceMotion,
+            suggestionsCall],
     );
 
     const goToField = useCallback(
@@ -1343,6 +1412,9 @@ export function Wizard({
         entityLevelDropped: suggestionsCall.data ? suggestionsCall.data.entityLevelDropped || 0 : 0,
         analysis: suggestionsCall.data ? suggestionsCall.data.analysis : null,
         loading: suggestionsCall.loading,
+        // Distinct from `loading`: a re-read running over a list already on
+        // screen is what « Relancer l'analyse » has to be able to show.
+        refreshing: suggestionsCall.refreshing,
         error: suggestionsCall.error,
         refresh: suggestionsCall.refresh,
         readOnly: Boolean(wizardState.readOnly),
@@ -1354,7 +1426,8 @@ export function Wizard({
         },
     }), [
         entityNodeRef, wizardState.entity, suggestions, suggestionsCall.data, suggestionsCall.loading,
-        suggestionsCall.error, suggestionsCall.refresh, wizardState.readOnly, labelForField,
+        suggestionsCall.refreshing, suggestionsCall.error, suggestionsCall.refresh,
+        wizardState.readOnly, labelForField,
         complianceTouched, catalogs,
     ]);
 
@@ -1413,9 +1486,24 @@ export function Wizard({
             readOnlyReason={stepReadOnlyReason}
             autoSave={autoSave}
             requirements={documents}
-            onUploaded={() => {
+            onUploaded={(result, info) => {
                 documents.refresh();
-                suggestionsCall.refresh();
+                /*
+                 * ONE ANALYSIS PER DEPOSIT, NOT THREE.
+                 *
+                 * `DocumentUpload` calls back on the deposit and again after
+                 * each re-read that waits for the index. Re-reading the
+                 * suggestions on every one of them fired three becpg-ai runs on
+                 * the same entity, seconds apart: each new request aborted the
+                 * previous one in the browser while upstream carried on
+                 * computing it, and a plugin left mid-flight holds its cache
+                 * entry marked "loading" — the next caller then waits on it and
+                 * its suggestions are dropped. Which is precisely what "nothing
+                 * appears in the panel after an upload" looked like.
+                 */
+                if (!info || info.last) {
+                    suggestionsCall.refresh();
+                }
             }}
         />
     ) : currentStep.kind === 'form' ? (
@@ -1681,7 +1769,13 @@ export function Wizard({
                     entityNodeRef={entityNodeRef}
                     state={documents}
                     readOnly={Boolean(wizardState.readOnly)}
-                    onUploaded={suggestionsCall.refresh}
+                    /* Once the deposit has settled, not on each re-read — see the
+                       note on the documents step. */
+                    onUploaded={(result, info) => {
+                        if (!info || info.last) {
+                            suggestionsCall.refresh();
+                        }
+                    }}
                 />
             </Card>
 

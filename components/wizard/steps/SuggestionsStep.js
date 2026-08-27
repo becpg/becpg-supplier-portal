@@ -150,6 +150,9 @@ const ANALYSIS_POLL_MS = 8000;
 /** Upper bound on those re-reads, so a plugin that never closes cannot poll forever. */
 const ANALYSIS_POLL_MAX = 15;
 
+/** How many raw changes a card lists before it offers the rest. */
+const MAX_CHANGES = 8;
+
 /** Per-suggestion lifecycle, kept locally: becpg-ai has no notion of "dismissed". */
 const STATE = Object.freeze({
     PROPOSED: 'proposed',
@@ -166,43 +169,19 @@ function fill(template, vars) {
     );
 }
 
-/** localStorage key holding what the supplier already decided about a suggestion. */
-function storageKey(entityId) {
-    return `becpg.portal.suggestions.${entityId}`;
-}
-
-/**
- * Reads the decisions persisted for this entity, so a revoked suggestion is not
- * re-applied the next time the step is opened.
+/*
+ * THE ANALYSIS IS THE AUTHORITY ON WHAT IS APPLIED, NOT THIS BROWSER.
  *
- * @param {string} entityId
- * @returns {Object} `{ [suggestionId]: 'applied'|'revoked'|'dismissed' }`
+ * « Appliqué » used to be written to `localStorage`, keyed by suggestion id, and
+ * read back for ever. becpg-ai only proposes what is *not* already in place and
+ * re-runs the moment the entity changes, so a suggestion that comes back in a
+ * fresh run has, by definition, nothing in place: apply an ingredient, delete
+ * it, and the proposal returned — under a card frozen on « Appliqué », with no
+ * way to apply it again.
+ *
+ * The decision therefore lives exactly as long as the payload it was taken on:
+ * a new list resets it. Nothing to persist, and nothing to invalidate.
  */
-function readDecisions(entityId) {
-    if (typeof window === 'undefined' || !entityId) {
-        return {};
-    }
-    try {
-        const raw = window.localStorage.getItem(storageKey(entityId));
-        const parsed = raw ? JSON.parse(raw) : null;
-        return parsed && typeof parsed === 'object' ? parsed : {};
-    }
-    catch {
-        return {};
-    }
-}
-
-function writeDecisions(entityId, decisions) {
-    if (typeof window === 'undefined' || !entityId) {
-        return;
-    }
-    try {
-        window.localStorage.setItem(storageKey(entityId), JSON.stringify(decisions));
-    }
-    catch {
-        // A private-browsing window without storage is not a reason to fail.
-    }
-}
 
 /**
  * True when a snapshot value can be written back as-is through the apply patch.
@@ -286,6 +265,7 @@ function SuggestionCard({
     labelFor,
     labels,
     lang,
+    t,
     readOnly,
     revocable,
     onApply,
@@ -295,6 +275,7 @@ function SuggestionCard({
     compact = false,
 }) {
     const reduceMotion = useReducedMotion();
+    const [allChanges, setAllChanges] = useState(false);
     const applied = status === STATE.APPLIED;
     const applying = status === STATE.APPLYING;
     const wide = isWideSuggestion(suggestion);
@@ -353,28 +334,42 @@ function SuggestionCard({
                 seconde en qnames.
             */}
             {!hasTypedBody(suggestion) && suggestion.changes && suggestion.changes.length > 0 ? (
-                <ul className="mt-2 flex flex-col gap-1">
-                    {suggestion.changes.slice(0, 8).map((change, position) => (
-                        <li
-                            key={`${change.scope}-${change.listName || ''}-${change.name}-${position}`}
-                            className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded-lg bg-[var(--becpg-grey)]/40 px-2 py-1 text-sm"
+                <>
+                    <ul className="mt-2 flex flex-col gap-1">
+                        {(allChanges ? suggestion.changes : suggestion.changes.slice(0, MAX_CHANGES))
+                            .map((change, position) => (
+                                <li
+                                    key={`${change.scope}-${change.listName || ''}-${change.name}-${position}`}
+                                    className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded-lg bg-[var(--becpg-grey)]/40 px-2 py-1 text-sm"
+                                >
+                                    {/* Un libellé, plus un lien : « Aller au champ » a été
+                                        retiré (voir le bloc supprimé plus bas). */}
+                                    <span className="truncate text-[var(--becpg-dark-grey)]">
+                                        {labelFor(change)}
+                                    </span>
+                                    <span className="min-w-0 flex-1 truncate font-medium text-[var(--becpg-blue)]">
+                                        {readableValue(change.value, lang)}
+                                    </span>
+                                </li>
+                            ))}
+                    </ul>
+                    {/* Le compte des valeurs restantes était une phrase grise :
+                        il annonçait ce qu'il ne donnait pas. C'est le bouton qui
+                        les ouvre. */}
+                    {suggestion.changes.length > MAX_CHANGES ? (
+                        <button
+                            type="button"
+                            onClick={() => setAllChanges((current) => !current)}
+                            aria-expanded={allChanges}
+                            className="mt-1 inline-flex items-center gap-1 rounded-lg px-1 py-0.5 text-xs text-[var(--becpg-dark-grey)] hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
                         >
-                            {/* Un libellé, plus un lien : « Aller au champ » a été
-                                retiré (voir le bloc supprimé plus bas). */}
-                            <span className="truncate text-[var(--becpg-dark-grey)]">
-                                {labelFor(change)}
-                            </span>
-                            <span className="min-w-0 flex-1 truncate font-medium text-[var(--becpg-blue)]">
-                                {readableValue(change.value, lang)}
-                            </span>
-                        </li>
-                    ))}
-                    {suggestion.changes.length > 8 ? (
-                        <li className="px-2 text-xs text-[var(--becpg-dark-grey)]">
-                            {fill(labels.changes, { count: suggestion.changes.length })}
-                        </li>
+                            <Icon name={allChanges ? 'expand_less' : 'expand_more'} size={14} />
+                            {allChanges
+                                ? t('action.showLess')
+                                : t('action.showMore', { count: suggestion.changes.length - MAX_CHANGES })}
+                        </button>
                     ) : null}
-                </ul>
+                </>
             ) : null}
 
             {status === STATE.ERROR && error ? (
@@ -424,7 +419,8 @@ function SuggestionCard({
  * @param {Object} [props.summary]
  * @param {{running: boolean, plugins: string[]}|null} [props.analysis] becpg-ai's own
  *        progress, from the `Loading` / `LoadingComplete` envelopes
- * @param {boolean} [props.loading]
+ * @param {boolean} [props.loading] nothing to show yet
+ * @param {boolean} [props.refreshing] a re-read is in flight over what is shown
  * @param {Error} [props.error]
  * @param {Function} [props.onRefresh]
  * @param {boolean} [props.readOnly]
@@ -440,6 +436,7 @@ export function SuggestionsStep({
     entityLevelDropped = 0,
     analysis = null,
     loading = false,
+    refreshing = false,
     error = null,
     onRefresh,
     readOnly = false,
@@ -448,7 +445,7 @@ export function SuggestionsStep({
     variant = 'step',
     className = '',
 }) {
-    const { lang } = useMessages();
+    const { lang, t } = useMessages();
     const labels = LABELS[lang] || LABELS.fr;
     const toast = useToast();
     const reduceMotion = useReducedMotion();
@@ -463,9 +460,21 @@ export function SuggestionsStep({
      */
     const [expanded, setExpanded] = useState(null);
 
-    const [decisions, setDecisions] = useState(() => readDecisions(entityId));
     const [statuses, setStatuses] = useState({});
     const [errors, setErrors] = useState({});
+
+    /*
+     * A fresh analysis clears what was decided on the previous one — see the
+     * note above. Adjusted during render rather than in an effect, so no frame
+     * is ever painted with the old verdicts over the new list (the pattern
+     * `useApi` uses on a key change).
+     */
+    const [payload, setPayload] = useState(suggestions);
+    if (payload !== suggestions) {
+        setPayload(suggestions);
+        setStatuses({});
+        setErrors({});
+    }
 
     const analysing = Boolean(analysis && analysis.running);
 
@@ -524,19 +533,8 @@ export function SuggestionsStep({
     }, [snapshotCall.data]);
 
     const statusOf = useCallback(
-        (suggestion) => statuses[suggestion.id] || decisions[suggestion.id] || STATE.PROPOSED,
-        [statuses, decisions],
-    );
-
-    const remember = useCallback(
-        (id, decision) => {
-            setDecisions((current) => {
-                const next = { ...current, [id]: decision };
-                writeDecisions(entityId, next);
-                return next;
-            });
-        },
-        [entityId],
+        (suggestion) => statuses[suggestion.id] || STATE.PROPOSED,
+        [statuses],
     );
 
     /** True when every attribute this suggestion touches can be written back. */
@@ -567,7 +565,6 @@ export function SuggestionsStep({
                     : { suggestedChanges: suggestion.suggestedChanges };
                 await api.post('suggestions/apply', body);
                 setStatuses((current) => ({ ...current, [suggestion.id]: STATE.APPLIED }));
-                remember(suggestion.id, STATE.APPLIED);
                 if (onApplied) {
                     onApplied(suggestion);
                 }
@@ -580,7 +577,7 @@ export function SuggestionsStep({
                 }
             }
         },
-        [readOnly, remember, onApplied, toast],
+        [readOnly, onApplied, toast],
     );
 
     const revoke = useCallback(
@@ -606,7 +603,6 @@ export function SuggestionsStep({
                     },
                 });
                 setStatuses((current) => ({ ...current, [suggestion.id]: STATE.REVOKED }));
-                remember(suggestion.id, STATE.REVOKED);
                 if (onApplied) {
                     onApplied(suggestion);
                 }
@@ -617,7 +613,7 @@ export function SuggestionsStep({
                 toast.error(revokeError);
             }
         },
-        [readOnly, snapshot, entityId, entityType, remember, onApplied, toast],
+        [readOnly, snapshot, entityId, entityType, onApplied, toast],
     );
 
     /*
@@ -681,12 +677,23 @@ export function SuggestionsStep({
      */
     const inPanel = variant === 'panel';
 
+    /*
+     * « Relancer l'analyse » spins while the run it started is under way.
+     *
+     * `loading` alone was false as soon as there was a list to show, so the
+     * button answered a click with nothing at all for the up-to-180 s becpg-ai
+     * takes — and becpg-ai caches per plugin on the entity's modification date,
+     * so on an unchanged sheet the answer is also identical. Pressed twice, then
+     * left alone: it looked broken because nothing said it was working.
+     */
+    const running = loading || refreshing || analysing;
+
     return (
         <div className={`min-w-0 ${className}`}>
             {inPanel ? (
                 onRefresh ? (
                     <div className="mb-2 flex justify-end">
-                        <Button variant="ghost" size="sm" icon="refresh" onClick={onRefresh} loading={loading}>
+                        <Button variant="ghost" size="sm" icon="refresh" onClick={onRefresh} loading={running}>
                             {labels.refresh}
                         </Button>
                     </div>
@@ -698,7 +705,7 @@ export function SuggestionsStep({
                         <p className="text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
                     </div>
                     {onRefresh ? (
-                        <Button variant="outline" size="sm" icon="refresh" onClick={onRefresh} loading={loading}>
+                        <Button variant="outline" size="sm" icon="refresh" onClick={onRefresh} loading={running}>
                             {labels.refresh}
                         </Button>
                     ) : null}
@@ -754,6 +761,7 @@ export function SuggestionsStep({
                                 labelFor={labelFor}
                                 labels={labels}
                                 lang={lang}
+                                t={t}
                                 index={index}
                                 compact={inPanel}
                                 readOnly={readOnly}

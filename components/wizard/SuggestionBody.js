@@ -26,10 +26,14 @@
  * `RichText` extracts its paragraphs and bullets, without `dangerouslySetInnerHTML`.
  */
 
+import { useState } from 'react';
 import { RichText } from '@/components/ui/RichText';
 import { Icon } from '@/components/ui/Button';
 import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
+
+/** How many extracted rows a narrow panel shows before it offers the rest. */
+const COMPACT_ROWS = 6;
 
 /** Types whose description is HTML produced by a becpg-ai template. */
 const HTML_TYPES = new Set(['DocumentReview', 'RegulatoryToxSummary']);
@@ -197,6 +201,43 @@ function ExtractionRows({ rows }) {
 }
 
 /**
+ * An extraction, capped in the panel and OPENABLE.
+ *
+ * The cap said « + 14 » in grey text and stopped there: a nutritional table read
+ * off a sheet showed six values out of twenty, and the fourteen others were
+ * announced and unreachable. A count is not an affordance — it is now the button
+ * that shows them.
+ *
+ * @param {Object[]} rows
+ * @param {boolean} compact
+ */
+function ExtractionTable({ rows, compact, className = '' }) {
+    const { t } = useMessages();
+    const [open, setOpen] = useState(false);
+
+    const capped = compact && !open && rows.length > COMPACT_ROWS;
+    const shown = capped ? rows.slice(0, COMPACT_ROWS) : rows;
+    const hidden = rows.length - COMPACT_ROWS;
+
+    return (
+        <div className={className}>
+            <ExtractionRows rows={shown} />
+            {compact && rows.length > COMPACT_ROWS ? (
+                <button
+                    type="button"
+                    onClick={() => setOpen((current) => !current)}
+                    aria-expanded={open}
+                    className="mt-1 inline-flex items-center gap-1 rounded-lg px-1 py-0.5 text-xs text-[var(--becpg-dark-grey)] hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                >
+                    <Icon name={open ? 'expand_less' : 'expand_more'} size={14} />
+                    {open ? t('action.showLess') : t('action.showMore', { count: hidden })}
+                </button>
+            ) : null}
+        </div>
+    );
+}
+
+/**
  * One row per language, for a translation proposal.
  *
  * @param {string} description
@@ -339,21 +380,15 @@ export function SuggestionBody({ suggestion, compact = false, className = '' }) 
             }
             const named = rows.filter((row) => 'name' in row || 'label' in row);
             if (named.length > 0) {
-                const shown = compact ? named.slice(0, 6) : named;
                 return (
-                    <div className={className}>
-                        <ExtractionRows
-                            rows={shown.map((row) => ({
-                                name: row.name ?? row.label ?? '',
-                                value: row.value ?? row.val ?? '',
-                            }))}
-                        />
-                        {shown.length < named.length ? (
-                            <p className="mt-1 text-xs text-[var(--becpg-dark-grey)]">
-                                {`+ ${named.length - shown.length}`}
-                            </p>
-                        ) : null}
-                    </div>
+                    <ExtractionTable
+                        rows={named.map((row) => ({
+                            name: row.name ?? row.label ?? '',
+                            value: row.value ?? row.val ?? '',
+                        }))}
+                        compact={compact}
+                        className={className}
+                    />
                 );
             }
         }

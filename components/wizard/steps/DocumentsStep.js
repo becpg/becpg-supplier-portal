@@ -67,7 +67,8 @@ function fill(template, vars) {
  * @param {Object} props.step the computed step (`readOnly` / `frozen` included)
  * @param {string|null} [props.readOnlyReason]
  * @param {Object} [props.autoSave] the wizard's indicator, notified on deposit
- * @param {Function} [props.onUploaded] `(result) => void` — the wizard refreshes the AI step
+ * @param {Function} [props.onUploaded] `(result, { attempt, last }) => void` — the wizard
+ *        refreshes the AI panel, once the deposit has settled
  * @param {Object} props.requirements what `useDocumentRequirements` returns — read
  *        once at wizard level, so the rail knows what is missing before this step
  *        is ever opened and the payload is not fetched twice
@@ -110,14 +111,16 @@ export function DocumentsStep({
     );
 
     const handleUploaded = useCallback(
-        (result) => {
+        // `info` carries `last`, which tells the wizard when the deposit has
+        // settled — dropping it made every re-read look like a fresh deposit.
+        (result, info) => {
             requirements.refresh();
             setDepositCount((count) => count + 1);
             if (autoSave) {
                 autoSave.markSaved();
             }
             if (onUploaded) {
-                onUploaded(result);
+                onUploaded(result, info);
             }
         },
         [requirements, autoSave, onUploaded],

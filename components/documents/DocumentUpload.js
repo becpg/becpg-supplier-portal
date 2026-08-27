@@ -46,6 +46,7 @@ import { useMessages } from '@/lib/messages';
 import { Button, Icon, Spinner } from '@/components/ui/Button';
 import { useToast } from '@/components/providers/ToastProvider';
 import { ValidityFields, toInputDate } from '@/components/documents/DocumentValidity';
+import { RichText } from '@/components/ui/RichText';
 import { formatDateTime, plainText } from '@/lib/format';
 
 const LABELS = {
@@ -243,7 +244,11 @@ export function AiValidationBadge({ state, hints, date, withHints = false, class
      * badge therefore showed `<p>` and `<li>` tags to a supplier.
      *
      * `plainText` extracts the lines from it — and, since the `richTextLines`
-     * fix, without the content of the `<style>` blocks.
+     * fix, without the content of the `<style>` blocks. It stays the right
+     * answer for the `title=`, which holds one string and nothing else; the
+     * report itself is rendered below with its structure, because flattened
+     * into a single paragraph a review reads as one sentence of three hundred
+     * words — its sections, its checks and their verdicts all run together.
      */
     const hintsText = hints ? plainText(hints) : '';
     const badge = (
@@ -263,9 +268,10 @@ export function AiValidationBadge({ state, hints, date, withHints = false, class
     return (
         <div className="flex flex-col gap-1">
             {badge}
-            <p className="whitespace-pre-wrap break-words text-xs leading-relaxed text-[var(--becpg-dark-grey)]">
-                {hintsText}
-            </p>
+            <RichText
+                value={hints}
+                className="flex flex-col gap-1 break-words text-xs leading-relaxed text-[var(--becpg-dark-grey)]"
+            />
             {date ? (
                 <p className="text-[0.6875rem] text-[var(--becpg-dark-grey)]">
                     {fill(labels.aiOn, { date: formatDateTime(date, lang) })}
@@ -291,7 +297,12 @@ export function AiValidationBadge({ state, hints, date, withHints = false, class
  * @param {boolean} [props.disabled]
  * @param {string} [props.disabledReason] shown instead of the zone when disabled
  * @param {React.RefObject} [props.dropRef] extra element that also accepts the drop (the row)
- * @param {Function} [props.onUploaded] `(result, { attempt }) => void` — refresh the list
+ * @param {Function} [props.onUploaded] `(result, { attempt, last }) => void` — refresh the
+ *   list. Called several times: once on the deposit, then after each re-read that lets the
+ *   search index catch up with the AI verdict. `last` marks the final one, so a caller with
+ *   something expensive to run — asking becpg-ai to analyse the entity again — runs it once
+ *   rather than three times over, each attempt aborting the previous run's request while
+ *   upstream kept computing it.
  * @param {Function} [props.onAiReview] `(review) => void` — the verdict returned by
  *   `POST /api/v1/documents/{id}/ai-review`, once, right after the upload. Optional:
  *   the row also picks the state up from beCPG on the next re-read, this is just the
@@ -458,7 +469,7 @@ export function DocumentUpload({
                 setDone({ name: file.name, size: file.size, ...(result || {}) });
 
                 if (onUploaded) {
-                    onUploaded(result, { attempt: 0 });
+                    onUploaded(result, { attempt: 0, last: false });
                 }
 
                 // Ask for the AI verdict instead of waiting for one.
@@ -482,7 +493,10 @@ export function DocumentUpload({
                         return;
                     }
                     if (onUploaded) {
-                        onUploaded(result, { attempt });
+                        // `last` is what tells a caller it may run something
+                        // expensive — a becpg-ai re-read — once instead of on
+                        // each of these re-reads. See the JSDoc above.
+                        onUploaded(result, { attempt, last: attempt === AI_POLL_ATTEMPTS });
                     }
                 }
                 if (alive.current) {

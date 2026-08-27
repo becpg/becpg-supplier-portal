@@ -26,7 +26,7 @@
  * asks for a document nobody expects and nothing will attach.
  */
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Icon } from '@/components/ui/Button';
 import { AiValidationBadge, DocumentUpload } from '@/components/documents/DocumentUpload';
 import { ExpiryPill } from '@/components/documents/ExpiryPill';
@@ -89,11 +89,20 @@ export function useDocumentRequirements(entityNodeRef) {
      * permanently empty — the defect that made two releases look as if no
      * "technical sheet" type was configured anywhere.
      */
-    const rows = (requirements.data && Array.isArray(requirements.data.requirements))
-        ? requirements.data.requirements
-        : [];
+    const rows = useMemo(
+        () => ((requirements.data && Array.isArray(requirements.data.requirements))
+            ? requirements.data.requirements
+            : []),
+        [requirements.data],
+    );
 
-    return {
+    /*
+     * Memoised because callers depend on this object's identity: the wizard
+     * re-reads the check-list from `goTo`, and a fresh object on every render
+     * would rebuild the navigation callback — and everything holding it — on
+     * every keystroke typed in a step.
+     */
+    return useMemo(() => ({
         loading: requirements.loading,
         error: requirements.error,
         sheet: rows.find((row) => row.isTechnicalSheet) || null,
@@ -103,7 +112,7 @@ export function useDocumentRequirements(entityNodeRef) {
             : [],
         summary: (requirements.data && requirements.data.summary) || null,
         refresh: requirements.refresh,
-    };
+    }), [requirements.data, requirements.loading, requirements.error, requirements.refresh, rows]);
 }
 
 /**

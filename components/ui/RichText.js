@@ -98,6 +98,18 @@ export function RichText({ value, className = '', emptyText = null, inline = fal
                         <span aria-hidden="true">•</span>
                         <span className="min-w-0 break-words"><Line line={line} /></span>
                     </p>
+                ) : line.heading ? (
+                    /* A heading, not a paragraph in bold: a becpg-ai review is
+                       three or four sections, and without them it reads as one
+                       undifferentiated wall. No level is carried — these bodies
+                       come from a template, not from a document outline — so
+                       every heading is the same rank. */
+                    <p
+                        key={index}
+                        className="mt-2 break-words font-medium text-[var(--becpg-blue)] first:mt-0"
+                    >
+                        <Line line={line} />
+                    </p>
                 ) : (
                     <p key={index} className="break-words">
                         <Line line={line} />

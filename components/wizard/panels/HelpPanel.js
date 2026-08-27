@@ -220,6 +220,7 @@ export function HelpPanel({
                         entityLevelDropped={suggestions.entityLevelDropped}
                         analysis={suggestions.analysis}
                         loading={suggestions.loading}
+                        refreshing={suggestions.refreshing}
                         error={suggestions.error}
                         onRefresh={suggestions.refresh}
                         readOnly={suggestions.readOnly}

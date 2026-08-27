@@ -83,6 +83,8 @@ export const messages = {
         'action.reset': 'Réinitialiser',
         'action.export': 'Exporter',
         'action.sign': 'Signer',
+        'action.showMore': '+{count} de plus',
+        'action.showLess': 'Voir moins',
 
         // --- Generic states ---
         'state.loading': 'Chargement…',
@@ -185,6 +187,8 @@ export const messages = {
         'action.reset': 'Reset',
         'action.export': 'Export',
         'action.sign': 'Sign',
+        'action.showMore': '{count} more',
+        'action.showLess': 'Show less',
 
         // --- Generic states ---
         'state.loading': 'Loading…',
