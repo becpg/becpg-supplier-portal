@@ -28,6 +28,7 @@
 
 import { useState } from 'react';
 import { RichText } from '@/components/ui/RichText';
+import { StatusPill } from '@/components/ui/StatusPill';
 import { Icon } from '@/components/ui/Button';
 import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
@@ -177,26 +178,66 @@ function plain(value) {
 /**
  * The table of a document extraction: what the AI read, field by field.
  *
+ * A row may carry `notApplicable` — see {@link ExtractionRow}.
+ *
  * @param {Object[]} rows
  */
 function ExtractionRows({ rows }) {
-    const { lang } = useMessages();
     return (
         <ul className="mt-1.5 flex flex-col gap-0.5">
             {rows.map((row, index) => (
-                <li
-                    key={`${row.name}-${index}`}
-                    className="flex flex-wrap items-baseline gap-x-2 rounded-lg bg-[var(--becpg-grey)]/40 px-2 py-1 text-sm"
-                >
-                    <span className="min-w-0 flex-1 truncate text-[var(--becpg-dark-grey)]">
-                        {plain(row.name)}
-                    </span>
-                    <span className="font-medium text-[var(--becpg-blue)]">
-                        {readableValue(row.value, lang)}
-                    </span>
-                </li>
+                <ExtractionRow key={`${row.name}-${index}`} row={row} />
             ))}
         </ul>
+    );
+}
+
+/**
+ * One extracted field.
+ *
+ * WHAT `notApplicable` MEANS, AND WHY THE VALUE STAYS ON SCREEN.
+ *
+ * `{"name":"Halal","value":"certified","notApplicable":true}` — the model read
+ * the item in the document and **nothing in beCPG's dictionary matched it**
+ * (`AbstractListPromptTransformer.buildDisplayRows`). So the certificate really
+ * does say « Halal : certified »; what is missing is the characteristic to
+ * write it on.
+ *
+ * The value therefore stays: dropping the row would hide what the document
+ * says, and a supplier comparing the panel with his own certificate would have
+ * found the line missing. It is NOT struck through — the value is not wrong,
+ * and striking it would say it is. It is muted, and the row says the rest in
+ * words through `StatusPill`, so it reads in greyscale and to a screen reader.
+ *
+ * Nothing here has to guard the « Appliquer » button: becpg-ai already filters
+ * these rows out of `suggestedChanges`, so they never reach `changes`.
+ *
+ * @param {Object} row `{ name, value, notApplicable }`
+ */
+function ExtractionRow({ row }) {
+    const { lang } = useMessages();
+    const value = readableValue(row.value, lang);
+
+    return (
+        <li
+            className={`flex flex-wrap items-baseline gap-x-2 rounded-lg bg-[var(--becpg-grey)]/40 px-2 py-1 text-sm${
+                row.notApplicable ? ' opacity-75' : ''
+            }`}
+        >
+            <span className="min-w-0 flex-1 truncate text-[var(--becpg-dark-grey)]">
+                {plain(row.name)}
+            </span>
+            {value ? (
+                <span
+                    className={row.notApplicable
+                        ? 'text-[var(--becpg-dark-grey)]'
+                        : 'font-medium text-[var(--becpg-blue)]'}
+                >
+                    {value}
+                </span>
+            ) : null}
+            {row.notApplicable ? <StatusPill status="notApplicable" size="sm" /> : null}
+        </li>
     );
 }
 
@@ -385,6 +426,7 @@ export function SuggestionBody({ suggestion, compact = false, className = '' }) 
                         rows={named.map((row) => ({
                             name: row.name ?? row.label ?? '',
                             value: row.value ?? row.val ?? '',
+                            notApplicable: row.notApplicable === true,
                         }))}
                         compact={compact}
                         className={className}

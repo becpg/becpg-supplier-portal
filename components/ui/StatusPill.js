@@ -64,6 +64,13 @@ export const STATUS_VOCABULARY = Object.freeze({
     cancelled: { tone: 'neutral', icon: 'do_not_disturb_on', messageKey: 'status.rejected' },
     late: { tone: 'danger', icon: 'alarm', messageKey: 'status.late' },
 
+    // --- AI extraction (a row of a becpg-ai extraction) --------------------
+    // An item the model read in a document and that matched nothing in beCPG's
+    // dictionary. NOT a refusal and NOT an absence: the certificate really does
+    // say « Halal : certified » — there is simply no characteristic to write it
+    // on, so becpg-ai leaves the row out of the patch it proposes.
+    notApplicable: { tone: 'neutral', icon: 'remove_circle_outline', messageKey: 'status.notApplicable' },
+
     // --- Entity state (bcpg:systemState) -----------------------------------
     simulation: { tone: 'neutral', icon: 'edit_note', messageKey: 'status.draft' },
     stopped: { tone: 'neutral', icon: 'stop_circle', messageKey: 'status.rejected' },

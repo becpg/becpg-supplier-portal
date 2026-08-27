@@ -128,6 +128,7 @@ export const messages = {
         'status.completed': 'Terminé',
         'status.late': 'En retard',
         'status.draft': 'Brouillon',
+        'status.notApplicable': 'Non applicable',
 
         // --- Test instance banner ---
         'test.banner': 'Instance de TEST — les données saisies ici ne sont pas contractuelles',
@@ -230,6 +231,7 @@ export const messages = {
         'status.completed': 'Completed',
         'status.late': 'Late',
         'status.draft': 'Draft',
+        'status.notApplicable': 'Not applicable',
 
         // --- Test instance banner ---
         'test.banner': 'TEST instance — data entered here is not contractual',
