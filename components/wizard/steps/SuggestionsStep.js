@@ -153,6 +153,9 @@ const ANALYSIS_POLL_MAX = 15;
 /** How many raw changes a card lists before it offers the rest. */
 const MAX_CHANGES = 8;
 
+/** A change laid out in two columns, when the card is not in the narrow panel. */
+const CHANGE_COLUMNS = 'grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] items-baseline gap-x-3';
+
 /** Per-suggestion lifecycle, kept locally: becpg-ai has no notion of "dismissed". */
 const STATE = Object.freeze({
     PROPOSED: 'proposed',
@@ -340,14 +343,14 @@ function SuggestionCard({
                             .map((change, position) => (
                                 <li
                                     key={`${change.scope}-${change.listName || ''}-${change.name}-${position}`}
-                                    className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded-lg bg-[var(--becpg-grey)]/40 px-2 py-1 text-sm"
+                                    className={`${compact ? 'flex flex-col gap-0.5' : CHANGE_COLUMNS} rounded-lg bg-[var(--becpg-grey)]/40 px-2 py-1 text-sm`}
                                 >
-                                    {/* Un libellé, plus un lien : « Aller au champ » a été
-                                        retiré (voir le bloc supprimé plus bas). */}
-                                    <span className="truncate text-[var(--becpg-dark-grey)]">
+                                    {/* The label is never shortened: it is what says which
+                                        field the value belongs to. */}
+                                    <span className="break-words text-xs text-[var(--becpg-dark-grey)]">
                                         {labelFor(change)}
                                     </span>
-                                    <span className="min-w-0 flex-1 truncate font-medium text-[var(--becpg-blue)]">
+                                    <span className="break-words font-medium text-[var(--becpg-blue)]">
                                         {readableValue(change.value, lang)}
                                     </span>
                                 </li>

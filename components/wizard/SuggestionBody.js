@@ -36,6 +36,12 @@ import { useMessages } from '@/lib/messages';
 /** How many extracted rows a narrow panel shows before it offers the rest. */
 const COMPACT_ROWS = 6;
 
+/**
+ * Name and value side by side, once the body has the room for two columns: the
+ * name keeps a third of the width whatever the value is, so it stays legible.
+ */
+const ROW_COLUMNS = 'grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] items-baseline gap-x-3';
+
 /** Types whose description is HTML produced by a becpg-ai template. */
 const HTML_TYPES = new Set(['DocumentReview', 'RegulatoryToxSummary']);
 
@@ -181,12 +187,13 @@ function plain(value) {
  * A row may carry `notApplicable` — see {@link ExtractionRow}.
  *
  * @param {Object[]} rows
+ * @param {boolean} [compact] rendered in the narrow panel
  */
-function ExtractionRows({ rows }) {
+function ExtractionRows({ rows, compact }) {
     return (
         <ul className="mt-1.5 flex flex-col gap-0.5">
             {rows.map((row, index) => (
-                <ExtractionRow key={`${row.name}-${index}`} row={row} />
+                <ExtractionRow key={`${row.name}-${index}`} row={row} compact={compact} />
             ))}
         </ul>
     );
@@ -212,31 +219,43 @@ function ExtractionRows({ rows }) {
  * Nothing here has to guard the « Appliquer » button: becpg-ai already filters
  * these rows out of `suggestedChanges`, so they never reach `changes`.
  *
+ * WHY THE FIELD NAME IS NEVER TRUNCATED.
+ *
+ * Name and value shared one line, and the value was sized by its content: a
+ * « Cassonade Authentique Valentin » left the name « Tra… ». The panel then
+ * showed values nobody could attribute to a field — which is the one thing an
+ * extraction has to say. The name is therefore laid out on its own line in the
+ * narrow panel, and given a column of its own when there is room; it wraps, it
+ * does not shorten.
+ *
  * @param {Object} row `{ name, value, notApplicable }`
+ * @param {boolean} [compact] rendered in the narrow panel: name above value
  */
-function ExtractionRow({ row }) {
+function ExtractionRow({ row, compact }) {
     const { lang } = useMessages();
     const value = readableValue(row.value, lang);
 
     return (
         <li
-            className={`flex flex-wrap items-baseline gap-x-2 rounded-lg bg-[var(--becpg-grey)]/40 px-2 py-1 text-sm${
+            className={`${compact ? 'flex flex-col gap-0.5' : ROW_COLUMNS} rounded-lg bg-[var(--becpg-grey)]/40 px-2 py-1 text-sm${
                 row.notApplicable ? ' opacity-75' : ''
             }`}
         >
-            <span className="min-w-0 flex-1 truncate text-[var(--becpg-dark-grey)]">
+            <span className="break-words text-xs text-[var(--becpg-dark-grey)]">
                 {plain(row.name)}
             </span>
-            {value ? (
-                <span
-                    className={row.notApplicable
-                        ? 'text-[var(--becpg-dark-grey)]'
-                        : 'font-medium text-[var(--becpg-blue)]'}
-                >
-                    {value}
-                </span>
-            ) : null}
-            {row.notApplicable ? <StatusPill status="notApplicable" size="sm" /> : null}
+            <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                {value ? (
+                    <span
+                        className={`break-words ${row.notApplicable
+                            ? 'text-[var(--becpg-dark-grey)]'
+                            : 'font-medium text-[var(--becpg-blue)]'}`}
+                    >
+                        {value}
+                    </span>
+                ) : null}
+                {row.notApplicable ? <StatusPill status="notApplicable" size="sm" /> : null}
+            </span>
         </li>
     );
 }
@@ -262,7 +281,7 @@ function ExtractionTable({ rows, compact, className = '' }) {
 
     return (
         <div className={className}>
-            <ExtractionRows rows={shown} />
+            <ExtractionRows rows={shown} compact={compact} />
             {compact && rows.length > COMPACT_ROWS ? (
                 <button
                     type="button"
