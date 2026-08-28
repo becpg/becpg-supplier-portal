@@ -52,6 +52,7 @@
  * ```json
  * { "requestId": "sign-…", "consent": { "accepted": true, "text": "…", "at": "…" },
  *   "signature": { "kind": "drawn|typed", "name": "…", "image": "data:image/png;…" },
+ *   "initials": { "kind": "drawn|typed", "name": "…", "image": "data:image/png;…" },
  *   "reading": { "pages": 12, "seenPages": 12, "complete": true } }
  * ```
  *
@@ -59,6 +60,13 @@
  * because `beCPG/signature/sign-document.js` is that task's post-deliverable
  * script. The portal proxies `becpg/project/complete/task` and lets beCPG run
  * `bSign.signDocument()` (rule R2, spec §6.2).
+ *
+ * **The two images are what ends up on the page.** `signDocument()` signs and
+ * draws nothing — Share's Apryse viewer is what fills the boxes, in the browser,
+ * before uploading. The portal does the same server-side (`lib/pdfStamp.js`):
+ * the signature goes into the `<user>-signature` widget, the initials into every
+ * `<user>` widget. They were being posted and dropped, which is how a sheet
+ * signed from the portal came back with eleven empty frames.
  *
  * ### The three production failures it answers
  *
@@ -122,6 +130,23 @@ export async function GET(request, context) {
 }
 
 /**
+ * The two marks to draw, as the browser sent them.
+ *
+ * Nothing is validated here beyond "it is a string": `markBytes()` is what
+ * decides whether those characters are a PNG, and it runs where the bytes are
+ * actually decoded. Initials that were not captured fall back to the signature
+ * in `stampSignatureMarks()`, so a document whose only widget is a signature
+ * never demands a second drawing.
+ *
+ * @param {Object} body
+ * @returns {{signature: string|null, initials: string|null}}
+ */
+function marksOf(body) {
+    const image = (mark) => (mark && typeof mark.image === 'string' ? mark.image : null);
+    return { signature: image(body.signature), initials: image(body.initials) };
+}
+
+/**
  * @param {Request} request
  * @param {{ params: Promise<{ taskId: string }> }} context
  * @returns {Promise<Response>}
@@ -145,7 +170,7 @@ export async function POST(request, context) {
             ? body.requestId.slice(0, 120)
             : request.headers.get('x-portal-request-id');
 
-        const result = await signSignatureTask({ client, taskId, requestId });
+        const result = await signSignatureTask({ client, taskId, requestId, marks: marksOf(body) });
 
         if (result.cancelled) {
             throw new ConflictError('This signature request was cancelled', {

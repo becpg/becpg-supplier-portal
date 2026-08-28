@@ -7,12 +7,13 @@ Regenerate with `npm ci && npm run licenses`.
 
 | License | Packages |
 |---|---|
-| MIT | 301 |
+| MIT | 304 |
 | Apache-2.0 | 24 |
 | ISC | 13 |
 | BSD-2-Clause | 7 |
 | MPL-2.0 | 3 |
 | BSD-3-Clause | 2 |
+| (MIT AND Zlib) | 1 |
 | 0BSD | 1 |
 | CC-BY-4.0 | 1 |
 | CC0-1.0 | 1 |
@@ -21,6 +22,7 @@ Regenerate with `npm ci && npm run licenses`.
 
 ```text
 
+     ((MIT AND Zlib)) pako:1.0.11 - https://github.com/nodeca/pako
      (0BSD) tslib:2.8.1 - https://www.typescriptlang.org/
      (Apache-2.0) @eslint/config-array:0.21.2 - https://github.com/eslint/rewrite/tree/main/packages/config-array#readme
      (Apache-2.0) @eslint/config-helpers:0.4.2 - https://github.com/eslint/rewrite/tree/main/packages/config-helpers#readme
@@ -107,6 +109,8 @@ Regenerate with `npm ci && npm run licenses`.
      (MIT) @nodelib/fs.stat:2.0.5 - https://github.com/nodelib/nodelib/tree/master/packages/fs/fs.stat
      (MIT) @nodelib/fs.walk:1.2.8 - https://github.com/nodelib/nodelib/tree/master/packages/fs/fs.walk
      (MIT) @nolyfill/is-core-module:1.0.39 - https://github.com/SukkaW/nolyfill
+     (MIT) @pdf-lib/standard-fonts:1.0.0 - https://github.com/Hopding/standard-fonts
+     (MIT) @pdf-lib/upng:1.0.1 - https://github.com/Hopding/upng
      (MIT) @rtsao/scc:1.1.0 - rtsao/scc
      (MIT) @tailwindcss/node:4.3.3 - https://tailwindcss.com
      (MIT) @tailwindcss/oxide:4.3.3 - https://github.com/tailwindlabs/tailwindcss
@@ -302,6 +306,7 @@ Regenerate with `npm ci && npm run licenses`.
      (MIT) path-exists:4.0.0 - sindresorhus/path-exists
      (MIT) path-key:3.1.1 - sindresorhus/path-key
      (MIT) path-parse:1.0.7 - https://github.com/jbgutierrez/path-parse#readme
+     (MIT) pdf-lib:1.17.1 - https://pdf-lib.js.org
      (MIT) picomatch:2.3.2 - https://github.com/micromatch/picomatch
      (MIT) possible-typed-array-names:1.1.0 - https://github.com/ljharb/possible-typed-array-names#readme
      (MIT) postcss:8.5.25 - https://postcss.org/

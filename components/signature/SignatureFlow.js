@@ -95,12 +95,15 @@ const LABELS = {
         documentCount: '{count} documents à signer',
         toSignature: 'Aller à la signature',
         signTitle: 'Votre signature',
+        initialsTitle: 'Vos paraphes',
+        initialsHint: 'Ils seront apposés en bas de chaque page.',
         consent:
             'J’ai lu l’intégralité du document et j’accepte de le signer électroniquement. Je reconnais à cette signature la même valeur qu’une signature manuscrite.',
         sign: 'Signer le document',
         signing: 'Signature en cours…',
         blockedRead: 'Consultez toutes les pages pour pouvoir signer.',
         blockedSignature: 'Ajoutez votre signature.',
+        blockedInitials: 'Ajoutez vos paraphes.',
         blockedConsent: 'Cochez la case de consentement.',
         successTitle: 'Document signé',
         successBody:
@@ -155,12 +158,15 @@ const LABELS = {
         documentCount: '{count} documents to sign',
         toSignature: 'Go to the signature',
         signTitle: 'Your signature',
+        initialsTitle: 'Your initials',
+        initialsHint: 'They will be applied at the bottom of every page.',
         consent:
             'I have read the whole document and I agree to sign it electronically. I acknowledge this signature has the same value as a handwritten one.',
         sign: 'Sign the document',
         signing: 'Signing…',
         blockedRead: 'Read every page to be able to sign.',
         blockedSignature: 'Add your signature.',
+        blockedInitials: 'Add your initials.',
         blockedConsent: 'Tick the consent box.',
         successTitle: 'Document signed',
         successBody:
@@ -236,6 +242,26 @@ export function resolveDocuments(view, task) {
         }
     }
     return fallback;
+}
+
+/**
+ * « Valentin Leblanc » becomes « VL ».
+ *
+ * Only a default: the supplier can type or draw whatever they use as a paraphe.
+ * Two letters at most, because the box beCPG reserves for them is roughly a
+ * third of the signature's, and a five-letter initial would be shrunk to
+ * nothing by `fitInto()`.
+ *
+ * @param {string} name
+ * @returns {string}
+ */
+export function initialsOf(name) {
+    return String(name || '')
+        .split(/[\s-]+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((word) => word[0].toUpperCase())
+        .join('');
 }
 
 /**
@@ -396,6 +422,7 @@ export function SignatureFlow({
     const refreshView = view.refresh;
 
     const [signature, setSignature] = useState({ kind: 'drawn', text: '', dataUrl: null, empty: true });
+    const [initials, setInitials] = useState({ kind: 'typed', text: '', dataUrl: null, empty: true });
     const [consent, setConsent] = useState(false);
     const [status, setStatus] = useState('idle');
     const [failure, setFailure] = useState(null);
@@ -414,6 +441,23 @@ export function SignatureFlow({
     const external = view.data && view.data.signature && view.data.signature.external
         ? view.data.signature
         : null;
+
+    /*
+     * Does this document ask for paraphes at all?
+     *
+     * beCPG places one `<user>` widget per page except the signature page, so
+     * the answer is in the zones we already read. A document with a signature
+     * box and nothing else must not demand a second drawing — and a document
+     * whose zones could not be read asks for nothing it cannot show.
+     */
+    const needsInitials = useMemo(
+        () => documents.some((entry) => (entry.zones || []).some((zone) => zone.type === 'initials')),
+        [documents],
+    );
+
+    const signerName = (viewData && viewData.recipientName)
+        || (session.user && session.user.name)
+        || '';
 
     const documentUuid = document_ ? uuidOf(document_.nodeRef) : null;
     const taskUuid = uuidOf(taskId);
@@ -557,9 +601,11 @@ export function SignatureFlow({
         ? labels.blockedRead
         : signature.empty
           ? labels.blockedSignature
-          : !consent
-            ? labels.blockedConsent
-            : null;
+          : needsInitials && initials.empty
+            ? labels.blockedInitials
+            : !consent
+              ? labels.blockedConsent
+              : null;
 
     /**
      * Did the POST we lost the answer to actually land?
@@ -631,6 +677,14 @@ export function SignatureFlow({
                 name: signature.text || null,
                 image: signature.dataUrl || null,
             },
+            // The mark for the `<user>` widgets, distinct from the one for
+            // `<user>-signature`: a paraphe is not a signature, and beCPG places
+            // one on every page but the last.
+            initials: {
+                kind: initials.kind,
+                name: initials.text || null,
+                image: initials.dataUrl || null,
+            },
             consent: {
                 accepted: true,
                 text: consentText || labels.consent,
@@ -694,6 +748,7 @@ export function SignatureFlow({
         viewData,
         refreshView,
         signature,
+        initials,
         consentText,
         labels.consent,
         labels.failed,
@@ -1075,12 +1130,38 @@ export function SignatureFlow({
                 <div ref={signPanel} className="scroll-mt-24">
                     <SignaturePad
                         mode={signatureMode}
-                        defaultName={
-                            (view.data && view.data.recipientName) || (session.user && session.user.name) || ''
-                        }
+                        defaultName={signerName}
                         onChange={setSignature}
                         disabled={status === 'sending'}
                     />
+
+                    {/*
+                        A SECOND MARK, because a paraphe is not a signature.
+                        beCPG prepares ten `<user>` boxes and one
+                        `<user>-signature`; stamping the full signature in all
+                        eleven is not what a paraphe means, and it does not fit
+                        a box a third of the size. The typed default is the
+                        initials of the signer's name — the common case, one
+                        less thing to draw on a phone — and the pad is right
+                        there for anyone who would rather draw them.
+                    */}
+                    {needsInitials ? (
+                        <div className="mt-5 border-t border-[var(--becpg-grey)] pt-4">
+                            <p className="text-sm font-medium text-[var(--becpg-blue)]">
+                                {labels.initialsTitle}
+                            </p>
+                            <p className="mb-2 text-xs text-[var(--becpg-dark-grey)]">
+                                {labels.initialsHint}
+                            </p>
+                            <SignaturePad
+                                mode={signatureMode}
+                                defaultName={initialsOf(signerName)}
+                                onChange={setInitials}
+                                disabled={status === 'sending'}
+                                height={120}
+                            />
+                        </div>
+                    ) : null}
 
                     <div className="mt-4 rounded-lg border border-[var(--becpg-grey)] bg-[var(--becpg-grey)]/30 p-3">
                         <Checkbox
