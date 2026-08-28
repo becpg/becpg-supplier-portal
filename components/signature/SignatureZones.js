@@ -17,10 +17,11 @@
  *
  * ## Degrading gracefully
  *
- * The coordinates come from the API. If they are absent — and today
- * `GET /api/v1/signature/{taskId}` does not return them, because the signature
- * module owns them — `normalizeZones()` returns `[]` and **nothing is drawn**.
- * We never guess a position: a frame drawn in the wrong place is worse than no
+ * The coordinates come from the API, which reads them out of the AcroForm of
+ * the prepared working copy (`lib/pdfSignatureFields.js`). When it cannot —
+ * document not prepared, unreadable, already signed — it says so in
+ * `zonesReason`, `normalizeZones()` returns `[]` and **nothing is drawn**. We
+ * never guess a position: a frame drawn in the wrong place is worse than no
  * frame at all, because the supplier would believe it.
  *
  * ## The coordinate contract
