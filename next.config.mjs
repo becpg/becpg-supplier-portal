@@ -14,6 +14,22 @@ const nextConfig = {
     // worker is a proper bundled asset.
     serverExternalPackages: ['pdfjs-dist'],
 
+    // ... and the worker file has to BE THERE, which externalising does not
+    // guarantee. The tracer copies what it can see imported; pdf.js reaches its
+    // worker through a URL computed from its own module URL, so the standalone
+    // image shipped `pdf.mjs` alone and every signature document came back
+    // `parse-error: Setting up fake worker failed`. Naming the file is the
+    // documented way to put it back, and it is needed on the one route that
+    // parses a PDF — `/api/v1/documents/[id]/content` imports the same module
+    // for `authorizeTaskDocument` and never reads a byte of PDF itself.
+    //
+    // The key is a glob and not the route id: `[taskId]` would be read as a glob
+    // character class, so the literal path matches nothing and the file silently
+    // stays behind.
+    outputFileTracingIncludes: {
+        '/api/v1/signature/**': ['./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs'],
+    },
+
     // --- Security headers -------------------------------------------------
     //
     // Measured on the deployed portal the day it went live: the portal answered with
