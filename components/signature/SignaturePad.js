@@ -96,6 +96,83 @@ const LABELS = {
 };
 
 /**
+ * Margin kept around the ink once the empty space is cut away, as a fraction of
+ * the trimmed box. Enough that a stroke does not touch the edge of the PNG.
+ */
+const TRIM_MARGIN = 0.04;
+
+/**
+ * The same mark, without the empty space around it.
+ *
+ * WHY THIS EXISTS. The mark is stamped into the rectangle beCPG reserved for it
+ * (`lib/pdfStamp.js`), scaled to fit without being distorted — so what gets
+ * scaled is the whole PNG, transparent margins included. A canvas of 640x200
+ * holding « TR » is nine tenths nothing, and the paraphe landed in its box at a
+ * quarter of the width it had to fill, looking timid where Apryse's is full
+ * size. Apryse trims to the drawing; so does this.
+ *
+ * Cutting to the ink also makes the two capture modes agree: a name typed in a
+ * fixed canvas and a signature drawn across a wide pad both come out as the mark
+ * itself, and the box decides how big it is.
+ *
+ * @param {HTMLCanvasElement} canvas
+ * @returns {string|null} a `data:image/png;base64,…`, or `null` when nothing was drawn
+ */
+export function trimmedDataUrl(canvas) {
+    const context = canvas && canvas.getContext('2d', { willReadFrequently: true });
+    if (!context || !(canvas.width > 0) || !(canvas.height > 0)) {
+        return null;
+    }
+
+    let pixels = null;
+    try {
+        pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    }
+    catch {
+        // A tainted canvas cannot be read back. Nothing here loads a foreign
+        // image, but the untrimmed mark is still a mark: fall back to it.
+        return canvas.toDataURL('image/png');
+    }
+
+    let top = canvas.height;
+    let left = canvas.width;
+    let right = -1;
+    let bottom = -1;
+    for (let y = 0; y < canvas.height; y += 1) {
+        for (let x = 0; x < canvas.width; x += 1) {
+            if (pixels[(y * canvas.width + x) * 4 + 3] === 0) {
+                continue;
+            }
+            if (x < left) { left = x; }
+            if (x > right) { right = x; }
+            if (y < top) { top = y; }
+            if (y > bottom) { bottom = y; }
+        }
+    }
+    if (right < left || bottom < top) {
+        return null;
+    }
+
+    const inkWidth = right - left + 1;
+    const inkHeight = bottom - top + 1;
+    const margin = Math.round(Math.max(inkWidth, inkHeight) * TRIM_MARGIN);
+    const x = Math.max(0, left - margin);
+    const y = Math.max(0, top - margin);
+    const width = Math.min(canvas.width - x, inkWidth + 2 * margin);
+    const height = Math.min(canvas.height - y, inkHeight + 2 * margin);
+
+    const trimmed = document.createElement('canvas');
+    trimmed.width = width;
+    trimmed.height = height;
+    const target = trimmed.getContext('2d');
+    if (!target) {
+        return canvas.toDataURL('image/png');
+    }
+    target.drawImage(canvas, x, y, width, height, 0, 0, width, height);
+    return trimmed.toDataURL('image/png');
+}
+
+/**
  * Renders a name as a transparent PNG in a script face.
  *
  * The font size is fitted to the canvas so a long compound name stays inside the
@@ -138,7 +215,7 @@ export function typedSignatureDataUrl(text, options = {}) {
     } while (fontSize > 20);
 
     context.fillText(value, TYPED_CANVAS.width / 2, TYPED_CANVAS.height / 2, maxWidth);
-    return canvas.toDataURL('image/png');
+    return trimmedDataUrl(canvas);
 }
 
 /**
@@ -286,7 +363,9 @@ export function SignaturePad({
         resizeCanvas();
 
         const onEnd = () => {
-            const url = pad.isEmpty() ? null : pad.toDataURL('image/png');
+            // Trimmed like the typed variant: what is stamped is the drawing,
+            // not the width of the pad it happened to be drawn on.
+            const url = pad.isEmpty() ? null : trimmedDataUrl(canvas);
             setDrawnUrl(url);
             setStrokeCount(pad.toData().length);
             publish(SIGNATURE_KINDS.DRAWN, '', url);
@@ -345,7 +424,7 @@ export function SignaturePad({
         const data = pad.toData();
         data.pop();
         pad.fromData(data);
-        const url = data.length ? pad.toDataURL('image/png') : null;
+        const url = data.length ? trimmedDataUrl(canvasRef.current) : null;
         setDrawnUrl(url);
         setStrokeCount(data.length);
         publish(SIGNATURE_KINDS.DRAWN, '', url);
