@@ -119,6 +119,8 @@ export function StepReadOnlyNotice({ reason, lang = 'fr', className = '' }) {
  * @param {Object} props.step the computed step (`readOnly` / `frozen` included)
  * @param {Object} [props.params] query params forwarded to the API (`wizardId`, `siteId`)
  * @param {Object} props.autoSave the wizard's `useAutoSave` instance
+ * @param {number} [props.reloadNonce] bumped by the wizard when something wrote
+ *        into the entity from outside the form — an applied AI suggestion
  * @param {string|null} [props.readOnlyReason]
  * @param {Object} [props.commentCounts] `{ 'bcpg:legalName': 2 }`
  * @param {Function} [props.onComment] `({ field, label }) => void`
@@ -137,6 +139,7 @@ export function FormStep({
     step,
     params,
     autoSave,
+    reloadNonce = 0,
     readOnlyReason = null,
     commentCounts = null,
     onComment,
@@ -156,6 +159,22 @@ export function FormStep({
 
     const definition = stepData.data ? stepData.data.definition : null;
     const readOnly = Boolean(step && step.readOnly);
+
+    /*
+     * A write that did not come from this form — an applied suggestion — is only
+     * visible once the step is read again. The wizard flushes the autosave
+     * before bumping the counter, so nothing typed is lost to the reseed that
+     * follows.
+     */
+    const refreshStep = stepData.refresh;
+    const seenReload = useRef(reloadNonce);
+    useEffect(() => {
+        if (seenReload.current === reloadNonce) {
+            return;
+        }
+        seenReload.current = reloadNonce;
+        refreshStep();
+    }, [reloadNonce, refreshStep]);
 
     // The form state is read by the save task through a ref: the task runs long
     // after the render that scheduled it, and must see the values as they are

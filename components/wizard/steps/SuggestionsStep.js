@@ -182,8 +182,9 @@ function fill(template, vars) {
  * it, and the proposal returned — under a card frozen on « Appliqué », with no
  * way to apply it again.
  *
- * The decision therefore lives exactly as long as the payload it was taken on:
- * a new list resets it. Nothing to persist, and nothing to invalidate.
+ * The decision therefore lives exactly as long as the proposal it was taken on:
+ * a list whose content changed resets it. Nothing to persist, and nothing to
+ * invalidate.
  */
 
 /**
@@ -471,10 +472,22 @@ export function SuggestionsStep({
      * note above. Adjusted during render rather than in an effect, so no frame
      * is ever painted with the old verdicts over the new list (the pattern
      * `useApi` uses on a key change).
+     *
+     * WHAT COUNTS AS "FRESH" IS THE CONTENT, not the array. Applying now re-reads
+     * the panel, and a re-read that brings back the very same proposals must not
+     * wipe the « Appliqué » the supplier has just earned — his click would look
+     * as if it had done nothing. `id` cannot arbitrate that: it is built from the
+     * plugin, the document and the title, never from the values.
      */
-    const [payload, setPayload] = useState(suggestions);
-    if (payload !== suggestions) {
-        setPayload(suggestions);
+    const signature = useMemo(
+        () => suggestions
+            .map((item) => [item.id, item.rawDescription || '', JSON.stringify(item.changes || [])].join('|'))
+            .join('\n'),
+        [suggestions],
+    );
+    const [seenSignature, setSeenSignature] = useState(signature);
+    if (seenSignature !== signature) {
+        setSeenSignature(signature);
         setStatuses({});
         setErrors({});
     }

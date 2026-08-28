@@ -69,6 +69,8 @@ function commentTargetsOf(list, rowLabel) {
  * @param {Object} props.step the computed step (`readOnly` / `frozen` included)
  * @param {Object} [props.params] `wizardId`, `siteId`, `locale`
  * @param {Object} props.autoSave the wizard's `useAutoSave` instance
+ * @param {number} [props.reloadNonce] bumped by the wizard when something wrote
+ *        into the entity from outside the grid — an applied AI suggestion
  * @param {Function} [props.onComment] `({ nodeRef, label }) => void`
  * @param {Function} [props.onCommentTargets] `(targets) => void` — publishes the rows
  * @param {Function} [props.onDirty] called when the grid holds unsaved rows
@@ -79,6 +81,7 @@ export function DataListStep({
     step,
     params,
     autoSave,
+    reloadNonce = 0,
     onComment,
     onCommentTargets,
     className = '',
@@ -130,6 +133,21 @@ export function DataListStep({
         onWriting: handleWriting,
         onError: handleError,
     });
+
+    /*
+     * An extraction applied to this list — nutrients read off a sheet — writes
+     * rows the grid knows nothing about. Silent: the rows already on screen stay
+     * put while the page is read again.
+     */
+    const refreshList = list.refresh;
+    const seenReload = useRef(reloadNonce);
+    useEffect(() => {
+        if (seenReload.current === reloadNonce) {
+            return;
+        }
+        seenReload.current = reloadNonce;
+        refreshList({ silent: true });
+    }, [reloadNonce, refreshList]);
 
     const targets = useMemo(() => commentTargetsOf(list, labels.row), [list, labels.row]);
 

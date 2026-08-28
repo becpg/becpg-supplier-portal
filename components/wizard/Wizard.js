@@ -74,7 +74,7 @@
  * side panels become sheets one tap away. Everything is reachable at 360px.
  */
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { AppShell } from '@/components/shell/AppShell';
@@ -110,6 +110,14 @@ import { suggestionScopeForStep } from '@/lib/suggestionScope';
  * `AI_SUGGESTIONS_TIMEOUT`. The two must move together.
  */
 const AI_TIMEOUT_MS = 180_000;
+
+/**
+ * How long the suggestions panel waits after an application before re-reading.
+ *
+ * Long enough for a supplier applying several proposals in a row to produce one
+ * becpg-ai run instead of one per click.
+ */
+const APPLY_REFRESH_MS = 1200;
 
 const LABELS = {
     fr: {
@@ -1394,6 +1402,46 @@ export function Wizard({
         steps, verdicts, goTo, catalogs, freshCatalogs, gatingCatalogIds, blockingTranslations,
     ]);
 
+    /* ----------------------------------------------------- an applied value */
+
+    /*
+     * AN APPLIED SUGGESTION IS VISIBLE WITHOUT RELOADING THE PAGE.
+     *
+     * Applying wrote into the entity, and nothing on screen knew: the value did
+     * not appear in the field, and the panel went on proposing it. The supplier
+     * had to press F5 to find out what had actually been written — on the one
+     * screen where he is being asked to check a machine's reading.
+     *
+     * Three things therefore re-read: the open step (the value lands in its
+     * field), the panel (becpg-ai no longer proposes what is already set), and
+     * the catalogues when compliance has been looked at.
+     *
+     * Order matters. `autoSave.flush()` FIRST: re-reading the step reseeds its
+     * form from the server, so a keystroke still waiting in the autosave debounce
+     * would be painted over. It only sends the fields the supplier changed, so it
+     * cannot undo what has just been applied either.
+     */
+    const [reloadNonce, setReloadNonce] = useState(0);
+    const applyRefreshRef = useRef(null);
+    useEffect(() => () => clearTimeout(applyRefreshRef.current), []);
+
+    const onSuggestionApplied = useCallback(async () => {
+        if (complianceTouched) {
+            catalogs.refresh();
+        }
+        await autoSave.flush();
+        setReloadNonce((current) => current + 1);
+        /*
+         * The panel's own re-read is delayed and coalesced: applying three
+         * proposals in a row is ordinary, and each re-read starts a becpg-ai run
+         * whose predecessor the browser aborts mid-flight — the trap documented
+         * on the document upload below, where an aborted plugin leaves its cache
+         * entry marked "loading" and the next caller loses its suggestions.
+         */
+        clearTimeout(applyRefreshRef.current);
+        applyRefreshRef.current = setTimeout(() => suggestionsCall.refresh(), APPLY_REFRESH_MS);
+    }, [complianceTouched, catalogs, autoSave, suggestionsCall]);
+
     /* ----------------------------------------------------------- the panels */
 
     /*
@@ -1419,16 +1467,12 @@ export function Wizard({
         refresh: suggestionsCall.refresh,
         readOnly: Boolean(wizardState.readOnly),
         labelForField,
-        onApplied: () => {
-            if (complianceTouched) {
-                catalogs.refresh();
-            }
-        },
+        onApplied: onSuggestionApplied,
     }), [
         entityNodeRef, wizardState.entity, suggestions, suggestionsCall.data, suggestionsCall.loading,
         suggestionsCall.refreshing, suggestionsCall.error, suggestionsCall.refresh,
         wizardState.readOnly, labelForField,
-        complianceTouched, catalogs,
+        onSuggestionApplied,
     ]);
 
     const helpPanel = (
@@ -1512,6 +1556,7 @@ export function Wizard({
             step={currentStep}
             params={params}
             autoSave={autoSave}
+            reloadNonce={reloadNonce}
             readOnlyReason={stepReadOnlyReason}
             commentCounts={commentsEnabled ? discussion.counts : null}
             onComment={
@@ -1563,6 +1608,7 @@ export function Wizard({
             step={currentStep}
             params={params}
             autoSave={autoSave}
+            reloadNonce={reloadNonce}
             onComment={commentsEnabled ? openComments : undefined}
             onCommentTargets={setCommentTargets}
         />
