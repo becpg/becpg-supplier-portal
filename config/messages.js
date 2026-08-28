@@ -86,6 +86,11 @@ export const messages = {
         'action.showMore': '+{count} de plus',
         'action.showLess': 'Voir moins',
 
+        // --- AI suggestions ---
+        // What an extracted value would overwrite, said in words: a strikethrough
+        // beside the new value is invisible in greyscale and to a screen reader.
+        'suggestion.replaces': 'Remplace {value}',
+
         // --- Generic states ---
         'state.loading': 'Chargement…',
         'state.saving': 'Enregistrement…',
@@ -190,6 +195,9 @@ export const messages = {
         'action.sign': 'Sign',
         'action.showMore': '{count} more',
         'action.showLess': 'Show less',
+
+        // --- AI suggestions ---
+        'suggestion.replaces': 'Replaces {value}',
 
         // --- Generic states ---
         'state.loading': 'Loading…',

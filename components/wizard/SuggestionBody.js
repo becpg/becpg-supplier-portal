@@ -30,7 +30,7 @@ import { useState } from 'react';
 import { RichText } from '@/components/ui/RichText';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Icon } from '@/components/ui/Button';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatDateTime, isIsoTimestamp } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 
 /** How many extracted rows a narrow panel shows before it offers the rest. */
@@ -158,6 +158,16 @@ export function isWideSuggestion(suggestion) {
 const MIDNIGHT_DATE = /^(\d{4}-\d{2}-\d{2})(?:[T ]00:00(?::00(?:\.0+)?)?Z?)?$/;
 
 /**
+ * A timestamp that states its own offset, and can therefore be placed.
+ *
+ * This is the exception to the rule above: the value a plugin replaces comes
+ * back as a real instant — `2026-08-27T14:57:53.564Z` — and printing it as it
+ * was sent put an ISO string in front of a supplier. With `Z`, or with an
+ * explicit offset, nothing has to be invented to show it as a date and a time.
+ */
+const ZONED = /(?:Z|[+-]\d{2}:?\d{2})$/;
+
+/**
  * The value of one extracted field, readable.
  *
  * @param {*} value
@@ -166,8 +176,15 @@ const MIDNIGHT_DATE = /^(\d{4}-\d{2}-\d{2})(?:[T ]00:00(?::00(?:\.0+)?)?Z?)?$/;
  */
 function readableValue(value, lang) {
     const text = plain(value);
-    const day = MIDNIGHT_DATE.exec(text.trim());
-    return day ? formatDate(day[1], lang) : text;
+    const trimmed = text.trim();
+    const day = MIDNIGHT_DATE.exec(trimmed);
+    if (day) {
+        return formatDate(day[1], lang);
+    }
+    if (isIsoTimestamp(trimmed) && ZONED.test(trimmed)) {
+        return formatDateTime(trimmed, lang, { fallback: text });
+    }
+    return text;
 }
 
 /** A readable value, whatever shape the plugin gave it. */
@@ -219,6 +236,19 @@ function ExtractionRows({ rows, compact }) {
  * Nothing here has to guard the « Appliquer » button: becpg-ai already filters
  * these rows out of `suggestedChanges`, so they never reach `changes`.
  *
+ * WHAT AN ENTRY THAT REPLACES A VALUE SHOWS.
+ *
+ * A plugin that rereads a field already filled in sends what it read AND what
+ * it replaces: `{"name":"Effective From","action":"MODIFIED",
+ * "value":"2018-01-11T00:00:00Z","previousValue":"2026-08-27T14:57:53.564Z"}`.
+ * Only the new value was rendered, so the panel proposed « 11/01/2018 » without
+ * saying that the sheet currently reads 27/08/2026 — the supplier could not see
+ * he was about to overwrite something, which is precisely when he needs to.
+ *
+ * The replaced value is written out in words — « Remplace 27/08/2026 » — and not
+ * struck through beside the new one: a strikethrough says nothing in greyscale
+ * and nothing at all to a screen reader.
+ *
  * WHY THE FIELD NAME IS NEVER TRUNCATED.
  *
  * Name and value shared one line, and the value was sized by its content: a
@@ -228,12 +258,14 @@ function ExtractionRows({ rows, compact }) {
  * narrow panel, and given a column of its own when there is room; it wraps, it
  * does not shorten.
  *
- * @param {Object} row `{ name, value, notApplicable }`
+ * @param {Object} row `{ name, value, previousValue, notApplicable }`
  * @param {boolean} [compact] rendered in the narrow panel: name above value
  */
 function ExtractionRow({ row, compact }) {
-    const { lang } = useMessages();
+    const { t, lang } = useMessages();
     const value = readableValue(row.value, lang);
+    const previous = readableValue(row.previousValue, lang);
+    const replaced = previous !== '' && previous !== value ? previous : '';
 
     return (
         <li
@@ -244,17 +276,24 @@ function ExtractionRow({ row, compact }) {
             <span className="break-words text-xs text-[var(--becpg-dark-grey)]">
                 {plain(row.name)}
             </span>
-            <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                {value ? (
-                    <span
-                        className={`break-words ${row.notApplicable
-                            ? 'text-[var(--becpg-dark-grey)]'
-                            : 'font-medium text-[var(--becpg-blue)]'}`}
-                    >
-                        {value}
+            <span className="min-w-0">
+                <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                    {value ? (
+                        <span
+                            className={`break-words ${row.notApplicable
+                                ? 'text-[var(--becpg-dark-grey)]'
+                                : 'font-medium text-[var(--becpg-blue)]'}`}
+                        >
+                            {value}
+                        </span>
+                    ) : null}
+                    {row.notApplicable ? <StatusPill status="notApplicable" size="sm" /> : null}
+                </span>
+                {replaced ? (
+                    <span className="block break-words text-xs text-[var(--becpg-dark-grey)]">
+                        {t('suggestion.replaces', { value: replaced })}
                     </span>
                 ) : null}
-                {row.notApplicable ? <StatusPill status="notApplicable" size="sm" /> : null}
             </span>
         </li>
     );
@@ -445,6 +484,7 @@ export function SuggestionBody({ suggestion, compact = false, className = '' }) 
                         rows={named.map((row) => ({
                             name: row.name ?? row.label ?? '',
                             value: row.value ?? row.val ?? '',
+                            previousValue: row.previousValue ?? null,
                             notApplicable: row.notApplicable === true,
                         }))}
                         compact={compact}
