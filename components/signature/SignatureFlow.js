@@ -1155,6 +1155,7 @@ export function SignatureFlow({
                             </p>
                             <SignaturePad
                                 mode={signatureMode}
+                                purpose="initials"
                                 defaultName={initialsOf(signerName)}
                                 onChange={setInitials}
                                 disabled={status === 'sending'}

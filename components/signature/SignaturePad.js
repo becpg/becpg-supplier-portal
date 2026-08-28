@@ -65,6 +65,13 @@ const LABELS = {
         preview: 'Aperçu de votre signature',
         empty: 'Aucune signature pour l’instant',
         required: 'Votre signature est nécessaire pour continuer.',
+        initialsType: 'Saisir mes initiales',
+        initialsDrawHint: 'Tracez vos initiales dans le cadre.',
+        initialsTypeHint: 'Ces initiales seront apposées en paraphe.',
+        initialsNameLabel: 'Initiales',
+        initialsPlaceholder: 'VL',
+        initialsPreview: 'Aperçu de vos paraphes',
+        initialsEmpty: 'Aucun paraphe pour l’instant',
     },
     en: {
         draw: 'Draw',
@@ -78,6 +85,13 @@ const LABELS = {
         preview: 'Preview of your signature',
         empty: 'No signature yet',
         required: 'Your signature is required to continue.',
+        initialsType: 'Type my initials',
+        initialsDrawHint: 'Draw your initials inside the frame.',
+        initialsTypeHint: 'These initials will be applied as the paraph.',
+        initialsNameLabel: 'Initials',
+        initialsPlaceholder: 'VL',
+        initialsPreview: 'Preview of your initials',
+        initialsEmpty: 'No initials yet',
     },
 };
 
@@ -132,6 +146,9 @@ export function typedSignatureDataUrl(text, options = {}) {
  *
  * @param {Object} props
  * @param {'draw'|'type'|'both'} [props.mode='both'] which capture(s) are offered
+ * @param {'signature'|'initials'} [props.purpose='signature'] what is being captured:
+ *        it changes the wording and, for the initials, opens on the typed variant —
+ *        the name is already known, and nobody wants to draw two letters on a phone
  * @param {string} [props.defaultName] prefilled signatory name (the session's full name)
  * @param {(value: {kind: string, text: string, dataUrl: string|null, empty: boolean}) => void} props.onChange
  * @param {boolean} [props.disabled]
@@ -141,6 +158,7 @@ export function typedSignatureDataUrl(text, options = {}) {
  */
 export function SignaturePad({
     mode = 'both',
+    purpose = 'signature',
     defaultName = '',
     onChange,
     disabled = false,
@@ -149,13 +167,30 @@ export function SignaturePad({
     className = '',
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const base = LABELS[lang] || LABELS.fr;
+    // The initials reuse the whole component and override the six strings that
+    // would otherwise call a paraphe a signature.
+    const labels = purpose === 'initials'
+        ? {
+            ...base,
+            type: base.initialsType,
+            drawHint: base.initialsDrawHint,
+            typeHint: base.initialsTypeHint,
+            nameLabel: base.initialsNameLabel,
+            namePlaceholder: base.initialsPlaceholder,
+            preview: base.initialsPreview,
+            empty: base.initialsEmpty,
+        }
+        : base;
     const inputId = useId();
 
     const allowDraw = mode === 'draw' || mode === 'both';
     const allowType = mode === 'type' || mode === 'both';
 
-    const [kind, setKind] = useState(allowDraw ? SIGNATURE_KINDS.DRAWN : SIGNATURE_KINDS.TYPED);
+    const typedFirst = purpose === 'initials' && allowType;
+    const [kind, setKind] = useState(
+        allowDraw && !typedFirst ? SIGNATURE_KINDS.DRAWN : SIGNATURE_KINDS.TYPED,
+    );
     const [name, setName] = useState(defaultName || '');
     const [drawnUrl, setDrawnUrl] = useState(null);
     const [strokeCount, setStrokeCount] = useState(0);
