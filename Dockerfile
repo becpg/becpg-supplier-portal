@@ -39,6 +39,12 @@ ENV PORTAL_VERSION=${PORTAL_VERSION}
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
+# basePath est resolu par `next build`, PAS a l'execution : poser la variable
+# uniquement dans le manifeste Kubernetes produirait une image servie a la
+# racine, avec des assets en 404 sous /supplier.
+ARG PORTAL_BASE_PATH=""
+ENV PORTAL_BASE_PATH=${PORTAL_BASE_PATH}
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -59,6 +65,11 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORTAL_VERSION=${PORTAL_VERSION}
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
+
+# Repris a l'execution pour construire le redirect_uri : il doit correspondre au
+# basePath compile ci-dessus.
+ARG PORTAL_BASE_PATH=""
+ENV PORTAL_BASE_PATH=${PORTAL_BASE_PATH}
 
 RUN addgroup -S -g 1001 portal && \
     adduser -S -G portal -u 1001 -h /app portal

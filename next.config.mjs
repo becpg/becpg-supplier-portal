@@ -4,6 +4,18 @@ const nextConfig = {
     output: 'standalone',
     poweredByHeader: false,
 
+    // Servi sous le chemin /supplier de l'hote de chaque instance
+    // (https://dev.becpg.fr/supplier), et non sur un hote dedie : l'hote porte
+    // l'identite du tenant, tous ses services sont dessous (#36246 §1).
+    //
+    // L'ingress GKE ne reecrit pas les chemins -- il n'a pas d'equivalent au
+    // rewrite-target de nginx. C'est donc a l'application de se servir sous son
+    // prefixe : sans basePath, ses assets et sa route de callback pointeraient
+    // vers la racine de l'hote, ou repond le core beCPG.
+    //
+    // Vide en developpement local, ou le portail ecoute a la racine.
+    basePath: process.env.PORTAL_BASE_PATH || '',
+
     // pdf.js must stay a real node_modules package on the server side.
     // `lib/pdfSignatureFields.js` loads the legacy build to read the signature
     // widgets out of a prepared PDF (spec §9.2), and pdf.js sets its "fake
