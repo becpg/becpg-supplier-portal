@@ -256,3 +256,7 @@
 * [Cleanup] Reword the README headings and intro for clarity
 * [Bug] Send the open step's list to becpg-ai instead of a portal-side allow list
 * [skip ci][Release]: Bump _VERSION to 0.0.18
+## [ 0.0.19 ] - 2026-09-01 15:04:10
+
+* Fix #36292 - [Bug] Build the portal on the default machine, the regional pool leaves E2_HIGHCPU_8 pending forever
+* [skip ci][Release]: Bump _VERSION to 0.0.19
