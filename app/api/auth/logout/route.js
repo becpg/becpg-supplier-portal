@@ -12,7 +12,13 @@
 
 import { NextResponse } from 'next/server';
 import { buildEndSessionUrl, revokeToken } from '@/lib/oidc';
-import { clearSession, portalBaseUrl, readSession, safeNextPath } from '@/lib/session';
+import {
+    clearSession,
+    portalBaseUrl,
+    portalUrl,
+    readSession,
+    safeNextPath,
+} from '@/lib/session';
 import { TENANT_COOKIE, getTenant, resolveTenant, tenantCookieOptions } from '@/lib/tenant';
 
 export const dynamic = 'force-dynamic';
@@ -28,7 +34,7 @@ async function handle(request) {
     const session = await readSession(request);
     const tenant = (session && getTenant(session.tenantId)) || resolveTenant(request);
 
-    let target = new URL(next, baseUrl).toString();
+    let target = portalUrl(next, baseUrl).toString();
 
     if (session && session.authMode === 'oidc' && !localOnly) {
         if (session.refreshToken) {
@@ -36,7 +42,7 @@ async function handle(request) {
         }
         const endSession = await buildEndSessionUrl(tenant, {
             idToken: session.idToken,
-            postLogoutRedirectUri: new URL(next, baseUrl).toString(),
+            postLogoutRedirectUri: portalUrl(next, baseUrl).toString(),
         });
         if (endSession) {
             target = endSession;

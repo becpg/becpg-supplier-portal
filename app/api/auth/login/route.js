@@ -32,6 +32,7 @@ import {
 import {
     createSession,
     portalBaseUrl,
+    portalUrl,
     safeNextPath,
     writeOidcState,
     writeSession,
@@ -182,7 +183,7 @@ export async function GET(request) {
                 authMode: 'dev',
             });
 
-            const response = NextResponse.redirect(new URL(next, baseUrl), { status: 302 });
+            const response = NextResponse.redirect(portalUrl(next, baseUrl), { status: 302 });
             response.cookies.set(TENANT_COOKIE, tenant.id, tenantCookieOptions());
             await writeSession(response, session);
             console.warn(`[auth] DEV_FAKE_AUTH session opened for "${userId}" on ${becpgUrl}`);

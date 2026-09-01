@@ -25,6 +25,7 @@ import {
     clearOidcState,
     createSession,
     portalBaseUrl,
+    portalUrl,
     readOidcState,
     safeNextPath,
     writeSession,
@@ -117,7 +118,7 @@ export async function GET(request) {
             authMode: 'oidc',
         });
 
-        const response = NextResponse.redirect(new URL(next, baseUrl), { status: 302 });
+        const response = NextResponse.redirect(portalUrl(next, baseUrl), { status: 302 });
         response.cookies.set(TENANT_COOKIE, tenant.id, tenantCookieOptions());
         clearOidcState(response);
         await writeSession(response, session);
