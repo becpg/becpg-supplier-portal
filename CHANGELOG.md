@@ -235,3 +235,24 @@
 * Fix #35846 - [Bug] Route the three checks the portal catalogues shipped before they named their list, so the tab is marked without re-importing the file
 * Fix #35846 - [Bug] Correct the eight defects of the 21/08 recette: the invisible quantity, the row editor, the marks that did not survive, and the formulation that ran beside the write
 * [skip ci][Release]: Bump _VERSION to 0.0.17
+## [ 0.0.18 ] - 2026-09-01 12:33:06
+
+* Fix #36246 - [Bug] Leave the portal base URL empty in the cell so each host builds its own callback
+* Fix #36246 - [Bug] Build the portal redirect URLs with its base path, and probe the health route under it
+* [Feature] Serve the app under /<path> of each instance host in the cell
+* [Setup] Deploy every release into the becpg-dev cell of becpg-test1
+* InProgress #35846 - [Bug] Trim the empty space around the signature so it fills its box
+* InProgress #35846 - [Feature] Capture the initials as initials, not as a second signature
+* InProgress #35846 - [Feature] Stamp the supplier's signature and initials into the prepared PDF
+* InProgress #35846 - [Bug] Ship the pdf.js worker in the standalone image
+* Fix #35846 - [Bug] Draw the signature zones again: pdf.js could not load without a canvas polyfill
+* InProgress #35846 - [Bug] Paint the dashboard skeleton immediately instead of waiting for beCPG
+* InProgress #35846 - [Bug] Reload the step and the panel when a suggestion is applied
+* InProgress #35846 - [Bug] Show the value an AI suggestion replaces
+* InProgress #35846 - [Bug] Stop truncating the field name of a suggested value
+* InProgress #35718 - [Feature] Render the extraction rows becpg-ai flags as not applicable
+* InProgress #35846 - [Bug] Fix the AI suggestion panel: re-run feedback, stale applied state, formulation before the documents step, review rendering and expandable lists
+* Fix #24931 - [Bug] Read the supplier axis and the native refusal rate, both now deployed in the cube
+* [Cleanup] Reword the README headings and intro for clarity
+* [Bug] Send the open step's list to becpg-ai instead of a portal-side allow list
+* [skip ci][Release]: Bump _VERSION to 0.0.18
