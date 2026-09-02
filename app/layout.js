@@ -1,4 +1,5 @@
 import { Roboto } from "next/font/google";
+import { withBasePath } from '@/lib/basePath';
 import { cookies } from "next/headers";
 import "./globals.css";
 import { LANG_COOKIE, normalizeLang } from "@/config/messages";
@@ -21,26 +22,29 @@ const roboto = Roboto({
  * is portal-specific artwork: an installed portal must be indistinguishable
  * from the rest of the range in the task switcher and on a home screen.
  */
+// Les URL de metadonnees -- manifeste, favicons -- ne passent pas par le
+// basePath de Next : il ne s'applique qu'aux URL que Next fabrique lui-meme.
+// Servi sous /supplier, un favicon en chemin absolu part chez le core beCPG.
 export const metadata = {
     title: "beCPG - Portail Fournisseur",
     description: "Portail fournisseur beCPG — referencement, documents et conformite",
     applicationName: "beCPG Portail Fournisseur",
-    manifest: "/theme/default/manifest.json",
+    manifest: withBasePath("/theme/default/manifest.json"),
     icons: {
         // `favicon.ico` first and with `sizes="any"`: it is the multi-resolution
         // one, and it is what a browser reaching for /favicon.ico gets served.
         icon: [
-            { url: "/theme/default/icons/favicon.ico", sizes: "any" },
-            { url: "/theme/default/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-            { url: "/theme/default/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-            { url: "/theme/default/icons/favicon-96x96.png", sizes: "96x96", type: "image/png" },
-            { url: "/theme/default/icons/android-icon-192x192.png", sizes: "192x192", type: "image/png" },
+            { url: withBasePath("/theme/default/icons/favicon.ico"), sizes: "any" },
+            { url: withBasePath("/theme/default/icons/favicon-16x16.png"), sizes: "16x16", type: "image/png" },
+            { url: withBasePath("/theme/default/icons/favicon-32x32.png"), sizes: "32x32", type: "image/png" },
+            { url: withBasePath("/theme/default/icons/favicon-96x96.png"), sizes: "96x96", type: "image/png" },
+            { url: withBasePath("/theme/default/icons/android-icon-192x192.png"), sizes: "192x192", type: "image/png" },
         ],
-        shortcut: ["/theme/default/icons/favicon.ico"],
+        shortcut: [withBasePath("/theme/default/icons/favicon.ico")],
         apple: [
-            { url: "/theme/default/icons/apple-icon-120x120.png", sizes: "120x120", type: "image/png" },
-            { url: "/theme/default/icons/apple-icon-152x152.png", sizes: "152x152", type: "image/png" },
-            { url: "/theme/default/icons/apple-icon-180x180.png", sizes: "180x180", type: "image/png" },
+            { url: withBasePath("/theme/default/icons/apple-icon-120x120.png"), sizes: "120x120", type: "image/png" },
+            { url: withBasePath("/theme/default/icons/apple-icon-152x152.png"), sizes: "152x152", type: "image/png" },
+            { url: withBasePath("/theme/default/icons/apple-icon-180x180.png"), sizes: "180x180", type: "image/png" },
         ],
     },
     // A supplier who installs the portal on a phone gets the beCPG mark and the
@@ -54,7 +58,7 @@ export const metadata = {
         // Windows tiles: `browserconfig.xml` ships with the theme and already
         // carries the ms-icon set and the #004254 tile colour.
         "msapplication-TileColor": "#004254",
-        "msapplication-config": "/theme/default/browserconfig.xml",
+        "msapplication-config": withBasePath("/theme/default/browserconfig.xml"),
     },
 };
 

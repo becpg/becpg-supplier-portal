@@ -35,6 +35,7 @@
  */
 
 import { useEffect } from 'react';
+import { withBasePath } from '@/lib/basePath';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -449,7 +450,8 @@ export function Nav({
                                 drawn in `--becpg-blue`. */}
                             <span className="becpg-brand-plate">
                                 <Image
-                                    src="/theme/default/images/logo.png"
+                                    src={withBasePath("/theme/default/images/logo.png")}
+                                    unoptimized
                                     alt="beCPG"
                                     width={200}
                                     height={37}

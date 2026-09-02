@@ -16,6 +16,15 @@ const nextConfig = {
     // Vide en developpement local, ou le portail ecoute a la racine.
     basePath: process.env.PORTAL_BASE_PATH || '',
 
+    // Le meme prefixe, lisible depuis le navigateur. `basePath` ne s'applique
+    // qu'aux URL que Next fabrique lui-meme -- next/link, next/router, les
+    // assets. Un <form action="/api/...">, un <a href> ou une URL assemblee a
+    // la main partent sans prefixe et atterrissent hors du portail : sur
+    // l'hote d'une instance, c'est le core beCPG qui repond 404.
+    env: {
+        NEXT_PUBLIC_PORTAL_BASE_PATH: process.env.PORTAL_BASE_PATH || '',
+    },
+
     // pdf.js must stay a real node_modules package on the server side.
     // `lib/pdfSignatureFields.js` loads the legacy build to read the signature
     // widgets out of a prepared PDF (spec §9.2), and pdf.js sets its "fake

@@ -21,6 +21,7 @@
  */
 
 import Image from 'next/image';
+import { withBasePath } from '@/lib/basePath';
 import Link from 'next/link';
 import { cookies, headers } from 'next/headers';
 import { TenantLogo } from '@/components/shell/TenantLogo';
@@ -203,7 +204,8 @@ export default async function LoginPage({ searchParams }) {
                 every device already gets — so it would only add a misleading
                 promise of responsiveness. */}
             <Image
-                src="/theme/default/images/shape.png"
+                src={withBasePath("/theme/default/images/shape.png")}
+                unoptimized
                 alt=""
                 aria-hidden="true"
                 width={500}
@@ -258,7 +260,8 @@ export default async function LoginPage({ searchParams }) {
                             actually waiting for. */}
                         <div className="mb-4 flex items-center gap-3 border-b border-[var(--becpg-grey)] pb-4">
                             <Image
-                                src="/theme/default/images/logo.png"
+                                src={withBasePath("/theme/default/images/logo.png")}
+                                unoptimized
                                 alt="beCPG"
                                 width={200}
                                 height={37}
@@ -303,7 +306,7 @@ export default async function LoginPage({ searchParams }) {
                             </div>
                         ) : null}
 
-                        <form action="/api/auth/login" method="get" className="mt-5">
+                        <form action={withBasePath("/api/auth/login")} method="get" className="mt-5">
                             <input type="hidden" name="next" value={next} />
                             <input type="hidden" name="lang" value={lang} />
 
