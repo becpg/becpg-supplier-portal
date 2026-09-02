@@ -260,3 +260,7 @@
 
 * Fix #36292 - [Bug] Build the portal on the default machine, the regional pool leaves E2_HIGHCPU_8 pending forever
 * [skip ci][Release]: Bump _VERSION to 0.0.19
+## [ 0.0.20 ] - 2026-09-02 12:02:44
+
+* Fix #36246 - [Bug] Prefix the paths Next does not: form action, image sources and metadata URLs
+* [skip ci][Release]: Bump _VERSION to 0.0.20
