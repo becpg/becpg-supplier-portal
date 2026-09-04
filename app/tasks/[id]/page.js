@@ -39,6 +39,7 @@
 
 import { Suspense, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
+import { withBasePath } from '@/lib/basePath';
 import { AppShell } from '@/components/shell/AppShell';
 import { Card } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
@@ -316,7 +317,7 @@ function TaskRouter() {
                             name: data.name || '',
                             // `DocumentViewer` reads the content through the portal,
                             // never through Alfresco — see `lib/adapters/documents.js`.
-                            downloadUrl: `/api/v1/documents/${encodeURIComponent(uuidOf(data.documentNodeRef))}/content`,
+                            downloadUrl: withBasePath(`/api/v1/documents/${encodeURIComponent(uuidOf(data.documentNodeRef))}/content`),
                         })}
                     >
                         {labels.viewDocument}

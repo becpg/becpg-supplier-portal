@@ -39,6 +39,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { usePathname } from 'next/navigation';
 import { writeScopeCookie } from '@/lib/scope';
 import { UNAUTHORIZED_EVENT, api, tenantPrefix } from '@/lib/client';
+import { withBasePath } from '@/lib/basePath';
 
 /**
  * @typedef {Object} PortalSession
@@ -404,7 +405,9 @@ export function SessionProvider({ initialIdentity = null, children }) {
             params.set('local', '1');
         }
         const query = params.toString();
-        window.location.assign(`${tenantPrefix()}/api/auth/logout${query ? `?${query}` : ''}`);
+        // withBasePath : sous /supplier, '/api/auth/logout' nu tombait chez le core
+        // beCPG en 404 et le bouton ne deconnectait personne (#36246).
+        window.location.assign(withBasePath(`${tenantPrefix()}/api/auth/logout${query ? `?${query}` : ''}`));
     }, []);
 
     const value = useMemo(
