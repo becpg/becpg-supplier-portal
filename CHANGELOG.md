@@ -264,3 +264,7 @@
 
 * Fix #36246 - [Bug] Prefix the paths Next does not: form action, image sources and metadata URLs
 * [skip ci][Release]: Bump _VERSION to 0.0.20
+## [ 0.0.21 ] - 2026-09-04 08:43:35
+
+* Fix #36246 - [Bug] Prefix the browser API calls, the logout and the served document URLs with the base path
+* [skip ci][Release]: Bump _VERSION to 0.0.21
