@@ -43,11 +43,11 @@
     "signature_pad": "^5.0.7"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.5",
-    "@playwright/test": "^1.62.0",
+    "@eslint/eslintrc": "^3.3.7",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.0",
-    "eslint": "^9.39.4",
-    "eslint-config-next": "16.0.7",
+    "eslint": "^10.10.0",
+    "eslint-config-next": "16.3.4",
     "tailwindcss": "^4.3.0"
   }
 }
