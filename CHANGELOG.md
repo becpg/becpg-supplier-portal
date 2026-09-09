@@ -268,3 +268,10 @@
 
 * Fix #36246 - [Bug] Prefix the browser API calls, the logout and the served document URLs with the base path
 * [skip ci][Release]: Bump _VERSION to 0.0.21
+## [ 0.0.22 ] - 2026-09-09 11:44:53
+
+* [Cleanup] Drop the duplicate discussion entry, the panel rules and the checkbox yes/no text
+* [Bug] Close a catalogue gap on the tab that fills it, and mark the field
+* [Feature] Pin the grid frame, select rows and act on the selection
+* [Bug] Keep the technical sheet upload mounted until its deposit has settled
+* [skip ci][Release]: Bump _VERSION to 0.0.22
