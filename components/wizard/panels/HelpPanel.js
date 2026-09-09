@@ -75,11 +75,17 @@ function fill(template, vars) {
 
 /**
  * A collapsible section of the panel.
+ *
+ * No rule between two sections. The panel is a narrow column of small text, and
+ * a full-width line under every section — including under the suggestions, the
+ * one thing here that is read at length — cut it into slabs and added weight
+ * where the eye needs calm. The icon, the heading and the space around it say
+ * "new section" perfectly well on their own.
  */
 function Section({ id, icon, title, count, open, onToggle, children }) {
     const reduceMotion = useReducedMotion();
     return (
-        <section className="border-b border-[var(--becpg-grey)] last:border-b-0">
+        <section>
             <h3>
                 <button
                     type="button"
@@ -178,29 +184,29 @@ export function HelpPanel({
     const content = (
         <div className="flex min-w-0 flex-col">
             {/*
-                LES SUGGESTIONS DE L'IA, EN PREMIER.
+                THE AI SUGGESTIONS COME FIRST.
 
-                Elles étaient une étape de l'assistant, à la deuxième place. Deux
-                choses n'allaient pas, et aucune ne tenait au contenu : le nombre
-                d'étapes changeait en cours de route quand becpg-ai répondait, et
-                surtout ce que l'IA a lu sert à REMPLIR les étapes — le consulter
-                supposait de quitter celle qu'on était en train de saisir.
+                They used to be a step of the assistant, in second place. Two
+                things were wrong with that, and neither had to do with their
+                content: the number of steps changed midway when becpg-ai
+                answered, and above all what the AI read is there to FILL the
+                steps in — reading it meant leaving the one being typed.
 
-                Ici, elles restent sous les yeux pendant la saisie, quelle que soit
-                l'étape, et `Wizard.js` les relit à chaque changement d'étape.
+                Here they stay in sight throughout the data entry, whatever the
+                step, and `Wizard.js` re-reads them on every step change.
             */}
             {/*
-                LA FICHE TECHNIQUE N'EST PLUS ICI.
+                THE TECHNICAL SHEET IS NO LONGER HERE.
 
-                Elle ouvrait ce panneau, juste au-dessus des suggestions qu'elle
-                alimente : le bon endroit pour la consulter, le mauvais pour la
-                déposer. Sous `lg` le panneau est derrière un bouton, au-dessus
-                c'est la colonne qu'on regarde en dernier — et déposer la fiche
-                est la PREMIÈRE action attendue du fournisseur, celle sans
-                laquelle l'IA ne propose rien.
+                It opened this panel, right above the suggestions it feeds: the
+                right place to read it, the wrong place to upload it. Below `lg`
+                the panel is behind a button, above it is the column the eye
+                reaches last — and uploading the sheet is the FIRST action
+                expected of the supplier, the one without which the AI proposes
+                nothing.
 
-                Elle est donc dans l'en-tête de l'assistant, en rouge tant
-                qu'elle manque : voir `TechnicalSheetBanner`.
+                It is in the assistant's header instead, in red while it is
+                missing: see `TechnicalSheetBanner`.
             */}
             {suggestions ? (
                 <Section
@@ -253,23 +259,23 @@ export function HelpPanel({
             </Section>
 
             {/*
-                « LISTES VALIDÉES » A ÉTÉ SUPPRIMÉ.
+                "VALIDATED LISTS" WAS REMOVED.
 
-                La section listait les étapes gelées et rappelait qu'une
-                correction passe par une demande de réouverture. Le rail le dit
-                déjà de chaque étape concernée — cadenas et « Validée par le
-                client » — et l'étape ouverte porte la phrase complète, avec la
-                marche à suivre (`useDataList.frozenText`, `FormStep.frozenText`).
-                Ce panneau n'en donnait qu'un troisième exemplaire, à droite,
-                dans la colonne qu'on regarde en dernier.
+                The section listed the frozen steps and recalled that a
+                correction goes through a request to reopen them. The rail
+                already says so on every step concerned — padlock and "Validée
+                par le client" — and the open step carries the full sentence with
+                what to do (`useDataList.frozenText`, `FormStep.frozenText`).
+                This panel only gave a third copy of it, on the right, in the
+                column the eye reaches last.
 
-                « REMARQUES DE VOTRE CLIENT » A ÉTÉ SUPPRIMÉ.
+                "YOUR CUSTOMER'S REMARKS" WAS REMOVED.
 
-                La section lisait le MÊME fil que le panneau Discussion —
-                `discussion.messages.slice(0, 3)` — et en donnait un aperçu
-                tronqué, sans possibilité de répondre. Deux endroits pour une
-                seule conversation, dont l'un ne servait qu'à renvoyer vers
-                l'autre. Le fil complet, avec sa saisie, est à un clic.
+                The section read the SAME thread as the discussion panel —
+                `discussion.messages.slice(0, 3)` — and showed a truncated
+                preview of it, with no way to answer. Two places for one
+                conversation, one of which existed only to point at the other.
+                The full thread, with its input, is one click away.
             */}
             <Section
                 id="refusals"
@@ -290,8 +296,8 @@ export function HelpPanel({
                                     key={entry.nodeRef || entry.date}
                                     className="rounded-lg border border-[var(--becpg-orange)]/40 bg-[var(--becpg-orange)]/5 p-2"
                                 >
-                                    {/* L'auteur et la date : le motif vient d'un
-                                        commentaire, qui ne porte pas de nom d'étape. */}
+                                    {/* The author and the date: the reason comes from a
+                                        comment, which carries no step name. */}
                                     <p className="flex flex-wrap items-baseline gap-x-1.5 text-[11px] text-[var(--becpg-dark-grey)]">
                                         {entry.by ? (
                                             <span className="font-medium text-[var(--becpg-blue)]">{entry.by}</span>

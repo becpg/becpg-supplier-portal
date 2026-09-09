@@ -23,7 +23,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Button } from '@/components/ui/Button';
 import { ListIcon } from '@/components/ui/ListIcon';
 import { DataListEditor } from '@/components/datalist/DataListEditor';
 import { useDataList } from '@/components/datalist/useDataList';
@@ -31,8 +30,8 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { useMessages } from '@/lib/messages';
 
 const LABELS = {
-    fr: { discuss: 'Discussion', row: 'Ligne {index}' },
-    en: { discuss: 'Discussion', row: 'Row {index}' },
+    fr: { row: 'Ligne {index}' },
+    en: { row: 'Row {index}' },
 };
 
 /**
@@ -71,7 +70,6 @@ function commentTargetsOf(list, rowLabel) {
  * @param {Object} props.autoSave the wizard's `useAutoSave` instance
  * @param {number} [props.reloadNonce] bumped by the wizard when something wrote
  *        into the entity from outside the grid — an applied AI suggestion
- * @param {Function} [props.onComment] `({ nodeRef, label }) => void`
  * @param {Function} [props.onCommentTargets] `(targets) => void` — publishes the rows
  * @param {Function} [props.onDirty] called when the grid holds unsaved rows
  * @param {string} [props.className]
@@ -82,7 +80,6 @@ export function DataListStep({
     params,
     autoSave,
     reloadNonce = 0,
-    onComment,
     onCommentTargets,
     className = '',
 }) {
@@ -183,23 +180,6 @@ export function DataListStep({
             }
             description={step.title && step.label !== step.title ? step.label : undefined}
             className={className}
-            actions={
-                onComment ? (
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        icon="forum"
-                        onClick={() =>
-                            onComment({
-                                nodeRef: list.listNodeRef || entityId,
-                                label: step.label,
-                            })
-                        }
-                    >
-                        {labels.discuss}
-                    </Button>
-                ) : null
-            }
         />
     );
 }

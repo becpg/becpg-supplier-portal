@@ -13,6 +13,11 @@
  * preselected until the supplier answers), and an optional one renders as a
  * plain checkbox where unticked legitimately means `false`.
  *
+ * The checkbox carries no "Oui" / "Non" text of its own. It used to, and that
+ * text flipped with the state — which reads as the label of a button rather
+ * than as the answer to a question, and repeats what the field label above it
+ * or the column header beside it has already said.
+ *
  * **Unless the model already answers it.** A column whose `<default>` is
  * declared is never unanswered: the repository writes that default at creation,
  * so unticked really does mean `false` and the three-state pair would force an
@@ -23,7 +28,6 @@
  * `onChange` emits a real boolean, or `null` when the field was never answered.
  */
 
-import { Checkbox } from '@/components/ui/Field';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
 
 const LABELS = {
@@ -130,12 +134,21 @@ export function BooleanControl({
     }
 
     return (
-        <Checkbox
-            id={id}
-            checked={checked === true}
-            onChange={(event) => onChange(event.target.checked)}
-            label={checked === true ? labels.yes : labels.no}
-            {...rest}
-        />
+        <span className="checkbox-row inline-flex items-center">
+            <input
+                id={id}
+                type="checkbox"
+                checked={checked === true}
+                aria-label={rest['aria-label'] || field?.label || undefined}
+                title={checked === true ? labels.yes : labels.no}
+                onChange={(event) => onChange(event.target.checked)}
+                className={[
+                    'h-4 w-4 cursor-pointer accent-[var(--becpg-blue)]',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2',
+                    isInvalid ? 'outline outline-1 outline-[var(--status-danger)]' : '',
+                ].filter(Boolean).join(' ')}
+                {...rest}
+            />
+        </span>
     );
 }
