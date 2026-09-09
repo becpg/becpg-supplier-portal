@@ -139,14 +139,33 @@ export function TechnicalSheetBanner({
     const bandRef = useRef(null);
     const [deposits, setDeposits] = useState(0);
     const [replacing, setReplacing] = useState(false);
+    const [settling, setSettling] = useState(false);
 
+    /*
+     * THE CONTROL STAYS MOUNTED UNTIL THE LAST CALLBACK.
+     *
+     * `DocumentUpload` reports the deposit, asks becpg-ai for its verdict, then
+     * re-reads the row twice so the search index can catch up — and only the
+     * last of those carries `last: true`, which is what the wizard waits for to
+     * re-run the analysis on the entity. Unmounting the control in between, by
+     * changing its `key` or by rendering the branch that no longer holds it,
+     * flips its `alive` ref and abandons everything after the deposit: no AI
+     * review, no re-read, no `last`, no suggestions. The supplier then had to
+     * reload the page for his technical sheet to count at all. `settling` is
+     * what keeps it mounted for the few seconds that sequence takes.
+     */
     const handleUploaded = useCallback(
-        (...args) => {
-            setDeposits((current) => current + 1);
-            setReplacing(false);
+        (result, info) => {
+            const last = !info || info.last;
+            setSettling(!last);
+            if (last) {
+                // A clean control for the next deposit, now that none is pending.
+                setDeposits((current) => current + 1);
+                setReplacing(false);
+            }
             refresh();
             if (onUploaded) {
-                onUploaded(...args);
+                onUploaded(result, info);
             }
         },
         [refresh, onUploaded],
@@ -156,70 +175,87 @@ export function TechnicalSheetBanner({
         return null;
     }
 
-    const upload = (
-        <DocumentUpload
-            key={deposits}
-            documentRef={sheet.uploadTarget && sheet.uploadTarget.documentRef}
-            entityRef={(sheet.uploadTarget && sheet.uploadTarget.entityRef) || entityNodeRef}
-            variant="inline"
-            action={sheet.isProvided ? 'renew' : 'upload'}
-            dropRef={bandRef}
-            onUploaded={handleUploaded}
-            onCancel={sheet.isProvided ? () => setReplacing(false) : undefined}
-        />
-    );
+    const provided = Boolean(sheet.isProvided);
 
-    if (!sheet.isProvided) {
-        if (readOnly) {
-            return (
-                <p className={`mt-2 flex items-center gap-1.5 text-sm text-[var(--becpg-dark-grey)] ${className}`}>
-                    <Icon name="description" size={16} className="shrink-0" />
-                    <span>{labels.missingClosed}</span>
-                </p>
-            );
-        }
+    if (!provided && readOnly) {
         return (
-            <div
-                ref={bandRef}
-                className={`mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] px-3 py-2.5 ${className}`}
-            >
-                <p className="flex min-w-[16rem] flex-1 items-start gap-2 text-sm text-[var(--status-danger)]">
-                    <Icon name="upload_file" size={18} className="mt-px shrink-0" />
-                    <span className="min-w-0">
-                        <span className="font-medium">{labels.missing}</span>{' '}
-                        <span className="text-[var(--becpg-blue)]">{labels.missingHint}</span>
-                    </span>
-                </p>
-                {upload}
-            </div>
+            <p className={`mt-2 flex items-center gap-1.5 text-sm text-[var(--becpg-dark-grey)] ${className}`}>
+                <Icon name="description" size={16} className="shrink-0" />
+                <span>{labels.missingClosed}</span>
+            </p>
         );
     }
 
+    /*
+     * `deposits` changes only once a deposit has fully settled, so this key
+     * resets the control between two uploads and never during one.
+     */
+    const upload = (
+        <DocumentUpload
+            key={`upload-${deposits}`}
+            documentRef={sheet.uploadTarget && sheet.uploadTarget.documentRef}
+            entityRef={(sheet.uploadTarget && sheet.uploadTarget.entityRef) || entityNodeRef}
+            variant="inline"
+            action={provided ? 'renew' : 'upload'}
+            dropRef={bandRef}
+            onUploaded={handleUploaded}
+            onCancel={provided ? () => setReplacing(false) : undefined}
+        />
+    );
+
+    const head = !provided ? (
+        <p key="head" className="flex min-w-[16rem] flex-1 items-start gap-2 text-sm text-[var(--status-danger)]">
+            <Icon name="upload_file" size={18} className="mt-px shrink-0" />
+            <span className="min-w-0">
+                <span className="font-medium">{labels.missing}</span>{' '}
+                <span className="text-[var(--becpg-blue)]">{labels.missingHint}</span>
+            </span>
+        </p>
+    ) : (
+        <p key="head" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[var(--becpg-dark-grey)]">
+            <Icon name="check_circle" size={15} className="shrink-0 text-[var(--status-ok)]" />
+            <span className="font-medium text-[var(--becpg-blue)]">{labels.title}</span>
+            {sheet.modified ? (
+                <span>{fill(labels.deposited, { date: formatDate(sheet.modified, lang) })}</span>
+            ) : null}
+            {sheet.validTo ? <ExpiryPill validTo={sheet.validTo} /> : null}
+            <AiValidationBadge
+                state={sheet.aiValidationState}
+                hints={sheet.aiValidationHints}
+                date={sheet.aiValidationDate}
+            />
+            {!readOnly && !replacing && !settling ? (
+                <button
+                    type="button"
+                    onClick={() => setReplacing(true)}
+                    className="text-[var(--becpg-blue-light)] underline underline-offset-2 hover:opacity-80"
+                >
+                    {labels.replace}
+                </button>
+            ) : null}
+        </p>
+    );
+
+    /*
+     * ONE CONTAINER, WHATEVER THE STATE.
+     *
+     * A deposit turns "missing" into "provided" while the control is still
+     * working. Rendering the two situations as two separate trees would move
+     * that control to another branch, which React reconciles as an unmount —
+     * the very thing `settling` exists to prevent. Same element, same keys,
+     * only the styling and the head change.
+     */
     return (
-        <div ref={bandRef} className={`mt-2 flex flex-col gap-2 ${className}`}>
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[var(--becpg-dark-grey)]">
-                <Icon name="check_circle" size={15} className="shrink-0 text-[var(--status-ok)]" />
-                <span className="font-medium text-[var(--becpg-blue)]">{labels.title}</span>
-                {sheet.modified ? (
-                    <span>{fill(labels.deposited, { date: formatDate(sheet.modified, lang) })}</span>
-                ) : null}
-                {sheet.validTo ? <ExpiryPill validTo={sheet.validTo} /> : null}
-                <AiValidationBadge
-                    state={sheet.aiValidationState}
-                    hints={sheet.aiValidationHints}
-                    date={sheet.aiValidationDate}
-                />
-                {!readOnly && !replacing ? (
-                    <button
-                        type="button"
-                        onClick={() => setReplacing(true)}
-                        className="text-[var(--becpg-blue-light)] underline underline-offset-2 hover:opacity-80"
-                    >
-                        {labels.replace}
-                    </button>
-                ) : null}
-            </p>
-            {replacing && !readOnly ? upload : null}
+        <div
+            ref={bandRef}
+            className={
+                provided
+                    ? `mt-2 flex flex-col gap-2 ${className}`
+                    : `mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] px-3 py-2.5 ${className}`
+            }
+        >
+            {head}
+            {!readOnly && (!provided || replacing || settling) ? upload : null}
         </div>
     );
 }
