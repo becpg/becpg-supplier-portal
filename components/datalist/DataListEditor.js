@@ -76,7 +76,7 @@ import { SkeletonTable } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
-import { DataListRow, FOCUSABLE } from '@/components/datalist/DataListRow';
+import { DataListRow, FOCUSABLE, SELECT_WIDTH, stickyOffsets } from '@/components/datalist/DataListRow';
 import { DataListCardRow } from '@/components/datalist/DataListCardRow';
 import { RowFormModal } from '@/components/datalist/RowFormModal';
 import { DataListToolbar, ReadOnlyNotice } from '@/components/datalist/DataListToolbar';
@@ -85,6 +85,16 @@ import { normalizeLabel, parseClipboardTable, planPaste } from '@/components/dat
 
 /** Suggestions asked for when resolving one pasted label. */
 const RESOLVE_PAGE_SIZE = 25;
+
+/**
+ * What a supplier may ask to see at once.
+ *
+ * A nutrient or ingredient list runs to a few hundred rows and is filled in one
+ * sitting, from a spreadsheet: paging through it in slices of 25 is the wrong
+ * unit of work. The read is server-side and paginated, so a large page costs one
+ * bigger response rather than a client-side sort over everything.
+ */
+const PAGE_SIZES = [25, 50, 100, 200, 500];
 
 /**
  * Turns the pasted labels of an association column into nodeRefs.
@@ -184,6 +194,10 @@ export function DataListEditor({
     const [editingRow, setEditingRow] = useState(null);
     const [pasting, setPasting] = useState(false);
     const [shortcutsOpen, setShortcutsOpen] = useState(false);
+    // Keys, not rows: a row object is replaced on every re-read, its key is not.
+    const [selection, setSelection] = useState(() => new Set());
+    const [deletingSelection, setDeletingSelection] = useState(false);
+    const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
     const [savingPaste, setSavingPaste] = useState(false);
     const resolveCache = useRef(new Map());
     const focusedRef = useRef(null);
@@ -345,6 +359,69 @@ export function DataListEditor({
     const from = (list.page - 1) * list.pageSize + 1;
     const to = Math.min(list.page * list.pageSize, list.total);
 
+    /* ------------------------------------------------------- the selection */
+
+    /*
+     * Selecting rows to act on all of them at once — the gesture the V1 grid
+     * had and this one did not: duplicating six lines meant six trips to the
+     * same menu.
+     *
+     * The selection lives here rather than in `useDataList`: it is a property of
+     * this screen, it must not survive a re-read that no longer holds the rows,
+     * and nothing outside the grid has any use for it. Rows that left the page
+     * are dropped on every render, so "3 selected" always matches what is on
+     * screen.
+     */
+    const selectedRows = useMemo(
+        () => rows.filter((row) => selection.has(row.key)),
+        [rows, selection],
+    );
+
+    const toggleRow = useCallback((row, checked) => {
+        setSelection((current) => {
+            const next = new Set(current);
+            if (checked) {
+                next.add(row.key);
+            }
+            else {
+                next.delete(row.key);
+            }
+            return next;
+        });
+    }, []);
+
+    const toggleAll = useCallback((checked) => {
+        setSelection(checked ? new Set(rows.map((row) => row.key)) : new Set());
+    }, [rows]);
+
+    const clearSelection = useCallback(() => setSelection(new Set()), []);
+
+    const duplicateSelection = useCallback(() => {
+        for (const row of selectedRows) {
+            list.duplicateRow(row);
+        }
+        clearSelection();
+    }, [selectedRows, list, clearSelection]);
+
+    const moveSelection = useCallback(
+        async (direction) => {
+            await list.moveRows(selectedRows, direction);
+        },
+        [list, selectedRows],
+    );
+
+    const deleteSelection = useCallback(async () => {
+        setConfirmBulkDelete(false);
+        setDeletingSelection(true);
+        try {
+            await list.deleteRows(selectedRows);
+            clearSelection();
+        }
+        finally {
+            setDeletingSelection(false);
+        }
+    }, [list, selectedRows, clearSelection]);
+
     // One object, not one per row: `DataListCell` passes it straight to the
     // control registry, and a new identity on every row would defeat any
     // memoisation a control might grow.
@@ -481,6 +558,25 @@ export function DataListEditor({
         [list, rows, flatColumns, entityId],
     );
 
+    /*
+     * The pinned columns only need their separating line while something is
+     * actually sliding under them — a permanent rule on two column edges, in a
+     * grid that draws none anywhere else, is just weight.
+     *
+     * Written straight onto the node rather than held in React state: a
+     * horizontal scroll must not re-render two hundred rows.
+     *
+     * @param {HTMLElement} node the scroller
+     */
+    const markScroll = useCallback((node) => {
+        if (!node) {
+            return;
+        }
+        node.dataset.scrolledStart = node.scrollLeft > 0 ? 'true' : 'false';
+        node.dataset.scrolledEnd =
+            node.scrollLeft + node.clientWidth < node.scrollWidth - 1 ? 'true' : 'false';
+    }, []);
+
     const undoPaste = useCallback(() => {
         if (pasteReport) {
             list.discardRows(pasteReport.keys);
@@ -507,6 +603,14 @@ export function DataListEditor({
     // set of buttons — and lose them by **not being rendered**, never by being
     // disabled (spec: hide, do not disable).
     const editable = !list.readOnly;
+    // Selecting is only offered where something can be done with a selection.
+    const selectable = editable && rows.length > 0;
+    const sticky = stickyOffsets({
+        selectable,
+        showOrder,
+        hasNested: nestedColumns.length > 0,
+    });
+    const allSelected = rows.length > 0 && selection.size >= rows.length;
     const shortcutRows = label('shortcutList') || [];
     const reasons = label('pasteReasons') || {};
 
@@ -630,8 +734,89 @@ export function DataListEditor({
             ) : (
                 <>
                     {/* ------------------------------------------ desktop table */}
+                    {/*
+                      * The selection bar. Above the grid, not floating over it:
+                      * the actions belong to the rows being looked at, and a
+                      * fixed bar would sit on top of the last line of a list
+                      * that already scrolls inside its own box.
+                      */}
+                    {selectedRows.length > 0 ? (
+                        <div
+                            role="group"
+                            aria-label={label('selected', { count: selectedRows.length })}
+                            className="mb-2 hidden flex-wrap items-center gap-2 rounded-xl border border-[var(--becpg-blue-lighter)] bg-[var(--becpg-blue-lighter)]/40 px-3 py-2 md:flex"
+                        >
+                            <span className="text-sm font-medium text-[var(--becpg-blue)]">
+                                {label('selected', { count: selectedRows.length })}
+                            </span>
+                            <div className="ml-auto flex flex-wrap items-center gap-1">
+                                {list.canReorder ? (
+                                    <>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            icon="arrow_upward"
+                                            aria-label={label('bulkMoveUpLong')}
+                                            onClick={() => moveSelection('up')}
+                                        >
+                                            {label('bulkMoveUp')}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            icon="arrow_downward"
+                                            aria-label={label('bulkMoveDownLong')}
+                                            onClick={() => moveSelection('down')}
+                                        >
+                                            {label('bulkMoveDown')}
+                                        </Button>
+                                    </>
+                                ) : null}
+                                {list.canCreate ? (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        icon="content_copy"
+                                        aria-label={label('bulkDuplicateLong')}
+                                        onClick={duplicateSelection}
+                                    >
+                                        {label('bulkDuplicate')}
+                                    </Button>
+                                ) : null}
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    icon="delete_outline"
+                                    aria-label={label('bulkDeleteLong')}
+                                    loading={deletingSelection}
+                                    onClick={() => setConfirmBulkDelete(true)}
+                                >
+                                    {label('bulkDelete')}
+                                </Button>
+                                <Button variant="ghost" size="sm" icon="close" onClick={clearSelection}>
+                                    {label('clearSelection')}
+                                </Button>
+                            </div>
+                        </div>
+                    ) : null}
+
+                    {/*
+                      * A BOUNDED SCROLLER, NOT A TABLE THAT GROWS FOREVER.
+                      *
+                      * The horizontal scrollbar sits at the bottom of the
+                      * scroller: on a table as tall as the page, that is off
+                      * screen, and reaching the last column meant scrolling
+                      * vertically to the end of a two hundred row list first.
+                      * Capping the height keeps that bar in view, and the header
+                      * and the pinned columns (`data-sticky`) keep saying which
+                      * row and which characteristic is being read — the same
+                      * arrangement as the ingredient grid in the administration.
+                      */}
                     <div
+                        ref={markScroll}
                         className="table-scroll hidden rounded-xl border border-[var(--becpg-grey)] bg-white md:block"
+                        data-sticky="true"
+                        onScroll={(event) => markScroll(event.currentTarget)}
                         onPaste={editable ? handlePaste : undefined}
                         data-pasting={pasting ? 'true' : undefined}
                     >
@@ -639,22 +824,54 @@ export function DataListEditor({
                             <caption className="sr-only-text">{title || list.title}</caption>
                             <thead>
                                 <tr>
+                                    {selectable ? (
+                                        <th
+                                            scope="col"
+                                            className="px-1"
+                                            style={{ width: SELECT_WIDTH, left: sticky.selection }}
+                                            data-sticky="start"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={allSelected}
+                                                aria-label={label('selectAll')}
+                                                onChange={(event) => toggleAll(event.target.checked)}
+                                                className="h-4 w-4 cursor-pointer accent-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                                            />
+                                        </th>
+                                    ) : null}
                                     {showOrder ? (
-                                        <th scope="col" style={{ width: '3.5rem' }}>
+                                        <th
+                                            scope="col"
+                                            style={{ width: '3.5rem', left: sticky.order }}
+                                            data-sticky="start"
+                                        >
                                             <span className="sr-only-text">{label('order')}</span>
                                         </th>
                                     ) : null}
                                     {nestedColumns.length > 0 ? (
-                                        <th scope="col" className="w-10">
+                                        <th
+                                            scope="col"
+                                            className="w-10"
+                                            style={{ left: sticky.nested }}
+                                            data-sticky="start"
+                                        >
                                             <span className="sr-only-text">{label('detail')}</span>
                                         </th>
                                     ) : null}
-                                    {flatColumns.map((column) => {
+                                    {flatColumns.map((column, position) => {
                                         const sorted = list.sort?.column === column.name
                                             ? (list.sort.asc ? 'ascending' : 'descending')
                                             : undefined;
                                         return (
-                                            <th key={column.formsName} scope="col" aria-sort={sorted}>
+                                            <th
+                                                key={column.formsName}
+                                                scope="col"
+                                                aria-sort={sorted}
+                                                style={position === 0 ? { left: sticky.first } : undefined}
+                                                data-sticky={position === 0 ? 'start' : undefined}
+                                                data-sticky-edge={position === 0 ? 'true' : undefined}
+                                            >
                                                 <button
                                                     type="button"
                                                     onClick={() => list.toggleSort(column)}
@@ -697,7 +914,7 @@ export function DataListEditor({
                                             </th>
                                         );
                                     })}
-                                    <th scope="col" className="w-24 text-right">
+                                    <th scope="col" className="w-24 text-right" data-sticky="end">
                                         <span className="sr-only-text">{label('actions')}</span>
                                     </th>
                                 </tr>
@@ -717,6 +934,10 @@ export function DataListEditor({
                                         onAddRow={list.canCreate ? handleAdd : undefined}
                                         onDuplicate={list.canCreate ? handleDuplicate : undefined}
                                         showOrder={showOrder}
+                                        selectable={selectable}
+                                        selected={selection.has(row.key)}
+                                        onToggleSelect={toggleRow}
+                                        sticky={sticky}
                                         dense={dense}
                                         zebra={index % 2 === 1}
                                         autoFocus={row.key === focusTarget?.key}
@@ -748,6 +969,8 @@ export function DataListEditor({
                                             list={list}
                                             context={rowContext}
                                             showOrder={showOrder}
+                                            selectable={selectable}
+                                            sticky={sticky}
                                         />
                                     ))}
                                 </tfoot>
@@ -801,10 +1024,25 @@ export function DataListEditor({
                         </Button>
                     ) : null}
 
-                    {list.total > list.pageSize ? (
+                    {list.total > PAGE_SIZES[0] ? (
                         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--becpg-dark-grey)]">
                             <span>{t('state.of', { from, to, total: list.total })}</span>
                             <div className="flex items-center gap-2">
+                                <label className="flex items-center gap-1.5">
+                                    <span>{label('rowsPerPage')}</span>
+                                    <select
+                                        value={list.pageSize}
+                                        onChange={(event) => {
+                                            list.setPageSize(Number(event.target.value));
+                                            list.setPage(1);
+                                        }}
+                                        className="rounded-lg border border-[var(--becpg-grey)] bg-white px-1.5 py-1 text-xs text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                                    >
+                                        {PAGE_SIZES.map((size) => (
+                                            <option key={size} value={size}>{size}</option>
+                                        ))}
+                                    </select>
+                                </label>
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -847,6 +1085,16 @@ export function DataListEditor({
                 tone="danger"
                 title={label('deleteTitle')}
                 message={label('deleteText')}
+                confirmLabel={t('action.delete')}
+            />
+
+            <ConfirmModal
+                open={confirmBulkDelete}
+                onClose={() => setConfirmBulkDelete(false)}
+                onConfirm={deleteSelection}
+                tone="danger"
+                title={label('deleteSelectedTitle', { count: selectedRows.length })}
+                message={label('deleteSelectedText')}
                 confirmLabel={t('action.delete')}
             />
 

@@ -1338,6 +1338,24 @@ body {
   position: relative;
 }
 
+/*
+ * A SCROLLER WITH A CEILING, SO ITS HORIZONTAL BAR STAYS ON SCREEN.
+ *
+ * Without it the scroller is as tall as the table: on a two hundred row list the
+ * only horizontal scrollbar is at the very bottom of the page, and reaching the
+ * last column means scrolling through every row first. Capping the height puts
+ * the bar back in the viewport and turns the vertical overflow into the box's
+ * own — which is what makes `position: sticky` on the header and on the pinned
+ * columns work at all, since sticky needs a scrollport to stick to.
+ *
+ * `min()` rather than a fixed height: on a laptop the grid takes what the window
+ * can spare, and on a tall screen it stops before becoming a page of its own.
+ */
+.table-scroll[data-sticky='true'] {
+  max-height: var(--becpg-grid-viewport, min(70vh, 40rem));
+  overflow: auto;
+}
+
 /* ---------------------------------------------------------------------- */
 /* The datalist grid — Share's density (components/datalist/*)             */
 /*                                                                        */
@@ -1360,9 +1378,68 @@ body {
 
 .becpg-grid {
   width: 100%;
-  border-collapse: collapse;
+  /*
+   * `separate`, not `collapse`: a collapsed table owns its cell borders, and a
+   * `position: sticky` cell inside one is not reliably positioned — the header
+   * and the pinned columns drift or lose their border while scrolling. Nothing
+   * doubles up here because the grid only ever draws a bottom border on a cell
+   * (Share draws no vertical rule at all), so there is no adjacent edge to
+   * merge.
+   */
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: var(--becpg-grid-font-size);
   line-height: var(--becpg-grid-line-height);
+}
+
+/* ---------------------------------------------------------------------- */
+/* The pinned frame: the header, the characteristic, the actions           */
+/*                                                                        */
+/* The three things a supplier must not lose while reading a wide row:    */
+/* which column he is in, which line he is on, and how to act on it. The  */
+/* offsets come from the markup (`stickyOffsets`), because only the        */
+/* component knows which leading cells the list actually has.             */
+/* ---------------------------------------------------------------------- */
+
+.becpg-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.becpg-grid td[data-sticky],
+.becpg-grid th[data-sticky] {
+  position: sticky;
+}
+
+.becpg-grid td[data-sticky='start'],
+.becpg-grid th[data-sticky='start'] {
+  z-index: 2;
+}
+
+.becpg-grid th[data-sticky='start'],
+.becpg-grid th[data-sticky='end'] {
+  /* The corners: over both the pinned column and the pinned header. */
+  z-index: 4;
+}
+
+.becpg-grid td[data-sticky='end'],
+.becpg-grid th[data-sticky='end'] {
+  right: 0;
+  z-index: 2;
+}
+
+/* Where the pinned part ends and the scrolling part begins — drawn only while
+   the grid is actually scrolled that way (`markScroll` writes the attribute).
+   A shadow rather than a border: a border takes a pixel from the cell and
+   shifts the whole column the moment it appears. */
+.table-scroll[data-scrolled-start='true'] .becpg-grid [data-sticky-edge='true'] {
+  box-shadow: 1px 0 0 var(--becpg-grid-row-border);
+}
+
+.table-scroll[data-scrolled-end='true'] .becpg-grid td[data-sticky='end'],
+.table-scroll[data-scrolled-end='true'] .becpg-grid th[data-sticky='end'] {
+  box-shadow: -1px 0 0 var(--becpg-grid-row-border);
 }
 
 /* Share draws no vertical rules at all (`border-right: 0` on every cell). */
@@ -1427,6 +1504,50 @@ body {
 
 .becpg-grid tbody tr[data-state='error'] td {
   background-color: var(--status-danger-bg);
+}
+
+/*
+ * The same four tints, named on the ROW, for the pinned cells below.
+ *
+ * Duplicated deliberately and kept next to the rules they mirror: the value is
+ * written once (the token), and the pinned cells need it as a variable rather
+ * than as a `background-color` they would inherit translucent.
+ */
+.becpg-grid tbody tr[data-zebra='true'] {
+  --becpg-grid-row-tint: var(--becpg-row-zebra);
+}
+
+.becpg-grid tbody tr:hover {
+  --becpg-grid-row-tint: var(--becpg-row-hover);
+}
+
+.becpg-grid tbody tr[data-state='draft'] {
+  --becpg-grid-row-tint: var(--becpg-blue-lighter);
+}
+
+.becpg-grid tbody tr[data-state='error'] {
+  --becpg-grid-row-tint: var(--status-danger-bg);
+}
+
+/*
+ * A PINNED CELL HAS TO BE OPAQUE.
+ *
+ * The zebra and hover tints are translucent — `rgba(…, 0.55)` — which is right
+ * for a cell with nothing but the table behind it, and wrong for one the rest of
+ * the row scrolls under: the values of the scrolled columns showed through the
+ * characteristic column, three labels deep. So a pinned cell paints the page
+ * colour first and the row tint over it, as a one-stop gradient: one paint, no
+ * extra element, and the tint stays declared in exactly one place.
+ *
+ * After the four rules above, and reaching the same specificity, so it is this
+ * background that lands on a pinned cell.
+ */
+.becpg-grid tbody tr td[data-sticky] {
+  background-color: var(--background);
+  background-image: linear-gradient(
+    var(--becpg-grid-row-tint, transparent),
+    var(--becpg-grid-row-tint, transparent)
+  );
 }
 
 /*

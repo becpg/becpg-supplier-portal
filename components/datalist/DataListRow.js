@@ -486,6 +486,38 @@ export function NestedSection({ row, column, list }) {
 }
 
 /** What a supplier can put the focus into, inside a cell. */
+/* -------------------------------------------------------------------------- */
+/* The pinned frame                                                            */
+/* -------------------------------------------------------------------------- */
+
+/** Width of the selection column, in px. */
+export const SELECT_WIDTH = 34;
+
+/** Width of the reorder column, in px — the two arrows, side by side. */
+export const ORDER_WIDTH = 56;
+
+/** Width of the detail-toggle column, in px (`w-10`). */
+export const NESTED_WIDTH = 40;
+
+/**
+ * Where each pinned cell starts, in px from the left edge of the scroller.
+ *
+ * The leading cells have fixed widths and the first data column follows them,
+ * so the offsets are additions rather than measurements: nothing has to be read
+ * from the DOM, and the first paint is already correct. The actions column is
+ * pinned to the right and needs no offset.
+ *
+ * @param {{selectable: boolean, showOrder: boolean, hasNested: boolean}} shape
+ * @returns {{selection: number, order: number, nested: number, first: number}}
+ */
+export function stickyOffsets({ selectable = false, showOrder = false, hasNested = false } = {}) {
+    const selection = 0;
+    const order = selection + (selectable ? SELECT_WIDTH : 0);
+    const nested = order + (showOrder ? ORDER_WIDTH : 0);
+    const first = nested + (hasNested ? NESTED_WIDTH : 0);
+    return { selection, order, nested, first };
+}
+
 export const FOCUSABLE = [
     'input:not([type="hidden"]):not([disabled])',
     'select:not([disabled])',
@@ -719,6 +751,11 @@ function moveFocusHorizontally(rowEl, cellIndex, direction) {
  * @param {Function} [props.onDelete] `(row) => void` — opens the confirmation
  * @param {boolean} [props.showOrder] renders the reorder column
  * @param {boolean} [props.showActions] renders the actions column
+ * @param {boolean} [props.selectable] renders the selection checkbox column
+ * @param {boolean} [props.selected] this row is part of the selection
+ * @param {Function} [props.onToggleSelect] `(row, checked, event) => void`
+ * @param {Object|null} [props.sticky] left offsets in px for the pinned cells —
+ *        see {@link stickyOffsets}. `null` pins nothing.
  * @param {boolean} [props.dense]
  * @param {boolean} [props.zebra] paints the row as a stripe (parity is computed
  *   by the caller, not by `:nth-child`: an expanded row inserts a second `<tr>`)
@@ -737,6 +774,10 @@ export function DataListRow({
     onDuplicate,
     showOrder = false,
     showActions = true,
+    selectable = false,
+    selected = false,
+    onToggleSelect,
+    sticky = null,
     dense = false,
     zebra = false,
     autoFocus = false,
@@ -748,7 +789,7 @@ export function DataListRow({
     const status = list.statusOf(row.key);
     const hasNested = nestedColumns.length > 0;
     const columnCount = columns.length + (showOrder ? 1 : 0) + (hasNested ? 1 : 0)
-        + (showActions ? 1 : 0);
+        + (showActions ? 1 : 0) + (selectable ? 1 : 0);
 
     /*
      * The computed total row (`itemType: "total"`).
@@ -909,6 +950,25 @@ export function DataListRow({
                 data-editable={editable ? 'true' : undefined}
                 data-dense={dense ? 'true' : undefined}
             >
+                {selectable ? (
+                    <td
+                        className="px-1 align-middle"
+                        style={sticky ? { width: SELECT_WIDTH, left: sticky.selection } : { width: SELECT_WIDTH }}
+                        data-sticky={sticky ? 'start' : undefined}
+                    >
+                        {summary ? null : (
+                            <input
+                                type="checkbox"
+                                checked={selected}
+                                aria-label={label('selectRow', { index })}
+                                onChange={(event) => onToggleSelect
+                                    && onToggleSelect(row, event.target.checked, event)}
+                                className="h-4 w-4 cursor-pointer accent-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                            />
+                        )}
+                    </td>
+                ) : null}
+
                 {showOrder ? (
                     /*
                      * Side by side, not stacked — and that single change is worth
@@ -922,7 +982,11 @@ export function DataListRow({
                      * the grid's own compact size the cell is 26px and the row
                      * goes back to the pitch the rest of this file is built for.
                      */
-                    <td className="px-1" style={{ width: '3.5rem' }}>
+                    <td
+                        className="px-1"
+                        style={sticky ? { width: ORDER_WIDTH, left: sticky.order } : { width: ORDER_WIDTH }}
+                        data-sticky={sticky ? 'start' : undefined}
+                    >
                         {summary ? null : (
                             <div className="flex items-center">
                                 <IconButton
@@ -949,7 +1013,11 @@ export function DataListRow({
                 ) : null}
 
                 {hasNested ? (
-                    <td className="w-10 px-1">
+                    <td
+                        className="w-10 px-1"
+                        style={sticky ? { left: sticky.nested } : undefined}
+                        data-sticky={sticky ? 'start' : undefined}
+                    >
                         {summary ? null : (
                             <IconButton
                                 icon={expanded ? 'expand_less' : 'expand_more'}
@@ -979,7 +1047,11 @@ export function DataListRow({
                     <td
                         key={column.formsName}
                         data-column={position}
-                        style={{ minWidth: columnFloor(column) }}
+                        style={sticky && position === 0
+                            ? { minWidth: columnFloor(column), left: sticky.first }
+                            : { minWidth: columnFloor(column) }}
+                        data-sticky={sticky && position === 0 ? 'start' : undefined}
+                        data-sticky-edge={sticky && position === 0 ? 'true' : undefined}
                     >
                         <DataListCell
                             row={row}
@@ -992,7 +1064,10 @@ export function DataListRow({
                 ))}
 
                 {showActions ? (
-                    <td className="text-right whitespace-nowrap">
+                    <td
+                        className="text-right whitespace-nowrap"
+                        data-sticky={sticky ? 'end' : undefined}
+                    >
                         {summary ? null : (
                             <div className="inline-flex items-center gap-1">
                                 <RowStatus row={row} list={list} compact />

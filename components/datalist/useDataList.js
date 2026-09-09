@@ -133,6 +133,24 @@ export const DATALIST_LABELS = {
         mandatory: 'Champ obligatoire',
         detail: 'Détail',
         duplicate: 'Dupliquer cette ligne',
+        select: 'Sélectionner',
+        selectRow: 'Sélectionner la ligne {index}',
+        selectAll: 'Sélectionner toutes les lignes de la page',
+        selected: '{count} ligne(s) sélectionnée(s)',
+        clearSelection: 'Tout désélectionner',
+        // Short on the button, explicit in the accessible name: four row-level
+        // buttons already carry « Monter », « Dupliquer »…
+        bulkMoveUp: 'Monter',
+        bulkMoveUpLong: 'Monter la sélection',
+        bulkMoveDown: 'Descendre',
+        bulkMoveDownLong: 'Descendre la sélection',
+        bulkDuplicate: 'Dupliquer',
+        bulkDuplicateLong: 'Dupliquer la sélection',
+        bulkDelete: 'Supprimer',
+        bulkDeleteLong: 'Supprimer la sélection',
+        deleteSelectedTitle: 'Supprimer {count} ligne(s) ?',
+        deleteSelectedText: 'Ces lignes seront définitivement supprimées de la liste.',
+        rowsPerPage: 'Lignes par page',
         shortcuts: 'Raccourcis clavier',
         shortcutsTitle: 'Saisir au clavier',
         shortcutList: [
@@ -210,6 +228,22 @@ export const DATALIST_LABELS = {
         mandatory: 'Required field',
         detail: 'Detail',
         duplicate: 'Duplicate this row',
+        select: 'Select',
+        selectRow: 'Select row {index}',
+        selectAll: 'Select every row on this page',
+        selected: '{count} row(s) selected',
+        clearSelection: 'Clear the selection',
+        bulkMoveUp: 'Move up',
+        bulkMoveUpLong: 'Move the selection up',
+        bulkMoveDown: 'Move down',
+        bulkMoveDownLong: 'Move the selection down',
+        bulkDuplicate: 'Duplicate',
+        bulkDuplicateLong: 'Duplicate the selection',
+        bulkDelete: 'Delete',
+        bulkDeleteLong: 'Delete the selection',
+        deleteSelectedTitle: 'Delete {count} row(s)?',
+        deleteSelectedText: 'These rows will be permanently removed from the list.',
+        rowsPerPage: 'Rows per page',
         shortcuts: 'Keyboard shortcuts',
         shortcutsTitle: 'Typing with the keyboard',
         shortcutList: [
@@ -1344,6 +1378,79 @@ export function useDataList(options = {}) {
     );
 
     /**
+     * Deletes several rows in ONE call.
+     *
+     * `slingshot/datalists/action/items` takes a list of nodeRefs, and so does
+     * every layer down to it, so a selection of thirty rows is one request and
+     * one permission check per node — not thirty round trips whose failures
+     * would land one by one.
+     *
+     * On a refusal the list is re-read rather than patched back row by row: the
+     * repository may have deleted some of them, and the truth about which is
+     * upstream, not here.
+     *
+     * @param {Object[]} selection
+     * @returns {Promise<boolean>} true when everything asked for was deleted
+     */
+    const deleteRows = useCallback(
+        async (selection) => {
+            const rows = (selection || []).filter((row) => row && !isTotalRow(row));
+            const drafts = rows.filter((row) => row.draft);
+            const persisted = rows.filter((row) => !row.draft && row.nodeRef);
+            if (drafts.length > 0) {
+                discardRows(drafts.map((row) => row.key));
+            }
+            if (persisted.length === 0) {
+                return true;
+            }
+            if (readOnly) {
+                return false;
+            }
+
+            const nodeRefs = persisted.map((row) => row.nodeRef);
+            const keys = new Set(persisted.map((row) => row.key));
+            persisted.forEach((row) => setRowStatus(row.key, { state: ROW_STATUS.DELETING }));
+            setPayload((previous) => ({
+                ...previous,
+                rows: previous.rows.filter((entry) => !nodeRefs.includes(entry.nodeRef)),
+                total: Math.max(0, previous.total - nodeRefs.length),
+            }));
+
+            try {
+                const result = await request(path, {
+                    method: 'DELETE',
+                    params: paramsRef.current || undefined,
+                    body: { nodeRefs },
+                });
+                const failed = Array.isArray(result?.failed) ? result.failed : [];
+                if (failed.length > 0) {
+                    throw Object.assign(new Error('Delete refused'), { messageKey: 'error.forbidden' });
+                }
+                if (alive.current) {
+                    setStatus((previous) => {
+                        const next = { ...previous };
+                        keys.forEach((key) => delete next[key]);
+                        return next;
+                    });
+                    scheduleRefresh();
+                }
+                return true;
+            }
+            catch (cause) {
+                if (!alive.current) {
+                    return false;
+                }
+                refresh();
+                if (handlers.current.onError) {
+                    handlers.current.onError(cause, null);
+                }
+                return false;
+            }
+        },
+        [readOnly, path, discardRows, setRowStatus, scheduleRefresh, refresh],
+    );
+
+    /**
      * Moves a row up or down — only on a list carrying `bcpg:sortableList`, which
      * is exactly what `permissions.sort` reports.
      *
@@ -1405,6 +1512,54 @@ export function useDataList(options = {}) {
             return previous.asc ? { column: column.name, asc: false } : null;
         });
     }, []);
+
+    /**
+     * Moves a whole selection one step up or down.
+     *
+     * The repository's sort action takes the list of nodeRefs and applies the
+     * move to all of them, keeping their relative order; the answer is then
+     * re-read instead of being guessed here, because "one step up" for a
+     * discontiguous selection is the repository's rule to state, not ours.
+     *
+     * @param {Object[]} selection
+     * @param {'up'|'down'} direction
+     * @returns {Promise<boolean>}
+     */
+    const moveRows = useCallback(
+        async (selection, direction) => {
+            const rows = (selection || []).filter((row) => row && !row.draft && !isTotalRow(row) && row.nodeRef);
+            if (!canReorder || rows.length === 0 || !payload.listNodeRef) {
+                return false;
+            }
+            rows.forEach((row) => setRowStatus(row.key, { state: ROW_STATUS.SAVING }));
+            try {
+                await request(path, {
+                    method: 'POST',
+                    params: paramsRef.current || undefined,
+                    body: { action: 'reorder', nodeRefs: rows.map((row) => row.nodeRef), direction },
+                });
+                if (alive.current) {
+                    rows.forEach((row) => setRowStatus(row.key, {
+                        state: ROW_STATUS.SAVED,
+                        at: new Date().toISOString(),
+                    }));
+                    scheduleRefresh();
+                }
+                return true;
+            }
+            catch (cause) {
+                if (!alive.current) {
+                    return false;
+                }
+                refresh();
+                if (handlers.current.onError) {
+                    handlers.current.onError(cause, null);
+                }
+                return false;
+            }
+        },
+        [canReorder, path, payload.listNodeRef, setRowStatus, scheduleRefresh, refresh],
+    );
 
     const total = payload.total;
     const pageCount = Math.max(1, Math.ceil((total || 0) / (pageSize || 1)));
@@ -1470,7 +1625,9 @@ export function useDataList(options = {}) {
         addRow,
         duplicateRow,
         deleteRow,
+        deleteRows,
         moveRow,
+        moveRows,
         isRowDirty,
         statusOf: (rowKey) => status[rowKey] || { state: ROW_STATUS.IDLE },
 
