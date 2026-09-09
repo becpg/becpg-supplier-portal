@@ -837,8 +837,22 @@ export function Wizard({
     // score does not disappear when the supplier goes back to fix a field.
     const [complianceSeen, setComplianceSeen] = useState(false);
     const complianceTouched = complianceSeen || currentId === SYNTHETIC.COMPLIANCE;
+
+    /*
+     * A SECOND WAY IN: THE FIRST STEP LEFT AFTER A WRITE.
+     *
+     * Waiting for the conformity step meant the marks came from the snapshot
+     * taken when the wizard opened and aged for the whole data entry: a supplier
+     * typed the legal name, changed tab, and the catalogue still reported it
+     * missing until he went and opened « Conformité ». The read is armed by the
+     * step hook instead (see `runHook`), which is the moment the entity has just
+     * been reformulated — so the answer is fresh and costs nothing more than the
+     * read itself. Sticky, like `complianceSeen`: once armed it stays armed.
+     */
+    const [catalogsArmed, setCatalogsArmed] = useState(false);
+    const catalogsEnabled = complianceTouched || catalogsArmed;
     const catalogs = useApi(
-        complianceTouched && entityId ? `entities/${encodeURIComponent(entityId)}/catalogs` : null,
+        catalogsEnabled && entityId ? `entities/${encodeURIComponent(entityId)}/catalogs` : null,
     );
 
     /*
@@ -1018,12 +1032,18 @@ export function Wizard({
             setFormulating(true);
             const settled = call
                 .then(() => {
-                    // A formulation moves the score and the computed characteristics;
-                    // a folder resolution does not. Refreshing when the compliance
-                    // panel has been opened is cheap and correct in both cases.
-                    if (complianceTouched) {
-                        catalogs.refresh();
-                    }
+                    /*
+                     * A formulation moves the score and the computed characteristics;
+                     * a folder resolution does not. Re-reading is cheap and correct in
+                     * both cases: without a `catalogId` beCPG serves the stored score
+                     * and only reformulates a stale entity — which the hook that just
+                     * landed has already done.
+                     *
+                     * Arming here rather than only on the conformity step is what
+                     * makes a catalogue gap close on the tab where it was filled in.
+                     */
+                    setCatalogsArmed(true);
+                    catalogs.refresh();
                 })
                 .catch(() => {
                     // Deliberately silent, exactly as before: a background hook that
@@ -1038,7 +1058,7 @@ export function Wizard({
             hookRef.current = settled;
             return settled;
         },
-        [complianceTouched, catalogs],
+        [catalogs],
     );
 
     /**
@@ -1414,7 +1434,7 @@ export function Wizard({
      *
      * Three things therefore re-read: the open step (the value lands in its
      * field), the panel (becpg-ai no longer proposes what is already set), and
-     * the catalogues when compliance has been looked at.
+     * the catalogues once they are being read at all.
      *
      * Order matters. `autoSave.flush()` FIRST: re-reading the step reseeds its
      * form from the server, so a keystroke still waiting in the autosave debounce
@@ -1426,7 +1446,7 @@ export function Wizard({
     useEffect(() => () => clearTimeout(applyRefreshRef.current), []);
 
     const onSuggestionApplied = useCallback(async () => {
-        if (complianceTouched) {
+        if (catalogsEnabled) {
             catalogs.refresh();
         }
         await autoSave.flush();
@@ -1440,7 +1460,7 @@ export function Wizard({
          */
         clearTimeout(applyRefreshRef.current);
         applyRefreshRef.current = setTimeout(() => suggestionsCall.refresh(), APPLY_REFRESH_MS);
-    }, [complianceTouched, catalogs, autoSave, suggestionsCall]);
+    }, [catalogsEnabled, catalogs, autoSave, suggestionsCall]);
 
     /* ----------------------------------------------------------- the panels */
 
@@ -1559,6 +1579,7 @@ export function Wizard({
             reloadNonce={reloadNonce}
             readOnlyReason={stepReadOnlyReason}
             commentCounts={commentsEnabled ? discussion.counts : null}
+            catalogGap={catalogGaps.byStep[currentStep.id] || null}
             onComment={
                 commentsEnabled
                     ? ({ field, label }) => openComments({ nodeRef: entityNodeRef, field, label })
@@ -1609,7 +1630,6 @@ export function Wizard({
             params={params}
             autoSave={autoSave}
             reloadNonce={reloadNonce}
-            onComment={commentsEnabled ? openComments : undefined}
             onCommentTargets={setCommentTargets}
         />
     );

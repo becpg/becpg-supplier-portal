@@ -44,6 +44,8 @@ const LABELS = {
     fr: {
         comment: 'Commenter ce champ',
         comments: '{count} message(s) sur ce champ',
+        catalogGap: 'Attendu par le catalogue de votre client',
+        catalogGapLocale: 'Attendu par le catalogue de votre client en {locale}',
         frozenTitle: 'Section validée par votre client',
         frozenText:
             'Votre client a validé ces informations : elles sont figées et ne peuvent plus être modifiées. Si une correction est nécessaire, demandez leur réouverture via la discussion.',
@@ -58,6 +60,8 @@ const LABELS = {
     en: {
         comment: 'Comment this field',
         comments: '{count} message(s) on this field',
+        catalogGap: 'Expected by your customer’s catalogue',
+        catalogGapLocale: 'Expected by your customer’s catalogue in {locale}',
         frozenTitle: 'Section validated by your customer',
         frozenText:
             'Your customer validated this information: it is frozen and can no longer be modified. If a correction is needed, ask for it to be reopened through the discussion.',
@@ -123,6 +127,9 @@ export function StepReadOnlyNotice({ reason, lang = 'fr', className = '' }) {
  *        into the entity from outside the form — an applied AI suggestion
  * @param {string|null} [props.readOnlyReason]
  * @param {Object} [props.commentCounts] `{ 'bcpg:legalName': 2 }`
+ * @param {{fields: {name: string, locale: string|null}[]}} [props.catalogGap] what the
+ *        customer's catalogue expects on this step and does not find — see
+ *        `catalogGapsByStep`. Marks the fields concerned; it never gates anything.
  * @param {Function} [props.onComment] `({ field, label }) => void`
  * @param {string|null} [props.focusField] a field to scroll to and focus
  * @param {string|null} [props.focusLocale] the language box the link aims at;
@@ -142,6 +149,7 @@ export function FormStep({
     reloadNonce = 0,
     readOnlyReason = null,
     commentCounts = null,
+    catalogGap = null,
     onComment,
     focusField = null,
     focusLocale = null,
@@ -322,6 +330,50 @@ export function FormStep({
      * remains the sole judge of what he writes.
      */
 
+    /*
+     * THE CATALOGUE MARK, ON THE FIELD ITSELF.
+     *
+     * The rail already carries a dot per tab; it says which tab, never which
+     * field. A supplier reading « 2 informations attendues » on a twelve-field
+     * form had to open the conformity step and come back to know which two.
+     *
+     * Icon plus accessible name, never colour alone: the tone only reinforces
+     * what the glyph and the label already say.
+     */
+    const catalogFields = useMemo(() => {
+        const index = new Map();
+        for (const gap of (catalogGap && catalogGap.fields) || []) {
+            const locales = index.get(gap.name) || [];
+            if (gap.locale) {
+                locales.push(String(gap.locale).toUpperCase());
+            }
+            index.set(gap.name, locales);
+        }
+        return index;
+    }, [catalogGap]);
+
+    const badgeFor = useCallback(
+        (field) => {
+            if (!catalogFields.has(field.name)) {
+                return null;
+            }
+            const locales = catalogFields.get(field.name);
+            const title = locales.length > 0
+                ? labels.catalogGapLocale.replace('{locale}', locales.join(', '))
+                : labels.catalogGap;
+            return (
+                <span
+                    title={title}
+                    aria-label={title}
+                    className="inline-flex items-center text-[var(--status-danger)]"
+                >
+                    <Icon name="rule" size={14} />
+                </span>
+            );
+        },
+        [catalogFields, labels],
+    );
+
     const actionFor = useCallback(
         (field) => {
             if (!onComment) {
@@ -376,6 +428,7 @@ export function FormStep({
                 formId={step.formId || undefined}
                 itemType={step.itemId || undefined}
                 lang={lang}
+                badgeFor={badgeFor}
                 actionFor={actionFor}
             />
         </div>
