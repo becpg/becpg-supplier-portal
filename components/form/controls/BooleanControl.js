@@ -13,6 +13,14 @@
  * preselected until the supplier answers), and an optional one renders as a
  * plain checkbox where unticked legitimately means `false`.
  *
+ * **And when Share says the field is tri-state, it is.** beCPG overrides
+ * Alfresco's `boolean.ftl` with three radios -- Oui / Non / (vide) -- and
+ * `allergen-voluntary.ftl` is the same three, so a column the customer
+ * configured with either template offers all three here too, as a select. The
+ * choice is the customer's, declared per field, not a guess made from
+ * `mandatory`: on an allergen row, « non maîtrisé » and « pas encore répondu »
+ * are different answers and a checkbox can only tell one of them.
+ *
  * The checkbox carries no "Oui" / "Non" text of its own. It used to, and that
  * text flipped with the state — which reads as the label of a button rather
  * than as the answer to a question, and repeats what the field label above it
@@ -31,9 +39,15 @@
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
 
 const LABELS = {
-    fr: { yes: 'Oui', no: 'Non' },
-    en: { yes: 'Yes', no: 'No' },
+    fr: { yes: 'Oui', no: 'Non', empty: '(vide)' },
+    en: { yes: 'Yes', no: 'No', empty: '(empty)' },
 };
+
+/**
+ * Controls whose Share template draws three radios rather than a checkbox.
+ * `checkbox.ftl` and the bare `d:boolean` fallback are deliberately absent.
+ */
+const TRI_STATE_CONTROLS = new Set(['boolean', 'boolean.ftl', 'allergen-voluntary.ftl']);
 
 /**
  * @param {*} value
@@ -91,6 +105,8 @@ export function BooleanControl({
 
     // A boolean the model already answers is not an unanswered question.
     const answeredByModel = field?.defaultValue !== null && field?.defaultValue !== undefined;
+    const triState = TRI_STATE_CONTROLS.has(field?.control?.name);
+
     if (field?.mandatory && !answeredByModel) {
         const name = `${id || field.id}-choice`;
         return (
@@ -130,6 +146,37 @@ export function BooleanControl({
                     </label>
                 ))}
             </div>
+        );
+    }
+
+    /*
+     * Three states in one cell, without three buttons.
+     *
+     * Share draws three radios, which is right on a pop-up form and impossible
+     * in a grid the density spec pins to Share's own 33px row. A native select
+     * carries the same three answers in one tab stop and one keystroke — which
+     * is what the grid's keyboard-first entry asks for — and stays readable at
+     * 360px. The empty option is first and really is selectable: leaving an
+     * allergen unanswered has to stay reachable once it has been answered.
+     */
+    if (triState && !answeredByModel) {
+        return (
+            <select
+                id={id}
+                value={checked === null ? '' : String(checked)}
+                aria-label={rest['aria-label'] || field?.label || undefined}
+                onChange={(event) => onChange(toBoolean(event.target.value))}
+                className={[
+                    'w-full min-w-0 rounded-md border bg-white px-1.5 py-1 text-[inherit] text-[var(--becpg-blue)]',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]',
+                    isInvalid ? 'border-[var(--status-danger)]' : 'border-[var(--becpg-grey)]',
+                ].filter(Boolean).join(' ')}
+                {...rest}
+            >
+                <option value="">{labels.empty}</option>
+                <option value="true">{labels.yes}</option>
+                <option value="false">{labels.no}</option>
+            </select>
         );
     }
 

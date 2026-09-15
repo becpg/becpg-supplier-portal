@@ -568,6 +568,11 @@ export function columnFloor(column) {
         return column.repeating ? '14rem' : '12rem';
     }
     const control = column.control?.name || '';
+    // A tri-state boolean is a select of « Oui / Non / (vide) », not a box to
+    // tick: it needs the width of its longest answer.
+    if (control === 'boolean') {
+        return '6.5rem';
+    }
     if (control === 'checkbox' || column.dataType === 'd:boolean') {
         return '3.5rem';
     }

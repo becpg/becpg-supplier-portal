@@ -167,6 +167,9 @@ export const CONTROL_REGISTRY = {
     /* --- Booleans ------------------------------------------------------- */
     'checkbox.ftl': BooleanControl,
     'boolean.ftl': BooleanControl,
+    // beCPG's tri-state boolean; see BooleanControl.
+    boolean: BooleanControl,
+    'allergen-voluntary.ftl': BooleanControl,
     checkbox: BooleanControl,
 
     /* --- Closed lists --------------------------------------------------- */
@@ -179,7 +182,6 @@ export const CONTROL_REGISTRY = {
     'priority.ftl': SelectControl,
     'mimetype.ftl': SelectControl,
     'product-unit.ftl': SelectControl,
-    'allergen-voluntary.ftl': SelectControl,
 
     /* --- Datasources ---------------------------------------------------- */
     'autocomplete.ftl': AutocompleteControl,
