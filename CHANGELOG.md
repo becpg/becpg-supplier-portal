@@ -281,3 +281,7 @@
 * InProgress #35846 - [Bug] Translate the approval vocabulary, the CSV exports and the page metadata
 * InProgress #36252 - [Security] Deploy through the Connect Gateway, the control plane has no public IP
 * [skip ci][Release]: Bump _VERSION to 0.0.23
+## [ 0.0.24 ] - 2026-09-15 12:27:01
+
+* InProgress #35846 - [Bug] Honour the 500-row page size instead of silently capping it at 200
+* [skip ci][Release]: Bump _VERSION to 0.0.24
