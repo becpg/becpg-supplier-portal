@@ -285,3 +285,7 @@
 
 * InProgress #35846 - [Bug] Honour the 500-row page size instead of silently capping it at 200
 * [skip ci][Release]: Bump _VERSION to 0.0.24
+## [ 0.0.25 ] - 2026-09-15 12:37:53
+
+* InProgress #35846 - [Bug] Offer the three states beCPG declares on a boolean, and make voluntary presence fillable again
+* [skip ci][Release]: Bump _VERSION to 0.0.25
