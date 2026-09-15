@@ -39,7 +39,7 @@ import { ConfirmModal } from '@/components/ui/Modal';
 import { Select } from '@/components/ui/Field';
 import { SkeletonCard, SkeletonText } from '@/components/ui/Skeleton';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
-import { StatusPill } from '@/components/ui/StatusPill';
+import { StatusPill, resolveStatus } from '@/components/ui/StatusPill';
 import { ExpiryPill, ValidityRange } from '@/components/documents/ExpiryPill';
 import { formatDate, formatDateTime } from '@/lib/format';
 import {
@@ -251,6 +251,25 @@ function fill(template, vars) {
         vars[key] === undefined || vars[key] === null ? match : String(vars[key]));
 }
 
+/**
+ * The approval status spelled out, in the reader's language.
+ *
+ * `statusLabel` only carries something when the tenant relabelled the status;
+ * otherwise the wording comes from the portal vocabulary, the very one
+ * `StatusPill` renders, so the tile and the pill beside it never disagree.
+ *
+ * @param {{status: string, statusLabel: ?string}|null} approval
+ * @param {(key: string) => string} t
+ * @returns {string}
+ */
+function approvalLabel(approval, t) {
+    if (!approval) {
+        return '—';
+    }
+    const { messageKey } = resolveStatus(approval.status);
+    return approval.statusLabel || (messageKey ? t(messageKey) : approval.status);
+}
+
 /** Tone of the approval status, for the KPI tile. */
 function approvalTone(status) {
     if (status === 'suspended') {
@@ -443,7 +462,7 @@ function ProcessLauncher({ supplierRef, local, onDone }) {
  * @returns {JSX.Element}
  */
 export default function MonitorSupplierSheetPage() {
-    const { lang } = useMessages();
+    const { lang, t } = useMessages();
     const local = LABELS[lang] || LABELS.fr;
     const params = useParams();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -590,7 +609,7 @@ export default function MonitorSupplierSheetPage() {
                         <StatCard
                             index={0}
                             label={local.kpi.approval}
-                            value={approval ? approval.statusLabel : '—'}
+                            value={approvalLabel(approval, t)}
                             icon="verified_user"
                             tone={approvalTone(approval && approval.status)}
                             hint={

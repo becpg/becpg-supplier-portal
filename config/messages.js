@@ -32,6 +32,7 @@ export const messages = {
         'app.title': 'Portail Fournisseur',
         'app.shortTitle': 'Portail',
         'app.tenantSuffix': 'espace fournisseur',
+        'app.description': 'Portail fournisseur beCPG — référencement, documents et conformité',
 
         // --- Navigation (supplier space) ---
         'nav.dashboard': 'Tableau de bord',
@@ -144,6 +145,7 @@ export const messages = {
         'app.title': 'Supplier Portal',
         'app.shortTitle': 'Portal',
         'app.tenantSuffix': 'supplier space',
+        'app.description': 'beCPG supplier portal — referencing, documents and compliance',
 
         // --- Navigation (supplier space) ---
         'nav.dashboard': 'Dashboard',

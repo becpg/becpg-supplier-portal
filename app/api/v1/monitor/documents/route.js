@@ -42,6 +42,8 @@ import {
     parseMonitorFilters,
     toCsv,
 } from '@/lib/adapters/monitor';
+import { cookies } from 'next/headers';
+import { LANG_COOKIE, normalizeLang } from '@/config/messages';
 import { AuthError, toApiResponse } from '@/lib/errors';
 import { getLiveSession } from '@/lib/session';
 
@@ -81,7 +83,9 @@ export async function GET(request) {
             return NextResponse.json(matrix, { status: 200, headers: NO_STORE });
         }
 
-        const { columns, rows } = documentMatrixToCsv(matrix);
+        const cookieStore = await cookies();
+        const lang = normalizeLang(cookieStore.get(LANG_COOKIE)?.value);
+        const { columns, rows } = documentMatrixToCsv(matrix, lang);
         const stamp = matrix.generatedAt.slice(0, 10);
         return new NextResponse(toCsv(columns, rows), {
             status: 200,

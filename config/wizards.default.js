@@ -166,7 +166,7 @@ export const DEFAULT_WIZARDS = {
         enforceTask: true,
         skipSecurityRules: false,
         steps: [
-            { id: 'step1', label: 'Réclamation fournisseur', titleId: 'becpg.wizard.supplier.properties.title', type: 'form', formId: 'supplier', itemId: 'qa:nc', nextStepWebScript: SUPPLIER_DOCS },
+            { id: 'step1', labelId: 'becpg.wizard.supplier.properties.label', titleId: 'becpg.wizard.supplier.properties.title', type: 'form', formId: 'supplier', itemId: 'qa:nc', nextStepWebScript: SUPPLIER_DOCS },
             { id: 'step2', labelId: 'becpg.wizard.supplier.documents.label', titleId: 'becpg.wizard.supplier.documents.title', type: 'documents' },
         ],
     },

@@ -419,7 +419,7 @@ function CriterionRow({ criterion, max, totalWeight, local, index }) {
  * @param {Object} props
  * @param {{score: number|null, criteria: Array<Object>, available: boolean}} props.scorecard
  * @param {{score: number|null, catalogs: Array<Object>}} [props.completion]
- * @param {{status: string, statusLabel: string, reasons: string[]}} [props.approval]
+ * @param {{status: string, statusLabel: ?string, reasons: string[]}} [props.approval]
  * @param {{available: boolean, points?: Array<Object>, reason?: string, required?: Object}} [props.history]
  * @param {boolean} [props.loading]
  */

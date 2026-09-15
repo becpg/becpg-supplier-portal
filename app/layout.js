@@ -2,7 +2,7 @@ import { Roboto } from "next/font/google";
 import { withBasePath } from '@/lib/basePath';
 import { cookies } from "next/headers";
 import "./globals.css";
-import { LANG_COOKIE, normalizeLang } from "@/config/messages";
+import { LANG_COOKIE, normalizeLang, t as translate } from "@/config/messages";
 import { getSession, toPublicSession } from "@/lib/session";
 import { getTenant, toPublicTenant } from "@/lib/tenant";
 import { SessionProvider } from "@/components/providers/SessionProvider";
@@ -22,13 +22,10 @@ const roboto = Roboto({
  * is portal-specific artwork: an installed portal must be indistinguishable
  * from the rest of the range in the task switcher and on a home screen.
  */
-// Les URL de metadonnees -- manifeste, favicons -- ne passent pas par le
-// basePath de Next : il ne s'applique qu'aux URL que Next fabrique lui-meme.
-// Servi sous /supplier, un favicon en chemin absolu part chez le core beCPG.
-export const metadata = {
-    title: "beCPG - Portail Fournisseur",
-    description: "Portail fournisseur beCPG — referencement, documents et conformite",
-    applicationName: "beCPG Portail Fournisseur",
+// Metadata URLs -- the manifest, the favicons -- do not go through Next's
+// basePath: it only applies to the URLs Next builds itself. Served under a path
+// of an instance host, an absolute favicon path lands on the beCPG core.
+const THEME_METADATA = {
     manifest: withBasePath("/theme/default/manifest.json"),
     icons: {
         // `favicon.ico` first and with `sizes="any"`: it is the multi-resolution
@@ -51,7 +48,6 @@ export const metadata = {
     // blue status bar, not a browser chrome with a screenshot of the page.
     appleWebApp: {
         capable: true,
-        title: "beCPG Fournisseur",
         statusBarStyle: "black-translucent",
     },
     other: {
@@ -61,6 +57,27 @@ export const metadata = {
         "msapplication-config": withBasePath("/theme/default/browserconfig.xml"),
     },
 };
+
+/**
+ * The tab title and the description a link preview shows, in the reader's
+ * language. Everything above is artwork and holds no wording, so only these
+ * three strings are resolved per request.
+ *
+ * @returns {Promise<Object>}
+ */
+export async function generateMetadata() {
+    const cookieStore = await cookies();
+    const lang = normalizeLang(cookieStore.get(LANG_COOKIE)?.value);
+    const title = translate(lang, "app.title");
+
+    return {
+        ...THEME_METADATA,
+        title: `beCPG - ${title}`,
+        description: translate(lang, "app.description"),
+        applicationName: `beCPG ${title}`,
+        appleWebApp: { ...THEME_METADATA.appleWebApp, title: `beCPG ${translate(lang, "app.shortTitle")}` },
+    };
+}
 
 export const viewport = {
     // `--becpg-blue`. Same value as `theme_color` in the theme manifest and as

@@ -53,13 +53,10 @@ import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = {
-    title: 'Pilotage fournisseurs — beCPG',
-    description: 'Vue d’ensemble du parc fournisseurs, conformité documentaire et campagnes',
-};
-
 const LABELS = {
     fr: {
+        metaTitle: 'Pilotage fournisseurs — beCPG',
+        metaDescription: 'Vue d’ensemble du parc fournisseurs, conformité documentaire et campagnes',
         title: 'Espace de pilotage',
         denied: 'Espace de pilotage réservé aux équipes internes',
         deniedGroups:
@@ -67,6 +64,8 @@ const LABELS = {
         backSupplier: 'Aller à mon tableau de bord',
     },
     en: {
+        metaTitle: 'Supplier monitoring — beCPG',
+        metaDescription: 'The supplier park at a glance: document compliance and campaigns',
         title: 'Monitoring space',
         denied: 'The monitoring space is reserved for internal teams',
         deniedGroups:
@@ -74,6 +73,19 @@ const LABELS = {
         backSupplier: 'Go to my dashboard',
     },
 };
+
+/**
+ * The tab title and the link preview of every monitoring screen, in the
+ * reader's language.
+ *
+ * @returns {Promise<{title: string, description: string}>}
+ */
+export async function generateMetadata() {
+    const cookieStore = await cookies();
+    const lang = normalizeLang(cookieStore.get(LANG_COOKIE)?.value);
+    const local = LABELS[lang] || LABELS.fr;
+    return { title: local.metaTitle, description: local.metaDescription };
+}
 
 /**
  * @param {{children: React.ReactNode}} props
