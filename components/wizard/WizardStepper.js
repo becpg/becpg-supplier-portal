@@ -506,7 +506,14 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
                     {details.length > 0 ? (
                         <span
                             aria-hidden="true"
-                            title={catalogGap ? catalogGap.labels.join(', ') : undefined}
+                            /* The rail is narrow and this line is the one that says what is
+                               missing, so it truncates on almost every step. Always carry
+                               the whole sentence in `title` — with the catalogue's own
+                               labels appended when it has some — otherwise the reader can
+                               see that something is missing and never which. */
+                            title={[details.join(' · '), catalogGap ? catalogGap.labels.join(', ') : '']
+                                .filter(Boolean)
+                                .join(' — ')}
                             className={`mt-0.5 block truncate text-[11px] ${detailTone}`}
                         >
                             {details.join(' · ')}
