@@ -275,3 +275,9 @@
 * [Feature] Pin the grid frame, select rows and act on the selection
 * [Bug] Keep the technical sheet upload mounted until its deposit has settled
 * [skip ci][Release]: Bump _VERSION to 0.0.22
+## [ 0.0.23 ] - 2026-09-15 12:00:37
+
+* InProgress #35846 - [Cleanup] Write the remaining French comments in English
+* InProgress #35846 - [Bug] Translate the approval vocabulary, the CSV exports and the page metadata
+* InProgress #36252 - [Security] Deploy through the Connect Gateway, the control plane has no public IP
+* [skip ci][Release]: Bump _VERSION to 0.0.23
