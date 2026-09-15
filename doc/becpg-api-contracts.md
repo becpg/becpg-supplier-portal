@@ -391,7 +391,7 @@ a new file, no modification of anything existing.
   > `becpg/portal/wizard` endpoint has **already resolved** turned every datalist
   > and questionnaire step into `share_session_required`. Measured on 26.1.0, entity
   > `17243f08-…`: the wizard endpoint returned 3/17/28/13/17/12/11/7 fields for steps
-  > 2 to 9 with `portalTicket` alone, while
+  > 2 to 9 with no Share session at all, while
   > `GET /api/v1/wizard/{id}/step/step2` answered 401.
   >
   > `lib/adapters/wizard.js` (`stepColumns`) therefore consumes `step.definition` when it
@@ -476,7 +476,7 @@ form resolves — whatever the language of the endpoint.
 
 | Call | `step1` (type `form`) |
 |---|---|
-| with `portalTicket` alone | `error: no-form-config` |
+| with no Share session | `error: no-form-config` |
 | with a Share session cookie | **21 fields, `formId=supplier`** ✅ |
 
 The 10 steps then resolve, and the cascade is proven: `step3` returns
@@ -485,44 +485,42 @@ client overrides will indeed be picked up.
 
 ⇒ **It remains for the portal to obtain a Share session.**
 
-> ⚠ **Correction (measured on 2026-07-30 on a 26.1.0 with a local Keycloak and a real token).**
-> The paragraph that used to follow here claimed that the portal could call Share with
-> `Authorization: Bearer <access_token>` and retrieve the `JSESSIONID` produced by
-> `BeCPGAIMSFilter`. **That is false, and the code says so:** there is no occurrence of `Bearer`
-> as an input in `BeCPGAIMSFilter.doFilter()` — the only doors are (a) a
-> `SPRING_SECURITY_CONTEXT` already in session, (b) an OIDC authorisation response
-> (`matchesAuthorizationResponse`), (c) a **302 redirect** to `aims-login`. The
-> `autodetectBearerOnly` field of `share-config-custom.xml` is never read by that filter.
->
-> Measurements, AIMS enabled, valid token for `supplier.local@becpg.fr`:
+> **How the session is obtained — settled, and measured.**
+> The portal cannot get one by presenting its bearer to a Share page: `BeCPGAIMSFilter` has
+> no incoming-bearer branch. There is no occurrence of `Bearer` as an *input* in
+> `doFilter()` — the only doors are (a) a `SPRING_SECURITY_CONTEXT` already in session,
+> (b) an OIDC authorisation response, (c) a 302 redirect to `aims-login`. Measured with
+> AIMS on and a valid token:
 >
 > | Call | Result |
 > |---|---|
 > | `GET /share/page/` + `Authorization: Bearer <at>` | `302 → /share/page/aims-login` — token ignored |
 > | `GET /share/page/aims-dologin` + Bearer | `302 → Keycloak /auth` — token ignored |
 > | `GET /share/page/` + `Authorization: Basic` | `302 → aims-login` (`enableBasicAuth=false`) |
-> | `POST /share/page/dologin` (login/password) | `302 → aims-login` — **AIMS removes that door too** |
+> | `POST /share/page/dologin` (login/password) | `302 → aims-login` — AIMS removes that door too |
 > | `GET /share/page/?alf_ticket=TICKET_…` | 200 but an **anonymous** session → `no-form-config` |
-> | full server-side replay of the authorisation code flow (Share **and** Keycloak cookie jars) | **21 fields** ✅ |
 >
-> In other words: a Share session is obtained **only** by playing the
-> `authorisation code` flow end to end, which presupposes a Keycloak SSO session — which the
-> browser has and the portal's server does not. A `JSESSIONID` alone proves nothing:
-> Share hands one out to everybody. `lib/shareSession.js` therefore now tells the two apart
-> by looking at whether Share redirects to the IdP.
+> beCPG therefore supplies the missing branch as an additive endpoint:
+> **`POST /share/noauth/becpg/portal/session`**. It verifies the access token against the
+> issuer's published signing keys, checks `aud`, `azp` and `typ`, requires the shared key
+> `X-beCPG-Portal-Key` and a caller address in its allow list, then trades the token for a
+> Share session. It ships **disabled** and answers 404 until an administrator configures it.
 >
-> Enabling AIMS on Share is moreover **negative** for the portal (row 4 of the table): do
-> not enable it until the point below is settled.
+> Measured on the local stack (Keycloak `inst1`, Share 26.1.0, a token for `admin`):
 >
-> Three possible routes, to be arbitrated:
-> 1. an **additive Share endpoint** that exchanges a bearer for a Share session (reusing
->    `BeCPGAIMSFilter.onSuccess` / `getAlfTicket`) — the real product fix;
-> 2. the portal **proxies Share on its own origin**, the browser establishes the Share session
->    through SSO and the cookie comes back to the server (this is what `becpg-http` does in
->    production);
-> 3. **Keycloak user impersonation** (the `impersonation` role on the portal's service account):
->    it works without changing anything in the product, but it gives the portal the power
->    to open a session for anyone — a security decision, not a technical one.
+> | Call | Result |
+> |---|---|
+> | `POST …/portal/session` + Bearer + key | **200**, `Set-Cookie: JSESSIONID=…` |
+> | same, no key / wrong key | 403 |
+> | same, no bearer | 400 |
+> | same, first character of the signature flipped | 401 `invalid_token` |
+> | same, payload edited (username swapped) | 401 `invalid_token` |
+> | `GET` instead of `POST` | 405 |
+>
+> And with that session, **no `portalTicket` anywhere**:
+> `GET becpg/portal/wizard?wizardId=supplier-rawMaterial&nodeRef=…` resolves
+> `step1` to **21 fields, `formId=supplier`**.
+
 
 > Ruled out: duplicating a `model-type` block for the `supplier` form of each product type.
 > The client overrides (Bridor, Aryzta) are declared under `node-type` and would not be
@@ -554,21 +552,21 @@ The point was open; it is settled and tested.
 The `becpg/portal/wizard` endpoint has **no user dependency** (no column preferences, no
 `AlfrescoUtil`) and is therefore callable without a Share session.
 
-For the call to the repository, on the other hand, Share's `alfresco` connector authenticates
-with the ticket of the **Share session** (`authenticator-id: alfresco-ticket`) and refuses
-outright, with a 401, when there is no session. The solution chosen and verified: the portal
-passes its own Alfresco ticket in a `portalTicket` parameter, and the endpoint goes through
-**`alfresco-noauth`** — the identity-less endpoint that Share itself uses for anonymous access
-(cf. `templates/org/alfresco/quickshare.js`) — adding `alf_ticket` to the URL.
+For the call to the repository, Share's `alfresco` connector authenticates with the ticket of
+the **Share session** (`authenticator-id: alfresco-ticket`) and refuses outright, with a 401,
+when there is no session. The portal therefore mints one through
+`POST /share/noauth/becpg/portal/session` and sends it as a cookie. `/becpg/form` then runs
+**as the supplier**, so the field-level security rules applied are the supplier's.
 
-Consequence, and it is the right one: `/becpg/form` runs **as the supplier**, so the
-field-level security rules applied are the supplier's.
+**No credential travels in a URL.** The token and the shared key are headers; the session is
+a cookie. An earlier design passed the supplier's Alfresco ticket as a `portalTicket`
+parameter, which `portal-form.lib.js` re-glued onto `/api/metadata` and `/becpg/form` as
+`?alf_ticket=` — writing it to the access log of every hop traversed and to browser history.
+That parameter is gone from the portal.
 
-> The parameter is called `portalTicket` and not `alf_ticket`: Share intercepts `alf_ticket` as
-> an authentication parameter of its own layer.
->
-> Without a ticket, the library falls back on the session connector, which allows it to be
-> reused from an authenticated Share page.
+> `portal-form.lib.js` still reads a `portalTicket` argument, and still falls back to the
+> session connector when there is none. Keeping that branch is what lets the library be
+> reused from an authenticated Share page; the portal simply never sends the parameter.
 
 ### Structure of a step
 
