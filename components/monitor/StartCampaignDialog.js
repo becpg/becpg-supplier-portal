@@ -113,12 +113,12 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
     const [failures, setFailures] = useState([]);
 
     /*
-     * Une ouverture repart de zéro — ajusté PENDANT le rendu, pas dans un effet.
+     * An opening starts from scratch -- adjusted DURING the render, not in an effect.
      *
-     * Rouvrir la boîte sur un autre fournisseur ne doit pas hériter du périmètre
-     * ni des échecs de la fois précédente. C'est le motif « adjust state on prop
-     * change » de React, celui que `Wizard.js` utilise déjà : un effet ferait un
-     * rendu de plus avec l'ancien état à l'écran.
+     * Reopening the dialog on another supplier must not inherit the perimeter
+     * nor the failures of the previous time. This is React's "adjust state on
+     * prop change" pattern, the one `Wizard.js` already uses: an effect would
+     * cost one more render with the stale state on screen.
      */
     const session = open ? (supplier ? supplier.nodeRef : 'any') : null;
     const [openedFor, setOpenedFor] = useState(null);

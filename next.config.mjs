@@ -4,23 +4,23 @@ const nextConfig = {
     output: 'standalone',
     poweredByHeader: false,
 
-    // Servi sous le chemin /supplier de l'hote de chaque instance
-    // (https://dev.becpg.fr/supplier), et non sur un hote dedie : l'hote porte
-    // l'identite du tenant, tous ses services sont dessous (#36246 §1).
+    // Served under a path of each instance host rather than on a host of its
+    // own: the host carries the tenant identity and all of its services sit
+    // below it.
     //
-    // L'ingress GKE ne reecrit pas les chemins -- il n'a pas d'equivalent au
-    // rewrite-target de nginx. C'est donc a l'application de se servir sous son
-    // prefixe : sans basePath, ses assets et sa route de callback pointeraient
-    // vers la racine de l'hote, ou repond le core beCPG.
+    // The GKE ingress does not rewrite paths -- it has no equivalent to nginx's
+    // rewrite-target. Serving itself under its own prefix is therefore the
+    // application's job: without basePath, its assets and its callback route
+    // would point at the root of the host, where the beCPG core answers.
     //
-    // Vide en developpement local, ou le portail ecoute a la racine.
+    // Empty in local development, where the portal listens at the root.
     basePath: process.env.PORTAL_BASE_PATH || '',
 
-    // Le meme prefixe, lisible depuis le navigateur. `basePath` ne s'applique
-    // qu'aux URL que Next fabrique lui-meme -- next/link, next/router, les
-    // assets. Un <form action="/api/...">, un <a href> ou une URL assemblee a
-    // la main partent sans prefixe et atterrissent hors du portail : sur
-    // l'hote d'une instance, c'est le core beCPG qui repond 404.
+    // The same prefix, readable from the browser. `basePath` only applies to the
+    // URLs Next builds itself -- next/link, next/router, the assets. A
+    // <form action="/api/...">, an <a href> or a hand-assembled URL leaves
+    // without the prefix and lands outside the portal: on an instance host, the
+    // beCPG core is what answers 404.
     env: {
         NEXT_PUBLIC_PORTAL_BASE_PATH: process.env.PORTAL_BASE_PATH || '',
     },

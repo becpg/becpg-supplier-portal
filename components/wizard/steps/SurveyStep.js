@@ -204,13 +204,13 @@ export function SurveyStep({
             return;
         }
         /*
-         * Tant que l'arbre n'est pas lu, l'étape ne statue pas.
+         * Until the tree has been read, the step rules on nothing.
          *
-         * `progress` est calculé par `DecisionTree` une fois les questions
-         * chargées ; avant cela `missing` vaut `[]`, et ce compte rendu disait
-         * donc « rien ne manque » dès le premier rendu. Passer vite sur
-         * l'onglet suffisait à le faire marquer validé alors qu'aucune réponse
-         * n'avait été relue (#35846).
+         * `progress` is computed by `DecisionTree` once the questions are
+         * loaded; before that `missing` is `[]`, so this report would announce
+         * that nothing is missing on the very first render. Passing quickly over
+         * the tab was then enough to have it marked validated while no answer
+         * had been read.
          */
         if (!readOnly && (call.loading || !data || progress === null)) {
             onIssues(step.id, { pending: true, count: 0, labels: [] });

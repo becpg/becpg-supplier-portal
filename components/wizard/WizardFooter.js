@@ -37,8 +37,8 @@ const LABELS = {
         finishing: 'Envoi…',
         formulating: 'Recalcul en cours…',
         blocked: 'Finalisation bloquée',
-        // Le même manque, sans la conséquence : en mode brouillon on peut rendre,
-        // on doit quand même savoir ce qui reste.
+        // The same gap, without the consequence: in draft mode the sheet can be
+        // handed in, and what is left must still be visible.
         incomplete: 'Fiche incomplète',
     },
     en: {

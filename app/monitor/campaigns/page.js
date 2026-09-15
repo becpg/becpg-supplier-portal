@@ -162,7 +162,7 @@ function fill(template, vars) {
 }
 
 export default function MonitorCampaignsPage() {
-    // La campagne se démarre depuis cet écran : c'est là qu'on constate qu'il en manque une.
+    // A campaign is started from this screen: this is where one notices that one is missing.
     const [starting, setStarting] = useState(false);
     const { lang } = useMessages();
     const labels = LABELS[lang] || LABELS.fr;

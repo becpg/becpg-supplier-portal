@@ -405,8 +405,8 @@ export function SessionProvider({ initialIdentity = null, children }) {
             params.set('local', '1');
         }
         const query = params.toString();
-        // withBasePath : sous /supplier, '/api/auth/logout' nu tombait chez le core
-        // beCPG en 404 et le bouton ne deconnectait personne (#36246).
+        // withBasePath: under a path prefix, a bare '/api/auth/logout' lands on
+        // the beCPG core as a 404 and the button signs nobody out.
         window.location.assign(withBasePath(`${tenantPrefix()}/api/auth/logout${query ? `?${query}` : ''}`));
     }, []);
 

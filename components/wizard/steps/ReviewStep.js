@@ -410,10 +410,10 @@ export function ReviewStep({ entityId, state = null, wizardId, withCompliance = 
     const entityNodeRef = wizardState.entity ? wizardState.entity.nodeRef : entityId;
     const firstId = steps.length > 0 ? steps[0].id : null;
     /*
-     * « Tout déplier » : une relecture se fait de haut en bas, et la fiche
-     * n'ouvrait qu'une section à la fois. Chaque section reste montée à la
-     * demande — les déplier toutes est donc une décision du relecteur, pas le
-     * défaut, sinon la fiche paie douze appels dès son ouverture.
+     * Expand all: a review is read top to bottom, and the sheet only ever opens
+     * one section at a time. Each section is mounted on demand, so expanding
+     * them all is the reviewer's decision and never the default -- otherwise the
+     * sheet pays a dozen calls the moment it opens.
      */
     const allOpen = steps.length > 0
         && steps.every((step) => (open[step.id] === undefined ? step.id === firstId : open[step.id]));
