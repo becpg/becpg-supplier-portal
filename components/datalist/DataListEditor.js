@@ -82,19 +82,11 @@ import { RowFormModal } from '@/components/datalist/RowFormModal';
 import { DataListToolbar, ReadOnlyNotice } from '@/components/datalist/DataListToolbar';
 import { isNestedColumn, useDataList, useDataListLabels } from '@/components/datalist/useDataList';
 import { normalizeLabel, parseClipboardTable, planPaste } from '@/components/datalist/paste';
+import { PAGE_SIZES } from '@/components/datalist/pageSizes';
 
 /** Suggestions asked for when resolving one pasted label. */
 const RESOLVE_PAGE_SIZE = 25;
 
-/**
- * What a supplier may ask to see at once.
- *
- * A nutrient or ingredient list runs to a few hundred rows and is filled in one
- * sitting, from a spreadsheet: paging through it in slices of 25 is the wrong
- * unit of work. The read is server-side and paginated, so a large page costs one
- * bigger response rather than a client-side sort over everything.
- */
-const PAGE_SIZES = [25, 50, 100, 200, 500];
 
 /**
  * Turns the pasted labels of an association column into nodeRefs.
