@@ -79,6 +79,7 @@ import { useMessages } from '@/lib/messages';
 import { DataListRow, FOCUSABLE, SELECT_WIDTH, stickyOffsets } from '@/components/datalist/DataListRow';
 import { DataListCardRow } from '@/components/datalist/DataListCardRow';
 import { RowFormModal } from '@/components/datalist/RowFormModal';
+import { BulkEditModal } from '@/components/datalist/BulkEditModal';
 import { DataListToolbar, ReadOnlyNotice } from '@/components/datalist/DataListToolbar';
 import { isNestedColumn, useDataList, useDataListLabels } from '@/components/datalist/useDataList';
 import { normalizeLabel, parseClipboardTable, planPaste } from '@/components/datalist/paste';
@@ -190,6 +191,7 @@ export function DataListEditor({
     const [selection, setSelection] = useState(() => new Set());
     const [deletingSelection, setDeletingSelection] = useState(false);
     const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
+    const [bulkEditing, setBulkEditing] = useState(false);
     const [savingPaste, setSavingPaste] = useState(false);
     const resolveCache = useRef(new Map());
     const focusedRef = useRef(null);
@@ -742,6 +744,18 @@ export function DataListEditor({
                                 {label('selected', { count: selectedRows.length })}
                             </span>
                             <div className="ml-auto flex flex-wrap items-center gap-1">
+                                {/* Before the reorder and the delete: filling a
+                                    column down a selection is what a supplier
+                                    does often, the rest is occasional. */}
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    icon="edit"
+                                    aria-label={label('bulkEditLong')}
+                                    onClick={() => setBulkEditing(true)}
+                                >
+                                    {label('bulkEdit')}
+                                </Button>
                                 {list.canReorder ? (
                                     <>
                                         <Button
@@ -1079,6 +1093,15 @@ export function DataListEditor({
                 message={label('deleteText')}
                 confirmLabel={t('action.delete')}
             />
+
+            {bulkEditing ? (
+                <BulkEditModal
+                    list={list}
+                    rows={selectedRows}
+                    onClose={() => setBulkEditing(false)}
+                    onApplied={clearSelection}
+                />
+            ) : null}
 
             <ConfirmModal
                 open={confirmBulkDelete}
