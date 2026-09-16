@@ -305,3 +305,7 @@
 
 * InProgress #35846 - [Feature] Fill a selection through beCPG's own bulk save, one transaction instead of one call per row
 * [skip ci][Release]: Bump _VERSION to 0.0.27
+## [ 0.0.28 ] - 2026-09-16 10:54:28
+
+* InProgress #35846 - [Security] Reach Share in the cluster, so its peer check sees the portal and not the load balancer
+* [skip ci][Release]: Bump _VERSION to 0.0.28
