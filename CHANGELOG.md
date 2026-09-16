@@ -301,3 +301,7 @@
 * InProgress #35846 - [Security] Send the Alfresco ticket as a header instead of a query parameter
 * InProgress #35846 - [Security] Mint a Share session through beCPG's endpoint and stop passing the ticket in the query string
 * [skip ci][Release]: Bump _VERSION to 0.0.26
+## [ 0.0.27 ] - 2026-09-16 09:38:48
+
+* InProgress #35846 - [Feature] Fill a selection through beCPG's own bulk save, one transaction instead of one call per row
+* [skip ci][Release]: Bump _VERSION to 0.0.27
