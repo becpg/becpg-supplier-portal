@@ -289,3 +289,15 @@
 
 * InProgress #35846 - [Bug] Offer the three states beCPG declares on a boolean, and make voluntary presence fillable again
 * [skip ci][Release]: Bump _VERSION to 0.0.25
+## [ 0.0.26 ] - 2026-09-16 08:32:36
+
+* InProgress #35846 - [Feature] Set one column on the whole selection, so an empty allergen list is answered once
+* InProgress #35846 - [Feature] Read the cell's portal session secret alongside the portal's own
+* InProgress #35846 - [Feature] Let the development session carry an access token, so the local stack exercises the Share session
+* InProgress #35846 - [Bug] Name the access-denied marker for what it is and close the row it locks
+* InProgress #35846 - [Bug] Send the multilingual field under the name beCPG resolves, so a translated legal name saves
+* InProgress #35846 - [Bug] Stop locking a supplier out of a sheet a task has just opened
+* InProgress #35846 - [Bug] Carry the whole step detail in its tooltip, the rail truncates it
+* InProgress #35846 - [Security] Send the Alfresco ticket as a header instead of a query parameter
+* InProgress #35846 - [Security] Mint a Share session through beCPG's endpoint and stop passing the ticket in the query string
+* [skip ci][Release]: Bump _VERSION to 0.0.26
