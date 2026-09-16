@@ -148,6 +148,8 @@ export const DATALIST_LABELS = {
         bulkDuplicateLong: 'Dupliquer la sélection',
         bulkDelete: 'Supprimer',
         bulkDeleteLong: 'Supprimer la sélection',
+        accessDenied: 'Accès refusé',
+        accessDeniedRow: 'Cette ligne porte une caractéristique que votre compte ne peut pas lire : elle n’est pas modifiable ici.',
         deleteSelectedTitle: 'Supprimer {count} ligne(s) ?',
         deleteSelectedText: 'Ces lignes seront définitivement supprimées de la liste.',
         rowsPerPage: 'Lignes par page',
@@ -241,6 +243,8 @@ export const DATALIST_LABELS = {
         bulkDuplicateLong: 'Duplicate the selection',
         bulkDelete: 'Delete',
         bulkDeleteLong: 'Delete the selection',
+        accessDenied: 'Access refused',
+        accessDeniedRow: 'This row carries a characteristic your account may not read: it cannot be edited here.',
         deleteSelectedTitle: 'Delete {count} row(s)?',
         deleteSelectedText: 'These rows will be permanently removed from the list.',
         rowsPerPage: 'Rows per page',
@@ -792,12 +796,17 @@ export function useDataList(options = {}) {
      * editable, deletable line that no PUT can ever reach (it has no nodeRef).
      * A computed row is not editable because of what it *is*.
      */
+    // `accessDenied`: the repository grants the write, and the grid still declines
+    // it. A row whose characteristic reads « accès interdit » is not a row the
+    // supplier can answer for -- see `normalizeRow`.
     const canEditRow = useCallback(
-        (row) => !readOnly && !isTotalRow(row) && (row.draft || row.permissions?.edit !== false),
+        (row) => !readOnly && !isTotalRow(row) && !row.accessDenied
+            && (row.draft || row.permissions?.edit !== false),
         [readOnly],
     );
     const canDeleteRow = useCallback(
-        (row) => !readOnly && !isTotalRow(row) && (row.draft || row.permissions?.delete !== false),
+        (row) => !readOnly && !isTotalRow(row) && !row.accessDenied
+            && (row.draft || row.permissions?.delete !== false),
         [readOnly],
     );
 
@@ -1148,12 +1157,20 @@ export function useDataList(options = {}) {
             // --- optimistic write ------------------------------------------
             const optimisticValues = { ...row.values };
             const optimisticDisplays = { ...row.displayValues };
+            let touchesAssociation = false;
             for (const [name, value] of Object.entries(changes)) {
                 const column = columnByName.get(name);
                 if (!column) {
                     continue;
                 }
                 optimisticValues[column.formsName] = value;
+                if (column.type === 'association') {
+                    // The picker hands back a nodeRef, and a nodeRef is never
+                    // something to show: the previous label stays on screen until
+                    // the re-read below brings the repository's own.
+                    touchesAssociation = true;
+                    continue;
+                }
                 optimisticDisplays[column.formsName] = localDisplay(value, lang);
             }
             const patch = (entry) => (
@@ -1201,6 +1218,11 @@ export function useDataList(options = {}) {
                     // so the line the user sees is the one the repository holds
                     // (nodeRef, permissions, server-computed display values).
                     setDrafts((previous) => previous.filter((entry) => entry.key !== row.key));
+                    refresh({ silent: true });
+                }
+                else if (touchesAssociation) {
+                    // Not debounced: the cell is showing a label that is now
+                    // wrong, and every tick of the debounce is a tick of it.
                     refresh({ silent: true });
                 }
                 else {

@@ -51,8 +51,9 @@
 
 import { createElement, useCallback, useRef, useState } from 'react';
 import { getControl } from '@/components/form/controls';
+import { StatusPill } from '@/components/ui/StatusPill';
 import { renderDataListCell } from '@/components/datalist/renderers';
-import { isMachineValue, readableInk } from '@/lib/format';
+import { isAccessDeniedDisplay, isMachineValue, readableInk } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { Icon, IconButton, Spinner } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -176,6 +177,15 @@ export function DataListCell({ row, column, list, context, autoFocus = false, la
          * cell renders exactly as it always has. That is what lets a renderer
          * improve one case without owning every case.
          */
+        if (isAccessDeniedDisplay(display)) {
+            // beCPG's marker is a sentence dressed as a value. Say what it is,
+            // in the status vocabulary, and say why the row is locked.
+            return (
+                <span className={valueClass} title={label('accessDeniedRow')}>
+                    <StatusPill status="accessDenied" label={label('accessDenied')} tone="neutral" icon="lock" size="sm" />
+                </span>
+            );
+        }
         const rendered = renderDataListCell({
             value,
             displayValue: display,
