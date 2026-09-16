@@ -47,6 +47,57 @@ function isDevAuthEnabled() {
 }
 
 /**
+ * An access token for a development account, when the local stack has an identity
+ * provider to ask.
+ *
+ * The Share session is minted from the access token and from nothing else
+ * (`lib/shareSession.js`), so a dev session holding a ticket alone resolves the
+ * wizard structure but no field. When `BECPG_DEV_OIDC_TOKEN_URL` names a token
+ * endpoint, the same credentials the ticket was obtained with are traded for a
+ * token through the password grant, and the dev session then exercises exactly
+ * the path production takes. Unset, nothing changes: the ticket-only session.
+ *
+ * Development only, like everything in this branch: the grant is refused under
+ * `NODE_ENV=production` along with `DEV_FAKE_AUTH` itself.
+ *
+ * @param {string} user
+ * @param {string} password
+ * @returns {Promise<string>} the access token, or an empty string
+ */
+async function devAccessToken(user, password) {
+    const tokenUrl = String(process.env.BECPG_DEV_OIDC_TOKEN_URL || '').trim();
+    if (!tokenUrl) {
+        return '';
+    }
+    const form = new URLSearchParams({
+        grant_type: 'password',
+        client_id: process.env.BECPG_DEV_OIDC_CLIENT_ID || '',
+        username: user,
+        password,
+    });
+    if (process.env.BECPG_DEV_OIDC_CLIENT_SECRET) {
+        form.set('client_secret', process.env.BECPG_DEV_OIDC_CLIENT_SECRET);
+    }
+    try {
+        const response = await fetch(tokenUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: form,
+        });
+        if (!response.ok) {
+            console.warn(`[auth] DEV_FAKE_AUTH: the token endpoint answered ${response.status}, session opened with the ticket only`);
+            return '';
+        }
+        const payload = await response.json();
+        return typeof payload.access_token === 'string' ? payload.access_token : '';
+    }
+    catch (error) {
+        console.warn(`[auth] DEV_FAKE_AUTH: token endpoint unreachable (${error.message}), session opened with the ticket only`);
+        return '';
+    }
+}
+
+/**
  * Development accounts that `?devUser=` may select, from `BECPG_DEV_ACCOUNTS`.
  *
  * Format: `label=user:password,label=user:password`. Example
@@ -180,6 +231,7 @@ export async function GET(request) {
                 becpgInstance: tenant.becpgInstance,
                 ticket,
                 ticketExpiry: expiresAt,
+                accessToken: await devAccessToken(user, password),
                 authMode: 'dev',
             });
 
