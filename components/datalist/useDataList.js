@@ -153,13 +153,14 @@ export const DATALIST_LABELS = {
         bulkEdit: 'Modifier',
         bulkEditLong: 'Modifier la sélection',
         bulkEditTitle: 'Modifier {count} ligne(s)',
-        bulkEditDescription: 'La même valeur, sur toutes les lignes sélectionnées.',
-        bulkEditColumn: 'Colonne',
+        bulkEditDescription: 'Les mêmes valeurs, sur toutes les lignes sélectionnées, en une seule écriture.',
+        bulkEditPickFields: 'Champs à remplir',
+        bulkEditSearchField: 'Rechercher un champ',
         bulkEditApply: 'Appliquer à {count} ligne(s)',
         bulkEditCancel: 'Annuler',
-        bulkEditProgress: '{done} / {total}…',
+        bulkEditEmptyClears: 'Un champ coché mais laissé vide efface la valeur sur toutes les lignes.',
         bulkEditSkipped: '{count} ligne(s) de la sélection ne sont pas modifiables et seront laissées telles quelles.',
-        bulkEditFailed: '{count} ligne(s) sur {total} ont été refusées. Leur statut est indiqué à côté de chacune.',
+        bulkEditTooMany: '{count} lignes sélectionnées, le maximum est de {max}. Réduisez la sélection.',
         bulkEditNoColumn: 'Aucune colonne de cette liste ne peut être remplie en série.',
         deleteSelectedTitle: 'Supprimer {count} ligne(s) ?',
         deleteSelectedText: 'Ces lignes seront définitivement supprimées de la liste.',
@@ -259,13 +260,14 @@ export const DATALIST_LABELS = {
         bulkEdit: 'Edit',
         bulkEditLong: 'Edit the selection',
         bulkEditTitle: 'Edit {count} row(s)',
-        bulkEditDescription: 'The same value, on every selected row.',
-        bulkEditColumn: 'Column',
+        bulkEditDescription: 'The same values, on every selected row, in a single write.',
+        bulkEditPickFields: 'Fields to fill in',
+        bulkEditSearchField: 'Search a field',
         bulkEditApply: 'Apply to {count} row(s)',
         bulkEditCancel: 'Cancel',
-        bulkEditProgress: '{done} / {total}…',
+        bulkEditEmptyClears: 'A field ticked but left empty clears the value on every row.',
         bulkEditSkipped: '{count} selected row(s) cannot be edited and will be left as they are.',
-        bulkEditFailed: '{count} row(s) out of {total} were refused. Each one carries its status beside it.',
+        bulkEditTooMany: '{count} rows selected, the maximum is {max}. Narrow the selection.',
         bulkEditNoColumn: 'No column of this list can be filled in series.',
         deleteSelectedTitle: 'Delete {count} row(s)?',
         deleteSelectedText: 'These rows will be permanently removed from the list.',
@@ -1313,6 +1315,60 @@ export function useDataList(options = {}) {
         return commitRow(row);
     }, [setCells, commitRow]);
 
+    /**
+     * The same values on several rows, in ONE request.
+     *
+     * beCPG applies them in a single transaction (`becpg/bulkedit/…/bulksave`),
+     * so this is not a loop over `saveRowValues`: thirty rows are one call that
+     * either lands whole or not at all, which is the gesture the supplier made.
+     *
+     * The rows are re-read afterwards rather than patched here: the repository
+     * may have derived more than what was sent — a formulated column, a state —
+     * and guessing that would put a number on screen nobody wrote.
+     *
+     * @param {Object[]} selection
+     * @param {Object} values
+     * @returns {Promise<Object|null>} the answer, or null when nothing was owed
+     */
+    const bulkEdit = useCallback(
+        async (selection, values) => {
+            const rows = (selection || []).filter(
+                (row) => row && !row.draft && !isTotalRow(row) && row.nodeRef,
+            );
+            if (readOnly || !path || rows.length === 0 || !values || Object.keys(values).length === 0) {
+                return null;
+            }
+
+            const nodeRefs = rows.map((row) => row.nodeRef);
+            rows.forEach((row) => setRowStatus(row.key, { state: ROW_STATUS.SAVING }));
+
+            try {
+                const result = await request(path, {
+                    method: 'POST',
+                    params: paramsRef.current || undefined,
+                    body: { action: 'bulkEdit', nodeRefs, values },
+                });
+                if (!alive.current) {
+                    return result;
+                }
+                const at = new Date().toISOString();
+                rows.forEach((row) => setRowStatus(row.key, { state: ROW_STATUS.SAVED, at }));
+                refresh({ silent: true });
+                return result;
+            }
+            catch (cause) {
+                if (!alive.current) {
+                    return null;
+                }
+                // The whole call failed, so every row failed: saying so on each of
+                // them is what stops a supplier believing part of it went through.
+                rows.forEach((row) => setRowStatus(row.key, { state: ROW_STATUS.ERROR, error: cause }));
+                throw cause;
+            }
+        },
+        [readOnly, path, setRowStatus, refresh],
+    );
+
     const commitAll = useCallback(async () => {
         const keys = Object.keys(dirtyRef.current);
         const byKey = new Map(rowsRef.current.map((row) => [row.key, row]));
@@ -1662,6 +1718,7 @@ export function useDataList(options = {}) {
         setCell,
         setCells,
         saveRowValues,
+        bulkEdit,
         commitRow,
         commitAll,
         discardRow,

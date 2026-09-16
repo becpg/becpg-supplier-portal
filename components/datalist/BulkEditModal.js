@@ -1,55 +1,72 @@
 'use client';
 
 /**
- * Setting ONE column on EVERY selected row, in one gesture.
+ * « Modifier la sélection » — the same values on every selected row.
  *
  * ## Why it exists
  *
  * A supplier who knows a product carries no allergen has fourteen rows to say
- * « non » in, one cell at a time, and the grid gives him no way to say it once
- * (recette du 15/09). The same shape covers « aucune origine biologique », « pas
- * de présence fortuite », a unit repeated down a nutrient list: a column whose
- * value is the same for the whole selection.
+ * « non » in, one cell at a time, and the grid gave him no way to say it once
+ * (recette du 15/09).
  *
- * ## What it deliberately does NOT do
+ * ## It is Share's gesture, deliberately
  *
- * **One column at a time.** A box offering the whole row would be the row editor
- * applied to many rows, and the values a supplier wants to spread are never a
- * whole row — they are the one field he can answer for all of them at once.
+ * `custom-entity-actions.js` does it in two moves and this does the same, because
+ * a supplier who has seen one has seen the other:
  *
- * **It writes through the grid's own path**, `saveRowValues`, so every rule the
- * grid already enforces still holds: a protected column stays locked, a frozen
- * list refuses, a mandatory column still blocks a draft, and a refusal rolls its
- * row back on its own. Nothing here re-implements a write.
+ *   1. **choose the fields** — a checkbox list of the columns that may be filled,
+ *      never the whole form. Share's own comment says why: "a form holding every
+ *      field of the type is unusable", and it deliberately offers no select-all;
+ *   2. **fill them**, then apply.
  *
- * **Row by row, and it says so.** beCPG has no bulk write for datalist items:
- * the honest thing is one request per row with a live count, not a progress bar
- * over a single call that does not exist. Failures are counted and named rather
- * than collapsed into "ça n'a pas marché" — a selection of thirty rows where two
- * are refused must say which two.
+ * The write goes to `becpg/bulkedit/type/{itemType}/bulksave`, the endpoint Share
+ * submits to, which applies the form to every nodeRef **in one transaction**. One
+ * call, not one per row: thirty rows were thirty requests and thirty chances to
+ * stop half-way, for a gesture the supplier reads as a single one.
+ *
+ * ## The ceiling is Share's too
+ *
+ * Fifty rows. Above that Share refuses and says so rather than starting; the
+ * portal keeps the same number so the two behave alike, and because a form
+ * applied to more rows than a supplier can check is not an edit, it is a
+ * find-and-replace on somebody's product sheet.
  */
 
 import { useCallback, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { Field, Select } from '@/components/ui/Field';
+import { Checkbox, SearchInput } from '@/components/ui/Field';
 import { FieldRenderer } from '@/components/form/FieldRenderer';
-import { isNestedColumn, useDataListLabels } from '@/components/datalist/useDataList';
+import { isNestedColumn, isTotalRow, useDataListLabels } from '@/components/datalist/useDataList';
 import { useMessages } from '@/lib/messages';
 
 /**
- * The columns this box may set.
+ * How many rows one gesture may cover. Share's own limit
+ * (`message.too.many.items`), kept identical on purpose.
+ */
+export const BULK_EDIT_MAX_ROWS = 50;
+
+/**
+ * The columns this box may offer.
  *
- * A protected column is excluded on purpose: it takes a per-cell confirmation
- * (spec §6, point 6), and honouring that one row at a time inside a bulk gesture
- * would either bypass the confirmation or ask for it thirty times.
+ * The same filter Share applies when it builds its field chooser
+ * (`_buildFieldPickerItems`): nothing read-only, nothing protected, nothing
+ * hidden, and no nested sub-list — a sub-list is rows, not a value.
+ *
+ * A protected column is excluded rather than locked: its unlock is a per-cell
+ * confirmation (spec §6, point 6), and a gesture covering thirty rows would
+ * either ask thirty times or not at all. The server refuses it too.
  *
  * @param {Object[]} columns the grid's normalised columns
  * @returns {Object[]}
  */
 export function bulkEditableColumns(columns) {
     return (columns || []).filter((column) => (
-        !column.readOnly && !column.protectedField && !isNestedColumn(column)
+        !column.readOnly
+        && !column.protectedField
+        && !isNestedColumn(column)
+        && column.label !== 'hidden'
+        && column.label !== 'datasource'
     ));
 }
 
@@ -58,96 +75,103 @@ export function bulkEditableColumns(columns) {
  * @param {Object} props.list the `useDataList` instance
  * @param {Object[]} props.rows the selected rows
  * @param {Function} props.onClose `() => void`
- * @param {Function} [props.onApplied] `(result) => void`, once the writes settled
- * @returns {JSX.Element|null}
+ * @param {Function} [props.onApplied] `(result) => void`, once the write landed
+ * @returns {JSX.Element}
  */
 export function BulkEditModal({ list, rows, onClose, onApplied }) {
     const { lang } = useMessages();
     const label = useDataListLabels();
 
     const columns = useMemo(() => bulkEditableColumns(list.columns), [list.columns]);
-    const [columnName, setColumnName] = useState(() => (columns[0] ? columns[0].name : ''));
-    const [value, setValue] = useState(null);
-    const [applying, setApplying] = useState(false);
-    const [done, setDone] = useState(0);
-    const [failures, setFailures] = useState([]);
 
-    const column = useMemo(
-        () => columns.find((candidate) => candidate.name === columnName) || null,
-        [columns, columnName],
-    );
-
-    // The rows a write can actually land on. A selection may hold a row the grid
-    // refuses to edit — a computed total, a line whose characteristic the account
-    // may not read — and counting it in would promise a write that never happens.
+    // The rows the write can land on. A selection may hold a draft, a computed
+    // total or a line whose characteristic the account may not read; counting
+    // those in would promise a write that never happens.
     const targets = useMemo(
-        () => (rows || []).filter((row) => list.canEditRow(row)),
+        () => (rows || []).filter((row) => row && !row.draft && !isTotalRow(row) && row.nodeRef && list.canEditRow(row)),
         [rows, list],
     );
     const skipped = (rows || []).length - targets.length;
+    const tooMany = targets.length > BULK_EDIT_MAX_ROWS;
 
-    const pickColumn = useCallback((next) => {
-        setColumnName(next);
-        // The value belongs to the column that was chosen, never to the next one:
-        // a boolean left over from « Est maîtrisé » must not be applied to a text
-        // column because the box was reused without closing it.
-        setValue(null);
-        setFailures([]);
-        setDone(0);
+    const [chosen, setChosen] = useState(() => new Set());
+    const [term, setTerm] = useState('');
+    const [values, setValues] = useState({});
+    const [applying, setApplying] = useState(false);
+    const [error, setError] = useState(null);
+
+    const visible = useMemo(() => {
+        const needle = term.trim().toLowerCase();
+        if (!needle) {
+            return columns;
+        }
+        return columns.filter((column) => String(column.label || column.name).toLowerCase().includes(needle));
+    }, [columns, term]);
+
+    const fields = useMemo(
+        () => columns.filter((column) => chosen.has(column.name)),
+        [columns, chosen],
+    );
+
+    const toggle = useCallback((column, checked) => {
+        setChosen((current) => {
+            const next = new Set(current);
+            if (checked) {
+                next.add(column.name);
+            }
+            else {
+                next.delete(column.name);
+            }
+            return next;
+        });
+        if (!checked) {
+            // A field taken out of the form takes its value with it, otherwise an
+            // unchecked column would still be written.
+            setValues((current) => {
+                const next = { ...current };
+                delete next[column.name];
+                return next;
+            });
+        }
     }, []);
 
     const apply = useCallback(async () => {
-        if (!column || targets.length === 0) {
+        if (fields.length === 0 || targets.length === 0 || tooMany) {
             return;
         }
         setApplying(true);
-        setFailures([]);
-        setDone(0);
-
-        const refused = [];
-        for (const row of targets) {
-            try {
-                const saved = await list.saveRowValues(row, { [column.name]: value });
-                if (!saved) {
-                    // A held-back write, not an exception: `commitRow` answers null
-                    // when it declines (a mandatory column still empty on a draft).
-                    refused.push(row);
-                }
+        setError(null);
+        try {
+            // Every chosen field is sent, including the ones left empty: that is
+            // how a value is CLEARED on the whole selection, and the supplier who
+            // ticked a column and left it blank meant exactly that.
+            const payload = {};
+            for (const field of fields) {
+                payload[field.name] = values[field.name] ?? null;
             }
-            catch {
-                // The row carries its own error state, set by `commitRow`; what is
-                // owed here is the count, so the supplier knows the gesture was
-                // partial rather than reading a silent success.
-                refused.push(row);
-            }
-            setDone((current) => current + 1);
-        }
-
-        setApplying(false);
-        setFailures(refused);
-        if (refused.length === 0) {
+            const result = await list.bulkEdit(targets, payload);
             onClose();
             if (onApplied) {
-                onApplied({ applied: targets.length });
+                onApplied(result);
             }
         }
-    }, [column, targets, value, list, onClose, onApplied]);
-
-    if (columns.length === 0) {
-        return (
-            <Modal open onClose={onClose} title={label('bulkEditTitle', { count: (rows || []).length })} size="md">
-                <p className="text-sm text-[var(--becpg-dark-grey)]">{label('bulkEditNoColumn')}</p>
-            </Modal>
-        );
-    }
+        catch (caught) {
+            // Kept on the box: the supplier is looking at the values that failed,
+            // and closing would take them away.
+            setError(caught);
+        }
+        finally {
+            setApplying(false);
+        }
+    }, [fields, targets, tooMany, values, list, onClose, onApplied]);
 
     return (
         <Modal
             open
-            onClose={applying ? () => {} : onClose}
+            onClose={applying ? NOOP : onClose}
             title={label('bulkEditTitle', { count: targets.length })}
             description={label('bulkEditDescription')}
-            size="md"
+            size="lg"
             footer={(
                 <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={onClose} disabled={applying}>
@@ -157,60 +181,96 @@ export function BulkEditModal({ list, rows, onClose, onApplied }) {
                         variant="primary"
                         icon="edit"
                         loading={applying}
-                        disabled={!column || targets.length === 0}
+                        disabled={fields.length === 0 || targets.length === 0 || tooMany}
                         onClick={apply}
                     >
-                        {applying
-                            ? label('bulkEditProgress', { done, total: targets.length })
-                            : label('bulkEditApply', { count: targets.length })}
+                        {label('bulkEditApply', { count: targets.length })}
                     </Button>
                 </div>
             )}
         >
             <div className="flex flex-col gap-4">
-                <Field label={label('bulkEditColumn')} id="bulk-edit-column">
-                    <Select
-                        id="bulk-edit-column"
-                        value={columnName}
-                        onChange={(event) => pickColumn(event.target.value)}
-                        disabled={applying}
-                    >
-                        {columns.map((candidate) => (
-                            <option key={candidate.name} value={candidate.name}>
-                                {candidate.label || candidate.name}
-                            </option>
-                        ))}
-                    </Select>
-                </Field>
-
-                {column ? (
-                    <FieldRenderer
-                        field={column}
-                        value={value}
-                        onChange={(next) => setValue(next)}
-                        readOnly={applying}
-                        lang={lang}
-                        formId={list.step?.formId || undefined}
-                        itemType={list.itemType}
-                        listId={list.step?.listId || undefined}
-                        entityNodeRef={list.step?.entityNodeRef || undefined}
-                    />
+                {tooMany ? (
+                    <p role="alert" className="text-sm text-[var(--status-danger)]">
+                        {label('bulkEditTooMany', { count: targets.length, max: BULK_EDIT_MAX_ROWS })}
+                    </p>
                 ) : null}
 
-                {/* Said before the click, not after: a selection that holds rows
-                    the grid will not write is the supplier's to know about. */}
+                {/* Step 1 — the fields. */}
+                <div className="flex flex-col gap-2">
+                    <p className="text-sm font-medium text-[var(--becpg-blue)]">
+                        {label('bulkEditPickFields')}
+                    </p>
+                    {columns.length > 8 ? (
+                        <SearchInput
+                            value={term}
+                            onChange={setTerm}
+                            placeholder={label('bulkEditSearchField')}
+                        />
+                    ) : null}
+                    <div className="max-h-44 overflow-y-auto rounded-lg border border-[var(--becpg-grey)] p-2">
+                        {visible.length === 0 ? (
+                            <p className="p-1 text-sm text-[var(--becpg-dark-grey)]">
+                                {label('bulkEditNoColumn')}
+                            </p>
+                        ) : (
+                            <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                                {visible.map((column) => (
+                                    <Checkbox
+                                        key={column.name}
+                                        id={`bulk-field-${column.formsName || column.name}`}
+                                        checked={chosen.has(column.name)}
+                                        onChange={(event) => toggle(column, event.target.checked)}
+                                        label={column.label || column.name}
+                                        disabled={applying}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Step 2 — their values, with the real controls. */}
+                {fields.length > 0 ? (
+                    <div className="flex flex-col gap-3 border-t border-[var(--becpg-grey)] pt-3">
+                        {fields.map((field) => (
+                            <FieldRenderer
+                                key={field.name}
+                                field={field}
+                                value={values[field.name] ?? null}
+                                onChange={(next) => setValues((current) => ({ ...current, [field.name]: next }))}
+                                readOnly={applying}
+                                values={values}
+                                lang={lang}
+                                formId={list.step?.formId || undefined}
+                                itemType={list.itemType}
+                                listId={list.step?.listId || undefined}
+                                entityNodeRef={list.step?.entityNodeRef || undefined}
+                            />
+                        ))}
+                        <p className="text-xs text-[var(--becpg-dark-grey)]">
+                            {label('bulkEditEmptyClears')}
+                        </p>
+                    </div>
+                ) : null}
+
+                {/* Said before the click: a selection holding rows the grid will
+                    not write is the supplier's to know about. */}
                 {skipped > 0 ? (
                     <p className="text-xs text-[var(--becpg-dark-grey)]">
                         {label('bulkEditSkipped', { count: skipped })}
                     </p>
                 ) : null}
 
-                {failures.length > 0 ? (
+                {error ? (
                     <p role="alert" className="text-sm text-[var(--status-danger)]">
-                        {label('bulkEditFailed', { count: failures.length, total: targets.length })}
+                        {error.message}
                     </p>
                 ) : null}
             </div>
         </Modal>
     );
 }
+
+/** `onClose` is called unconditionally by Escape; while applying it must do nothing. */
+const NOOP = () => {};

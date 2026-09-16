@@ -59,6 +59,7 @@ import {
     getWizardState,
     reorderStepRows,
     runNextStepWebScript,
+    bulkEditStepRows,
     saveStep,
     invalidateWizardState,
 } from '@/lib/adapters/wizard';
@@ -233,6 +234,21 @@ export async function POST(request, context) {
                 nextStep = { error: error?.code || 'upstream' };
             }
             const response = NextResponse.json({ nextStep });
+            response.headers.set('Cache-Control', 'no-store');
+            return response;
+        }
+
+        if (body.action === 'bulkEdit') {
+            const state = await getWizardState(entityId, { ...options, session });
+            const result = await bulkEditStepRows(
+                state,
+                stepId,
+                { nodeRefs: body.nodeRefs || body.nodeRef, values: body.values },
+                { ...options, session },
+            );
+            invalidateWizardState(entityId);
+
+            const response = NextResponse.json(result);
             response.headers.set('Cache-Control', 'no-store');
             return response;
         }
