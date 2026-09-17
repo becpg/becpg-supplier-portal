@@ -38,7 +38,7 @@ import { ProductHeader } from '@/components/products/ProductHeader';
 import { ProductSections } from '@/components/products/ProductSections';
 import { ContentLocalesProvider } from '@/components/form/ContentLocalesProvider';
 import { ProductTaskBanner } from '@/components/products/ProductTaskBanner';
-import { useApi } from '@/lib/client';
+import { routeParamId, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
 const LABELS = {
@@ -75,7 +75,8 @@ const LABELS = {
  */
 function ProductScreen() {
     const params = useParams();
-    const id = Array.isArray(params.id) ? params.id[0] : params.id;
+    // Decoded once here, encoded at each call site — see `routeParamId`.
+    const id = routeParamId(params.id);
     const { lang } = useMessages();
     const labels = LABELS[lang] || LABELS.fr;
 
@@ -96,14 +97,14 @@ function ProductScreen() {
         [router, pathname, searchParams],
     );
 
-    const entity = useApi(id ? `entities/${id}` : null);
+    const entity = useApi(id ? `entities/${encodeURIComponent(id)}` : null);
 
     // The wizard state is what the tabs are made of: which sections exist, in
     // which order, under which (already translated) label. It is fetched once,
     // on load; the steps' *data* is not — each panel fetches its own when it is
     // first opened. A failure here is not an error for this page: the sheet
     // degrades to the portal's own sections and the raw attributes.
-    const wizard = useApi(id ? `wizard/${id}` : null);
+    const wizard = useApi(id ? `wizard/${encodeURIComponent(id)}` : null);
 
     if (entity.error) {
         // A 403 and a 404 get the SAME screen on purpose.
