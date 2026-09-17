@@ -209,7 +209,7 @@ function cellText(row, column) {
  * A datalist rendered as a table. Columns come from beCPG with their labels, so
  * nothing is hard-coded — a client who adds a column to `bcpg:plant` sees it.
  */
-function DataListSection({ data, loading, error, onRetry, labels, frozen }) {
+function DataListSection({ data, loading, error, onRetry, labels, frozen, stepId }) {
     const columns = useMemo(() => {
         const declared = (data && data.columns) || [];
         // Six columns is what a laptop shows without a horizontal scroll; the
@@ -251,6 +251,9 @@ function DataListSection({ data, loading, error, onRetry, labels, frozen }) {
                 enablePagination={rows.length > 25}
                 enableFiltering={rows.length > 10}
                 enableColumnVisibility={columns.length > 6}
+                // Per list: two questionnaires or two datalists share no column,
+                // and a choice made on one must not hide a column of the other.
+                storageKey={stepId ? `company.${stepId}` : null}
                 initialColumnVisibility={columns.slice(6).reduce(
                     (accumulator, column) => ({ ...accumulator, [column.id]: false }),
                     {},
@@ -662,6 +665,7 @@ export default function CompanyPage() {
                     ) : active && active.key === 'specs' ? (
                         <SpecPanel
                             specifications={(specs.data && specs.data.specifications) || []}
+                            unreadable={(specs.data && specs.data.unreadable) || 0}
                             loading={specs.loading}
                             error={specs.error}
                             onRetry={specs.refresh}
@@ -691,6 +695,7 @@ export default function CompanyPage() {
                     ) : active && activeStep ? (
                         <DataListSection
                             key={activeStep.id}
+                            stepId={activeStep.id}
                             data={stepData.data}
                             loading={stepData.loading}
                             error={stepData.error}

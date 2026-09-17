@@ -105,6 +105,7 @@ export default function SpecsPage() {
 
             <SpecPanel
                 specifications={specifications}
+                unreadable={(call.data && call.data.unreadable) || 0}
                 variant="list"
                 title={null}
                 loading={call.loading}

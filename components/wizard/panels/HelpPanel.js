@@ -46,6 +46,7 @@ const LABELS = {
         suggestions: 'Suggestions de l’IA',
         specs: 'Cahiers des charges',
         specsEmpty: 'Aucun cahier des charges rattaché à cette fiche.',
+        specsUnreadable: 'Un cahier des charges est rattaché à cette fiche, mais votre compte n’y a pas accès.',
         refusals: 'Refus précédents',
         refusalsEmpty: 'Aucun refus sur cette fiche.',
         refusalsHint: 'Ces étapes vous ont été renvoyées : relisez la remarque associée avant de renvoyer.',
@@ -58,6 +59,7 @@ const LABELS = {
         suggestions: 'AI suggestions',
         specs: 'Specifications',
         specsEmpty: 'No specification attached to this sheet.',
+        specsUnreadable: 'A specification is attached to this sheet, but your account cannot open it.',
         refusals: 'Previous rejections',
         refusalsEmpty: 'No rejection on this sheet.',
         refusalsHint: 'These steps were sent back to you: read the associated remark before sending again.',
@@ -247,7 +249,13 @@ export function HelpPanel({
                 {specs.loading ? (
                     <SkeletonText lines={2} />
                 ) : specifications.length === 0 ? (
-                    <p className="text-sm text-[var(--becpg-dark-grey)]">{labels.specsEmpty}</p>
+                    /* An unreadable specification is one the customer DOES apply:
+                       saying so is not the same message as "none attached". */
+                    <p className="text-sm text-[var(--becpg-dark-grey)]">
+                        {(specs.data && specs.data.unreadable) > 0
+                            ? labels.specsUnreadable
+                            : labels.specsEmpty}
+                    </p>
                 ) : (
                     <SpecPanel
                         specifications={specifications}
@@ -336,7 +344,7 @@ export function HelpPanel({
         /* No subtitle: « Ce que votre client attend, et ce qui est déjà acté »
            described the panel to someone already reading it, and cost two lines
            at the top of a 320px column. The section headers say what is inside. */
-        <Card title={labels.title} icon="lightbulb" padding="md" className={className}>
+        <Card title={labels.title} icon="auto_awesome" padding="md" className={className}>
             {content}
         </Card>
     );

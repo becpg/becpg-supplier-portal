@@ -47,6 +47,7 @@ const LABELS = {
         noResult: 'Aucun cahier des charges ne correspond à cette recherche',
         count: '{count} document(s)',
         readFirst: 'À lire avant de saisir',
+        unreadable: '{count} cahier(s) des charges appliqué(s) à vos produits ne sont pas accessibles avec votre compte. Demandez l’accès à votre client.',
     },
     en: {
         title: 'Specifications',
@@ -64,6 +65,7 @@ const LABELS = {
         noResult: 'No specification matches this search',
         count: '{count} document(s)',
         readFirst: 'Read before filling in',
+        unreadable: '{count} specification(s) apply to your products but your account cannot open them. Ask your customer for access.',
     },
 };
 
@@ -240,10 +242,13 @@ function SpecRow({ specification, variant, index = 0 }) {
  * @param {React.ReactNode} [props.subtitle]
  * @param {boolean} [props.searchable] renders the search box (defaults to `variant === 'list'`)
  * @param {React.ReactNode} [props.emptyMessage]
+ * @param {number} [props.unreadable=0] specifications the account may not open —
+ *        the API counts them rather than dropping them silently
  * @param {React.ReactNode} [props.footer]
  */
 export function SpecPanel({
     specifications,
+    unreadable = 0,
     variant = 'list',
     loading = false,
     error = null,
@@ -304,12 +309,22 @@ export function SpecPanel({
         body = <SkeletonList rows={panel ? 2 : 4} />;
     }
     else if (list.length === 0) {
+        /*
+         * "None" and "none you may read" are two different answers, and the
+         * second one is what a supplier actually hits: the association names a
+         * specification whose own ACL refuses the account, so the list came back
+         * empty and the screen blamed the customer for applying nothing.
+         */
         body = (
             <EmptyState
                 variant={query ? 'search' : 'empty'}
                 icon="menu_book"
                 title={query ? labels.noResult : labels.none}
-                message={query ? undefined : emptyMessage || labels.noneHint}
+                message={query
+                    ? undefined
+                    : (unreadable > 0
+                        ? fill(labels.unreadable, { count: unreadable })
+                        : emptyMessage || labels.noneHint)}
                 compact={panel}
             />
         );
