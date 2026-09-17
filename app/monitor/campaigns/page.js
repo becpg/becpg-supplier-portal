@@ -54,7 +54,6 @@ const LABELS = {
         title: 'Campagnes',
         subtitle:
             'Projets de référencement et de renouvellement ouverts. Sélectionnez des campagnes pour relancer ou escalader leurs fournisseurs.',
-        refresh: 'Rafraîchir',
         stats: {
             open: 'Campagnes ouvertes',
             openState: 'Campagnes · {state}',
@@ -103,7 +102,6 @@ const LABELS = {
         title: 'Campaigns',
         subtitle:
             'Open referencing and renewal projects. Select campaigns to remind or escalate their suppliers.',
-        refresh: 'Refresh',
         stats: {
             open: 'Open campaigns',
             openState: 'Campaigns · {state}',
@@ -266,14 +264,6 @@ export default function MonitorCampaignsPage() {
                     >
                         {labels.startCampaign}
                     </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        icon="refresh"
-                        label={labels.refresh}
-                        loading={campaigns.loading}
-                        onClick={campaigns.refresh}
-                    />
                 </div>
             }
         >

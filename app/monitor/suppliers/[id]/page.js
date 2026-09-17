@@ -50,13 +50,12 @@ import {
 import { SupplierScorecard } from '@/components/monitor/SupplierScorecard';
 import { StartCampaignDialog } from '@/components/monitor/StartCampaignDialog';
 import { useToast } from '@/components/providers/ToastProvider';
-import { api, apiUrl, useApi } from '@/lib/client';
+import { api, apiUrl, routeParamId, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
 const LABELS = {
     fr: {
         back: 'Fournisseurs',
-        refresh: 'Rafraîchir',
         startCampaign: 'Démarrer une campagne',
         notFound: 'Fournisseur introuvable',
         notFoundHint:
@@ -96,6 +95,8 @@ const LABELS = {
             title: 'Produits liés',
             subtitle: 'Entités rattachées au fournisseur',
             empty: 'Aucun produit rattaché',
+            emptyHint:
+                'Seuls les produits classés sous le fournisseur, ou rattachés à un de ses projets ou documents, sont trouvables : une entité liée par « Fournisseurs » et rangée ailleurs n’est pas indexée par Alfresco.',
         },
         subSuppliers: {
             title: 'Sous-fournisseurs',
@@ -111,7 +112,6 @@ const LABELS = {
         },
         activity: {
             title: 'Historique des échanges',
-            subtitle: 'Activité et fil de discussion — la même source que Share',
             empty: 'Aucun échange enregistré',
             message: 'Message',
             activity: 'Activité',
@@ -145,7 +145,6 @@ const LABELS = {
     },
     en: {
         back: 'Suppliers',
-        refresh: 'Refresh',
         startCampaign: 'Start a campaign',
         notFound: 'Supplier not found',
         notFoundHint:
@@ -185,6 +184,8 @@ const LABELS = {
             title: 'Linked products',
             subtitle: 'Entities attached to the supplier',
             empty: 'No linked product',
+            emptyHint:
+                'Only products filed under the supplier, or attached to one of its projects or documents, can be found: an entity linked by "Suppliers" and filed elsewhere is not indexed by Alfresco.',
         },
         subSuppliers: {
             title: 'Sub-suppliers',
@@ -200,7 +201,6 @@ const LABELS = {
         },
         activity: {
             title: 'Exchange history',
-            subtitle: 'Activity and the discussion thread — the source Share uses',
             empty: 'No exchange recorded',
             message: 'Message',
             activity: 'Activity',
@@ -465,7 +465,8 @@ export default function MonitorSupplierSheetPage() {
     const { lang, t } = useMessages();
     const local = LABELS[lang] || LABELS.fr;
     const params = useParams();
-    const id = Array.isArray(params.id) ? params.id[0] : params.id;
+    // Decoded once here, encoded at each call site — see `routeParamId`.
+    const id = routeParamId(params.id);
 
     const sheet = useApi(id ? `monitor/suppliers/${encodeURIComponent(id)}` : null);
     const data = sheet.data;
@@ -539,14 +540,6 @@ export default function MonitorSupplierSheetPage() {
                             {local.startCampaign}
                         </Button>
                     ) : null}
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        icon="refresh"
-                        label={local.refresh}
-                        loading={sheet.loading}
-                        onClick={sheet.refresh}
-                    />
                 </div>
             }
         >
@@ -849,7 +842,16 @@ export default function MonitorSupplierSheetPage() {
                             index={0}
                         >
                             {data.products.length === 0 ? (
-                                <EmptyState compact title={local.products.empty} />
+                                /* An empty block used to read as "this supplier
+                                   has no product", which is not what the query
+                                   can answer — see `productScope`. */
+                                <EmptyState
+                                    compact
+                                    title={local.products.empty}
+                                    message={((data.productScope || {}).unsupported || []).length > 0
+                                        ? local.products.emptyHint
+                                        : undefined}
+                                />
                             ) : (
                                 <ul className="flex flex-col gap-2">
                                     {data.products.map((product) => (
@@ -981,12 +983,10 @@ export default function MonitorSupplierSheetPage() {
                             )}
                         </Card>
 
-                        <Card
-                            title={local.activity.title}
-                            subtitle={local.activity.subtitle}
-                            icon="history"
-                            index={1}
-                        >
+                        {/* No subtitle: naming the source ("the same one Share
+                            reads") described the plumbing to a reader who only
+                            wants the exchanges. */}
+                        <Card title={local.activity.title} icon="history" index={1}>
                             {data.activity.length === 0 ? (
                                 <EmptyState compact title={local.activity.empty} />
                             ) : (

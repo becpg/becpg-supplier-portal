@@ -66,7 +66,6 @@ const LABELS = {
         title: 'Non-conformités',
         subtitle:
             'NC fournisseur, délai de traitement et avancement des actions correctives. Sélectionnez des NC pour relancer, escalader ou suspendre les fournisseurs concernés.',
-        refresh: 'Rafraîchir',
         stats: {
             open: 'NC ouvertes',
             blocking: 'Bloquantes',
@@ -118,7 +117,6 @@ const LABELS = {
         title: 'Non-conformities',
         subtitle:
             'Supplier NCs, processing delay and corrective-action progress. Select NCs to remind, escalate or suspend the suppliers concerned.',
-        refresh: 'Refresh',
         stats: {
             open: 'Open NCs',
             blocking: 'Blocking',
@@ -278,15 +276,6 @@ export default function MonitorQualityPage() {
             fullWidth
             space="monitor"
             title={labels.title}
-            actions={
-                <Button
-                    variant="outline"
-                    size="sm"
-                    icon="refresh"
-                    label={labels.refresh}
-                    onClick={quality.refresh}
-                />
-            }
         >
             <p className="mb-4 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
 

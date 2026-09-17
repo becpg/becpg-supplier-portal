@@ -40,13 +40,12 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { CommentsPanel } from '@/components/wizard/panels/CommentsPanel';
 import { projectStateLabel } from '@/components/monitor/CampaignList';
 import { formatDate } from '@/lib/format';
-import { useApi } from '@/lib/client';
+import { routeParamId, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 
 const LABELS = {
     fr: {
         back: 'Campagnes',
-        refresh: 'Rafraîchir',
         notFound: 'Campagne introuvable',
         notFoundHint:
             'Cette campagne n’existe pas, n’est pas une campagne fournisseur, ou elle est hors de votre périmètre.',
@@ -80,7 +79,6 @@ const LABELS = {
     },
     en: {
         back: 'Campaigns',
-        refresh: 'Refresh',
         notFound: 'Campaign not found',
         notFoundHint:
             'This campaign does not exist, is not a supplier campaign, or is outside your perimeter.',
@@ -124,7 +122,8 @@ function fill(template, vars) {
  */
 export default function CampaignPage() {
     const params = useParams();
-    const id = Array.isArray(params.id) ? params.id[0] : params.id;
+    // Decoded once here, encoded at each call site — see `routeParamId`.
+    const id = routeParamId(params.id);
     const { lang } = useMessages();
     const labels = LABELS[lang] || LABELS.fr;
 
@@ -188,15 +187,6 @@ export default function CampaignPage() {
                     <>
                         <Button variant="ghost" size="sm" icon="arrow_back" href="/monitor/campaigns">
                             {labels.back}
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            icon="refresh"
-                            loading={call.loading}
-                            onClick={call.refresh}
-                        >
-                            {labels.refresh}
                         </Button>
                     </>
                 }

@@ -53,7 +53,6 @@ const LABELS = {
         allStatuses: 'Tous les statuts',
         mandatoryOnly: 'Documents obligatoires uniquement',
         export: 'Exporter (CSV)',
-        refresh: 'Rafraîchir',
         stats: {
             suppliers: 'Fournisseurs',
             missing: 'Manquants',
@@ -99,7 +98,6 @@ const LABELS = {
         allStatuses: 'All statuses',
         mandatoryOnly: 'Mandatory documents only',
         export: 'Export (CSV)',
-        refresh: 'Refresh',
         stats: {
             suppliers: 'Suppliers',
             missing: 'Missing',
@@ -275,14 +273,6 @@ export default function MonitorDocumentsPage() {
             title={labels.title}
             actions={
                 <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        icon="refresh"
-                        label={labels.refresh}
-                        loading={matrix.loading}
-                    onClick={matrix.refresh}
-                    />
                     <Button variant="secondary" size="sm" icon="download" onClick={exportCsv}>
                         <span className="hidden sm:inline">{labels.export}</span>
                     </Button>
