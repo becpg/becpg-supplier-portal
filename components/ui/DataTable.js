@@ -97,6 +97,62 @@ function alignClass(meta) {
     return '';
 }
 
+/** Prefix of the per-viewer column choice in `localStorage`. */
+const COLUMN_VISIBILITY_PREFIX = 'becpg.portal.columns.';
+
+/**
+ * The visible columns, remembered for this viewer when the table is named.
+ *
+ * A column picked on a park of two hundred suppliers is a reading habit, not a
+ * shared decision: it belongs to the browser, like the wizard's "élargir la
+ * saisie". Without a `storageKey` the state is plain React state, so a table
+ * that has not asked for it behaves exactly as before.
+ *
+ * Storage may throw or come back empty (private window, cleared site data), so
+ * every access is guarded and the table renders from `fallback` — never from a
+ * broken read.
+ *
+ * @param {string|null} key table name, or null for no persistence
+ * @param {Object} fallback `{ columnId: false }` the table asked for
+ * @returns {[Object, Function]} as `useState`
+ */
+function useStoredColumnVisibility(key, fallback) {
+    const [value, setValue] = useState(() => {
+        if (!key || typeof window === 'undefined') {
+            return fallback;
+        }
+        try {
+            const stored = window.localStorage.getItem(`${COLUMN_VISIBILITY_PREFIX}${key}`);
+            const parsed = stored ? JSON.parse(stored) : null;
+            return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : fallback;
+        }
+        catch {
+            return fallback;
+        }
+    });
+
+    const update = useCallback((next) => {
+        setValue((current) => {
+            const resolved = typeof next === 'function' ? next(current) : next;
+            if (key) {
+                try {
+                    window.localStorage.setItem(
+                        `${COLUMN_VISIBILITY_PREFIX}${key}`,
+                        JSON.stringify(resolved),
+                    );
+                }
+                catch {
+                    // No storage: the choice still applies, it just does not
+                    // survive the reload.
+                }
+            }
+            return resolved;
+        });
+    }, [key]);
+
+    return [value, update];
+}
+
 /** Injected column when `enableRowSelection` is on. */
 function selectionColumn(selectAllLabel, selectRowLabel) {
     return {
@@ -155,6 +211,8 @@ function selectionColumn(selectAllLabel, selectRowLabel) {
  * @param {Array<number>} [props.pageSizeOptions]
  * @param {Array<{id: string, desc: boolean}>} [props.initialSorting]
  * @param {Object} [props.initialColumnVisibility] `{ columnId: false }`
+ * @param {string} [props.storageKey] remembers the visible columns for this
+ *        viewer, under this key — see {@link useStoredColumnVisibility}
  * @param {Function} [props.onRowClick] `(row.original) => void`
  * @param {Function} [props.rowHref] `(row.original) => string` — makes a row/card a link
  * @param {React.ReactNode} [props.toolbar] extra filters, rendered next to the search box
@@ -183,6 +241,7 @@ export function DataTable({
     pageSizeOptions = PAGE_SIZES,
     initialSorting = [],
     initialColumnVisibility = {},
+    storageKey = null,
     onRowClick,
     rowHref,
     toolbar,
@@ -199,7 +258,10 @@ export function DataTable({
     const router = useRouter();
     const [sorting, setSorting] = useState(initialSorting);
     const [globalFilter, setGlobalFilter] = useState('');
-    const [columnVisibility, setColumnVisibility] = useState(initialColumnVisibility);
+    const [columnVisibility, setColumnVisibility] = useStoredColumnVisibility(
+        storageKey,
+        initialColumnVisibility,
+    );
     const [internalSelection, setInternalSelection] = useState({});
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize });
     const [columnsOpen, setColumnsOpen] = useState(false);

@@ -761,6 +761,7 @@ export function NonConformityList({
                 rowSelection={rowSelection}
                 onRowSelectionChange={onRowSelectionChange}
                 enableColumnVisibility
+                storageKey="monitor.nonconformities"
                 enablePagination={enablePagination}
                 initialSorting={[{ id: 'delay', desc: true }]}
                 initialColumnVisibility={{ cost: false }}

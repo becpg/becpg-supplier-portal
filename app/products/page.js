@@ -343,6 +343,7 @@ export default function ProductsPage() {
                 initialSorting={[{ id: 'modified', desc: true }]}
                 initialColumnVisibility={{ project: false }}
                 enableColumnVisibility
+                storageKey="products"
                 pageSize={25}
                 emptyState={
                     <EmptyState

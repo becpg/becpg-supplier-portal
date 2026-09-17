@@ -701,6 +701,7 @@ export function SupplierTable({
                 rowSelection={selection}
                 onRowSelectionChange={onSelectionChange}
                 enableColumnVisibility
+                storageKey={`monitor.suppliers.${(profile && profile.id) || 'default'}`}
                 initialColumnVisibility={initialColumnVisibility}
                 initialSorting={initialSorting}
                 pageSize={pageSize}

@@ -544,6 +544,7 @@ function TasksScreen() {
                 rowHref={(task) => task.href || `/tasks/${task.uuid}`}
                 initialSorting={[{ id: 'dueDate', desc: false }]}
                 enableColumnVisibility
+                storageKey="tasks"
                 pageSize={25}
                 searchPlaceholder={local.search}
                 caption={local.caption}

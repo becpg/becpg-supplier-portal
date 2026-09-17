@@ -487,6 +487,7 @@ export function CampaignList({
             rowSelection={rowSelection}
             onRowSelectionChange={onRowSelectionChange}
             enableColumnVisibility
+            storageKey="monitor.campaigns"
             enablePagination={enablePagination}
             initialSorting={[{ id: 'due', desc: false }]}
             searchPlaceholder={labels.search}
