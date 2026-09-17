@@ -66,6 +66,8 @@ const LABELS = {
         anchor: 'Lien vers cette rubrique',
         anchorCopied: 'Lien copié',
         goTo: 'Aller à',
+        monitorNotice:
+            'Cette aide décrit la vue fournisseur : les écrans que voient vos fournisseurs, et « votre client » y désigne votre entreprise. L’espace Pilotage n’est pas encore documenté.',
     },
     en: {
         title: 'Help',
@@ -80,6 +82,8 @@ const LABELS = {
         anchor: 'Link to this topic',
         anchorCopied: 'Link copied',
         goTo: 'Go to',
+        monitorNotice:
+            'This help describes the supplier view: the screens your suppliers see, where "your customer" means your own company. The monitoring space is not documented yet.',
     },
 };
 
@@ -1172,6 +1176,21 @@ export default function HelpPage() {
                     </div>
                 </div>
             </div>
+
+            {/*
+             * An internal account reads the same page, and every sentence of it
+             * is written from the supplier's chair — « une tâche vient de votre
+             * client » says the opposite of the truth to the customer. Until the
+             * monitoring space has its own topics, the page says whose view it
+             * describes rather than leaving the reader to work it out.
+             */}
+            {session.capabilities && session.capabilities.canMonitor
+                && !session.capabilities.isExternalUser ? (
+                <p className="mb-3 flex items-start gap-2 rounded-lg bg-[var(--status-info-bg)] px-3 py-2 text-xs text-[var(--status-info)]">
+                    <Icon name="info" size={16} className="mt-0.5 shrink-0" />
+                    <span>{local.monitorNotice}</span>
+                </p>
+            ) : null}
 
             <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <div className="min-w-0 flex-1">

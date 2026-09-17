@@ -79,18 +79,18 @@ const LABELS = {
         history: 'Évolution',
         historyUnavailable: 'Historique indisponible',
         historyWhy:
-            'Sans cube OLAP, beCPG ne conserve aucun instantané des statuts d’agrément ni des scores passés : le portail n’affiche donc pas de courbe plutôt qu’une courbe inventée.',
+            'Suivre les agréments et les scores dans le temps demande le module décisionnel (BI) de beCPG, qui n’est pas activé sur cette instance.',
         historyWhyBy: {
             supplierAxisUnavailable:
-                'Le cube répond, mais il n’expose pas d’axe fournisseur : impossible d’isoler l’historique de CE fournisseur. Il faut ajouter la dimension fournisseur au cube (schéma OLAP de beCPG), puis recharger le schéma côté serveur OLAP.',
+                'Le module décisionnel est actif mais ne distingue pas encore les fournisseurs : l’axe fournisseur reste à ajouter au cube, puis le schéma à recharger.',
             supplierUnresolved:
-                'Ce fournisseur n’a pas pu être retrouvé dans le cube — son code n’y figure pas encore. Une reconstruction du cube le fera apparaître.',
+                'Ce fournisseur ne figure pas encore dans le module décisionnel : il apparaîtra à la prochaine reconstruction.',
             noData:
-                'Le cube répond et connaît ce fournisseur, mais il ne contient encore aucun point sur la période : l’historique se remplira aux prochaines alimentations.',
+                'Le module décisionnel connaît ce fournisseur mais n’a encore aucun point sur la période : l’historique se remplira aux prochaines alimentations.',
             unknownQuery:
-                'La série demandée n’existe pas dans le catalogue de requêtes du portail — c’est un défaut de configuration, pas une absence de données.',
+                'La série demandée n’est pas déclarée dans le portail : c’est un défaut de configuration, pas une absence de données.',
         },
-        historyNeeds: 'Ce qu’il faut côté OLAP pour l’activer',
+        historyNeeds: 'Ce qu’il faut côté décisionnel pour l’activer',
         dimensions: 'Dimensions',
         measures: 'Mesures',
         statusPartial: 'partiel',
@@ -122,18 +122,18 @@ const LABELS = {
         history: 'Trend',
         historyUnavailable: 'History unavailable',
         historyWhy:
-            'Without an OLAP cube, beCPG keeps no snapshot of past approval statuses or scores: the portal shows no curve rather than an invented one.',
+            'Following approvals and scores over time needs beCPG’s business-intelligence (BI) module, which is not enabled on this instance.',
         historyWhyBy: {
             supplierAxisUnavailable:
-                'The cube answers, but exposes no supplier axis, so this supplier’s own history cannot be isolated. The supplier dimension has to be added to the cube (beCPG’s OLAP schema) and the schema reloaded on the OLAP server.',
+                'The BI module is live but does not tell suppliers apart yet: the supplier axis has to be added to the cube and the schema reloaded.',
             supplierUnresolved:
-                'This supplier could not be found in the cube — its code is not there yet. Rebuilding the cube will bring it in.',
+                'This supplier is not in the BI module yet: it will appear on the next rebuild.',
             noData:
-                'The cube answers and knows this supplier, but holds no point for the period yet: the history fills in as the cube is fed.',
+                'The BI module knows this supplier but holds no point for the period yet: the history fills in as it is fed.',
             unknownQuery:
-                'The requested series is not in the portal’s query catalogue — a configuration defect, not missing data.',
+                'The requested series is not declared in the portal: a configuration defect, not missing data.',
         },
-        historyNeeds: 'What the OLAP side needs to enable it',
+        historyNeeds: 'What the BI side needs to enable it',
         dimensions: 'Dimensions',
         measures: 'Measures',
         statusPartial: 'partial',

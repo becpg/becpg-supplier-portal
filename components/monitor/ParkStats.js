@@ -121,6 +121,18 @@ const LABELS = {
              * tile says so instead of letting the filter take credit for them.
              */
             notParkScoped: 'tout le parc fournisseur (filtre non applicable)',
+            /*
+             * WHY A COUNTER CAN READ 0 WHILE THE INSTANCE HOLDS SOME.
+             *
+             * A campaign and an NC are only counted when they are marked as
+             * concerning a supplier (`bcpg:suppliersAspect`): without that
+             * restriction the tile would count every project and every NC of the
+             * instance, R&D and production included. An NC opened on a product or
+             * on a batch, or a project created outside the supplier templates,
+             * carries no such mark and is therefore out — which is a reading of
+             * the data, not a missing number, so the tile says it.
+             */
+            supplierLinkedOnly: 'rattachées à un fournisseur uniquement',
             expiring: 'documents · {d60} à 60 j, {d90} à 90 j',
             campaigns: 'en cours · {rate} % de réponse, {late} en retard',
             campaignsNoRate: 'en cours · taux de réponse sans objet, {late} en retard',
@@ -183,6 +195,8 @@ const LABELS = {
             },
             /* See the note on the French `notParkScoped`. */
             notParkScoped: 'whole supplier park (filter not applicable)',
+            /* See the note on the French `supplierLinkedOnly`. */
+            supplierLinkedOnly: 'the ones linked to a supplier only',
             expiring: 'documents · {d60} at 60 d, {d90} at 90 d',
             campaigns: 'open · {rate} % answered, {late} late',
             campaignsNoRate: 'open · no response rate to compute, {late} late',
@@ -301,6 +315,15 @@ function buildTiles(overview, local, query, lang) {
      */
     const withScope = (block, hint) =>
         (block.parkScoped === false ? `${hint} · ${local.hints.notParkScoped}` : hint);
+    /*
+     * The supplier restriction the campaign and NC counters ran under, said on
+     * the tile: 0 then means "none linked to a supplier", never "none at all".
+     */
+    const supplierScope = overview.supplierScope || {};
+    const withSupplierMark = (type, hint) =>
+        (supplierScope.applied && (supplierScope.appliesTo || []).includes(type)
+            ? `${hint} · ${local.hints.supplierLinkedOnly}`
+            : hint);
 
     return [
         {
@@ -398,13 +421,13 @@ function buildTiles(overview, local, query, lang) {
             approx: campaigns.exact === false,
             // `responseRate: null` means "no campaign to answer", not 0 % and not
             // 100 %: the API refuses to score an empty set (defect L1's rule).
-            hint: withScope(campaigns, campaigns.responseRate === null
+            hint: withSupplierMark('pjt:project', withScope(campaigns, campaigns.responseRate === null
                 || campaigns.responseRate === undefined
                 ? interpolate(local.hints.campaignsNoRate, { late: campaigns.late || 0 })
                 : interpolate(local.hints.campaigns, {
                     rate: campaigns.responseRate,
                     late: campaigns.late || 0,
-                })),
+                }))),
             href: `/monitor/campaigns${suffix}`,
         },
         {
@@ -424,7 +447,7 @@ function buildTiles(overview, local, query, lang) {
             icon: 'report_problem',
             tone: (nc.blocking || 0) > 0 ? 'danger' : (nc.open || 0) > 0 ? 'warn' : 'ok',
             approx: nc.exact === false,
-            hint: withScope(nc, interpolate(local.hints.nc, { blocking: nc.blocking || 0 })),
+            hint: withSupplierMark('qa:nc', withScope(nc, interpolate(local.hints.nc, { blocking: nc.blocking || 0 }))),
             href: `/monitor/quality${suffix}`,
         },
     ];
