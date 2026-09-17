@@ -173,7 +173,15 @@ export default async function LoginPage({ searchParams }) {
         <main className="brand-hero relative flex min-h-dvh flex-col overflow-hidden">
             {selected && selected.isTest ? (
                 <div className="test-banner" role="status">
-                    <span className="test-banner-text">{text.testNotice}</span>
+                    <span className="test-banner-text">
+                        {/* The server page cannot import the client `Icon`; the
+                            glyph is the same one `TestBanner` uses, and the
+                            `.test-banner-text` rule colours both. */}
+                        <span className="material-icons" style={{ fontSize: 14 }} aria-hidden="true">
+                            science
+                        </span>
+                        {text.testNotice}
+                    </span>
                 </div>
             ) : null}
 

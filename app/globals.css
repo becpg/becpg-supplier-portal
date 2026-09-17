@@ -286,17 +286,30 @@
   /*
    * Non-production banner.
    *
-   * It used to be amber (#ffb200 / #ffcf3d) — two hues that exist nowhere in
-   * the beCPG palette, which is exactly what made it look bolted on. It is now
-   * the brand orange, striped with a plain black overlay (same hue, darker) so
-   * no new colour enters the system, and the sentence sits on a white chip
-   * because #ff642d cannot carry 12px text at AA.
+   * Two designs were wrong before this one, for the same reason: they tried to
+   * be *loud* rather than *clear*. Amber (#ffb200) first — a hue the palette
+   * does not contain, so it read as bolted on — then a full-width orange hazard
+   * strip with moving black stripes, which is the visual language of road works
+   * and which shouts at a supplier on every screen, all day, about a condition
+   * that never changes.
+   *
+   * A permanent notice earns its permanence by being quiet. So: a pale wash of
+   * the brand orange (the same hue, 8 % over white — no new colour), the
+   * sentence in `--becpg-blue` at ordinary weight, and ONE saturated element —
+   * a 2px orange rule along the bottom, the line that separates it from the
+   * blue toolbar underneath. Nothing animates, nothing is uppercase, nothing
+   * blinks: it is read once and then trusted, and it is still the first thing on
+   * the page.
+   *
+   * `--becpg-orange-deep` for the icon rather than `--becpg-orange`: 4.9:1 on
+   * this wash against 2.6:1, and an icon that small is text for the purpose of
+   * contrast.
    */
-  --test-banner-surface: var(--becpg-orange);
-  --test-banner-stripe: rgba(0, 0, 0, 0.16);
-  --test-banner-chip: #ffffff;
+  --test-banner-surface: #fff2ec;
+  --test-banner-rule: var(--becpg-orange);
+  --test-banner-icon: var(--becpg-orange-deep);
   --test-banner-color: var(--becpg-blue);
-  --test-banner-height: 24px;
+  --test-banner-height: 26px;
 
   /* Skeleton shimmer */
   --skeleton-base: #e8eef0;
@@ -396,15 +409,6 @@ body {
 }
 
 /* One full stripe period (`background-size: 40px`), so the loop is seamless. */
-@keyframes test-banner-scroll {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 40px 0;
-  }
-}
-
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out;
 }
@@ -943,33 +947,28 @@ body {
   justify-content: center;
   gap: 0.5rem;
   min-height: var(--test-banner-height);
-  padding: 0.1875rem 0.75rem;
+  padding: 0.25rem 0.75rem;
   color: var(--test-banner-color);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.2;
   text-align: center;
   background-color: var(--test-banner-surface);
-  background-image: repeating-linear-gradient(
-    -45deg,
-    var(--test-banner-stripe) 0,
-    var(--test-banner-stripe) 10px,
-    transparent 10px,
-    transparent 20px
-  );
-  background-size: 40px 100%;
-  animation: test-banner-scroll 3s linear infinite;
+  border-bottom: 2px solid var(--test-banner-rule);
   user-select: none;
 }
 
+/* No chip any more: the wash carries 12px text at 13:1, so the sentence sits
+   straight on it. Kept as an element because the icon rides with it. */
 .test-banner-text {
   display: inline-flex;
   align-items: center;
-  padding: 0.0625rem 0.5rem;
-  background: var(--test-banner-chip);
-  border-radius: 9999px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  gap: 0.375rem;
+}
+
+.test-banner-text .material-icons-outlined,
+.test-banner-text .material-icons {
+  color: var(--test-banner-icon);
 }
 
 /* Compact form for a sticky corner badge on small screens */
@@ -979,18 +978,10 @@ body {
   padding: 0.125rem 0.5rem;
   border-radius: 9999px;
   color: var(--test-banner-color);
-  background: var(--test-banner-chip);
-  box-shadow: inset 0 0 0 1.5px var(--becpg-orange);
+  background: var(--test-banner-surface);
+  box-shadow: inset 0 0 0 1px var(--test-banner-rule);
   font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .test-banner {
-    animation: none;
-  }
+  font-weight: 500;
 }
 
 /* ---------------------------------------------------------------------- */

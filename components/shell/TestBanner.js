@@ -11,13 +11,13 @@
  * button-like descendant — so nothing may be added inside it that could be
  * mistaken for a close affordance.
  *
- * Permanent does not have to mean improvised. It is a 24px hazard strip in
- * `--becpg-orange`, striped with a black overlay (same hue, no new colour), sat
- * flush **above** the blue toolbar and the same width as it: it reads as the top
- * edge of the application chrome rather than as a notice bolted on top of the
- * page. The sentence rides on a white pill because `#ff642d` cannot carry 12px
- * text at AA — see the contrast note on `.test-banner` in globals.css. The
- * stripes animate, and stop under `prefers-reduced-motion`.
+ * Permanent does not have to mean loud. It is a 26px band, a pale wash of the
+ * brand orange, ruled underneath by a 2px orange line — the edge it shares with
+ * the blue toolbar below it. The sentence is ordinary weight in
+ * `--becpg-blue`, not uppercase, and nothing moves: a notice that never changes
+ * has no business shouting on every screen, and the hazard stripes it used to
+ * wear were the visual language of road works. The contrast reasoning sits next
+ * to the tokens, in `app/globals.css`.
  *
  * The flag comes from the tenant (`tenant.isTest`), resolved server-side from
  * `TENANT_MAP`; it can be forced with the `isTest` prop for the login page,
@@ -46,7 +46,7 @@ export function TestBanner({ isTest, message, compact = false, className = '' })
     if (compact) {
         return (
             <span className={`test-badge ${className}`} role="status">
-                <Icon name="science" size={13} className="mr-1" />
+                <Icon name="science" size={13} className="mr-1 text-[var(--test-banner-icon)]" />
                 {t('test.badge')}
             </span>
         );
@@ -55,7 +55,7 @@ export function TestBanner({ isTest, message, compact = false, className = '' })
     return (
         <div className={`test-banner ${className}`} role="status" aria-live="polite">
             <span className="test-banner-text">
-                <Icon name="science" size={13} className="mr-1" />
+                <Icon name="science" size={14} />
                 {message || t('test.banner')}
             </span>
         </div>
