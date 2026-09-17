@@ -52,6 +52,8 @@ const LABELS = {
             state: 'État',
             completion: 'Complétude',
             project: 'Projet',
+            supplierRef: 'Réf. fournisseur',
+            certificateDate: 'Date de référencement',
             modified: 'Mise à jour',
         },
         stats: {
@@ -79,6 +81,8 @@ const LABELS = {
             state: 'State',
             completion: 'Completion',
             project: 'Project',
+            supplierRef: 'Supplier reference',
+            certificateDate: 'Certificate date',
             modified: 'Updated',
         },
         stats: {
@@ -223,6 +227,35 @@ export default function ProductsPage() {
                     </span>
                 ),
             },
+            /*
+             * The supplier's own reference, and the date the referencing was
+             * certified: the two scalars the customer side asked for (#35846).
+             * Hidden by default — they are empty on an instance that does not use
+             * the aspects, and the column picker (remembered per viewer) brings
+             * them back in one click.
+             */
+            {
+                id: 'supplierRef',
+                accessorKey: 'supplierRefCode',
+                header: labels.columns.supplierRef,
+                meta: { label: labels.columns.supplierRef, width: '10rem' },
+                cell: ({ row }) => (
+                    <span className="text-[var(--becpg-dark-grey)]">
+                        {row.original.supplierRefCode || '—'}
+                    </span>
+                ),
+            },
+            {
+                id: 'certificateDate',
+                accessorKey: 'certificateDate',
+                header: labels.columns.certificateDate,
+                meta: { label: labels.columns.certificateDate, align: 'right', width: '10rem' },
+                cell: ({ row }) => (
+                    <span className="tabular-nums text-[var(--becpg-dark-grey)]">
+                        {formatDate(row.original.certificateDate, lang) || '—'}
+                    </span>
+                ),
+            },
             {
                 id: 'type',
                 accessorFn: (row) => entityTypeLabel(row, lang),
@@ -341,7 +374,7 @@ export default function ProductsPage() {
                 getRowId={(row, index) => String(row.uuid ?? row.nodeRef ?? index)}
                 searchPlaceholder={labels.search}
                 initialSorting={[{ id: 'modified', desc: true }]}
-                initialColumnVisibility={{ project: false }}
+                initialColumnVisibility={{ project: false, supplierRef: false, certificateDate: false }}
                 enableColumnVisibility
                 storageKey="products"
                 pageSize={25}
