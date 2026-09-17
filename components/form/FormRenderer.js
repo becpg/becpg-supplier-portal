@@ -123,7 +123,12 @@ function SetRenderer({ set, index, depth, fieldsById, renderField, lang }) {
     const body = (
         <>
             {fields.length > 0 ? (
-                <div className={columnsOf(set) > 1 ? 'form-grid' : 'flex flex-col gap-4'}>
+                /* `gap-3`, not `gap-4`: with the language chip off the input and
+                   back on the label line, a field is one label row and one box,
+                   and 16px between them made a twelve-field step scroll for
+                   nothing. 12px still separates two fields more than a label is
+                   separated from its own box (4px). */
+                <div className={columnsOf(set) > 1 ? 'form-grid' : 'flex flex-col gap-3'}>
                     {fields.map((field) => renderField(field))}
                 </div>
             ) : null}
