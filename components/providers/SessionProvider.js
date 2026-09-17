@@ -306,8 +306,12 @@ export function SessionProvider({ initialIdentity = null, children }) {
 
             redirecting.current = true;
             const next = `${window.location.pathname}${window.location.search}`;
+            // `withBasePath`, like the logout below: served under a path of an
+            // instance host, a bare `/api/auth/login` leaves the portal and
+            // lands on the host's own 404 — which is where an expired session
+            // sent the supplier instead of back to their task.
             window.location.assign(
-                `${tenantPrefix()}/api/auth/login?next=${encodeURIComponent(next)}`,
+                withBasePath(`${tenantPrefix()}/api/auth/login?next=${encodeURIComponent(next)}`),
             );
         };
         window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
