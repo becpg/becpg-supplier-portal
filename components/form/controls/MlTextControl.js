@@ -62,11 +62,14 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { Icon } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Field';
 import { SUPPORTED_LANGS } from '@/config/messages';
 import { useContentLocales, useRequiredLocales } from '@/components/form/ContentLocalesProvider';
+import { useFieldHeaderSlot } from '@/components/form/FieldHeaderSlot';
+import { withBasePath } from '@/lib/basePath';
 import { useFieldFocus } from '@/components/form/FieldFocusProvider';
 import { controlParams, lengthBounds, toNumber } from '@/components/form/validation';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
@@ -219,7 +222,53 @@ export function localeName(locale, lang) {
  *
  * @param {Object} props
  */
-function LocaleInput({ locale, lang, text, rows, maxLength, invalid, onChange, id, autoFocus, required, requiredLabel }) {
+/**
+ * The language of a box, as a chip: flag, code, and the mark of a language the
+ * customer requires.
+ *
+ * Used twice — before the input, as it has always been, and on the field's label
+ * line when the control was given one ({@link useFieldHeaderSlot}), which is
+ * where the old interface put it and where it stops indenting the input.
+ *
+ * @param {Object} props
+ * @param {string} props.locale
+ * @param {string} props.lang current chrome language, to name the locale
+ * @param {boolean} props.required the customer asks for this language
+ * @param {string} props.requiredLabel wording of that requirement
+ * @param {string} [props.className]
+ */
+function LocaleTag({ locale, lang, required, requiredLabel, className = '' }) {
+    const name = localeName(locale, lang);
+    return (
+        <span
+            className={`becpg-ml-tag flex shrink-0 items-center gap-1 text-xs font-medium uppercase text-[var(--becpg-dark-grey)] ${className}`}
+            title={required ? `${name} — ${requiredLabel}` : name}
+        >
+            {/* Le drapeau ne remplace pas le code, il l'accompagne : il ne
+                distingue pas `en` de `en_GB`, et il n'est lu par aucun
+                lecteur d'écran (l'input porte déjà `aria-label={name}`). */}
+            <Image
+                src={withBasePath(`/theme/images/flags/${flagCode(locale)}.png`)}
+                alt=""
+                width={16}
+                height={11}
+                aria-hidden="true"
+                className="shrink-0"
+                onError={(event) => {
+                    // A locale with no flag in the set: the code alone stays
+                    // readable, a broken icon does not.
+                    event.currentTarget.style.visibility = 'hidden';
+                }}
+            />
+            <span className="truncate">{localeTag(locale)}</span>
+            {/* The mark is a character, not a colour: it survives greyscale,
+                and the same sentence is in the input's `aria-label`. */}
+            {required ? <span aria-hidden="true">*</span> : null}
+        </span>
+    );
+}
+
+function LocaleInput({ locale, lang, text, rows, maxLength, invalid, onChange, id, autoFocus, required, requiredLabel, showTag = true }) {
     const name = localeName(locale, lang);
     const shared = {
         id,
@@ -239,37 +288,21 @@ function LocaleInput({ locale, lang, text, rows, maxLength, invalid, onChange, i
             {/*
               * The language of the box, as a chip.
               *
-              * It is hidden inside a datalist cell (`app/globals.css`), where the
-              * column header already names the field and only one box is shown at
-              * rest — but never removed from the accessibility tree: the input
-              * carries `aria-label={name}`, so the language is announced whether
-              * or not the chip is painted.
+              * Hidden inside a datalist cell (`app/globals.css`) where the column
+              * header already names the field, and dropped in a form, where the
+              * same chip now sits on the label line — but never removed from the
+              * accessibility tree: the input carries `aria-label={name}`, so the
+              * language is announced whether or not the chip is painted.
               */}
-            <span
-                className="becpg-ml-tag mt-2 flex w-16 shrink-0 items-center gap-1 text-xs font-medium uppercase text-[var(--becpg-dark-grey)]"
-                title={required ? `${name} — ${requiredLabel}` : name}
-            >
-                {/* Le drapeau ne remplace pas le code, il l'accompagne : il ne
-                    distingue pas `en` de `en_GB`, et il n'est lu par aucun
-                    lecteur d'écran (l'input porte déjà `aria-label={name}`). */}
-                <Image
-                    src={`/theme/images/flags/${flagCode(locale)}.png`}
-                    alt=""
-                    width={16}
-                    height={11}
-                    aria-hidden="true"
-                    className="shrink-0"
-                    onError={(event) => {
-                        // A locale with no flag in the set: the code alone stays
-                        // readable, a broken icon does not.
-                        event.currentTarget.style.visibility = 'hidden';
-                    }}
+            {showTag ? (
+                <LocaleTag
+                    locale={locale}
+                    lang={lang}
+                    required={required}
+                    requiredLabel={requiredLabel}
+                    className="mt-2 w-16"
                 />
-                <span className="truncate">{localeTag(locale)}</span>
-                {/* The mark is a character, not a colour: it survives greyscale,
-                    and the same sentence is in the input's `aria-label`. */}
-                {required ? <span aria-hidden="true">*</span> : null}
-            </span>
+            ) : null}
             <div className="min-w-0 flex-1">
                 {rows ? <Textarea rows={rows} {...shared} /> : <Input type="text" autoComplete="off" {...shared} />}
             </div>
@@ -305,6 +338,17 @@ export function MlTextControl({
     const map = toLocaleMap(value, lang);
     const locales = localesFor(field, map, lang, useContentLocales());
     const requiredLocales = useRequiredLocales();
+    /*
+     * The label row of the surrounding field, when there is one.
+     *
+     * In a form, the language of the box and the count of the languages still
+     * owed belong UP THERE, beside « Libellé légal » — not under the input,
+     * where they read as a comment on the value and where the `FR *` chip also
+     * pushed the box right, leaving multilingual fields out of line with every
+     * single-language one. In a datalist cell there is no `Field` and no slot,
+     * and the control keeps the compact layout the grid is built for.
+     */
+    const headerSlot = useFieldHeaderSlot();
     const focus = useFieldFocus();
 
     const primary = locales[0];
@@ -430,6 +474,54 @@ export function MlTextControl({
             missingRequired > 0 ? missingLabel : null].filter(Boolean).join(' — ');
 
     /*
+     * The disclosure — one button, rendered in one of two places.
+     *
+     * With a label line to sit on (a form), it goes there, beside the language
+     * chip. Without one (a datalist cell), it stays where it always was, next to
+     * the first box. Same button, same state, same accessible name.
+     */
+    const disclosure = (
+        <button
+            type="button"
+            onClick={() => setExpanded((open) => !open)}
+            aria-expanded={expanded}
+            aria-controls={`${id}-group`}
+            // The sentence lives on the button, nowhere else: the field already
+            // says which field it is and the label already carries the catalogue
+            // mark, so repeating « EN and 3 other language(s) — 2 required
+            // language(s) still empty » beside every box was noise. `aria-label`
+            // keeps it for a screen reader, `title` for the pointer.
+            aria-label={toggleLabel}
+            title={toggleLabel}
+            className="becpg-ml-toggle inline-flex items-center gap-1 self-start rounded-md px-1 py-1 text-xs text-[var(--becpg-blue-light)] hover:text-[var(--becpg-orange)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+        >
+            <Icon name={expanded ? 'expand_less' : 'translate'} size={14} />
+            {/*
+              * An empty required language hides behind the counter, which is
+              * exactly the silence #33085 is about. The icon carries the alert as
+              * much as the tone does, and the sentence is already in the button's
+              * label.
+              *
+              * One number, and the one that is owed: the languages still to
+              * write. The translations already there are counted only when
+              * nothing is owed, so the two never stand side by side asking to be
+              * told apart.
+              */}
+            {!expanded && missingRequired > 0 ? (
+                <span className="becpg-ml-toggle-count inline-flex items-center gap-0.5 rounded-full bg-[var(--status-warn-bg)] px-1.5 text-[10px] text-[var(--status-warn)]">
+                    <Icon name="error_outline" size={11} />
+                    {missingRequired}
+                </span>
+            ) : null}
+            {!expanded && missingRequired === 0 && filledOthers > 0 ? (
+                <span className="becpg-ml-toggle-count rounded-full bg-[var(--becpg-blue-lighter)] px-1.5 text-[10px] text-[var(--becpg-blue)]">
+                    {filledOthers}
+                </span>
+            ) : null}
+        </button>
+    );
+
+    /*
      * The disclosure sits **with** the first box, not under the whole stack.
      *
      * `becpg-ml-primary` is a column by default, so a full-page form renders
@@ -457,50 +549,31 @@ export function MlTextControl({
                         onChange={(text) => setLocale(primary, text)}
                         required={isRequired(primary)}
                         requiredLabel={labels.required}
+                        showTag={!headerSlot}
                     />
                 ) : null}
 
-                {others.length > 0 ? (
-                    <button
-                        type="button"
-                        onClick={() => setExpanded((open) => !open)}
-                        aria-expanded={expanded}
-                        // The sentence lives on the button, nowhere else: the
-                        // field already says which field it is and the label
-                        // already carries the catalogue mark, so repeating
-                        // « EN and 3 other language(s) — 2 required language(s)
-                        // still empty » beside every box was noise. `aria-label`
-                        // keeps it for a screen reader, `title` for the pointer.
-                        aria-label={toggleLabel}
-                        title={toggleLabel}
-                        className="becpg-ml-toggle inline-flex items-center gap-1 self-start rounded-md px-1 py-1 text-xs text-[var(--becpg-blue-light)] hover:text-[var(--becpg-orange)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
-                    >
-                        <Icon name={expanded ? 'expand_less' : 'translate'} size={14} />
-                        {/*
-                          * An empty required language hides behind the counter,
-                          * which is exactly the silence #33085 is about. The icon
-                          * carries the alert as much as the tone does, and the
-                          * sentence is already in the button's label.
-                          *
-                          * One number, and the one that is owed: the languages
-                          * still to write. The translations already there are
-                          * counted only when nothing is owed, so the two never
-                          * stand side by side asking to be told apart.
-                          */}
-                        {!expanded && missingRequired > 0 ? (
-                            <span className="becpg-ml-toggle-count inline-flex items-center gap-0.5 rounded-full bg-[var(--status-warn-bg)] px-1.5 text-[10px] text-[var(--status-warn)]">
-                                <Icon name="error_outline" size={11} />
-                                {missingRequired}
-                            </span>
-                        ) : null}
-                        {!expanded && missingRequired === 0 && filledOthers > 0 ? (
-                            <span className="becpg-ml-toggle-count rounded-full bg-[var(--becpg-blue-lighter)] px-1.5 text-[10px] text-[var(--becpg-blue)]">
-                                {filledOthers}
-                            </span>
-                        ) : null}
-                    </button>
-                ) : null}
+                {others.length > 0 && !headerSlot ? disclosure : null}
             </div>
+
+            {headerSlot ? createPortal(
+                <>
+                    {/* The language of the box, where the old interface put it:
+                        on the label line, with its flag and its requirement
+                        mark. The input below then starts at the same edge as a
+                        single-language one. */}
+                    {primary ? (
+                        <LocaleTag
+                            locale={primary}
+                            lang={lang}
+                            required={isRequired(primary)}
+                            requiredLabel={labels.required}
+                        />
+                    ) : null}
+                    {others.length > 0 ? disclosure : null}
+                </>,
+                headerSlot,
+            ) : null}
 
             {others.length > 0 && expanded
                 ? others.map((locale) => (

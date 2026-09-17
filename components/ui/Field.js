@@ -19,9 +19,10 @@
  * disabled input on a phone is unreadable and un-copyable.
  */
 
-import { cloneElement, forwardRef, isValidElement, useId } from 'react';
+import { cloneElement, forwardRef, isValidElement, useId, useState } from 'react';
 import { Icon } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { FieldHeaderSlotProvider } from '@/components/form/FieldHeaderSlot';
 import { useMessages } from '@/lib/messages';
 
 /**
@@ -61,6 +62,12 @@ export function Field({
     const { t } = useMessages();
     const generatedId = useId();
     const controlId = id || `field-${generatedId}`;
+    /*
+     * The label row, lent to the control — see `FieldHeaderSlot`. A callback ref
+     * rather than `useRef`, because the control renders in the same pass and
+     * needs the node to exist: state makes that second pass happen.
+     */
+    const [headerSlot, setHeaderSlot] = useState(null);
     const errorId = `${controlId}-error`;
     const hintId = `${controlId}-hint`;
 
@@ -137,13 +144,17 @@ export function Field({
                     />
                 ) : null}
                 {badge}
+                {/* What a control has to say about itself — the languages of a
+                    `d:mltext`, and how many are still owed. Empty for every
+                    other control, and it costs nothing then. */}
+                <span ref={setHeaderSlot} className="inline-flex min-w-0 items-center gap-1.5" />
                 {action ? <span className="ml-auto">{action}</span> : null}
             </div>
             <div className={layout === 'inline' ? 'sm:flex-1' : ''}>
                 {description ? (
                     <p className="mb-1 text-xs text-[var(--becpg-dark-grey)]">{description}</p>
                 ) : null}
-                {control}
+                <FieldHeaderSlotProvider value={headerSlot}>{control}</FieldHeaderSlotProvider>
                 {error ? (
                     <p
                         id={errorId}
