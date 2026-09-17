@@ -2082,14 +2082,40 @@ body {
   border-top: 1px solid var(--becpg-grid-row-border);
 }
 
-/* Single-column below sm, two columns above — the wizard's default form grid */
+/*
+ * The form grid: one column, two as soon as the FORM — not the window — is wide
+ * enough.
+ *
+ * A viewport breakpoint was the wrong ruler. The wizard's form sits between a
+ * 208px rail and a 320px panel, so at 1280 it has ~600px and at 1920 it has
+ * ~770px, while the same form on a product sheet has the whole page. A media
+ * query pairs the fields in the first case (two 290px columns, each holding a
+ * label and half an input) and leaves them stacked in the second. A container
+ * query asks the only question that matters — how wide is this form — and
+ * answers it per screen, per panel state, per zoom level.
+ *
+ * 40rem is where two columns stop being cramped: 640px ÷ 2 − gap ≈ 300px per
+ * field, which holds « Description du conditionnement » and its box without
+ * wrapping the label.
+ *
+ * `.form-grid-full` is what a control asks for when it must not be halved — a
+ * multilingual text, a long textarea (`fullWidth` in the control registry). It
+ * only means anything inside the two-column state, which is why it lives here.
+ *
+ * A browser without container queries keeps the single column: the fallback is
+ * the readable layout, not the broken one.
+ */
+.form-columns {
+  container-type: inline-size;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.75rem 1rem;
 }
 
-@media (min-width: 768px) {
+@container (min-width: 40rem) {
   .form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

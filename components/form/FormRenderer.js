@@ -106,6 +106,24 @@ function columnsOf(set) {
 }
 
 /**
+ * Sets whose fields must stay stacked whatever the width.
+ *
+ * A set beCPG declares as one column is a *hint*, not a layout: Share renders
+ * `mainInfo` in one column and the same fields in two on its own edit form. What
+ * really must not pair up is a set of long texts, where a second column halves a
+ * textarea for nothing — and those controls declare `fullWidth`, so they span
+ * both columns on their own. Nothing else has to be excluded, which is why this
+ * returns true for every set: the decision lives in the CSS, on the *measured
+ * width of the form*, not on a number that describes another interface.
+ *
+ * @param {Object} set
+ * @returns {boolean}
+ */
+function allowsColumns(set) {
+    return columnsOf(set) >= 1 && set.appearance !== 'single-column-set';
+}
+
+/**
  * One set and its children.
  *
  * @param {Object} props
@@ -123,13 +141,29 @@ function SetRenderer({ set, index, depth, fieldsById, renderField, lang }) {
     const body = (
         <>
             {fields.length > 0 ? (
-                /* `gap-3`, not `gap-4`: with the language chip off the input and
-                   back on the label line, a field is one label row and one box,
-                   and 16px between them made a twelve-field step scroll for
-                   nothing. 12px still separates two fields more than a label is
-                   separated from its own box (4px). */
-                <div className={columnsOf(set) > 1 ? 'form-grid' : 'flex flex-col gap-3'}>
-                    {fields.map((field) => renderField(field))}
+                /*
+                 * TWO COLUMNS WHEN THE FORM IS WIDE ENOUGH — measured on the form,
+                 * not on the window.
+                 *
+                 * The step sits between the rail and the context panel, so the
+                 * window says nothing useful about the space the fields have: at
+                 * 1920 the form column is ~770px, and at 1280 with the panels out
+                 * it is wider than at 1920 with them in. `.form-columns` declares
+                 * a container and `.form-grid` pairs the fields only once *it*
+                 * measures wide enough, which is what "when possible" means here.
+                 *
+                 * A control that declares `fullWidth` — a multilingual text, a
+                 * long textarea — keeps the whole row through `.form-grid-full`,
+                 * so nothing is halved that needs the width.
+                 *
+                 * `gap-3` rather than `gap-4`: with the language chip back on the
+                 * label line a field is two lines tall, and 16px between them made
+                 * a twelve-field step scroll for nothing.
+                 */
+                <div className={allowsColumns(set) ? 'form-columns' : ''}>
+                    <div className={allowsColumns(set) ? 'form-grid' : 'flex flex-col gap-3'}>
+                        {fields.map((field) => renderField(field))}
+                    </div>
                 </div>
             ) : null}
             {set.children.length > 0 ? (
