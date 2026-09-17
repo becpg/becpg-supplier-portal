@@ -946,6 +946,12 @@ export function DataListRow({
      * whose save failed shows *that*, because it is about to be acted on, and an
      * inline background would win over the state's own styling. Decoration gives
      * way to state, never the reverse.
+     *
+     * Handed down as a custom property and not as the row's `background-color`:
+     * a `<tr>` background is painted *under* the cells, so the zebra tint and
+     * the white of an editable cell's input covered it — the line was red in
+     * reading and white as soon as the grid became editable. `app/globals.css`
+     * paints the cells with it, like every other row tint.
      */
     const paint = !summary && !rowState && row.color ? row.color : null;
 
@@ -956,9 +962,10 @@ export function DataListRow({
                 onBlur={summary ? undefined : handleBlur}
                 onKeyDown={summary ? undefined : handleKeyDown}
                 aria-label={summary ? label('totalRow') : row.draft ? label('newRow') : label('row', { index })}
-                style={paint ? { backgroundColor: paint, color: readableInk(paint) } : undefined}
+                style={paint ? { '--becpg-grid-row-paint': paint, color: readableInk(paint) } : undefined}
                 // How a paste finds which line it was dropped on.
                 data-row-key={row.key}
+                data-painted={paint ? 'true' : undefined}
                 data-total={summary ? 'true' : undefined}
                 data-zebra={zebra && !summary ? 'true' : undefined}
                 data-state={rowState}

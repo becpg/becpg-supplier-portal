@@ -465,30 +465,37 @@ export function MlTextControl({
                         type="button"
                         onClick={() => setExpanded((open) => !open)}
                         aria-expanded={expanded}
-                        // The sentence is on the button itself, not only in the
-                        // span: the grid hides the visible text to buy back its
-                        // row height, and a `display: none` label is gone from
-                        // the accessibility tree too. `title` gives the pointer
-                        // user the same sentence as the tooltip.
+                        // The sentence lives on the button, nowhere else: the
+                        // field already says which field it is and the label
+                        // already carries the catalogue mark, so repeating
+                        // « EN and 3 other language(s) — 2 required language(s)
+                        // still empty » beside every box was noise. `aria-label`
+                        // keeps it for a screen reader, `title` for the pointer.
                         aria-label={toggleLabel}
                         title={toggleLabel}
                         className="becpg-ml-toggle inline-flex items-center gap-1 self-start rounded-md px-1 py-1 text-xs text-[var(--becpg-blue-light)] hover:text-[var(--becpg-orange)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
                     >
                         <Icon name={expanded ? 'expand_less' : 'translate'} size={14} />
-                        <span className="becpg-ml-toggle-text">{toggleLabel}</span>
-                        {!expanded && filledOthers > 0 ? (
-                            <span className="becpg-ml-toggle-count rounded-full bg-[var(--becpg-blue-lighter)] px-1.5 text-[10px] text-[var(--becpg-blue)]">
-                                {filledOthers}
-                            </span>
-                        ) : null}
-                        {/* An empty required language hides behind the counter,
-                            which is exactly the silence #33085 is about. The
-                            icon carries the alert as much as the tone does, and
-                            the sentence is already in the button's label. */}
+                        {/*
+                          * An empty required language hides behind the counter,
+                          * which is exactly the silence #33085 is about. The icon
+                          * carries the alert as much as the tone does, and the
+                          * sentence is already in the button's label.
+                          *
+                          * One number, and the one that is owed: the languages
+                          * still to write. The translations already there are
+                          * counted only when nothing is owed, so the two never
+                          * stand side by side asking to be told apart.
+                          */}
                         {!expanded && missingRequired > 0 ? (
                             <span className="becpg-ml-toggle-count inline-flex items-center gap-0.5 rounded-full bg-[var(--status-warn-bg)] px-1.5 text-[10px] text-[var(--status-warn)]">
                                 <Icon name="error_outline" size={11} />
                                 {missingRequired}
+                            </span>
+                        ) : null}
+                        {!expanded && missingRequired === 0 && filledOthers > 0 ? (
+                            <span className="becpg-ml-toggle-count rounded-full bg-[var(--becpg-blue-lighter)] px-1.5 text-[10px] text-[var(--becpg-blue)]">
+                                {filledOthers}
                             </span>
                         ) : null}
                     </button>

@@ -1487,11 +1487,23 @@ body {
  * as `data-zebra` rather than read with `:nth-child`, because an expanded row
  * inserts a second `<tr>` and would flip every stripe below it.
  *
- * Order matters and is deliberate: stripe, then hover, then the row's own
- * state — a row that failed to save keeps saying so under the pointer.
+ * Order matters and is deliberate: stripe, then the authored colour, then
+ * hover, then the row's own state — a row that failed to save keeps saying so
+ * under the pointer.
  */
 .becpg-grid tbody tr[data-zebra='true'] td {
   background-color: var(--becpg-row-zebra);
+}
+
+/*
+ * The colour the customer authored on the line (`bcpg:color`).
+ *
+ * On the cells, above the stripe and below the hover: the line keeps its colour
+ * while the grid is editable — where the white of an input used to cover a
+ * `<tr>` background entirely — and the pointer still gets its feedback.
+ */
+.becpg-grid tbody tr[data-painted='true'] td {
+  background-color: var(--becpg-grid-row-paint);
 }
 
 .becpg-grid tbody tr:hover td {
@@ -1507,7 +1519,7 @@ body {
 }
 
 /*
- * The same four tints, named on the ROW, for the pinned cells below.
+ * The same tints, named on the ROW, for the pinned cells below.
  *
  * Duplicated deliberately and kept next to the rules they mirror: the value is
  * written once (the token), and the pinned cells need it as a variable rather
@@ -1515,6 +1527,10 @@ body {
  */
 .becpg-grid tbody tr[data-zebra='true'] {
   --becpg-grid-row-tint: var(--becpg-row-zebra);
+}
+
+.becpg-grid tbody tr[data-painted='true'] {
+  --becpg-grid-row-tint: var(--becpg-grid-row-paint);
 }
 
 .becpg-grid tbody tr:hover {
@@ -1804,8 +1820,8 @@ body {
    * So the stack becomes a row here, and the disclosure becomes an icon at the
    * grid's own 26px — the same treatment `.becpg-grid-icon` gives the row
    * chrome, and for the same reason. Nothing is removed: the button keeps its
-   * `aria-expanded`, its sentence as `aria-label` and `title`, and the count of
-   * filled translations stays painted beside the icon.
+   * `aria-expanded`, its sentence as `aria-label` and `title`, and its count
+   * stays painted beside the icon.
    *
    * Under `min-width: 768px`, like everything else in this block — below it the
    * table is not rendered at all (`DataListEditor` switches to `DataListCardRow`),
@@ -1838,11 +1854,6 @@ body {
     min-width: 26px;
     padding: 2px;
     border-radius: 4px;
-  }
-
-  /* The name survives in `aria-label` — see the button in `MlTextControl`. */
-  .becpg-grid .becpg-ml-toggle-text {
-    display: none;
   }
 
   .becpg-grid .becpg-ml-toggle-count {
