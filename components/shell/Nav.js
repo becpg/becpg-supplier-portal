@@ -75,6 +75,9 @@ export const MONITOR_NAV = Object.freeze([
     // internal account — and was reachable through no link at all.
     { id: 'monitor-tasks', href: '/tasks', labelKey: 'nav.monitor.tasks', icon: 'assignment_turned_in', primary: true, badgeKey: 'tasks' },
     { id: 'suppliers', href: '/monitor/suppliers', labelKey: 'nav.monitor.suppliers', icon: 'groups', primary: true },
+    // The park seen from the products rather than from the suppliers: what is
+    // due for renewal (#35846). Same population, the other axis.
+    { id: 'monitor-products', href: '/monitor/products', labelKey: 'nav.monitor.products', icon: 'inventory_2' },
     { id: 'monitor-documents', href: '/monitor/documents', labelKey: 'nav.monitor.documents', icon: 'fact_check' },
     { id: 'campaigns', href: '/monitor/campaigns', labelKey: 'nav.monitor.campaigns', icon: 'campaign', primary: true },
     { id: 'quality', href: '/monitor/quality', labelKey: 'nav.monitor.quality', icon: 'report_problem', badgeKey: 'nc' },

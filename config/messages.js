@@ -48,6 +48,7 @@ export const messages = {
         // --- Navigation (monitoring space) ---
         'nav.monitor': 'Pilotage',
         'nav.monitor.suppliers': 'Fournisseurs',
+        'nav.monitor.products': 'Produits fournisseurs',
         'nav.monitor.documents': 'Conformité documentaire',
         'nav.monitor.campaigns': 'Campagnes',
         'nav.monitor.quality': 'Non-conformités',
@@ -161,6 +162,7 @@ export const messages = {
         // --- Navigation (monitoring space) ---
         'nav.monitor': 'Monitoring',
         'nav.monitor.suppliers': 'Suppliers',
+        'nav.monitor.products': 'Supplier products',
         'nav.monitor.documents': 'Document compliance',
         'nav.monitor.campaigns': 'Campaigns',
         'nav.monitor.quality': 'Non-conformities',
