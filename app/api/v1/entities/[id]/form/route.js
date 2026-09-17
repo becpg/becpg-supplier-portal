@@ -31,6 +31,7 @@
 
 import { NextResponse } from 'next/server';
 import { getLiveSession } from '@/lib/session';
+import { upstreamLang } from '@/lib/becpg';
 import { AuthError, toApiResponse } from '@/lib/errors';
 import { createBecpgClient } from '@/lib/adapters/session';
 import { toNodeRef } from '@/lib/adapters/tasks';
@@ -55,7 +56,10 @@ export async function GET(request, context) {
         }
 
         const { searchParams } = new URL(request.url);
-        const locale = searchParams.get('locale') || session.locale || 'fr';
+        // The supplier's chosen chrome language, like every other call that asks
+        // beCPG for a business label. `session.locale` never existed, so this read
+        // as « always French » and an English session got a French sheet.
+        const locale = searchParams.get('locale') || await upstreamLang();
         const nodeRef = toNodeRef(id);
 
         const entity = await getEntity(nodeRef, { session });
