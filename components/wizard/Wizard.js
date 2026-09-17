@@ -1787,7 +1787,7 @@ export function Wizard({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    icon="lightbulb"
+                                    icon="auto_awesome"
                                     onClick={() => setSheet('context')}
                                     label={labels.context}
                                 />
@@ -1899,7 +1899,7 @@ export function Wizard({
                             <Button
                                 variant="outline"
                                 size="sm"
-                                icon="lightbulb"
+                                icon="auto_awesome"
                                 onClick={() => setSheet('context')}
                                 className="flex-1"
                             >

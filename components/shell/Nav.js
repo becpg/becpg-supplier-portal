@@ -287,6 +287,35 @@ export function Nav({
                     className,
                 ].filter(Boolean).join(' ')}
             >
+                {/*
+                  * The fold control sits above the entries, where every
+                  * application that folds a sidebar puts it: someone looking for
+                  * it looks at the top of the panel. Under the entries it was
+                  * found by accident, or not at all.
+                  *
+                  * AN ICON, NOT AN ENTRY. Given the entries' own styling — same
+                  * row, same size, same words — it read as an eighth destination
+                  * called « Replier le menu », between the logo and « Pilotage ».
+                  * It is chrome, not navigation: a 32px target carrying the
+                  * chevron alone, pushed to the edge the panel folds towards, and
+                  * its sentence in `title` / `aria-label` where it costs no
+                  * pixel and no confusion.
+                  */}
+                {onToggleCollapsed ? (
+                    <div className={collapsed ? 'flex justify-center' : 'flex justify-end'}>
+                        <button
+                            type="button"
+                            onClick={onToggleCollapsed}
+                            aria-expanded={!collapsed}
+                            aria-label={foldLabel}
+                            title={foldLabel}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)] hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                        >
+                            <Icon name={collapsed ? 'chevron_right' : 'chevron_left'} size={20} />
+                        </button>
+                    </div>
+                ) : null}
+
                 {list.map((item) => {
                     const active = isActive(pathname, item);
                     const label = t(item.labelKey);
@@ -317,33 +346,11 @@ export function Nav({
                     );
                 })}
 
-                <div className="mt-auto flex flex-col gap-1 pt-2">
-                    {canSwitchSpace ? (
+                {canSwitchSpace ? (
+                    <div className="mt-auto flex flex-col gap-1 pt-2">
                         <SpaceSwitch space={resolvedSpace} local={local} collapsed={collapsed} />
-                    ) : null}
-                    {onToggleCollapsed ? (
-                        <button
-                            type="button"
-                            onClick={onToggleCollapsed}
-                            aria-expanded={!collapsed}
-                            aria-label={foldLabel}
-                            title={foldLabel}
-                            className={[
-                                'nav-item group text-[var(--becpg-dark-grey)]',
-                                collapsed ? 'nav-item-collapsed' : '',
-                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]',
-                            ].filter(Boolean).join(' ')}
-                        >
-                            <Icon
-                                name={collapsed ? 'chevron_right' : 'chevron_left'}
-                                size={20}
-                                className="nav-item-icon"
-                            />
-                            {collapsed ? null : <span className="truncate">{foldLabel}</span>}
-                            {collapsed ? <NavFlyout label={foldLabel} /> : null}
-                        </button>
-                    ) : null}
-                </div>
+                    </div>
+                ) : null}
             </nav>
         );
     }
