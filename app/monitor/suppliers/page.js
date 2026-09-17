@@ -94,7 +94,6 @@ const LABELS = {
         exportCutMessage:
             'beCPG limite une liste à 250 lignes par requête, l’export porte donc sur la fenêtre lue et non sur tout le parc. Affinez les filtres (famille, acheteur, statut) et exportez par lot pour un fichier complet.',
         exportCutConfirm: 'Exporter la fenêtre',
-        refresh: 'Rafraîchir',
         generatedAt: 'Données au {time}',
         windowOf: '{from}–{to} sur {total} fournisseurs',
         previous: 'Fenêtre précédente',
@@ -136,7 +135,6 @@ const LABELS = {
         exportCutMessage:
             'beCPG caps a listing at 250 rows per query, so the export covers the window read, not the whole park. Narrow the filters (family, buyer, status) and export in batches for a complete file.',
         exportCutConfirm: 'Export the window',
-        refresh: 'Refresh',
         generatedAt: 'Data as of {time}',
         windowOf: '{from}–{to} of {total} suppliers',
         previous: 'Previous window',
@@ -185,48 +183,51 @@ function MonitorSuppliersScreen() {
         .filter((value) => STATUSES.includes(value));
     const urlKey = `${monitorFilterQuery(urlFilters)}|${urlStatus.join(',')}`;
 
+    /*
+     * `seed` IS THE URL KEY AND NOTHING ELSE — see the same note on
+     * `app/monitor/page.js`. Recomputed from the local values, it made the very
+     * keystroke that changed a filter look like a navigation from another
+     * screen, and the reseed below undid it on the spot.
+     */
     const [state, setState] = useState({
-        key: urlKey,
+        seed: urlKey,
         filters: urlFilters,
         status: urlStatus,
         page: 1,
     });
-    if (state.key !== urlKey) {
-        setState({ key: urlKey, filters: urlFilters, status: urlStatus, page: 1 });
+    if (state.seed !== urlKey) {
+        setState({ seed: urlKey, filters: urlFilters, status: urlStatus, page: 1 });
     }
     const [selection, setSelection] = useState({});
 
     const patchFilters = useCallback((values) => {
-        setState((previous) => {
-            const filters = { ...previous.filters, ...values };
-            return {
-                ...previous,
-                key: `${monitorFilterQuery(filters)}|${previous.status.join(',')}`,
-                filters,
-                page: 1,
-            };
-        });
+        setState((previous) => ({
+            ...previous,
+            filters: { ...previous.filters, ...values },
+            page: 1,
+        }));
         // Acting on rows that are about to be replaced would be relanching blind.
         setSelection({});
     }, []);
 
     const resetFilters = useCallback(() => {
-        setState({ key: '', filters: { ...EMPTY_MONITOR_FILTERS }, status: [], page: 1 });
+        setState((previous) => ({
+            ...previous,
+            filters: { ...EMPTY_MONITOR_FILTERS },
+            status: [],
+            page: 1,
+        }));
         setSelection({});
     }, []);
 
     const toggleStatus = useCallback((status) => {
-        setState((previous) => {
-            const status_ = previous.status.includes(status)
+        setState((previous) => ({
+            ...previous,
+            status: previous.status.includes(status)
                 ? previous.status.filter((value) => value !== status)
-                : [...previous.status, status];
-            return {
-                ...previous,
-                key: `${monitorFilterQuery(previous.filters)}|${status_.join(',')}`,
-                status: status_,
-                page: 1,
-            };
-        });
+                : [...previous.status, status],
+            page: 1,
+        }));
         setSelection({});
     }, []);
 
@@ -336,14 +337,6 @@ function MonitorSuppliersScreen() {
             title={local.title}
             actions={
                 <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        icon="refresh"
-                        label={local.refresh}
-                        loading={list.loading}
-                    onClick={list.refresh}
-                    />
                     <Button variant="secondary" size="sm" icon="download" onClick={requestExport}>
                         <span className="hidden sm:inline">{local.export}</span>
                     </Button>

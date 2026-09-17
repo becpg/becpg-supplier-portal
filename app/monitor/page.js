@@ -62,7 +62,6 @@ const LABELS = {
         title: 'Pilotage du parc fournisseurs',
         description:
             'L’état du parc en une page : agrément, conformité documentaire, expirations, campagnes et non-conformités. Données temps réel, aucun cube requis.',
-        refresh: 'Rafraîchir',
         generatedAt: 'Données au {time}',
         openList: 'Voir la liste complète',
         openDocuments: 'Conformité documentaire',
@@ -75,7 +74,6 @@ const LABELS = {
         title: 'Supplier park monitoring',
         description:
             'The park in one page: approval, document compliance, expiries, campaigns and non-conformities. Real time, no cube required.',
-        refresh: 'Refresh',
         generatedAt: 'Data as of {time}',
         openList: 'See the full list',
         openDocuments: 'Document compliance',
@@ -120,26 +118,37 @@ function MonitorOverviewScreen() {
     const local = LABELS[lang] || LABELS.fr;
     const searchParams = useSearchParams();
 
-    // The URL is the shareable state; it seeds the local one and re-seeds it when
-    // another screen navigates here already filtered. Adjusted during render
-    // rather than in an effect (the pattern `useApi` and `AppShell` use too).
+    /*
+     * The URL is the shareable state; it seeds the local one and re-seeds it when
+     * another screen navigates here already filtered. Adjusted during render
+     * rather than in an effect (the pattern `useApi` and `AppShell` use too).
+     *
+     * `seed` IS THE URL KEY AND NOTHING ELSE. It used to be recomputed from the
+     * local values, so the first keystroke made it differ from the URL and the
+     * test below read that as "another screen navigated here" — the filters were
+     * reset to the URL on the very render that carried the typed character. The
+     * search box took nothing and no select ever held a value.
+     */
     const urlFilters = readMonitorFilters(searchParams);
     const urlKey = monitorFilterQuery(urlFilters);
-    const [filters, setFilters] = useState({ key: urlKey, values: urlFilters });
-    if (filters.key !== urlKey) {
-        setFilters({ key: urlKey, values: urlFilters });
+    const [filters, setFilters] = useState({ seed: urlKey, values: urlFilters });
+    if (filters.seed !== urlKey) {
+        setFilters({ seed: urlKey, values: urlFilters });
     }
 
     const patch = useCallback(
         (values) =>
-            setFilters((previous) => {
-                const next = { ...previous.values, ...values };
-                return { key: monitorFilterQuery(next), values: next };
-            }),
+            setFilters((previous) => ({
+                seed: previous.seed,
+                values: { ...previous.values, ...values },
+            })),
         [],
     );
     const reset = useCallback(
-        () => setFilters({ key: '', values: { ...EMPTY_MONITOR_FILTERS } }),
+        () => setFilters((previous) => ({
+            seed: previous.seed,
+            values: { ...EMPTY_MONITOR_FILTERS },
+        })),
         [],
     );
 
@@ -158,16 +167,6 @@ function MonitorOverviewScreen() {
             space="monitor"
             title={local.title}
             badges={{ nc: (data && data.nonConformities && data.nonConformities.open) || 0 }}
-            actions={
-                <Button
-                    variant="outline"
-                    size="sm"
-                    icon="refresh"
-                    label={local.refresh}
-                    loading={overview.loading}
-                    onClick={overview.refresh}
-                />
-            }
         >
             <PageHeader
                 title={local.title}
