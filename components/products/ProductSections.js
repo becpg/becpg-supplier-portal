@@ -514,7 +514,7 @@ function RawPropertySheet({ attributes, lang, labels }) {
 function FormPanel({ entityId, attributes, step, params, lang, labels }) {
     const { t } = useMessages();
     const stepData = useApi(
-        step ? `wizard/${entityId}/step/${step.id}` : null,
+        step ? `wizard/${encodeURIComponent(entityId)}/step/${encodeURIComponent(step.id)}` : null,
         { params },
     );
 
@@ -529,7 +529,7 @@ function FormPanel({ entityId, attributes, step, params, lang, labels }) {
     // repository's translated labels — instead of the raw qnames.
     const needsEntityForm = !step || (!stepData.loading && !stepHasFields);
     const formData = useApi(
-        needsEntityForm ? `entities/${entityId}/form` : null,
+        needsEntityForm ? `entities/${encodeURIComponent(entityId)}/form` : null,
         { params: { locale: params?.locale } },
     );
 
@@ -721,7 +721,7 @@ function ListPanel({ entityId, step, params, labels }) {
  * @param {Object} props
  */
 function SurveyPanel({ entityId, step, params, labels }) {
-    const call = useApi(`wizard/${entityId}/step/${step.id}`, { params });
+    const call = useApi(`wizard/${encodeURIComponent(entityId)}/step/${encodeURIComponent(step.id)}`, { params });
     const data = call.data;
     const questions = (data && data.questions) || [];
 
@@ -874,7 +874,7 @@ function SectionPanel({ tab, entity, entityId, params, lang, labels }) {
 
 /** The catalogs and the fields they are still missing. */
 function CompliancePanel({ entityId }) {
-    const catalogs = useApi(`entities/${entityId}/catalogs`);
+    const catalogs = useApi(`entities/${encodeURIComponent(entityId)}/catalogs`);
     return (
         <CatalogPanel
             catalogs={portalCatalogs((catalogs.data && catalogs.data.catalogs) || [])}
@@ -888,7 +888,7 @@ function CompliancePanel({ entityId }) {
 
 /** What the customer asked for: the specifications bound to this product. */
 function SpecsPanel({ entityId, label }) {
-    const specs = useApi(`entities/${entityId}/specs`);
+    const specs = useApi(`entities/${encodeURIComponent(entityId)}/specs`);
     return (
         <SpecPanel
             specifications={(specs.data && specs.data.specifications) || []}
