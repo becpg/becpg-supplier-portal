@@ -2125,6 +2125,26 @@ body {
   }
 }
 
+/*
+ * A third column once the form itself is wide enough for one.
+ *
+ * The step of a wizard is no longer capped at the reading width, so on a desktop
+ * its body measures around 1250px. Two columns there would be 600px each, which
+ * is the defect the cap used to prevent — a label far from its value. Three keep
+ * each field near 400px, the width it already had, and turn the extra space into
+ * fewer rows instead of wider ones.
+ *
+ * 68rem and not 64: measured, a company sheet at a 1440px window gives its grid a
+ * 1070px container, and a third column there would be 346px each — denser than
+ * anything asked for, on a screen that was fine. Above 1088px the third column is
+ * 400px or more, which is the point at which it earns its place.
+ */
+@container (min-width: 68rem) {
+  .form-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 /* Visible only on touch/small screens, or only on desktop */
 .mobile-only {
   display: block;

@@ -1713,13 +1713,19 @@ export function Wizard({
     const canFinish = Boolean(task) && task.isOpen !== false && !wizardState.readOnly;
 
     /*
-     * A step whose content is a table opts out of the readable-width cap, and
-     * only that step: a form step at 1664px would put a label 900px from its
-     * value, which is the defect the cap exists to prevent. The width therefore
-     * follows what is on screen, which is also what makes the change legible —
-     * you moved to a different kind of content, so the page changed shape.
+     * A step whose content is a grid of fields or of rows takes the whole width;
+     * a step that is read keeps the readable cap.
+     *
+     * The form used to be capped with the prose, and the reason was sound: a form
+     * at 1664px puts a label 900px from its value. What changed is that the fields
+     * now pair up by container width, so the extra space buys a THIRD column
+     * rather than wider fields — measured, each one stays around 400px, close to
+     * the 363px it had while capped. A supplier filling a ten-field step sees it
+     * without scrolling, which is what the width was for.
+     *
+     * `compliance` and `suggestions` stay capped: those are read, not filled.
      */
-    const gridStep = Boolean(currentStep) && currentStep.kind !== 'form'
+    const gridStep = Boolean(currentStep)
         && currentStep.kind !== 'compliance' && currentStep.kind !== 'suggestions';
 
     return (
