@@ -253,8 +253,11 @@ Hard rules 5, 6 and 7 *are* the security model; everything here serves them.
 - **Never log a secret**: no OIDC token, no Alfresco ticket, no session cookie, no password —
   not truncated, not at debug level.
 - **Never put a credential in a URL.** Query strings are written to access logs, to the logs
-  of every proxy traversed and to browser history. Headers or a POST body. (This is currently
-  violated between the portal and `becpg/portal/wizard` — see `enterprise/TODO_fr.md`.)
+  of every proxy traversed and to browser history. Headers or a POST body. The portal holds to
+  this with no exception left: the Alfresco ticket travels as
+  `Authorization: Basic base64("ROLE_TICKET:" + ticket)` — `ticketAuthorizationValue()` in
+  `lib/http.js`, the one place that encodes it — and nothing appends `portalTicket` to the
+  wizard URL any more. Share still *accepts* that parameter; see `enterprise/TODO_fr.md`.
 - **Validate at the boundary**: every value coming from the browser is untrusted, a `nodeRef`
   included. Check its shape before forwarding it.
 - Use `[Security]` as the commit type for a security fix.
