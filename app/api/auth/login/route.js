@@ -176,6 +176,7 @@ export async function GET(request) {
                 username: userId,
                 name: (person && person.name) || userId,
                 email: (person && person.email) || '',
+                locale: (person && person.locale) || '',
                 tenantId: tenant.id,
                 becpgUrl,
                 becpgInstance: tenant.becpgInstance,

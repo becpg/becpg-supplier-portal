@@ -20,6 +20,7 @@ import {
     decodeIdToken,
     exchangeCode,
     exchangeTokenForTicket,
+    fetchAlfrescoPerson,
 } from '@/lib/oidc';
 import {
     clearOidcState,
@@ -104,8 +105,18 @@ export async function GET(request) {
             tokens.access_token,
         );
 
+        /*
+         * The user's own language, read once at sign-in rather than on every
+         * request. The identity provider does not know it — it is a beCPG profile
+         * property (`bcpg:userLocale`) — and it is what the portal renders and
+         * asks upstream in, ahead of the instance default. Best effort: this call
+         * returns null on failure and the session then falls back as before.
+         */
+        const person = await fetchAlfrescoPerson(becpgUrl, ticket);
+
         const session = createSession({
             ...profile,
+            locale: (person && person.locale) || '',
             tenantId: tenant.id,
             becpgUrl,
             becpgInstance,
