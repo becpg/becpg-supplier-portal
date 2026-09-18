@@ -9,6 +9,7 @@
  */
 
 import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
+import globals from "globals";
 
 const eslintConfig = [
     {
@@ -54,9 +55,23 @@ const eslintConfig = [
          * fixture.
          */
         files: ['e2e/**/*.js'],
+        languageOptions: {
+            globals: { ...globals.node, ...globals.browser },
+        },
         rules: {
             'react-hooks/rules-of-hooks': 'off',
             'react-hooks/exhaustive-deps': 'off',
+            /*
+             * A name that resolves to nothing is an error here, not a warning.
+             *
+             * `no-undef` is off by default in a flat config, and nothing else
+             * catches this: a helper deleted while its call sites stayed behind
+             * lints clean, builds clean, and only fails at run time — in the
+             * fixtures, which means every test of every file at once. That
+             * happened; the rule is the net under it. It needs the globals
+             * above, or `process`, `URL` and `console` would all be reported.
+             */
+            'no-undef': 'error',
         },
     },
 ];

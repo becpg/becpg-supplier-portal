@@ -423,20 +423,25 @@ function PropertySheet({ definition, lang, labels }) {
             {filled.map((set, index) => (
                 <Card key={set.id} padding="lg" index={index}>
                     {set.label ? <SectionHeader title={set.label} /> : null}
-                    <div className="form-grid">
-                        {set.fields.map(({ field, value }) => (
-                            <Field
-                                key={field.id}
-                                label={field.label || qnameLabel(field.name || field.id)}
-                                help={field.description || field.help || undefined}
-                                readOnly
-                                value={value}
-                                full={
-                                    field.dataType === 'd:mltext' ||
-                                    field.control?.template === 'textarea.ftl'
-                                }
-                            />
-                        ))}
+                    {/* `.form-columns` is the container the grid measures itself against: a
+                        `@container` query with no container ancestor is simply false, and
+                        the fields would stay in one column at every width. */}
+                    <div className="form-columns">
+                        <div className="form-grid">
+                            {set.fields.map(({ field, value }) => (
+                                <Field
+                                    key={field.id}
+                                    label={field.label || qnameLabel(field.name || field.id)}
+                                    help={field.description || field.help || undefined}
+                                    readOnly
+                                    value={value}
+                                    full={
+                                        field.dataType === 'd:mltext' ||
+                                        field.control?.template === 'textarea.ftl'
+                                    }
+                                />
+                            ))}
+                        </div>
                     </div>
                 </Card>
             ))}
@@ -497,10 +502,12 @@ function RawPropertySheet({ attributes, lang, labels }) {
     return (
         <Card padding="lg">
             <SectionHeader title={labels.rawProperties} subtitle={labels.rawNotice} />
-            <div className="form-grid">
-                {rows.map((row) => (
-                    <Field key={row.qname} label={qnameLabel(row.qname)} readOnly value={row.value} />
-                ))}
+            <div className="form-columns">
+                <div className="form-grid">
+                    {rows.map((row) => (
+                        <Field key={row.qname} label={qnameLabel(row.qname)} readOnly value={row.value} />
+                    ))}
+                </div>
             </div>
         </Card>
     );

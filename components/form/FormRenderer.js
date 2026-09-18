@@ -19,7 +19,7 @@
  *   feature, it is how a supplier is prevented from seeing an internal field;
  * - a control template nobody implemented degrades to a read-only rendering
  *   rather than to a blank (`controls/index.js`, fallback chain);
- * - the layout comes from the definition's `appearance` and `numberOfColumns`,
+ * - the layout comes from the definition's `appearance`,
  *   never from a per-screen stylesheet.
  *
  * ## Structure
@@ -37,7 +37,8 @@
  *
  * ## Mobile first
  *
- * One column below `md`, `numberOfColumns` above (`.form-grid` in
+ * One column until the form itself is wide enough for two, measured with a
+ * container query on `.form-columns` rather than on the window (`.form-grid` in
  * `app/globals.css`). Tabs scroll horizontally instead of wrapping into a wall.
  * Everything is reachable at 360px, which is the width the wizard is judged on
  * (spec §4.3).
@@ -97,32 +98,6 @@ export function buildSetTree(sets) {
  * @param {Object} set
  * @returns {number}
  */
-function columnsOf(set) {
-    if (set.appearance === '2-column-set') {
-        return 2;
-    }
-    const declared = Number(set.numberOfColumns);
-    return Number.isFinite(declared) && declared > 0 ? Math.min(declared, 2) : 1;
-}
-
-/**
- * Sets whose fields must stay stacked whatever the width.
- *
- * A set beCPG declares as one column is a *hint*, not a layout: Share renders
- * `mainInfo` in one column and the same fields in two on its own edit form. What
- * really must not pair up is a set of long texts, where a second column halves a
- * textarea for nothing — and those controls declare `fullWidth`, so they span
- * both columns on their own. Nothing else has to be excluded, which is why this
- * returns true for every set: the decision lives in the CSS, on the *measured
- * width of the form*, not on a number that describes another interface.
- *
- * @param {Object} set
- * @returns {boolean}
- */
-function allowsColumns(set) {
-    return columnsOf(set) >= 1 && set.appearance !== 'single-column-set';
-}
-
 /**
  * One set and its children.
  *
@@ -159,9 +134,16 @@ function SetRenderer({ set, index, depth, fieldsById, renderField, lang }) {
                  * `gap-3` rather than `gap-4`: with the language chip back on the
                  * label line a field is two lines tall, and 16px between them made
                  * a twelve-field step scroll for nothing.
+                 *
+                 * Every set goes through this, `numberOfColumns` included. A set
+                 * beCPG declares as one column is a hint about *Share's* form, not
+                 * about this one — Share itself renders `mainInfo` in one column
+                 * here and two there. What must not be halved is a long text, and
+                 * those controls say so with `fullWidth`. There was a predicate
+                 * here to express the exception; it had none left to express.
                  */
-                <div className={allowsColumns(set) ? 'form-columns' : ''}>
-                    <div className={allowsColumns(set) ? 'form-grid' : 'flex flex-col gap-3'}>
+                <div className="form-columns">
+                    <div className="form-grid">
                         {fields.map((field) => renderField(field))}
                     </div>
                 </div>

@@ -421,16 +421,21 @@ function IdentitySection({ data, loading, labels, lang }) {
                 return (
                     <Card key={group.id} padding="lg" index={index}>
                         {group.label ? <SectionHeader title={group.label} /> : null}
-                        <div className="form-grid">
-                            {fields.map(({ field, value }) => (
-                                <Field
-                                    key={field.id}
-                                    label={field.label || field.name}
-                                    help={field.description || undefined}
-                                    readOnly
-                                    value={value}
-                                />
-                            ))}
+                        {/* `.form-columns` is the container the grid measures itself against: a
+                            `@container` query with no container ancestor is simply false, and
+                            the fields would stay in one column at every width. */}
+                        <div className="form-columns">
+                            <div className="form-grid">
+                                {fields.map(({ field, value }) => (
+                                    <Field
+                                        key={field.id}
+                                        label={field.label || field.name}
+                                        help={field.description || undefined}
+                                        readOnly
+                                        value={value}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     </Card>
                 );
