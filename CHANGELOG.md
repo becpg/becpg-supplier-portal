@@ -309,3 +309,40 @@
 
 * InProgress #35846 - [Security] Reach Share in the cluster, so its peer check sees the portal and not the load balancer
 * [skip ci][Release]: Bump _VERSION to 0.0.28
+## [ 0.0.29 ] - 2026-09-18 14:08:11
+
+* InProgress #35846 - [Bug] Answer in the user's own language, not the instance's, and read it from their beCPG profile
+* InProgress #35846 - [Feature] Let a wizard form step use the width, and spend it on a third column rather than wider fields
+* InProgress #35846 - [Bug] Resolve the request language once, the page rendered French while every upstream call asked English
+* InProgress #35846 - [Bug] Assert what the credential-less Share proxy now gets, which is nothing, and move the argument check to the door that carries an identity
+* InProgress #35846 - [Bug] Give every form grid the container it measures itself against, and stop trusting a cookie a refused login also returns
+* [Setup] Update the libraries within their ranges: Next 16.3.5, jose 6.2.12, react-pdf 10.5.0, Playwright 1.63
+* InProgress #35846 - [Security] Give the dev shortcut a real Share session so the wizard endpoint can require an identity
+* InProgress #35846 - [Security] Carry the last Alfresco ticket in a header instead of the query string
+* InProgress #35846 - [Bug] Stop the suite inheriting one session where it opens another, and knock on the door the product uses
+* InProgress #35846 - [Bug] Give the monitoring tests an internal identity, and skip a journey whose seeded product the instance has not got
+* InProgress #35846 - [Bug] Assert the catalogue routing the portal actually does, the test still described the behaviour before the legacy checks were routed
+* InProgress #35846 - [Bug] Carry the portal base path through the e2e fixtures, the suite could not reach a prefixed deployment
+* InProgress #35846 - [Feature] Pair the form fields in two columns when the form itself is wide enough
+* InProgress #35846 - [Feature] List the supplier products on the customer side, with the certificate date that says what is due
+* InProgress #35846 - [Feature] Offer the supplier reference and the certificate date as columns of the products list
+* InProgress #35846 - [Cleanup] Tighten the vertical rhythm of a form step
+* InProgress #35846 - [Bug] Encode the entity identifier in the product sheet calls, the route now hands it decoded
+* InProgress #35846 - [Feature] Put the language and the missing translations on the field label line, and align the input
+* InProgress #35846 - [Bug] Prefix the vendored list glyphs with the base path, they 404 under /supplier
+* InProgress #35846 - [Bug] Build the fast deploy image with the base path, or the portal serves nothing under /supplier
+* InProgress #35846 - [Setup] Point the fast deploy at the portal that exists, in the dev cell, through the Connect Gateway
+* InProgress #35846 - [Cleanup] Rework the TEST banner as a quiet band rather than a hazard strip
+* InProgress #35846 - [Cleanup] Fold the sidebar from the top with a plain chevron, and use the AI stars instead of a bulb
+* InProgress #35846 - [Cleanup] Say what a counter counts and what a missing history needs, in words a customer reads
+* InProgress #35846 - [Cleanup] Drop the header refresh button of the monitoring screens
+* InProgress #35846 - [Feature] Remember the visible columns, per viewer and per screen
+* InProgress #35846 - [Bug] Paint the authored row colour on the cells, so an editable grid cannot cover it
+* InProgress #35846 - [Bug] Say when a specification exists but the account may not open it
+* InProgress #35846 - [Feature] Find a supplier linked products, sub-suppliers and scorecard beyond what is filed under it
+* InProgress #35846 - [Bug] Translate the default wizard step labels, instead of showing step1 to step10
+* InProgress #35846 - [Bug] Decode a route identifier once, so a sheet opened by nodeRef reaches its lists
+* InProgress #35846 - [Bug] Read an association column target class from dataType, so its picker has a datasource
+* InProgress #35846 - [Bug] Send the re-login through the portal base path, so an expired session comes back to its task
+* InProgress #35846 - [Bug] Keep the monitoring filters typed, instead of reseeding them from the URL on the very keystroke
+* [skip ci][Release]: Bump _VERSION to 0.0.29
