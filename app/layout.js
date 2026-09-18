@@ -1,8 +1,8 @@
 import { Roboto } from "next/font/google";
 import { withBasePath } from '@/lib/basePath';
-import { cookies } from "next/headers";
 import "./globals.css";
-import { LANG_COOKIE, normalizeLang, t as translate } from "@/config/messages";
+import { t as translate } from "@/config/messages";
+import { resolveLang } from "@/lib/lang";
 import { getSession, toPublicSession } from "@/lib/session";
 import { getTenant, toPublicTenant } from "@/lib/tenant";
 import { SessionProvider } from "@/components/providers/SessionProvider";
@@ -66,8 +66,7 @@ const THEME_METADATA = {
  * @returns {Promise<Object>}
  */
 export async function generateMetadata() {
-    const cookieStore = await cookies();
-    const lang = normalizeLang(cookieStore.get(LANG_COOKIE)?.value);
+    const lang = await resolveLang();
     const title = translate(lang, "app.title");
 
     return {
@@ -128,8 +127,7 @@ async function readIdentity(lang) {
 }
 
 export default async function RootLayout({ children }) {
-    const cookieStore = await cookies();
-    const lang = normalizeLang(cookieStore.get(LANG_COOKIE)?.value);
+    const lang = await resolveLang();
     const identity = await readIdentity(lang);
 
     return (
