@@ -38,24 +38,20 @@ import {
     writeSession,
 } from '@/lib/session';
 import { TENANT_COOKIE, resolveTenant, tenantCookieOptions } from '@/lib/tenant';
+import { devAccounts, isDevAuthEnabled } from '@/lib/devAuth';
 
 export const dynamic = 'force-dynamic';
-
-function isDevAuthEnabled() {
-    const flag = String(process.env.DEV_FAKE_AUTH || '').toLowerCase();
-    return ['1', 'true', 'yes', 'on'].includes(flag) && process.env.NODE_ENV !== 'production';
-}
 
 /**
  * An access token for a development account, when the local stack has an identity
  * provider to ask.
  *
- * The Share session is minted from the access token and from nothing else
- * (`lib/shareSession.js`), so a dev session holding a ticket alone resolves the
- * wizard structure but no field. When `BECPG_DEV_OIDC_TOKEN_URL` names a token
- * endpoint, the same credentials the ticket was obtained with are traded for a
- * token through the password grant, and the dev session then exercises exactly
- * the path production takes. Unset, nothing changes: the ticket-only session.
+ * When `BECPG_DEV_OIDC_TOKEN_URL` names a token endpoint, the same credentials the
+ * ticket was obtained with are traded for a token through the password grant, and
+ * the dev session then exercises exactly the path production takes — including the
+ * Share session minted from that token. Unset, the session carries the ticket alone
+ * and `lib/shareSession.js` falls back on Share's form login, which resolves the
+ * fields all the same but does not exercise the production path.
  *
  * Development only, like everything in this branch: the grant is refused under
  * `NODE_ENV=production` along with `DEV_FAKE_AUTH` itself.
@@ -95,52 +91,6 @@ async function devAccessToken(user, password) {
         console.warn(`[auth] DEV_FAKE_AUTH: token endpoint unreachable (${error.message}), session opened with the ticket only`);
         return '';
     }
-}
-
-/**
- * Development accounts that `?devUser=` may select, from `BECPG_DEV_ACCOUNTS`.
- *
- * Format: `label=user:password,label=user:password`. Example
- *   BECPG_DEV_ACCOUNTS=admin=admin:becpg,fournisseur=supplier.local@becpg.fr:PortailFournisseur2026!
- *
- * Why it exists: with a single BECPG_DEV_USER the portal always opens the same session, so
- * switching to a supplier perspective meant editing `.env` and restarting — and losing the
- * ability to compare the two spaces side by side. The picker exists so you can.
- *
- * **The password is never taken from the request.** `?devUser=` selects a LABEL from this
- * server-side map; an unknown label is refused. The whole thing is behind
- * {@link isDevAuthEnabled}, so it cannot exist in production.
- *
- * @returns {Object} label -> { userId, password }
- */
-function devAccounts() {
-    const accounts = {};
-    const raw = String(process.env.BECPG_DEV_ACCOUNTS || '').trim();
-
-    for (const entry of raw.split(',').map((part) => part.trim()).filter(Boolean)) {
-        const equals = entry.indexOf('=');
-        const colon = entry.indexOf(':', equals + 1);
-        if (equals === -1 || colon === -1) {
-            continue;
-        }
-        const label = entry.slice(0, equals).trim();
-        const userId = entry.slice(equals + 1, colon).trim();
-        const password = entry.slice(colon + 1);
-        if (label && userId && password) {
-            accounts[label] = { userId, password };
-        }
-    }
-
-    // The single-account variables stay authoritative for the default login, so an existing
-    // setup keeps working untouched.
-    if (process.env.BECPG_DEV_USER && process.env.BECPG_DEV_PASSWORD) {
-        accounts.default = {
-            userId: process.env.BECPG_DEV_USER,
-            password: process.env.BECPG_DEV_PASSWORD,
-        };
-    }
-
-    return accounts;
 }
 
 /**
