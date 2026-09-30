@@ -15,6 +15,9 @@ own PLM configuration.**
 
 ![The supplier dashboard](doc/images/supplier-dashboard.png)
 
+> 📸 **Screenshots taken from a demo instance.** Brand, supplier, product and people names are
+> fictitious, and figures are demonstration data.
+
 ---
 
 ## 🚀 What is the beCPG Supplier Portal?
@@ -268,6 +271,3 @@ and [NOTICE](NOTICE). Third-party dependencies are listed in
 ---
 
 ⚡ **beCPG – Accelerate innovation, stay compliant, and reduce PLM costs for CPG companies.**
-
-<sub>Screenshots taken from a demo instance; supplier names and figures are demonstration
-data.</sub>
