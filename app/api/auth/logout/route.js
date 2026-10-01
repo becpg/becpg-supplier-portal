@@ -15,6 +15,7 @@ import { buildEndSessionUrl, revokeToken } from '@/lib/oidc';
 import {
     clearSession,
     portalBaseUrl,
+    portalHost,
     portalUrl,
     readSession,
     safeNextPath,
@@ -37,10 +38,12 @@ async function handle(request) {
     let target = portalUrl(next, baseUrl).toString();
 
     if (session && session.authMode === 'oidc' && !localOnly) {
+        const host = session.oidcHost || portalHost(request);
         if (session.refreshToken) {
-            await revokeToken(tenant, session.refreshToken);
+            await revokeToken(tenant, session.refreshToken, { host });
         }
         const endSession = await buildEndSessionUrl(tenant, {
+            host,
             idToken: session.idToken,
             postLogoutRedirectUri: portalUrl(next, baseUrl).toString(),
         });

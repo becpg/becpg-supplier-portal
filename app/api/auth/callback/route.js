@@ -21,11 +21,13 @@ import {
     exchangeCode,
     exchangeTokenForTicket,
     fetchAlfrescoPerson,
+    issuerUrl,
 } from '@/lib/oidc';
 import {
     clearOidcState,
     createSession,
     portalBaseUrl,
+    portalHost,
     portalUrl,
     readOidcState,
     safeNextPath,
@@ -75,21 +77,26 @@ export async function GET(request) {
 
     const tenant = getTenant(flow.tenantId) || resolveTenant(request);
     const next = safeNextPath(flow.next, '/');
+    // The host the login started on, not the callback's: the code was issued by
+    // that issuer and is only redeemable there.
+    const oidcHost = flow.oidcHost || portalHost(request);
 
     try {
+        const issuer = issuerUrl(tenant, { host: oidcHost });
         const tokens = await exchangeCode(tenant, {
             code,
             codeVerifier: flow.codeVerifier,
             redirectUri: flow.redirectUri || `${baseUrl}/api/auth/callback`,
+            host: oidcHost,
         });
 
         // Mandatory tenant claims live on the access token (hardcoded claim
         // mappers on the realm, cf. becpg-ai/doc/authentication_fr.md).
-        const accessClaims = decodeAccessToken(tokens.access_token);
+        const accessClaims = decodeAccessToken(tokens.access_token, { issuer });
 
         let idClaims = {};
         if (tokens.id_token) {
-            idClaims = decodeIdToken(tokens.id_token);
+            idClaims = decodeIdToken(tokens.id_token, { issuer });
             if (flow.nonce && idClaims.nonce && idClaims.nonce !== flow.nonce) {
                 console.warn('[auth] nonce mismatch on the ID token');
                 return loginRedirect(request, 'nonce_mismatch');
@@ -120,6 +127,7 @@ export async function GET(request) {
             tenantId: tenant.id,
             becpgUrl,
             becpgInstance,
+            oidcHost,
             ticket,
             ticketExpiry,
             accessToken: tokens.access_token,
