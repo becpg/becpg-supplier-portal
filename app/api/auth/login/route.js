@@ -32,6 +32,7 @@ import {
 import {
     createSession,
     portalBaseUrl,
+    portalHost,
     portalUrl,
     safeNextPath,
     writeOidcState,
@@ -204,7 +205,7 @@ export async function GET(request) {
         return errorResponse(
             request,
             'oidc_not_configured',
-            'OIDC_ISSUER_BASE / OIDC_CLIENT_ID are not configured (and DEV_FAKE_AUTH is off)',
+            'OIDC_ISSUER_TEMPLATE / OIDC_ISSUER_BASE are not configured (and DEV_FAKE_AUTH is off)',
         );
     }
 
@@ -214,8 +215,10 @@ export async function GET(request) {
         const codeVerifier = generateCodeVerifier();
         const codeChallenge = await generateCodeChallenge(codeVerifier);
         const redirectUri = `${baseUrl}/api/auth/callback`;
+        const oidcHost = portalHost(request);
 
         const authorizationUrl = await buildAuthorizationUrl(tenant, {
+            host: oidcHost,
             redirectUri,
             state,
             codeChallenge,
@@ -232,6 +235,7 @@ export async function GET(request) {
             nonce,
             codeVerifier,
             tenantId: tenant.id,
+            oidcHost,
             redirectUri,
             next,
         });
