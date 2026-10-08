@@ -170,7 +170,7 @@ const LABELS = {
         blockedConsent: 'Tick the consent box.',
         successTitle: 'Document signed',
         successBody:
-            'Your signature has been recorded. beCPG applies it to the document and emails you a copy.',
+            'Your signature has been recorded. beCPG applies it to the document and emails you a copy. You will also find it under My documents › Signed.',
         successNext: 'Nothing else is expected from you: the task closes and your customer is notified.',
         successDownload: 'Download the document',
         successBack: 'Back to my tasks',
@@ -1067,21 +1067,24 @@ export function SignatureFlow({
             >
                 <div className="flex flex-wrap items-center gap-2">
                     <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 text-xs">
+                        <div className="flex items-center gap-2 text-sm">
                             <Icon
                                 name={reading.complete ? 'check_circle' : 'menu_book'}
-                                size={16}
-                                className={reading.complete ? 'text-[var(--status-ok)]' : 'text-[var(--becpg-dark-grey)]'}
+                                size={18}
+                                className={reading.complete ? 'text-[var(--status-ok)]' : 'text-[var(--becpg-blue)]'}
                             />
                             <span
-                                className={`tabular-nums ${
-                                    reading.complete ? 'text-[var(--status-ok)]' : 'text-[var(--becpg-dark-grey)]'
+                                className={`font-medium tabular-nums ${
+                                    reading.complete ? 'text-[var(--status-ok)]' : 'text-[var(--becpg-blue)]'
                                 }`}
                                 aria-live="polite"
                             >
                                 {progressLabel}
                             </span>
                         </div>
+                        {reading.complete ? null : (
+                            <p className="mt-0.5 text-xs text-[var(--becpg-dark-grey)]">{labels.progressHint}</p>
+                        )}
                         <div
                             className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-[var(--becpg-grey)]"
                             role="progressbar"

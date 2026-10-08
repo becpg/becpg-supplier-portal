@@ -51,8 +51,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 /** Share of the page (or of the viewport) that must be visible. */
 export const DEFAULT_THRESHOLD = 0.55;
 
-/** Continuous visibility required before a page counts, in ms. */
-export const DEFAULT_DWELL_MS = 600;
+/**
+ * Continuous visibility required before a page counts, in ms. Long enough that
+ * a fling of the scrollbar attests nothing, short enough that paging through
+ * with the viewer's own buttons is not slowed down.
+ */
+export const DEFAULT_DWELL_MS = 250;
 
 /** sessionStorage namespace. */
 const STORAGE_PREFIX = 'becpg-portal:read:';
