@@ -13,7 +13,6 @@ import Link from 'next/link';
 import { Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useMessages } from '@/lib/messages';
-import { STATE_CARD_CLASS, STATE_RAIL } from '@/components/dashboard/ApprovalCard';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 const LOCAL = defineLabels('components/dashboard/DocumentsCard#LOCAL', {
@@ -98,21 +97,12 @@ export function DocumentsCard({ documents, index = 0, className = '' }) {
     const toHandle = (documents && documents.expired ? documents.expired : 0)
         + (documents && documents.missing ? documents.missing : 0)
         + refused;
-    const tone = !available
-        ? 'neutral'
-        : toHandle > 0
-            ? 'danger'
-            : (documents && documents.expiringSoon) > 0
-                ? 'warn'
-                : 'ok';
-
     return (
         <Card
             title={local.title}
             icon="folder_shared"
             index={index}
-            className={`${STATE_CARD_CLASS} ${className}`.trim()}
-            style={{ borderLeftColor: STATE_RAIL[tone] }}
+            className={className}
             actions={
                 <Link
                     href="/documents"
@@ -135,9 +125,9 @@ export function DocumentsCard({ documents, index = 0, className = '' }) {
                      * four equal numbers, and the eye had nowhere to land.
                      */}
                     <div className="mb-2.5 flex items-baseline gap-2">
-                        {/* Blue, like every other headline figure of the row; the
-                            rail and the four counters carry the tone. */}
-                        <span className="text-3xl font-light leading-none tabular-nums text-[var(--becpg-blue)]">
+                        {/* One colour, like every other headline figure of the
+                            row; the four counters carry the tone. */}
+                        <span className="text-3xl font-light leading-none tabular-nums text-[var(--becpg-ink)]">
                             {toHandle}
                         </span>
                         <span className="min-w-0 truncate text-xs text-[var(--becpg-dark-grey)]">

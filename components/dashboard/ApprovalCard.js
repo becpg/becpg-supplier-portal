@@ -71,33 +71,6 @@ const LOCAL = defineLabels('components/dashboard/ApprovalCard#LOCAL', {
     },
 });
 
-/**
- * Tone → the 4px rail at the left edge of the card.
- *
- * The four "état de mon dossier" cards all carry one, in the same place, and
- * these are **exactly** the five rail colours of `components/ui/StatCard`, the
- * tile the monitoring space is built from: the supplier's four state cards and
- * the quality officer's eight park tiles then read as the same instrument, which
- * is the whole point of a range. It is also the cue that survives a glance from
- * two metres away. Exported so the three sibling cards cannot drift from it.
- *
- * Following `StatCard`'s rule, the **figure stays `--becpg-blue`**: a row where
- * every number is a different colour reads as unrelated widgets. The tone lives
- * on the rail and on the pills, never on the number alone.
- */
-export const STATE_RAIL = {
-    ok: 'var(--status-ok)',
-    warn: 'var(--status-warn)',
-    danger: 'var(--status-danger)',
-    info: 'var(--status-info)',
-    neutral: 'var(--becpg-blue-light)',
-};
-
-/**
- * The class every state card puts on its `Card`, so the four have the same edge
- * treatment. The colour itself travels in `style.borderLeftColor`.
- */
-export const STATE_CARD_CLASS = 'border-s-4';
 
 /** Tone → the surface used for the big status medallion. */
 const TONE_SURFACE = {
@@ -142,8 +115,7 @@ export function ApprovalCard({ approval, supplier, validUntil, index = 0, classN
             subtitle={supplier && supplier.name ? supplier.name : undefined}
             icon="verified_user"
             index={index}
-            className={`${STATE_CARD_CLASS} ${className}`.trim()}
-            style={{ borderLeftColor: STATE_RAIL[resolved.tone] || STATE_RAIL.neutral }}
+            className={className}
         >
             <div className="flex items-center gap-3">
                 <motion.span

@@ -7,14 +7,11 @@
  */
 const LOCALE = {
     "app/(home)/page#LOCAL": {
-        "state": "Min akt i korthet",
-        "stateHint": "Godkännande, fullständighet, åtgärder och dokument — beräknas om vid varje visning.",
-        "detail": "Detaljerna",
-        "detailHint": "Det som väntar på dig, produkt för produkt och dokument för dokument."
+        "state": "Min akt",
+        "detail": "Att göra"
     },
     "app/company/page#LABELS": {
         "title": "Mitt företag",
-        "subtitle": "Vad kunden har registrerat om ditt företag",
         "noSupplier": "Ingen leverantörspost",
         "noSupplierHint": "Ditt konto är inte kopplat till någon leverantör. Kontakta din kundrepresentant.",
         "approval": "Godkännandestatus",
@@ -55,7 +52,6 @@ const LOCALE = {
     },
     "app/documents/page#LABELS": {
         "title": "Mina dokument",
-        "subtitle": "Vad kunden förväntar sig av dig, och när",
         "tabRequirements": "Krav",
         "tabAll": "Alla dokument",
         "tabSigned": "Signerade",
@@ -579,7 +575,6 @@ const LOCALE = {
     },
     "app/messages/page#LABELS": {
         "title": "Diskussioner",
-        "subtitle": "Utbyten med kunden, produkt för produkt",
         "subjects": "Ämnen",
         "messageCount": "{count} meddelande(n)",
         "search": "Sök ett ämne",
@@ -945,7 +940,6 @@ const LOCALE = {
     },
     "app/products/page#LABELS": {
         "title": "Mina produkter",
-        "subtitle": "De blad som kunden ber dig hålla uppdaterade",
         "search": "Sök en produkt",
         "allStates": "Alla statusar",
         "allTypes": "Alla typer",
@@ -975,7 +969,6 @@ const LOCALE = {
     },
     "app/specs/page#LABELS": {
         "title": "Specifikationer",
-        "subtitle": "De referensdokument som kunden tillämpar på dina produkter",
         "stats": {
             "specs": "Specifikationer",
             "products": "Omfattade produkter"
@@ -998,7 +991,6 @@ const LOCALE = {
     },
     "app/tasks/page#LOCAL": {
         "title": "Mina uppgifter",
-        "description": "Allt som kunden förväntar sig av dig, filtrerbart och sorterat efter brådska.",
         "search": "Sök en uppgift, en produkt, en kod…",
         "anyType": "Alla typer",
         "anyPriority": "Alla prioriteter",
@@ -1028,7 +1020,6 @@ const LOCALE = {
         "truncated": "Endast de första uppgifterna visas. Begränsa filtren för att se resten.",
         "scoped": "Omfång: {supplier}.",
         "scopedAll": "Omfång: alla leverantörer.",
-        "scopedChange": "Leverantören väljs i det övre högra hörnet.",
         "orphans": "{count} uppgift(er) är inte kopplade till något av dina leverantörsblad och listas inte här. Välj ”Alla leverantörer” i det övre högra hörnet för att se dem.",
         "priorityHigh": "Hög",
         "priorityMedium": "Medel",
@@ -1120,7 +1111,6 @@ const LOCALE = {
     },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "Mina aviseringar",
-        "subtitle": "Mest brådskande först",
         "empty": "Inga aviseringar",
         "emptyHint": "Inget kräver din uppmärksamhet just nu.",
         "overdue": "{days} d försenad",
@@ -1162,7 +1152,6 @@ const LOCALE = {
     },
     "components/dashboard/TaskList#LOCAL": {
         "title": "Mina uppgifter",
-        "subtitle": "Sorterade efter brådska",
         "empty": "Inga pågående uppgifter",
         "emptyHint": "Allt är uppdaterat. Nya förfrågningar från kunden visas här.",
         "all": "Visa alla",
@@ -2218,9 +2207,7 @@ const LOCALE = {
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "Det finns inget att visa här ännu. Poster visas så snart de har skapats eller skickats in.",
-        "search": "Ingen post matchar sökningen. Prova färre ord, eller ta bort något av filtren.",
-        "error": null,
-        "success": null
+        "search": "Ingen post matchar sökningen. Prova färre ord, eller ta bort något av filtren."
     },
     "components/ui/TabScroller#LOCAL": {
         "previous": "Föregående flikar",

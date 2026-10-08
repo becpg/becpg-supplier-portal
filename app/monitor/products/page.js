@@ -35,7 +35,7 @@ import { AppShell, PageHeader } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { SearchInput, Select } from '@/components/ui/Field';
+import { SEARCH_SLOT_CLASS, SearchInput, Select } from '@/components/ui/Field';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { formatDate, formatTotal } from '@/lib/format';
 import { useApi } from '@/lib/client';
@@ -330,7 +330,7 @@ export default function MonitorProductsPage() {
             <PageHeader title={labels.title} description={labels.subtitle} />
 
             <div className="mb-3 flex flex-wrap items-center gap-2">
-                <div className="min-w-[14rem] flex-1 sm:max-w-md">
+                <div className={SEARCH_SLOT_CLASS}>
                     <SearchInput
                         value={query}
                         onChange={(value) => reset(() => setQuery(value))}

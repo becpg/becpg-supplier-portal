@@ -11,7 +11,7 @@
  */
 
 import { Button, Icon, IconButton, Spinner } from '@/components/ui/Button';
-import { SearchInput } from '@/components/ui/Field';
+import { SEARCH_SLOT_CLASS, SearchInput } from '@/components/ui/Field';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useDataListLabels } from '@/components/datalist/useDataList';
 
@@ -61,7 +61,7 @@ export function DataListToolbar({
 
             <div className="flex flex-wrap items-center gap-2">
                 {showSearch ? (
-                    <div className="min-w-[9rem] flex-1 sm:max-w-xs">
+                    <div className={SEARCH_SLOT_CLASS}>
                         <SearchInput
                             value={list.filter}
                             onChange={list.setFilter}

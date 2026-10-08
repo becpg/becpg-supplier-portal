@@ -42,7 +42,6 @@ import { defineLabels, pickLabels } from '@/lib/i18n';
 const LABELS = defineLabels('app/messages/page#LABELS', {
     fr: {
         title: 'Discussions',
-        subtitle: 'Les échanges avec le client, produit par produit',
         subjects: 'Sujets',
         messageCount: '{count} message(s)',
         search: 'Rechercher un sujet',
@@ -75,7 +74,6 @@ const LABELS = defineLabels('app/messages/page#LABELS', {
     },
     en: {
         title: 'Discussions',
-        subtitle: 'Exchanges with the customer, product by product',
         subjects: 'Subjects',
         messageCount: '{count} message(s)',
         search: 'Search a subject',
@@ -698,9 +696,7 @@ function MessagesScreen() {
     );
 
     return (
-        <AppShell title={labels.title}>
-            <p className="mb-4 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
-
+        <AppShell title={labels.title} showTitle>
             {/* `minmax(0, …)` on the tracks and `min-w-0` on the panes, because a
                 grid item's `min-width` defaults to `auto` — "never narrower than my
                 min-content". A subject whose title is one unbroken 36-character

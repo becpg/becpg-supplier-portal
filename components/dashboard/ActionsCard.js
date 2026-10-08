@@ -12,7 +12,6 @@ import Link from 'next/link';
 import { Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useMessages } from '@/lib/messages';
-import { STATE_CARD_CLASS, STATE_RAIL } from '@/components/dashboard/ApprovalCard';
 import { formatDate } from '@/lib/format';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
@@ -80,17 +79,12 @@ export function ActionsCard({ actions, index = 0, className = '' }) {
     const nextDue = formatDate(actions && actions.nextDueDate, lang, { fallback: null });
 
     const types = Object.keys(TASK_TYPE_META).filter((type) => (byType[type] || 0) > 0);
-    // Late is the only state that deserves red; an open task that is on time is
-    // work, not an incident, so it stays informative.
-    const tone = late > 0 ? 'danger' : open > 0 ? 'info' : 'ok';
-
     return (
         <Card
             title={local.title}
             icon="assignment_turned_in"
             index={index}
-            className={`${STATE_CARD_CLASS} ${className}`.trim()}
-            style={{ borderLeftColor: STATE_RAIL[tone] }}
+            className={className}
             actions={
                 <Link
                     href="/tasks"
@@ -103,9 +97,9 @@ export function ActionsCard({ actions, index = 0, className = '' }) {
             }
         >
             <div className="flex items-baseline gap-2">
-                {/* Blue whatever the state — the rail and the "en retard" pill
-                    below carry the alarm. See the note on `STATE_RAIL`. */}
-                <span className="text-3xl font-light leading-none tabular-nums text-[var(--becpg-blue)]">
+                {/* One colour whatever the state: the "en retard" pill below
+                    carries the alarm. */}
+                <span className="text-3xl font-light leading-none tabular-nums text-[var(--becpg-ink)]">
                     {open}
                 </span>
                 <span className="min-w-0 truncate text-xs text-[var(--becpg-dark-grey)]">{local.open}</span>

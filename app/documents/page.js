@@ -28,7 +28,7 @@ import { Card } from '@/components/ui/Card';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
 import { GaugeBar } from '@/components/ui/Gauge';
 import { DataTable } from '@/components/ui/DataTable';
-import { SearchInput, Select } from '@/components/ui/Field';
+import { SEARCH_SLOT_CLASS, SearchInput, Select } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { StatusPill } from '@/components/ui/StatusPill';
@@ -45,7 +45,6 @@ import { defineLabels, pickLabels } from '@/lib/i18n';
 const LABELS = defineLabels('app/documents/page#LABELS', {
     fr: {
         title: 'Mes documents',
-        subtitle: 'Ce que le client attend de vous, et pour quand',
         tabRequirements: 'Exigences',
         tabAll: 'Tous les documents',
         tabSigned: 'Signés',
@@ -98,7 +97,6 @@ const LABELS = defineLabels('app/documents/page#LABELS', {
     },
     en: {
         title: 'My documents',
-        subtitle: 'What the customer expects from you, and by when',
         tabRequirements: 'Requirements',
         tabAll: 'All documents',
         tabSigned: 'Signed',
@@ -388,6 +386,7 @@ export default function DocumentsPage() {
     return (
         <AppShell
             fullWidth
+            showTitle
             title={labels.title}
             badges={{ documents: counts.open }}
             actions={
@@ -402,8 +401,6 @@ export default function DocumentsPage() {
                 </Button>
             }
         >
-            <p className="mb-4 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
-
             {/* ------------------------------------------------------ KPI row */}
             <StatGrid columns={4} className="mb-4">
                 <StatCard
@@ -559,7 +556,7 @@ export default function DocumentsPage() {
                                 </button>
                             ))}
                         </div>
-                        <div className="sm:ms-auto sm:w-64">
+                        <div className={`${SEARCH_SLOT_CLASS} sm:order-first`}>
                             <SearchInput value={query} onChange={setQuery} placeholder={labels.search} />
                         </div>
                     </div>

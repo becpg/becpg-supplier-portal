@@ -7,14 +7,11 @@
  */
 const LOCALE = {
     "app/(home)/page#LOCAL": {
-        "state": "Dosyama genel bakış",
-        "stateHint": "Onay, doluluk, eylemler ve belgeler — her görüntülemede yeniden hesaplanır.",
-        "detail": "Ayrıntılar",
-        "detailHint": "Sizi bekleyenler, ürün ürün ve belge belge."
+        "state": "Dosyam",
+        "detail": "Yapılacaklar"
     },
     "app/company/page#LABELS": {
         "title": "Şirketim",
-        "subtitle": "Müşterinin şirketiniz hakkında tuttuğu bilgiler",
         "noSupplier": "Tedarikçi kaydı yok",
         "noSupplierHint": "Hesabınız hiçbir tedarikçiye bağlı değil. Müşteri temsilcinizle iletişime geçin.",
         "approval": "Onay durumu",
@@ -55,7 +52,6 @@ const LOCALE = {
     },
     "app/documents/page#LABELS": {
         "title": "Belgelerim",
-        "subtitle": "Müşterinin sizden beklediği belgeler ve son tarihleri",
         "tabRequirements": "Gereksinimler",
         "tabAll": "Tüm belgeler",
         "tabSigned": "İmzalananlar",
@@ -579,7 +575,6 @@ const LOCALE = {
     },
     "app/messages/page#LABELS": {
         "title": "Tartışmalar",
-        "subtitle": "Müşteriyle yazışmalar, ürün ürün",
         "subjects": "Konular",
         "messageCount": "{count} mesaj",
         "search": "Konu ara",
@@ -945,7 +940,6 @@ const LOCALE = {
     },
     "app/products/page#LABELS": {
         "title": "Ürünlerim",
-        "subtitle": "Müşterinin güncel tutmanızı istediği kartlar",
         "search": "Ürün ara",
         "allStates": "Tüm durumlar",
         "allTypes": "Tüm türler",
@@ -975,7 +969,6 @@ const LOCALE = {
     },
     "app/specs/page#LABELS": {
         "title": "Spesifikasyonlar",
-        "subtitle": "Müşterinin ürünlerinize uyguladığı referans belgeler",
         "stats": {
             "specs": "Spesifikasyonlar",
             "products": "Kapsanan ürünler"
@@ -998,7 +991,6 @@ const LOCALE = {
     },
     "app/tasks/page#LOCAL": {
         "title": "Görevlerim",
-        "description": "Müşterinizin sizden beklediği her şey; filtrelenebilir ve aciliyete göre sıralanmış.",
         "search": "Görev, ürün, kod ara…",
         "anyType": "Tüm türler",
         "anyPriority": "Tüm öncelikler",
@@ -1028,7 +1020,6 @@ const LOCALE = {
         "truncated": "Yalnızca ilk görevler gösteriliyor. Geri kalanını görmek için filtreleri daraltın.",
         "scoped": "Kapsam: {supplier}.",
         "scopedAll": "Kapsam: tüm tedarikçiler.",
-        "scopedChange": "Tedarikçi sağ üst köşeden seçilir.",
         "orphans": "{count} görev hiçbir tedarikçi kaydınıza bağlı değil ve burada listelenmiyor. Bunları görmek için sağ üst köşeden \"Tüm tedarikçiler\" seçeneğini seçin.",
         "priorityHigh": "Yüksek",
         "priorityMedium": "Orta",
@@ -1120,7 +1111,6 @@ const LOCALE = {
     },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "Bildirimlerim",
-        "subtitle": "En acil olanlar önce",
         "empty": "Bildirim yok",
         "emptyHint": "Şu anda ilginizi gerektiren bir şey yok.",
         "overdue": "{days} g gecikmiş",
@@ -1162,7 +1152,6 @@ const LOCALE = {
     },
     "components/dashboard/TaskList#LOCAL": {
         "title": "Görevlerim",
-        "subtitle": "Aciliyete göre sıralı",
         "empty": "Devam eden görev yok",
         "emptyHint": "Her şey güncel. Yeni müşteri talepleri burada görünecek.",
         "all": "Tümünü gör",
@@ -2218,9 +2207,7 @@ const LOCALE = {
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "Burada henüz gösterilecek bir şey yok. Öğeler oluşturulur veya gönderilir gönderilmez görünecek.",
-        "search": "Aramanıza uyan öğe yok. Daha az kelime deneyin veya filtrelerden birini kaldırın.",
-        "error": null,
-        "success": null
+        "search": "Aramanıza uyan öğe yok. Daha az kelime deneyin veya filtrelerden birini kaldırın."
     },
     "components/ui/TabScroller#LOCAL": {
         "previous": "Önceki sekmeler",

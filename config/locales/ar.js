@@ -7,14 +7,11 @@
  */
 const LOCALE = {
     "app/(home)/page#LOCAL": {
-        "state": "ملفي في لمحة",
-        "stateHint": "الاعتماد والاكتمال والإجراءات والمستندات — يُعاد حسابها عند كل عرض.",
-        "detail": "التفاصيل",
-        "detailHint": "ما ينتظرك، منتجًا تلو الآخر ومستندًا تلو الآخر."
+        "state": "ملفي",
+        "detail": "للمعالجة"
     },
     "app/company/page#LABELS": {
         "title": "شركتي",
-        "subtitle": "ما يحتفظ به العميل عن شركتكم",
         "noSupplier": "لا يوجد سجل مورّد",
         "noSupplierHint": "حسابكم غير مرتبط بأي مورّد. يُرجى التواصل مع ممثلكم لدى العميل.",
         "approval": "حالة الاعتماد",
@@ -55,7 +52,6 @@ const LOCALE = {
     },
     "app/documents/page#LABELS": {
         "title": "مستنداتي",
-        "subtitle": "ما يتوقعه العميل منكم، وفي أي موعد",
         "tabRequirements": "المتطلبات",
         "tabAll": "جميع المستندات",
         "tabSigned": "الموقّعة",
@@ -579,7 +575,6 @@ const LOCALE = {
     },
     "app/messages/page#LABELS": {
         "title": "المناقشات",
-        "subtitle": "المراسلات مع العميل، منتجًا تلو الآخر",
         "subjects": "المواضيع",
         "messageCount": "{count} رسالة(رسائل)",
         "search": "البحث عن موضوع",
@@ -945,7 +940,6 @@ const LOCALE = {
     },
     "app/products/page#LABELS": {
         "title": "منتجاتي",
-        "subtitle": "البطاقات التي يطلب منكم العميل تحديثها باستمرار",
         "search": "البحث عن منتج",
         "allStates": "جميع الحالات",
         "allTypes": "جميع الأنواع",
@@ -975,7 +969,6 @@ const LOCALE = {
     },
     "app/specs/page#LABELS": {
         "title": "المواصفات",
-        "subtitle": "المستندات المرجعية التي يطبّقها العميل على منتجاتكم",
         "stats": {
             "specs": "المواصفات",
             "products": "المنتجات المشمولة"
@@ -998,7 +991,6 @@ const LOCALE = {
     },
     "app/tasks/page#LOCAL": {
         "title": "مهامي",
-        "description": "كل ما يتوقعه منكم عميلكم، قابل للتصفية ومرتّب حسب الأولوية الزمنية.",
         "search": "البحث عن مهمة، منتج، رمز…",
         "anyType": "جميع الأنواع",
         "anyPriority": "جميع الأولويات",
@@ -1028,7 +1020,6 @@ const LOCALE = {
         "truncated": "تُعرض المهام الأولى فقط. ضيّقوا الفلاتر لعرض البقية.",
         "scoped": "النطاق: {supplier}.",
         "scopedAll": "النطاق: جميع الموردين.",
-        "scopedChange": "يُختار المورّد من الزاوية العلوية اليمنى.",
         "orphans": "{count} مهمة(مهام) غير مرتبطة بأي من سجلات المورّد الخاصة بكم ولا تظهر هنا. اختاروا «جميع الموردين» في الزاوية العلوية اليمنى لعرضها.",
         "priorityHigh": "عالية",
         "priorityMedium": "متوسطة",
@@ -1120,7 +1111,6 @@ const LOCALE = {
     },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "إشعاراتي",
-        "subtitle": "الأكثر إلحاحًا أولًا",
         "empty": "لا توجد إشعارات",
         "emptyHint": "لا شيء يستدعي انتباهكم حاليًا.",
         "overdue": "متأخر {days} يوم",
@@ -1162,7 +1152,6 @@ const LOCALE = {
     },
     "components/dashboard/TaskList#LOCAL": {
         "title": "مهامي",
-        "subtitle": "مرتّبة حسب الأولوية الزمنية",
         "empty": "لا توجد مهمة قيد التنفيذ",
         "emptyHint": "كل شيء محدَّث. ستظهر هنا طلبات العميل الجديدة.",
         "all": "عرض الكل",
@@ -2218,9 +2207,7 @@ const LOCALE = {
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "لا شيء لعرضه هنا بعد. ستظهر العناصر بمجرد إنشائها أو تقديمها.",
-        "search": "لا يوجد عنصر يطابق بحثكم. جرّبوا كلمات أقل، أو أزيلوا أحد الفلاتر.",
-        "error": null,
-        "success": null
+        "search": "لا يوجد عنصر يطابق بحثكم. جرّبوا كلمات أقل، أو أزيلوا أحد الفلاتر."
     },
     "components/ui/TabScroller#LOCAL": {
         "previous": "التبويبات السابقة",

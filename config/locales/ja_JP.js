@@ -7,14 +7,11 @@
  */
 const LOCALE = {
     "app/(home)/page#LOCAL": {
-        "state": "登録情報の概要",
-        "stateHint": "承認、完成度、アクション、文書 — 表示のたびに再計算されます。",
-        "detail": "詳細",
-        "detailHint": "製品ごと、文書ごとに、対応が必要な事項を表示します。"
+        "state": "マイファイル",
+        "detail": "対応が必要"
     },
     "app/company/page#LABELS": {
         "title": "自社情報",
-        "subtitle": "お客様が保有している貴社の情報",
         "noSupplier": "サプライヤー情報がありません",
         "noSupplierHint": "お使いのアカウントはどのサプライヤーにも紐付けられていません。お客様のご担当者にお問い合わせください。",
         "approval": "承認ステータス",
@@ -55,7 +52,6 @@ const LOCALE = {
     },
     "app/documents/page#LABELS": {
         "title": "文書",
-        "subtitle": "お客様が求めている文書とその期限",
         "tabRequirements": "要求事項",
         "tabAll": "すべての文書",
         "tabSigned": "署名済み",
@@ -579,7 +575,6 @@ const LOCALE = {
     },
     "app/messages/page#LABELS": {
         "title": "ディスカッション",
-        "subtitle": "製品ごとのお客様とのやり取り",
         "subjects": "件名",
         "messageCount": "{count} 件のメッセージ",
         "search": "件名を検索",
@@ -945,7 +940,6 @@ const LOCALE = {
     },
     "app/products/page#LABELS": {
         "title": "製品",
-        "subtitle": "お客様から最新の状態に保つよう依頼されているシート",
         "search": "製品を検索",
         "allStates": "すべての状態",
         "allTypes": "すべての種類",
@@ -975,7 +969,6 @@ const LOCALE = {
     },
     "app/specs/page#LABELS": {
         "title": "仕様書",
-        "subtitle": "お客様が貴社の製品に適用する参照文書",
         "stats": {
             "specs": "仕様書",
             "products": "対象製品"
@@ -998,7 +991,6 @@ const LOCALE = {
     },
     "app/tasks/page#LOCAL": {
         "title": "タスク",
-        "description": "お客様が貴社に求めているすべての事項。絞り込みが可能で、緊急度順に並んでいます。",
         "search": "タスク、製品、コードを検索…",
         "anyType": "すべての種類",
         "anyPriority": "すべての優先度",
@@ -1028,7 +1020,6 @@ const LOCALE = {
         "truncated": "最初のタスクのみ表示しています。残りを表示するにはフィルターを絞り込んでください。",
         "scoped": "範囲：{supplier}。",
         "scopedAll": "範囲：すべてのサプライヤー。",
-        "scopedChange": "サプライヤーは右上で選択します。",
         "orphans": "{count} 件のタスクはどのサプライヤー情報にも紐付いていないため、ここには表示されません。表示するには、右上で「すべてのサプライヤー」を選択してください。",
         "priorityHigh": "高",
         "priorityMedium": "中",
@@ -1120,7 +1111,6 @@ const LOCALE = {
     },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "通知",
-        "subtitle": "緊急度の高い順",
         "empty": "通知はありません",
         "emptyHint": "現在、対応が必要な事項はありません。",
         "overdue": "{days} 日超過",
@@ -1162,7 +1152,6 @@ const LOCALE = {
     },
     "components/dashboard/TaskList#LOCAL": {
         "title": "タスク",
-        "subtitle": "緊急度順",
         "empty": "進行中のタスクはありません",
         "emptyHint": "すべて最新の状態です。お客様からの新しい依頼はここに表示されます。",
         "all": "すべて表示",
@@ -2218,9 +2207,7 @@ const LOCALE = {
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "ここにはまだ表示する内容がありません。項目が作成または提出されると表示されます。",
-        "search": "検索に該当する項目はありません。語句を減らすか、フィルターを解除してお試しください。",
-        "error": null,
-        "success": null
+        "search": "検索に該当する項目はありません。語句を減らすか、フィルターを解除してお試しください。"
     },
     "components/ui/TabScroller#LOCAL": {
         "previous": "前のタブ",

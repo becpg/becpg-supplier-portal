@@ -81,16 +81,12 @@ const PREVIEW = { tasks: 6, products: 4, documents: 4, notifications: 4, discuss
  */
 const LOCAL = defineLabels('app/(home)/page#LOCAL', {
     fr: {
-        state: 'État de mon dossier',
-        stateHint: 'Agrément, complétude, actions et documents — recalculés à chaque affichage.',
-        detail: 'Le détail',
-        detailHint: 'Ce qui vous attend, produit par produit et document par document.',
+        state: 'Mon dossier',
+        detail: 'À traiter',
     },
     en: {
-        state: 'My file at a glance',
-        stateHint: 'Approval, completeness, actions and documents — recomputed on every render.',
-        detail: 'The detail',
-        detailHint: 'What is waiting for you, product by product and document by document.',
+        state: 'My file',
+        detail: 'To do',
     },
 });
 
@@ -512,7 +508,7 @@ export default async function DashboardPage() {
         >
             {/* ---------------------------------------- état de mon dossier */}
             <section aria-label={local.state}>
-                <SectionHeader title={local.state} subtitle={local.stateHint} />
+                <SectionHeader title={local.state} />
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
                     <ApprovalCard
                         approval={approval}
@@ -528,7 +524,7 @@ export default async function DashboardPage() {
 
             {/* ----------------------------------------------- centre zone */}
             <section className="mt-6 sm:mt-8" aria-label={local.detail}>
-                <SectionHeader title={local.detail} subtitle={local.detailHint} />
+                <SectionHeader title={local.detail} />
                 {/*
                  * A **multi-column flow**, not a two-column grid.
                  *

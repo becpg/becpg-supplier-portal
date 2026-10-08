@@ -49,7 +49,6 @@ import { defineLabels, pickLabels } from '@/lib/i18n';
 const LABELS = defineLabels('app/company/page#LABELS', {
     fr: {
         title: 'Ma fiche',
-        subtitle: 'Les informations que le client détient sur votre entreprise',
         noSupplier: 'Aucune fiche fournisseur',
         noSupplierHint:
             'Votre compte n’est rattaché à aucun fournisseur. Contactez votre interlocuteur chez le client.',
@@ -91,7 +90,6 @@ const LABELS = defineLabels('app/company/page#LABELS', {
     },
     en: {
         title: 'My company',
-        subtitle: 'What the customer holds about your company',
         noSupplier: 'No supplier record',
         noSupplierHint: 'Your account is not linked to any supplier. Contact your customer representative.',
         request: 'Request an update',
@@ -529,8 +527,6 @@ export default function CompanyPage() {
                 status ? <StatusPill status={status.status} label={status.statusLabel} size="sm" /> : null
             }
         >
-            <p className="mb-4 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
-
             {/* ---------------------------------------------- identity band */}
             {/* The band falls back on the session's supplier name; the failed
                 read of the record itself still has to say so, with a retry. */}

@@ -41,7 +41,6 @@ export const NOTIFICATION_LABELS = defineLabels('components/dashboard/Notificati
         title: 'Mes notifications',
         // The API ranks by severity then by oldest date — see `sortNewestFirst`
         // below, which is the *bell's* order, not the card's.
-        subtitle: 'Les plus urgentes d’abord',
         empty: 'Aucune notification',
         emptyHint: 'Rien ne requiert votre attention pour le moment.',
         overdue: 'En retard de {days} j',
@@ -82,7 +81,6 @@ export const NOTIFICATION_LABELS = defineLabels('components/dashboard/Notificati
     },
     en: {
         title: 'My notifications',
-        subtitle: 'Most urgent first',
         empty: 'No notification',
         emptyHint: 'Nothing needs your attention right now.',
         overdue: '{days} d late',
@@ -369,7 +367,6 @@ export function NotificationList({ limit = 6, index = 0, className = '' }) {
     return (
         <Card
             title={local.title}
-            subtitle={items.length > 0 ? local.subtitle : undefined}
             icon="notifications"
             index={index}
             bodyClassName="pt-1"

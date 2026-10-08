@@ -16,9 +16,8 @@
 import Link from 'next/link';
 import { Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Gauge, GaugeBar, toneForValue } from '@/components/ui/Gauge';
+import { Gauge, GaugeBar } from '@/components/ui/Gauge';
 import { useMessages } from '@/lib/messages';
-import { STATE_CARD_CLASS, STATE_RAIL } from '@/components/dashboard/ApprovalCard';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 const LOCAL = defineLabels('components/dashboard/CompletionCard#LOCAL', {
@@ -60,17 +59,12 @@ export function CompletionCard({ completion, index = 0, className = '' }) {
     const total = (completion && completion.entityCount) || 0;
     const scored = (completion && completion.scoredEntityCount) || 0;
 
-    // Same thresholds the dial itself uses, so the rail and the arc can never
-    // disagree about how the file is doing.
-    const tone = score === null ? 'neutral' : toneForValue(score);
-
     return (
         <Card
             title={local.title}
             icon="donut_large"
             index={index}
-            className={`${STATE_CARD_CLASS} ${className}`.trim()}
-            style={{ borderLeftColor: STATE_RAIL[tone] || STATE_RAIL.neutral }}
+            className={className}
         >
             <div className="flex items-center gap-4">
                 <Gauge

@@ -7,14 +7,11 @@
  */
 const LOCALE = {
     "app/(home)/page#LOCAL": {
-        "state": "Il mio fascicolo in sintesi",
-        "stateHint": "Qualifica, completezza, azioni e documenti — ricalcolati a ogni visualizzazione.",
-        "detail": "Il dettaglio",
-        "detailHint": "Ciò che vi attende, prodotto per prodotto e documento per documento."
+        "state": "Il mio fascicolo",
+        "detail": "Da fare"
     },
     "app/company/page#LABELS": {
         "title": "La mia azienda",
-        "subtitle": "Le informazioni che il cliente detiene sulla vostra azienda",
         "noSupplier": "Nessuna scheda fornitore",
         "noSupplierHint": "Il vostro account non è collegato ad alcun fornitore. Contattate il vostro referente presso il cliente.",
         "approval": "Stato di qualifica",
@@ -55,7 +52,6 @@ const LOCALE = {
     },
     "app/documents/page#LABELS": {
         "title": "I miei documenti",
-        "subtitle": "Ciò che il cliente si aspetta da voi, ed entro quando",
         "tabRequirements": "Requisiti",
         "tabAll": "Tutti i documenti",
         "tabSigned": "Firmati",
@@ -579,7 +575,6 @@ const LOCALE = {
     },
     "app/messages/page#LABELS": {
         "title": "Discussioni",
-        "subtitle": "Gli scambi con il cliente, prodotto per prodotto",
         "subjects": "Argomenti",
         "messageCount": "{count} messaggio/i",
         "search": "Cerca un argomento",
@@ -945,7 +940,6 @@ const LOCALE = {
     },
     "app/products/page#LABELS": {
         "title": "I miei prodotti",
-        "subtitle": "Le schede che il cliente vi chiede di mantenere aggiornate",
         "search": "Cerca un prodotto",
         "allStates": "Tutti gli stati",
         "allTypes": "Tutti i tipi",
@@ -975,7 +969,6 @@ const LOCALE = {
     },
     "app/specs/page#LABELS": {
         "title": "Capitolati",
-        "subtitle": "I documenti di riferimento che il cliente applica ai vostri prodotti",
         "stats": {
             "specs": "Capitolati",
             "products": "Prodotti coperti"
@@ -998,7 +991,6 @@ const LOCALE = {
     },
     "app/tasks/page#LOCAL": {
         "title": "Le mie attività",
-        "description": "Tutto ciò che il vostro cliente si aspetta da voi, filtrabile e ordinato per urgenza.",
         "search": "Cerca un'attività, un prodotto, un codice…",
         "anyType": "Tutti i tipi",
         "anyPriority": "Tutte le priorità",
@@ -1028,7 +1020,6 @@ const LOCALE = {
         "truncated": "Sono mostrate solo le prime attività. Restringete i filtri per vedere le altre.",
         "scoped": "Perimetro: {supplier}.",
         "scopedAll": "Perimetro: tutti i fornitori.",
-        "scopedChange": "Il fornitore si sceglie nell'angolo in alto a destra.",
         "orphans": "{count} attività non sono collegate ad alcuna delle vostre schede fornitore e non sono elencate qui. Scegliete «Tutti i fornitori» nell'angolo in alto a destra per vederle.",
         "priorityHigh": "Alta",
         "priorityMedium": "Media",
@@ -1120,7 +1111,6 @@ const LOCALE = {
     },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "Le mie notifiche",
-        "subtitle": "Prima le più urgenti",
         "empty": "Nessuna notifica",
         "emptyHint": "Al momento nulla richiede la vostra attenzione.",
         "overdue": "{days} g di ritardo",
@@ -1162,7 +1152,6 @@ const LOCALE = {
     },
     "components/dashboard/TaskList#LOCAL": {
         "title": "Le mie attività",
-        "subtitle": "Ordinate per urgenza",
         "empty": "Nessuna attività in corso",
         "emptyHint": "Tutto è aggiornato. Le nuove richieste del cliente compariranno qui.",
         "all": "Vedi tutto",
@@ -2218,9 +2207,7 @@ const LOCALE = {
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "Non c'è ancora nulla da mostrare qui. Gli elementi compariranno non appena verranno creati o inviati.",
-        "search": "Nessun elemento corrisponde alla vostra ricerca. Provate con meno parole, oppure rimuovete uno dei filtri.",
-        "error": null,
-        "success": null
+        "search": "Nessun elemento corrisponde alla vostra ricerca. Provate con meno parole, oppure rimuovete uno dei filtri."
     },
     "components/ui/TabScroller#LOCAL": {
         "previous": "Schede precedenti",

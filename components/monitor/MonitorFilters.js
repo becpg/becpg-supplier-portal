@@ -41,7 +41,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Button, Icon } from '@/components/ui/Button';
-import { SearchInput, Select } from '@/components/ui/Field';
+import { SEARCH_SLOT_CLASS, SearchInput, Select } from '@/components/ui/Field';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
@@ -458,7 +458,7 @@ export function MonitorFilters({
         <div className={className}>
             {/* ----------------------------------------------------- top row */}
             <div className="flex flex-wrap items-center gap-2">
-                <div className="min-w-[12rem] flex-1 sm:max-w-md">
+                <div className={SEARCH_SLOT_CLASS}>
                     <SearchInput
                         value={filters.q || ''}
                         onChange={(value) => patch({ q: value })}

@@ -7,14 +7,11 @@
  */
 const LOCALE = {
     "app/(home)/page#LOCAL": {
-        "state": "我的档案概览",
-        "stateHint": "认证状态、完整度、待办事项和文件 — 每次显示时重新计算。",
-        "detail": "详情",
-        "detailHint": "按产品、按文件列出等待您处理的事项。"
+        "state": "我的档案",
+        "detail": "待处理"
     },
     "app/company/page#LABELS": {
         "title": "我的企业",
-        "subtitle": "客户掌握的贵公司信息",
         "noSupplier": "无供应商档案",
         "noSupplierHint": "您的账户未关联任何供应商。请联系您的客户代表。",
         "approval": "认证状态",
@@ -55,7 +52,6 @@ const LOCALE = {
     },
     "app/documents/page#LABELS": {
         "title": "我的文件",
-        "subtitle": "客户对您的文件要求及截止日期",
         "tabRequirements": "要求",
         "tabAll": "全部文件",
         "tabSigned": "已签署",
@@ -579,7 +575,6 @@ const LOCALE = {
     },
     "app/messages/page#LABELS": {
         "title": "讨论",
-        "subtitle": "按产品与客户进行的交流",
         "subjects": "主题",
         "messageCount": "{count} 条消息",
         "search": "搜索主题",
@@ -945,7 +940,6 @@ const LOCALE = {
     },
     "app/products/page#LABELS": {
         "title": "我的产品",
-        "subtitle": "客户要求您保持更新的资料表",
         "search": "搜索产品",
         "allStates": "所有状态",
         "allTypes": "所有类型",
@@ -975,7 +969,6 @@ const LOCALE = {
     },
     "app/specs/page#LABELS": {
         "title": "规格书",
-        "subtitle": "客户应用于您产品的参考文件",
         "stats": {
             "specs": "规格书",
             "products": "涵盖的产品"
@@ -998,7 +991,6 @@ const LOCALE = {
     },
     "app/tasks/page#LOCAL": {
         "title": "我的任务",
-        "description": "客户对您的全部要求，可筛选，按紧急程度排序。",
         "search": "搜索任务、产品、代码…",
         "anyType": "所有类型",
         "anyPriority": "所有优先级",
@@ -1028,7 +1020,6 @@ const LOCALE = {
         "truncated": "仅显示前面的任务。请缩小筛选条件以查看其余任务。",
         "scoped": "范围：{supplier}。",
         "scopedAll": "范围：所有供应商。",
-        "scopedChange": "供应商在右上角选择。",
         "orphans": "有 {count} 项任务未关联到您的任何供应商档案，因此未在此列出。请在右上角选择“所有供应商”以查看。",
         "priorityHigh": "高",
         "priorityMedium": "中",
@@ -1120,7 +1111,6 @@ const LOCALE = {
     },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "我的通知",
-        "subtitle": "最紧急的排在前面",
         "empty": "无通知",
         "emptyHint": "目前没有需要您关注的事项。",
         "overdue": "逾期 {days} 天",
@@ -1162,7 +1152,6 @@ const LOCALE = {
     },
     "components/dashboard/TaskList#LOCAL": {
         "title": "我的任务",
-        "subtitle": "按紧急程度排序",
         "empty": "无进行中的任务",
         "emptyHint": "一切均已更新。客户的新请求将显示在此处。",
         "all": "查看全部",
@@ -2218,9 +2207,7 @@ const LOCALE = {
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "此处暂无内容。条目一经创建或提交即会显示。",
-        "search": "没有符合搜索条件的条目。请尝试减少关键词，或移除一个筛选条件。",
-        "error": null,
-        "success": null
+        "search": "没有符合搜索条件的条目。请尝试减少关键词，或移除一个筛选条件。"
     },
     "components/ui/TabScroller#LOCAL": {
         "previous": "上一组标签页",

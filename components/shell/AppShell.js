@@ -94,8 +94,10 @@ function setNavCollapsed(next) {
  * @param {React.ReactNode} props.children page content
  * @param {React.ReactNode} [props.title] page title, shown in the header
  * @param {boolean} [props.ownHeading] the content draws its own `<h1>`; otherwise the
- *        shell provides one from `title`, visually hidden, so every page has
- *        exactly one
+ *        shell provides one from `title`, so every page has exactly one
+ * @param {boolean} [props.showTitle] the shell's `<h1>` is shown at the top of the
+ *        content instead of in the header bar — the list pages, so they all open
+ *        the same way
  * @param {React.ReactNode} [props.subtitle] rendered above the content
  * @param {React.ReactNode} [props.actions] page actions in the header
  * @param {React.ReactNode} [props.headerStatus] a StatusPill (approval status) in the header
@@ -145,6 +147,7 @@ export function AppShell({
     fullWidth = false,
     noPadding = false,
     ownHeading = false,
+    showTitle = false,
     className = '',
 }) {
     const pathname = usePathname();
@@ -194,7 +197,7 @@ export function AppShell({
     return (
         <div className="flex min-h-dvh flex-col bg-[var(--becpg-grey)]/30">
             <Header
-                title={title}
+                title={showTitle ? null : title}
                 actions={actions}
                 status={headerStatus}
                 notificationCount={notificationCount}
@@ -276,7 +279,11 @@ export function AppShell({
                         // nothing. See the rule in globals.css.
                         data-full={!noPadding && fullWidth ? 'true' : undefined}
                     >
-                        {!ownHeading && title ? <h1 className="sr-only">{title}</h1> : null}
+                        {!ownHeading && title ? (
+                            <h1 className={showTitle ? 'mb-4 text-xl font-medium leading-tight' : 'sr-only'}>
+                                {title}
+                            </h1>
+                        ) : null}
                         {breadcrumb ? <div className="mb-2 text-xs">{breadcrumb}</div> : null}
                         {subtitle ? (
                             <p className="mb-3 text-sm text-[var(--becpg-dark-grey)]">{subtitle}</p>

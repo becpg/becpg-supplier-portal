@@ -47,7 +47,7 @@ import {
 } from '@tanstack/react-table';
 import { motion } from 'framer-motion';
 import { Button, Icon, IconButton } from '@/components/ui/Button';
-import { SearchInput } from '@/components/ui/Field';
+import { SEARCH_SLOT_CLASS, SearchInput } from '@/components/ui/Field';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonTable } from '@/components/ui/Skeleton';
 import { useMessages } from '@/lib/messages';
@@ -359,7 +359,7 @@ export function DataTable({
             {hasToolbar ? (
                 <div className="mb-3 flex flex-wrap items-center gap-2">
                     {enableFiltering ? (
-                        <div className="min-w-[10rem] flex-1 sm:max-w-xs">
+                        <div className={SEARCH_SLOT_CLASS}>
                             <SearchInput
                                 value={globalFilter}
                                 onChange={setGlobalFilter}

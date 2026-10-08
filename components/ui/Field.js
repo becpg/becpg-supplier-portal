@@ -389,6 +389,13 @@ export const Checkbox = forwardRef(function Checkbox(
 });
 
 /**
+ * The slot every list gives its search box: the same width, first in the
+ * toolbar, on every screen — a search that is large on one page and small on
+ * the next makes each list look like a different application.
+ */
+export const SEARCH_SLOT_CLASS = 'w-full sm:w-80 sm:shrink-0';
+
+/**
  * Search box wired to a debounced-by-the-caller `onChange`. Used by DataTable
  * and by any list screen.
  *

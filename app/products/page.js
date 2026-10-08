@@ -41,7 +41,6 @@ function fill(template, vars) {
 const LABELS = defineLabels('app/products/page#LABELS', {
     fr: {
         title: 'Mes produits',
-        subtitle: 'Les fiches que le client vous demande de tenir à jour',
         search: 'Rechercher un produit',
         allStates: 'Tous les états',
         allTypes: 'Tous les types',
@@ -72,7 +71,6 @@ const LABELS = defineLabels('app/products/page#LABELS', {
     },
     en: {
         title: 'My products',
-        subtitle: 'The sheets the customer asks you to keep up to date',
         search: 'Search a product',
         allStates: 'All states',
         allTypes: 'All types',
@@ -342,9 +340,7 @@ export default function ProductsPage() {
     );
 
     return (
-        <AppShell title={labels.title} fullWidth>
-            <p className="mb-4 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
-
+        <AppShell title={labels.title} fullWidth showTitle>
             <StatGrid columns={4} className="mb-4">
                 <StatCard
                     label={labels.stats.total}

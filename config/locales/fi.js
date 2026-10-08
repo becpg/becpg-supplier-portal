@@ -7,14 +7,11 @@
  */
 const LOCALE = {
     "app/(home)/page#LOCAL": {
-        "state": "Tietoni yhdellä silmäyksellä",
-        "stateHint": "Hyväksyntä, täydellisyys, toimenpiteet ja asiakirjat — lasketaan uudelleen jokaisella näyttökerralla.",
-        "detail": "Tiedot",
-        "detailHint": "Mikä odottaa teitä, tuote tuotteelta ja asiakirja asiakirjalta."
+        "state": "Oma kansio",
+        "detail": "Tehtävät"
     },
     "app/company/page#LABELS": {
         "title": "Yritykseni",
-        "subtitle": "Tiedot, joita asiakkaalla on yrityksestänne",
         "noSupplier": "Ei toimittajatietuetta",
         "noSupplierHint": "Tiliänne ei ole liitetty mihinkään toimittajaan. Ottakaa yhteyttä asiakkaan yhteyshenkilöön.",
         "approval": "Hyväksynnän tila",
@@ -55,7 +52,6 @@ const LOCALE = {
     },
     "app/documents/page#LABELS": {
         "title": "Asiakirjani",
-        "subtitle": "Mitä asiakas odottaa teiltä ja mihin mennessä",
         "tabRequirements": "Vaatimukset",
         "tabAll": "Kaikki asiakirjat",
         "tabSigned": "Allekirjoitetut",
@@ -579,7 +575,6 @@ const LOCALE = {
     },
     "app/messages/page#LABELS": {
         "title": "Keskustelut",
-        "subtitle": "Viestinvaihto asiakkaan kanssa tuotekohtaisesti",
         "subjects": "Aiheet",
         "messageCount": "Viestejä: {count}",
         "search": "Hae aihetta",
@@ -945,7 +940,6 @@ const LOCALE = {
     },
     "app/products/page#LABELS": {
         "title": "Omat tuotteet",
-        "subtitle": "Tuotekortit, jotka asiakas pyytää teitä pitämään ajan tasalla",
         "search": "Hae tuotetta",
         "allStates": "Kaikki tilat",
         "allTypes": "Kaikki tyypit",
@@ -975,7 +969,6 @@ const LOCALE = {
     },
     "app/specs/page#LABELS": {
         "title": "Vaatimusmäärittelyt",
-        "subtitle": "Viiteasiakirjat, joita asiakas soveltaa tuotteisiinne",
         "stats": {
             "specs": "Vaatimusmäärittelyt",
             "products": "Katetut tuotteet"
@@ -998,7 +991,6 @@ const LOCALE = {
     },
     "app/tasks/page#LOCAL": {
         "title": "Omat tehtävät",
-        "description": "Kaikki, mitä asiakas teiltä odottaa, suodatettavissa ja kiireellisyyden mukaan lajiteltuna.",
         "search": "Hae tehtävää, tuotetta, koodia…",
         "anyType": "Kaikki tyypit",
         "anyPriority": "Kaikki prioriteetit",
@@ -1028,7 +1020,6 @@ const LOCALE = {
         "truncated": "Vain ensimmäiset tehtävät näytetään. Rajaa suodattimia nähdäksesi loput.",
         "scoped": "Rajaus: {supplier}.",
         "scopedAll": "Rajaus: kaikki toimittajat.",
-        "scopedChange": "Toimittaja valitaan oikeasta yläkulmasta.",
         "orphans": "Tehtäviä, joita ei ole liitetty mihinkään toimittajatietoihinne eikä siksi näytetä tässä: {count}. Valitse oikeasta yläkulmasta ”Kaikki toimittajat” nähdäksesi ne.",
         "priorityHigh": "Korkea",
         "priorityMedium": "Keskitaso",
@@ -1120,7 +1111,6 @@ const LOCALE = {
     },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "Omat ilmoitukset",
-        "subtitle": "Kiireellisimmät ensin",
         "empty": "Ei ilmoituksia",
         "emptyHint": "Mikään ei vaadi huomiotanne tällä hetkellä.",
         "overdue": "{days} pv myöhässä",
@@ -1162,7 +1152,6 @@ const LOCALE = {
     },
     "components/dashboard/TaskList#LOCAL": {
         "title": "Omat tehtävät",
-        "subtitle": "Kiireellisyyden mukaan",
         "empty": "Ei käynnissä olevia tehtäviä",
         "emptyHint": "Kaikki on ajan tasalla. Asiakkaiden uudet pyynnöt näkyvät tässä.",
         "all": "Näytä kaikki",
@@ -2218,9 +2207,7 @@ const LOCALE = {
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "Täällä ei ole vielä mitään näytettävää. Kohteet tulevat näkyviin heti, kun ne luodaan tai lähetetään.",
-        "search": "Yksikään kohde ei vastaa hakua. Kokeilkaa vähemmillä sanoilla tai poistakaa jokin suodattimista.",
-        "error": null,
-        "success": null
+        "search": "Yksikään kohde ei vastaa hakua. Kokeilkaa vähemmillä sanoilla tai poistakaa jokin suodattimista."
     },
     "components/ui/TabScroller#LOCAL": {
         "previous": "Edelliset välilehdet",

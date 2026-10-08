@@ -7,14 +7,11 @@
  */
 const LOCALE = {
     "app/(home)/page#LOCAL": {
-        "state": "Meu cadastro em resumo",
-        "stateHint": "Homologação, completude, ações e documentos — recalculados a cada exibição.",
-        "detail": "O detalhe",
-        "detailHint": "O que aguarda sua ação, produto por produto e documento por documento."
+        "state": "Meu dossiê",
+        "detail": "A fazer"
     },
     "app/company/page#LABELS": {
         "title": "Minha empresa",
-        "subtitle": "As informações que o cliente possui sobre sua empresa",
         "noSupplier": "Nenhum cadastro de fornecedor",
         "noSupplierHint": "Sua conta não está vinculada a nenhum fornecedor. Entre em contato com seu interlocutor no cliente.",
         "approval": "Status de homologação",
@@ -55,7 +52,6 @@ const LOCALE = {
     },
     "app/documents/page#LABELS": {
         "title": "Meus documentos",
-        "subtitle": "O que o cliente espera de você, e até quando",
         "tabRequirements": "Exigências",
         "tabAll": "Todos os documentos",
         "tabSigned": "Assinados",
@@ -579,7 +575,6 @@ const LOCALE = {
     },
     "app/messages/page#LABELS": {
         "title": "Discussões",
-        "subtitle": "Trocas com o cliente, produto por produto",
         "subjects": "Assuntos",
         "messageCount": "{count} mensagem(ns)",
         "search": "Pesquisar um assunto",
@@ -945,7 +940,6 @@ const LOCALE = {
     },
     "app/products/page#LABELS": {
         "title": "Meus produtos",
-        "subtitle": "As fichas que o cliente pede que você mantenha atualizadas",
         "search": "Pesquisar um produto",
         "allStates": "Todos os estados",
         "allTypes": "Todos os tipos",
@@ -975,7 +969,6 @@ const LOCALE = {
     },
     "app/specs/page#LABELS": {
         "title": "Especificações",
-        "subtitle": "Os documentos de referência que o cliente aplica aos seus produtos",
         "stats": {
             "specs": "Especificações",
             "products": "Produtos cobertos"
@@ -998,7 +991,6 @@ const LOCALE = {
     },
     "app/tasks/page#LOCAL": {
         "title": "Minhas tarefas",
-        "description": "Tudo o que seu cliente espera de você, filtrável e ordenado por urgência.",
         "search": "Pesquisar uma tarefa, um produto, um código…",
         "anyType": "Todos os tipos",
         "anyPriority": "Todas as prioridades",
@@ -1028,7 +1020,6 @@ const LOCALE = {
         "truncated": "Somente as primeiras tarefas são exibidas. Restrinja os filtros para ver as demais.",
         "scoped": "Escopo: {supplier}.",
         "scopedAll": "Escopo: todos os fornecedores.",
-        "scopedChange": "O fornecedor é escolhido no canto superior direito.",
         "orphans": "{count} tarefa(s) não está(ão) vinculada(s) a nenhuma de suas fichas de fornecedor e não aparece(m) aqui. Escolha “Todos os fornecedores” no canto superior direito para vê-las.",
         "priorityHigh": "Alta",
         "priorityMedium": "Média",
@@ -1120,7 +1111,6 @@ const LOCALE = {
     },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "Minhas notificações",
-        "subtitle": "As mais urgentes primeiro",
         "empty": "Nenhuma notificação",
         "emptyHint": "Nada requer sua atenção no momento.",
         "overdue": "{days} d de atraso",
@@ -1162,7 +1152,6 @@ const LOCALE = {
     },
     "components/dashboard/TaskList#LOCAL": {
         "title": "Minhas tarefas",
-        "subtitle": "Ordenadas por urgência",
         "empty": "Nenhuma tarefa em andamento",
         "emptyHint": "Tudo está em dia. As novas solicitações do cliente aparecerão aqui.",
         "all": "Ver tudo",
@@ -2218,9 +2207,7 @@ const LOCALE = {
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "Ainda não há nada a exibir aqui. Os itens aparecerão assim que forem criados ou enviados.",
-        "search": "Nenhum item corresponde à sua pesquisa. Experimente menos palavras ou remova um dos filtros.",
-        "error": null,
-        "success": null
+        "search": "Nenhum item corresponde à sua pesquisa. Experimente menos palavras ou remova um dos filtros."
     },
     "components/ui/TabScroller#LOCAL": {
         "previous": "Abas anteriores",

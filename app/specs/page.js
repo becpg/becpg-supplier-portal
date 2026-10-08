@@ -34,7 +34,6 @@ import { defineLabels, pickLabels } from '@/lib/i18n';
 const LABELS = defineLabels('app/specs/page#LABELS', {
     fr: {
         title: 'Cahiers des charges',
-        subtitle: 'Les documents de référence que le client applique à vos produits',
         stats: {
             specs: 'Cahiers des charges',
             products: 'Produits couverts',
@@ -44,7 +43,6 @@ const LABELS = defineLabels('app/specs/page#LABELS', {
     },
     en: {
         title: 'Specifications',
-        subtitle: 'The reference documents the customer applies to your products',
         stats: {
             specs: 'Specifications',
             products: 'Covered products',
@@ -84,9 +82,7 @@ export default function SpecsPage() {
     }
 
     return (
-        <AppShell title={labels.title} fullWidth>
-            <p className="mb-4 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
-
+        <AppShell title={labels.title} fullWidth showTitle>
             <StatGrid columns={2} className="mb-4">
                 <StatCard
                     label={labels.stats.specs}

@@ -26,7 +26,6 @@ import { defineLabels, pickLabels } from '@/lib/i18n';
 const LOCAL = defineLabels('components/dashboard/TaskList#LOCAL', {
     fr: {
         title: 'Mes tâches',
-        subtitle: 'Triées par urgence',
         empty: 'Aucune tâche en cours',
         emptyHint: 'Tout est à jour. Les nouvelles demandes du client apparaîtront ici.',
         all: 'Tout voir',
@@ -42,7 +41,6 @@ const LOCAL = defineLabels('components/dashboard/TaskList#LOCAL', {
     },
     en: {
         title: 'My tasks',
-        subtitle: 'Sorted by urgency',
         empty: 'No task in progress',
         emptyHint: 'Everything is up to date. New customer requests will show up here.',
         all: 'See all',
@@ -142,7 +140,6 @@ export function TaskList({ tasks = [], total, index = 0, className = '' }) {
     return (
         <Card
             title={local.title}
-            subtitle={tasks.length > 0 ? local.subtitle : undefined}
             icon="assignment_turned_in"
             index={index}
             padding="md"

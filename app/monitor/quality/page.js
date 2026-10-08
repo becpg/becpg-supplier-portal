@@ -47,7 +47,7 @@ import { AppShell } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
-import { Checkbox, SearchInput, Select } from '@/components/ui/Field';
+import { Checkbox, SEARCH_SLOT_CLASS, SearchInput, Select } from '@/components/ui/Field';
 import { formatTotal } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { useApi } from '@/lib/client';
@@ -410,7 +410,7 @@ export default function MonitorQualityPage() {
                                 resetView();
                             }}
                         />
-                        <div className="min-w-[12rem]">
+                        <div className={SEARCH_SLOT_CLASS}>
                             <SearchInput
                                 value={supplier}
                                 placeholder={labels.searchSupplier}

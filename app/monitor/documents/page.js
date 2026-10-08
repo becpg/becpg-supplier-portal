@@ -30,7 +30,7 @@ import { AppShell } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
-import { SearchInput, Select, Checkbox } from '@/components/ui/Field';
+import { SEARCH_SLOT_CLASS, SearchInput, Select, Checkbox } from '@/components/ui/Field';
 import { formatTotal } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { download, useApi } from '@/lib/client';
@@ -335,7 +335,7 @@ export default function MonitorDocumentsPage() {
 
             {/* ------------------------------------------------------ toolbar */}
             <div className="mb-3 flex flex-col gap-2 lg:flex-row lg:items-center">
-                <div className="lg:w-64">
+                <div className={SEARCH_SLOT_CLASS}>
                     <SearchInput
                         value={query}
                         onChange={(value) => {

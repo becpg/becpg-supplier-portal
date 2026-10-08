@@ -24,7 +24,7 @@
 
 import { Suspense, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { AppShell, PageHeader } from '@/components/shell/AppShell';
+import { AppShell } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -47,7 +47,6 @@ import { defineLabels, pickLabels } from '@/lib/i18n';
 const LOCAL = defineLabels('app/tasks/page#LOCAL', {
     fr: {
         title: 'Mes tâches',
-        description: 'Tout ce que votre client attend de vous, filtrable et trié par urgence.',
         search: 'Rechercher une tâche, un produit, un code…',
         anyType: 'Tous les types',
         anyPriority: 'Toutes les priorités',
@@ -78,7 +77,6 @@ const LOCAL = defineLabels('app/tasks/page#LOCAL', {
             'Seules les premières tâches sont affichées. Affinez les filtres pour voir le reste.',
         scoped: 'Périmètre : {supplier}.',
         scopedAll: 'Périmètre : tous les fournisseurs.',
-        scopedChange: 'Le fournisseur se choisit en haut à droite.',
         orphans:
             '{count} tâche(s) ne sont rattachées à aucune de vos fiches fournisseur et'
             + ' n’apparaissent pas ici. Choisissez « Tous les fournisseurs » en haut à droite'
@@ -92,7 +90,6 @@ const LOCAL = defineLabels('app/tasks/page#LOCAL', {
     },
     en: {
         title: 'My tasks',
-        description: 'Everything your customer expects from you, filterable and sorted by urgency.',
         search: 'Search a task, a product, a code…',
         anyType: 'All types',
         anyPriority: 'All priorities',
@@ -122,7 +119,6 @@ const LOCAL = defineLabels('app/tasks/page#LOCAL', {
         truncated: 'Only the first tasks are shown. Narrow the filters to see the rest.',
         scoped: 'Scope: {supplier}.',
         scopedAll: 'Scope: all suppliers.',
-        scopedChange: 'The supplier is chosen in the top right corner.',
         orphans:
             '{count} task(s) are attached to none of your supplier records and are not'
             + ' listed here. Pick "All suppliers" in the top right corner to see them.',
@@ -471,8 +467,7 @@ function TasksScreen() {
     );
 
     return (
-        <AppShell ownHeading title={local.title} badges={{ tasks: counters.open || 0 }} fullWidth>
-            <PageHeader title={local.title} description={local.description} />
+        <AppShell showTitle title={local.title} badges={{ tasks: counters.open || 0 }} fullWidth>
 
             {/* Which company these tasks belong to, in words — the toolbar chip
                 says it too, but a list that silently drops rows has to carry the
@@ -488,7 +483,6 @@ function TasksScreen() {
                                 supplier: (scopedSupplier && scopedSupplier.name) || '—',
                             })}
                     </span>
-                    <span>{local.scopedChange}</span>
                 </p>
             ) : null}
 
