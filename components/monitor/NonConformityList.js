@@ -559,12 +559,15 @@ export function NonConformityList({
                                 {suppliers[0].label || suppliers[0].nodeRef}
                             </Link>
                             {suppliers.length > 1 ? (
-                                <span
-                                    className="shrink-0 text-xs text-[var(--becpg-dark-grey)]"
-                                    title={suppliers.map((entry) => entry.label).join(', ')}
+                                // A real trigger, not a `title`: the other names
+                                // must be readable from a keyboard and on a phone.
+                                <Tooltip
+                                    placement="top"
+                                    content={suppliers.slice(1).map((entry) => entry.label || entry.nodeRef).join(', ')}
+                                    className="shrink-0 rounded text-xs text-[var(--becpg-dark-grey)] underline decoration-dotted underline-offset-2"
                                 >
                                     {fill(labels.others, { count: suppliers.length - 1 })}
-                                </span>
+                                </Tooltip>
                             ) : null}
                         </span>
                     );

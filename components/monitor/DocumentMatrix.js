@@ -191,6 +191,14 @@ export function DocumentMatrix({
     const labels = LABELS[lang] || LABELS.fr;
 
     const scrollRef = useRef(null);
+    // Mirrored in state so the observer below attaches when the scroller
+    // mounts: on a first load it does not exist yet, the skeleton stands in
+    // its place, and an effect keyed on nothing else would never see it.
+    const [scrollNode, setScrollNode] = useState(null);
+    const attachScroll = useCallback((node) => {
+        scrollRef.current = node;
+        setScrollNode(node);
+    }, []);
     const frameRef = useRef(0);
     const [view, setView] = useState({ top: 0, left: 0, width: 1200, height });
     const [expanded, setExpanded] = useState({});
@@ -230,12 +238,11 @@ export function DocumentMatrix({
 
     useEffect(() => {
         schedule();
-        const node = scrollRef.current;
-        if (!node || typeof ResizeObserver === 'undefined') {
+        if (!scrollNode || typeof ResizeObserver === 'undefined') {
             return undefined;
         }
         const observer = new ResizeObserver(schedule);
-        observer.observe(node);
+        observer.observe(scrollNode);
         return () => {
             observer.disconnect();
             if (frameRef.current) {
@@ -243,7 +250,7 @@ export function DocumentMatrix({
                 frameRef.current = 0;
             }
         };
-    }, [schedule]);
+    }, [schedule, scrollNode]);
 
     // --- filtering ---------------------------------------------------------
     const visibleRows = useMemo(() => {
@@ -389,7 +396,7 @@ export function DocumentMatrix({
                 measured as no-ops here.
             */}
             <div
-                ref={scrollRef}
+                ref={attachScroll}
                 onScroll={schedule}
                 className="hidden overflow-auto rounded-xl border border-[var(--becpg-grey)] bg-white md:block"
                 style={{ maxHeight: height, contain: 'paint' }}

@@ -21,7 +21,7 @@ import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Button, ButtonGroup, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { EmptyState } from '@/components/ui/EmptyState';
+import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { Field, Select } from '@/components/ui/Field';
 import { GaugeBar } from '@/components/ui/Gauge';
 import { Modal } from '@/components/ui/Modal';
@@ -137,10 +137,18 @@ function RequestUpdateModal({ product, onClose, onDone }) {
     const local = LOCAL[lang] || LOCAL.fr;
     const toast = useToast();
     const [processId, setProcessId] = useState('');
+    // A request type picked for one product must not be pre-selected for the
+    // next one; reset during render, as the other dialogs of the portal do.
+    const productRef = product?.nodeRef ?? null;
+    const [shownFor, setShownFor] = useState(productRef);
+    if (shownFor !== productRef) {
+        setShownFor(productRef);
+        setProcessId('');
+    }
 
     // Only asked for when the dialog is actually open — the allow-list is tiny
     // but there is no reason to query it on every dashboard render.
-    const { data, loading } = useApi('process/start', { enabled: Boolean(product) });
+    const { data, loading, error, refresh } = useApi('process/start', { enabled: Boolean(product) });
     const processes = (data && Array.isArray(data.processes) ? data.processes : []).map(
         (entry) => ({ value: entry.id, label: processLabel(entry) }),
     );
@@ -202,6 +210,10 @@ function RequestUpdateModal({ product, onClose, onDone }) {
             </p>
             {loading ? (
                 <Skeleton height={44} radius="0.5rem" />
+            ) : error ? (
+                // A failed read is not "nothing is open here": say so, and let
+                // the supplier ask again.
+                <ErrorState error={error} onRetry={refresh} compact />
             ) : processes.length === 0 ? (
                 <p className="rounded-lg bg-[var(--status-warn-bg)] px-3 py-2 text-sm text-[var(--status-warn)]">
                     {unresolved ? local.processUnavailable : local.noProcess}

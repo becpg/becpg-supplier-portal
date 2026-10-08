@@ -151,9 +151,12 @@ export function DocumentViewer({ document, onClose }) {
             }
         >
             {!open ? null : kind === 'pdf' && href ? (
-                // `PdfViewer` sizes itself to its container and handles its own
-                // toolbar, zoom and paging; the panel only gives it room.
-                <div className="h-[70vh] overflow-hidden">
+                // `PdfViewer` grows with its page count and has no scroller of
+                // its own, so this box must be the one that scrolls: clipping it
+                // left every page past the first unreachable. Its toolbar sticks
+                // to the top of this box, and its page observer, rooted on the
+                // viewport, sees through this clip like any other.
+                <div className="h-[70vh] overflow-y-auto overscroll-contain">
                     <PdfViewer file={href} name={document.name} />
                 </div>
             ) : kind === 'image' && href ? (

@@ -18,6 +18,7 @@
  */
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { ApiError } from '@/lib/client';
 import { ToastViewport } from '@/components/ui/Toast';
 import { useMessages } from '@/lib/messages';
 
@@ -26,6 +27,11 @@ const DEFAULT_DURATION = { success: 4000, info: 5000, warning: 7000, error: 0 };
 
 /** Never stack more than this — the rest of the screen still has to be usable. */
 const MAX_TOASTS = 4;
+
+const GENERIC_ERROR_KEY = 'error.generic';
+
+/** `ApiError.name`, for an instance built by another copy of the client module. */
+const API_ERROR_NAME = 'ApiError';
 
 const ToastContext = createContext({
     show: () => '',
@@ -107,24 +113,7 @@ export function ToastProvider({ children }) {
     }, [timersRef]);
 
     const value = useMemo(() => {
-        /**
-         * Accepts a string, a `{title, message}` object, or an Error. An
-         * `ApiError` from `lib/client.js` carries a `messageKey`, which is
-         * resolved against the chrome dictionary — so the user reads
-         * "Vous n'avez pas les droits…", never a raw upstream sentence.
-         */
-        const normalize = (input, fallbackKey) => {
-            if (input instanceof Error) {
-                return {
-                    title: t('error.title'),
-                    message: t(input.messageKey || fallbackKey || 'error.generic'),
-                };
-            }
-            if (typeof input === 'string') {
-                return { message: input };
-            }
-            return input || {};
-        };
+        const normalize = (input, fallbackKey) => toastContent(input, { fallbackKey, t });
 
         return {
             show,
@@ -133,7 +122,7 @@ export function ToastProvider({ children }) {
             /** @param {string|{title,message}} input */
             success: (input, extra) => show({ variant: 'success', ...normalize(input), ...extra }),
             /** @param {string|Error} input an ApiError resolves its own message */
-            error: (input, extra) => show({ variant: 'error', ...normalize(input, 'error.generic'), ...extra }),
+            error: (input, extra) => show({ variant: 'error', ...normalize(input, GENERIC_ERROR_KEY), ...extra }),
             warning: (input, extra) => show({ variant: 'warning', ...normalize(input), ...extra }),
             info: (input, extra) => show({ variant: 'info', ...normalize(input), ...extra }),
         };
@@ -145,6 +134,36 @@ export function ToastProvider({ children }) {
             <ToastViewport toasts={toasts} onDismiss={dismiss} />
         </ToastContext.Provider>
     );
+}
+
+/**
+ * What a toast says for whatever a screen hands it: a string, a
+ * `{title, message}` object, or an Error.
+ *
+ * An `ApiError` from `lib/client.js` always resolves its `messageKey` against
+ * the chrome dictionary, so the user reads "Vous n'avez pas les droits…" and
+ * never a raw upstream sentence. A plain `new Error(text)` is the portal's own
+ * wording, written for the user, and is shown as is. Any other Error subclass
+ * (a TypeError, a pdf.js failure) is a technical message and gets the generic
+ * one.
+ *
+ * @param {string|Object|Error} input
+ * @param {{fallbackKey?: string, t: (key: string) => string}} options
+ * @returns {{title?: string, message?: string}}
+ */
+export function toastContent(input, { fallbackKey, t }) {
+    if (!(input instanceof Error)) {
+        return typeof input === 'string' ? { message: input } : input || {};
+    }
+    const title = t('error.title');
+    const isApiError = input instanceof ApiError || input.name === API_ERROR_NAME;
+    if (input.messageKey || isApiError) {
+        return { title, message: t(input.messageKey || fallbackKey || GENERIC_ERROR_KEY) };
+    }
+    if (Object.getPrototypeOf(input) === Error.prototype && input.message) {
+        return { title, message: input.message };
+    }
+    return { title, message: t(fallbackKey || GENERIC_ERROR_KEY) };
 }
 
 /**

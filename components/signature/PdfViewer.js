@@ -166,6 +166,26 @@ function touchDistance(touches) {
     return Math.hypot(dx, dy);
 }
 
+const SCROLLABLE_OVERFLOW = /(auto|scroll|overlay)/;
+
+/**
+ * Top edge of the box that scrolls `element`, in viewport coordinates: 0 for
+ * the window, the box's own top when the viewer sits in a dialog or a pane
+ * with its own overflow. `scrollIntoView` lands a page `scrollOffset` below
+ * that edge, not below the top of the viewport.
+ *
+ * @param {HTMLElement} element
+ * @returns {number}
+ */
+function scrollerTop(element) {
+    for (let node = element.parentElement; node && node !== document.body; node = node.parentElement) {
+        if (SCROLLABLE_OVERFLOW.test(getComputedStyle(node).overflowY) && node.scrollHeight > node.clientHeight) {
+            return node.getBoundingClientRect().top;
+        }
+    }
+    return 0;
+}
+
 /**
  * The viewer.
  *
@@ -224,7 +244,15 @@ export const PdfViewer = forwardRef(function PdfViewer(
     /** pageNumber → { width, height } in PDF points, filled as pages render. */
     const [sizes, setSizes] = useState({});
 
-    const scrollRef = useRef(null);
+    // State, not a ref: the pages container unmounts on a load error and a new
+    // one mounts on Retry, and the effects below must follow it to the new node.
+    const [scrollElement, setScrollElement] = useState(null);
+    // The pinch listeners are bound once per container; they read the live
+    // scale from here instead of being rebound, which would reset a pinch.
+    const scaleRef = useRef(scale);
+    useEffect(() => {
+        scaleRef.current = scale;
+    }, [scale]);
     const pageElements = useRef(new Map());
     const pageRefCallbacks = useRef(new Map());
     /** Pending "did the smooth scroll actually land" check. */
@@ -241,7 +269,7 @@ export const PdfViewer = forwardRef(function PdfViewer(
 
     // The available width drives everything: fit-to-width is the zoom origin.
     useEffect(() => {
-        const element = scrollRef.current;
+        const element = scrollElement;
         if (!element || typeof ResizeObserver === 'undefined') {
             if (element) {
                 setContainerWidth(element.clientWidth);
@@ -257,7 +285,7 @@ export const PdfViewer = forwardRef(function PdfViewer(
         observer.observe(element);
         setContainerWidth(element.clientWidth);
         return () => observer.disconnect();
-    }, []);
+    }, [scrollElement]);
 
     const fittedWidth = useMemo(() => {
         const available = containerWidth || 0;
@@ -384,7 +412,8 @@ export const PdfViewer = forwardRef(function PdfViewer(
                     if (!current) {
                         return;
                     }
-                    if (Math.abs(current.getBoundingClientRect().top - scrollOffset) > SETTLE_TOLERANCE) {
+                    const landedAt = current.getBoundingClientRect().top - scrollerTop(current);
+                    if (Math.abs(landedAt - scrollOffset) > SETTLE_TOLERANCE) {
                         current.scrollIntoView({ behavior: 'auto', block: 'start', inline: 'nearest' });
                     }
                 }, SETTLE_DELAY);
@@ -433,7 +462,7 @@ export const PdfViewer = forwardRef(function PdfViewer(
     // Pinch. React's onTouchMove is passive, so preventDefault would be ignored:
     // the listener has to be native and explicitly non-passive.
     useEffect(() => {
-        const element = scrollRef.current;
+        const element = scrollElement;
         if (!element) {
             return undefined;
         }
@@ -443,7 +472,7 @@ export const PdfViewer = forwardRef(function PdfViewer(
         const onTouchStart = (event) => {
             if (event.touches.length === 2) {
                 startDistance = touchDistance(event.touches);
-                startScale = scale;
+                startScale = scaleRef.current;
             }
         };
         const onTouchMove = (event) => {
@@ -470,7 +499,7 @@ export const PdfViewer = forwardRef(function PdfViewer(
             element.removeEventListener('touchend', onTouchEnd);
             element.removeEventListener('touchcancel', onTouchEnd);
         };
-    }, [scale]);
+    }, [scrollElement]);
 
     /* -------------------------------------------------------------- loading */
 
@@ -624,7 +653,7 @@ export const PdfViewer = forwardRef(function PdfViewer(
 
             {/* -------------------------------------------------------- pages */}
             <div
-                ref={scrollRef}
+                ref={setScrollElement}
                 className="overflow-x-auto overscroll-x-contain bg-[var(--becpg-grey)]/40 px-1 py-3 sm:px-3"
                 style={{ touchAction: 'pan-x pan-y' }}
             >

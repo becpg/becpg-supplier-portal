@@ -96,8 +96,12 @@ const SEEN_MAX = 200;
  */
 let cache = { at: 0, data: null };
 
-/** Guards against two mounts firing the same request during a transition. */
-let inFlight = false;
+/**
+ * The request under way, shared by every mount. A promise rather than a flag:
+ * during a navigation the old bell starts the call and unmounts, and the new
+ * one must receive that answer instead of being turned away with nothing.
+ */
+let inFlight = null;
 
 /** @returns {Object|null} the cached payload, browser only */
 function readCache() {
@@ -112,6 +116,21 @@ function writeCache(data) {
         return;
     }
     cache = { at: Date.now(), data };
+}
+
+/** @returns {Promise<Object>} the notifications payload, one request for every caller */
+function fetchShared() {
+    if (!inFlight) {
+        inFlight = api.get('notifications', { params: { limit: PANEL_LIMIT } })
+            .then((payload) => {
+                writeCache(payload);
+                return payload;
+            })
+            .finally(() => {
+                inFlight = null;
+            });
+    }
+    return inFlight;
 }
 
 const LOCAL = {
@@ -275,20 +294,20 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                     onDone();
                 }
             };
-            if (!enabled || inFlight) {
+            if (!enabled) {
                 done();
                 return;
             }
-            if (maxAge > 0 && cache.data && Date.now() - cache.at < maxAge) {
-                done();
-                return;
-            }
-            inFlight = true;
-            api.get('notifications', { params: { limit: PANEL_LIMIT } })
+            // A fresh cache still goes through state: a bell mounted before
+            // another one filled it would otherwise keep its skeleton.
+            const fresh = maxAge > 0 && cache.data && Date.now() - cache.at < maxAge;
+            const request = fresh ? Promise.resolve(cache.data) : fetchShared();
+            request
                 .then((payload) => {
-                    writeCache(payload);
                     if (alive.current) {
-                        setState({ data: payload, error: null });
+                        setState((previous) => (previous.data === payload && !previous.error
+                            ? previous
+                            : { data: payload, error: null }));
                     }
                 })
                 .catch((failure) => {
@@ -297,7 +316,6 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                     }
                 })
                 .finally(() => {
-                    inFlight = false;
                     if (alive.current) {
                         done();
                     }

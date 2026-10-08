@@ -44,6 +44,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { GaugeBar } from '@/components/ui/Gauge';
 import { Modal } from '@/components/ui/Modal';
 import { StatusPill } from '@/components/ui/StatusPill';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { formatDate } from '@/lib/format';
 import {
     MonitorActionButtons,
@@ -239,6 +240,41 @@ function MetricCell({ value, metric, local }) {
     );
 }
 
+/**
+ * The approval status, and why. The reasons are the answer to "what does this
+ * supplier still owe", so they sit behind a real trigger a keyboard and a tap
+ * can open, not in a `title` only a mouse ever shows.
+ *
+ * @param {Object} props
+ * @param {{status: string, statusLabel: string, reasons: string[]}|null} props.approval
+ */
+function ApprovalCell({ approval }) {
+    const pill = (
+        <StatusPill
+            status={approval ? approval.status : null}
+            label={approval ? approval.statusLabel : undefined}
+            size="sm"
+        />
+    );
+    const reasons = approval?.reasons ?? [];
+    if (reasons.length === 0) {
+        return pill;
+    }
+    return (
+        <Tooltip
+            placement="top"
+            content={(
+                <ul className="m-0 list-disc pl-4">
+                    {reasons.map((reason, position) => <li key={`${position}-${reason}`}>{reason}</li>)}
+                </ul>
+            )}
+            className="rounded"
+        >
+            {pill}
+        </Tooltip>
+    );
+}
+
 /** Risk level + score. The level word travels with the colour, always. */
 function RiskCell({ risk, lang }) {
     const level = RISK_LEVELS[(risk && risk.level) || 'low'] || RISK_LEVELS.low;
@@ -295,18 +331,7 @@ export function buildSupplierColumns(local, lang) {
             accessorFn: (row) => (row.approval ? row.approval.severity : 9),
             header: columns.status,
             meta: { badge: true, label: columns.status, width: '9rem' },
-            cell: ({ row }) => (
-                <StatusPill
-                    status={row.original.approval ? row.original.approval.status : null}
-                    label={row.original.approval ? row.original.approval.statusLabel : undefined}
-                    size="sm"
-                    title={
-                        row.original.approval && row.original.approval.reasons.length > 0
-                            ? row.original.approval.reasons.join(' · ')
-                            : undefined
-                    }
-                />
-            ),
+            cell: ({ row }) => <ApprovalCell approval={row.original.approval} />,
         },
         {
             id: 'risk',

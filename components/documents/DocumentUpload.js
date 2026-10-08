@@ -75,6 +75,10 @@ const LABELS = {
         aiOn: 'Analysé le {date}',
         selected: 'Fichier sélectionné',
         validityHint: 'Les dates de validité portées sur le document.',
+        validityInverted: 'La date de fin précède la date de début.',
+        validityMissing: 'Renseignez la date de fin de validité avant de déposer le fichier.',
+        validityNotApplied:
+            'Le fichier est déposé, mais ses dates de validité n’ont pas été enregistrées. Renseignez-les sur la ligne du document.',
     },
     en: {
         drop: 'Drop a file here',
@@ -101,6 +105,10 @@ const LABELS = {
         aiOn: 'Analysed on {date}',
         selected: 'Selected file',
         validityHint: 'The validity dates printed on the document.',
+        validityInverted: 'The end date precedes the start date.',
+        validityMissing: 'Fill in the end of validity before uploading the file.',
+        validityNotApplied:
+            'The file is uploaded, but its validity dates were not saved. Fill them in on the document row.',
     },
 };
 
@@ -197,6 +205,32 @@ function validateFile(file, { accept, maxBytes, labels }) {
         return type === pattern;
     });
     return ok ? null : fill(labels.badType, { name: file.name, accept });
+}
+
+/**
+ * Why the validity dates typed next to the file cannot travel with it, as a key
+ * of the labels table, or null when they can.
+ *
+ * Same rule as the validity editor: an end before the start is refused, and a
+ * row that requires its validity requires at least the end date, the one the
+ * expiry follows. Checked before the upload, because once the file has landed
+ * the route reports a refused date as a success with `validity.applied: false`.
+ *
+ * @param {{editable: boolean, required: boolean}|null} validity the row's verdict
+ * @param {{from: string, to: string}} dates `YYYY-MM-DD` strings, possibly empty
+ * @returns {'validityInverted'|'validityMissing'|null}
+ */
+export function uploadValidityProblem(validity, dates) {
+    if (!validity?.editable) {
+        return null;
+    }
+    if (dates.from && dates.to && dates.from > dates.to) {
+        return 'validityInverted';
+    }
+    if (validity.required && !dates.to) {
+        return 'validityMissing';
+    }
+    return null;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -342,6 +376,10 @@ export function DocumentUpload({
     const zoneRef = useRef(null);
     const dragDepth = useRef(0);
     const alive = useRef(true);
+    // A ref, not `busy`: two clicks or a click and a drop can land in the same
+    // frame, before the state that disables the zone has rendered, and each
+    // would POST the file.
+    const inFlight = useRef(false);
 
     const [dragging, setDragging] = useState(false);
     const [progress, setProgress] = useState(null);
@@ -415,8 +453,10 @@ export function DocumentUpload({
                 }
                 return review;
             }
-            catch {
-                // Deliberately silent: see above.
+            catch (cause) {
+                // Nothing for the supplier (see above), but a trace for whoever
+                // wonders why a row never got its verdict.
+                console.warn('AI review request failed', { document: documentId, status: cause?.status });
                 return null;
             }
         },
@@ -430,9 +470,13 @@ export function DocumentUpload({
      */
     const upload = useCallback(
         async (file) => {
+            if (inFlight.current) {
+                return;
+            }
             const invalid = validateFile(file, { accept, maxBytes, labels });
-            if (invalid) {
-                setError(invalid);
+            const validityProblem = uploadValidityProblem(validity, datesRef.current);
+            if (invalid || validityProblem) {
+                setError(invalid || labels[validityProblem]);
                 setDone(null);
                 return;
             }
@@ -440,6 +484,7 @@ export function DocumentUpload({
             setError(null);
             setDone(null);
             setProgress(0);
+            inFlight.current = true;
 
             try {
                 const result = await api.upload(
@@ -460,13 +505,19 @@ export function DocumentUpload({
                             : {}),
                     },
                     { onProgress: (percent) => alive.current && setProgress(percent) },
-                );
+                ).finally(() => {
+                    inFlight.current = false;
+                });
 
                 if (!alive.current) {
                     return;
                 }
                 setProgress(null);
                 setDone({ name: file.name, size: file.size, ...(result || {}) });
+                if (result?.validity?.applied === false) {
+                    setError(labels.validityNotApplied);
+                    toast.error(new Error(labels.validityNotApplied));
+                }
 
                 if (onUploaded) {
                     onUploaded(result, { attempt: 0, last: false });
@@ -569,6 +620,11 @@ export function DocumentUpload({
             event.stopPropagation();
             dragDepth.current = 0;
             setDragging(false);
+            // Still prevented above, or the browser would open the file in
+            // place of the portal.
+            if (inFlight.current) {
+                return;
+            }
             onFiles(event.dataTransfer.files);
         };
 
@@ -742,10 +798,11 @@ export function DocumentUpload({
                 }}
                 type="button"
                 onClick={() => inputRef.current && inputRef.current.click()}
+                disabled={busy}
                 aria-busy={busy || undefined}
                 className={[
                     'flex w-full flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed',
-                    'px-4 py-6 text-center transition-colors duration-150',
+                    'px-4 py-6 text-center transition-colors duration-150 disabled:cursor-progress disabled:opacity-60',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2',
                     dragging
                         ? 'border-[var(--becpg-orange)] bg-[var(--becpg-orange)]/5'

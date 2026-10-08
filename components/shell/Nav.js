@@ -34,7 +34,7 @@
  * colours it is about.
  */
 
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { withBasePath } from '@/lib/basePath';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -222,6 +222,70 @@ function CollapsedBadge({ count }) {
     );
 }
 
+/** What Tab may land on inside the drawer — the same list `ui/Modal` traps on. */
+const FOCUSABLE =
+    'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
+/**
+ * The open drawer is a modal dialog, with the behaviour `ui/Modal` gives one:
+ * focus moved in on open and kept inside, the page behind it frozen, focus
+ * handed back to the button that opened it. It does not render through Modal
+ * because Modal is a bottom sheet / centred panel, and this is a side drawer.
+ *
+ * @param {boolean} active
+ * @returns {{panelRef: React.RefObject, onKeyDown: Function}}
+ */
+function useModalDrawer(active) {
+    const panelRef = useRef(null);
+
+    useEffect(() => {
+        if (!active) {
+            return undefined;
+        }
+        const opener = document.activeElement;
+        const { overflow } = document.body.style;
+        document.body.style.overflow = 'hidden';
+        const frame = requestAnimationFrame(() => {
+            const panel = panelRef.current;
+            if (panel) {
+                (panel.querySelector(FOCUSABLE) || panel).focus();
+            }
+        });
+        return () => {
+            cancelAnimationFrame(frame);
+            document.body.style.overflow = overflow;
+            if (opener && typeof opener.focus === 'function') {
+                opener.focus();
+            }
+        };
+    }, [active]);
+
+    const onKeyDown = useCallback((event) => {
+        const panel = panelRef.current;
+        if (event.key !== 'Tab' || !panel) {
+            return;
+        }
+        const nodes = Array.from(panel.querySelectorAll(FOCUSABLE)).filter((node) => node.offsetParent !== null);
+        if (nodes.length === 0) {
+            event.preventDefault();
+            panel.focus();
+            return;
+        }
+        const first = nodes[0];
+        const last = nodes[nodes.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        }
+        else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }, []);
+
+    return { panelRef, onKeyDown };
+}
+
 /**
  * @param {Object} props
  * @param {'sidebar'|'bottom'|'drawer'} [props.variant='sidebar']
@@ -271,6 +335,8 @@ export function Nav({
         document.addEventListener('keydown', onKeyDown);
         return () => document.removeEventListener('keydown', onKeyDown);
     }, [variant, open, onClose]);
+
+    const { panelRef: drawerRef, onKeyDown: onDrawerKeyDown } = useModalDrawer(variant === 'drawer' && open);
 
     // ---------------------------------------------------------------- sidebar
     if (variant === 'sidebar') {
@@ -442,8 +508,13 @@ export function Nav({
                         onClick={onClose}
                         aria-hidden="true"
                     />
-                    <motion.nav
+                    <motion.div
+                        ref={drawerRef}
+                        role="dialog"
+                        aria-modal="true"
                         aria-label={local.menu}
+                        tabIndex={-1}
+                        onKeyDown={onDrawerKeyDown}
                         initial={reduceMotion ? { opacity: 0 } : { x: '-100%' }}
                         animate={reduceMotion ? { opacity: 1 } : { x: 0 }}
                         exit={reduceMotion ? { opacity: 0 } : { x: '-100%' }}
@@ -478,7 +549,7 @@ export function Nav({
                         <div className="flex items-center gap-2 border-b border-[var(--becpg-grey)] p-3">
                             <TenantBadge size="sm" showSuffix />
                         </div>
-                        <div className="flex-1 overflow-y-auto p-2">
+                        <nav aria-label={local.menu} className="flex-1 overflow-y-auto p-2">
                             {list.map((item) => {
                                 const active = isActive(pathname, item);
                                 return (
@@ -498,11 +569,11 @@ export function Nav({
                                     </Link>
                                 );
                             })}
-                        </div>
+                        </nav>
                         {canSwitchSpace ? (
                             <SpaceSwitch space={resolvedSpace} local={local} onNavigate={onClose} />
                         ) : null}
-                    </motion.nav>
+                    </motion.div>
                 </div>
             ) : null}
         </AnimatePresence>

@@ -109,7 +109,7 @@ export function DiscussionList({ threads = [], index = 0, className = '' }) {
                 threads.length > 0 ? (
                     <span className="flex items-center gap-1.5">
                         {unreadCount > 0 ? (
-                            <span className="pill pill-warning pill-sm pill-no-dot">
+                            <span className="pill pill-warn pill-sm pill-no-dot">
                                 {local.unreadCount.replace('{count}', unreadCount)}
                             </span>
                         ) : null}
@@ -187,7 +187,7 @@ export function DiscussionList({ threads = [], index = 0, className = '' }) {
 
                                     <span className="mt-1 flex flex-wrap items-center gap-1.5">
                                         {unread ? (
-                                            <span className="pill pill-warning pill-sm pill-no-dot">
+                                            <span className="pill pill-warn pill-sm pill-no-dot">
                                                 {local.unread}
                                             </span>
                                         ) : null}
