@@ -253,12 +253,11 @@
 
   /*
    * Datagrid surfaces. The zebra and the hover wash are the palette at a low
-   * alpha, chosen as the *strongest* tint that still lets muted text
-   * (`--becpg-dark-grey-deep`) clear 4.5:1 — measured 5.30:1 on the stripe and
-   * 5.02:1 on the hover wash, and 4.94:1 on a hovered stripe (the worst case).
+   * alpha, light enough that muted text (`--becpg-dark-grey-deep`) clears 4.5:1
+   * on them: 5.30:1 on the stripe, 5.4:1 on the teal hover wash.
    */
   --becpg-row-zebra: rgba(228, 236, 238, 0.55);
-  --becpg-row-hover: rgba(255, 100, 45, 0.1);
+  --becpg-row-hover: rgba(0, 118, 123, 0.06);
   --becpg-row-selected: rgba(214, 232, 237, 0.7);
 
   /*
@@ -468,15 +467,19 @@ body {
  * `:focus-visible` and not `:focus`: a mouse click on a button must not leave a
  * ring behind, only keyboard (and other non-pointer) focus does.
  */
-:focus-visible {
-  outline: 2px solid var(--becpg-orange);
-  outline-offset: 2px;
-}
-
-/* Windows high-contrast mode draws its own indicator; let the system win. */
-@media (forced-colors: active) {
+@layer base {
+  /* In the base layer, so `focus:outline-none` (a utility) really removes it:
+     an unlayered rule beats every layered one, whatever its specificity. */
   :focus-visible {
-    outline-color: Highlight;
+    outline: 2px solid var(--becpg-orange);
+    outline-offset: 2px;
+  }
+
+  /* Windows high-contrast mode draws its own indicator; let the system win. */
+  @media (forced-colors: active) {
+    :focus-visible {
+      outline-color: Highlight;
+    }
   }
 }
 

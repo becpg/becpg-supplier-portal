@@ -166,10 +166,7 @@ function selectionColumn(selectAllLabel, selectRowLabel) {
             <input
                 type="checkbox"
                 aria-label={selectAllLabel}
-                /* On the blue header row a `--becpg-blue` checkbox is invisible.
-                   `--becpg-green` is 8.41:1 against the bar — the one place in the
-                   chrome where the brand mint can be itself at full strength. */
-                className="h-4 w-4 cursor-pointer accent-[var(--becpg-green)]"
+                className="h-4 w-4 cursor-pointer accent-[var(--becpg-blue)]"
                 checked={table.getIsAllPageRowsSelected()}
                 ref={(node) => {
                     if (node) {
@@ -426,29 +423,27 @@ export function DataTable({
                 <>
                     {/* ---------------------------------------- desktop table */}
                     {/*
-                      * The datagrid surface: white, outlined in
-                      * `--becpg-blue-lighter`, blue-tinted elevation. `overflow`
-                      * comes from `.table-scroll` (`overflow-x: auto`, which makes
-                      * the box a scroll container on both axes) and that is also
-                      * what clips the blue header row to the rounded corners.
+                      * The datagrid surface: white, outlined in `--becpg-line`,
+                      * the card elevation. `overflow` comes from `.table-scroll`
+                      * (`overflow-x: auto`, which makes the box a scroll container
+                      * on both axes) and that is also what clips the header row to
+                      * the rounded corners.
                       */}
-                    <div className="table-scroll hidden rounded-xl border border-[var(--becpg-blue-lighter)] bg-white shadow-[var(--becpg-shadow-raised)] md:block">
+                    <div className="table-scroll hidden rounded-2xl border border-[var(--becpg-line)] bg-white shadow-[var(--becpg-shadow-raised)] md:block">
                         <table className="w-full border-collapse text-sm">
                             {caption ? <caption className="sr-only-text">{caption}</caption> : null}
                             {/*
-                              * The header is the toolbar again: `--becpg-blue` with
-                              * white content (11.0:1), closed by the same 2px
-                              * `--becpg-top-bar-border-color` rule as
-                              * `.becpg-toolbar-edge`. Sort affordances hover to
-                              * `--becpg-orange-light` (4.74:1 on the bar) — brand
-                              * `--becpg-orange` is only 3.73:1 and cannot carry an
-                              * 11px label.
+                              * A light header, as Share draws its grids and as the
+                              * datalists of this portal already do: sentence case,
+                              * `--becpg-muted` on the page surface (5.6:1), closed by
+                              * a hairline. A dark bar over every list was the
+                              * heaviest block of each page and said nothing more.
                               */}
-                            <thead className="bg-[var(--becpg-blue)] text-white">
+                            <thead className="bg-[var(--becpg-page-surface)] text-[var(--becpg-muted)]">
                                 {table.getHeaderGroups().map((headerGroup) => (
                                     <tr
                                         key={headerGroup.id}
-                                        className="border-b-2 border-[var(--becpg-top-bar-border-color)]"
+                                        className="border-b border-[var(--becpg-line)]"
                                     >
                                         {headerGroup.headers.map((header) => {
                                             const meta = header.column.columnDef.meta || {};
@@ -466,13 +461,13 @@ export function DataTable({
                                                               ? 'descending'
                                                               : undefined
                                                     }
-                                                    className={`px-3 py-2.5 text-start text-xs font-medium uppercase tracking-wide ${alignClass(meta)}`}
+                                                    className={`px-3 py-2.5 text-start text-[0.8125rem] font-medium ${alignClass(meta)}`}
                                                 >
                                                     {header.isPlaceholder ? null : sortable ? (
                                                         <button
                                                             type="button"
                                                             onClick={header.column.getToggleSortingHandler()}
-                                                            className="inline-flex items-center gap-1 rounded transition-colors hover:text-[var(--becpg-orange-light)]"
+                                                            className="inline-flex items-center gap-1 rounded transition-colors hover:text-[var(--becpg-ink)]"
                                                         >
                                                             <span className="text-start">
                                                                 {flexRender(
@@ -491,7 +486,7 @@ export function DataTable({
                                                                 size={14}
                                                                 className={
                                                                     sorted
-                                                                        ? 'text-[var(--becpg-orange-light)]'
+                                                                        ? 'text-[var(--becpg-teal)]'
                                                                         : 'opacity-60'
                                                                 }
                                                             />
@@ -539,41 +534,16 @@ export function DataTable({
                                                     : undefined
                                             }
                                             /*
-                                             * Zebra + orange hover, both as tokens
-                                             * (`--becpg-row-*`) so a tenant theme can
-                                             * retune them: the stripe is
-                                             * `--becpg-grey` at 55%, the hover wash
-                                             * `--becpg-orange` at 10%, the selection
-                                             * `--becpg-blue-lighter` at 70%.
-                                             *
-                                             * The hover is a *wash* plus a 3px
-                                             * `--becpg-orange` rail, not a solid
-                                             * orange fill: #ff642d under text is
-                                             * 2.95:1 for white and 3.73:1 for blue,
-                                             * so a solid orange row would make every
-                                             * cell unreadable exactly while the
-                                             * pointer is on it. The wash keeps blue
-                                             * at 9.67:1 and muted text at 5.02:1, and
-                                             * the rail is where the brand orange is
-                                             * allowed to be full strength.
-                                             *
-                                             * The stripe is picked in JS from the row
-                                             * index rather than with `even:`, so the
-                                             * three surfaces are *mutually exclusive
-                                             * class strings* instead of three
-                                             * same-specificity `bg-*` utilities whose
-                                             * winner would depend on Tailwind's
-                                             * emission order. `hover:` (0,2,0) then
-                                             * beats whichever one is on the row
-                                             * (0,1,0) by specificity alone.
+                                             * Rows are separated by a hairline, with
+                                             * no zebra: the website's lists, and a
+                                             * calmer page. The hover is a teal wash
+                                             * (`--becpg-row-hover`) plus a 3px teal
+                                             * rail; text keeps 4.5:1 or better on it.
+                                             * Selection is the only filled state.
                                              */
                                             className={[
-                                                'border-b border-[var(--becpg-blue-lighter)] last:border-0 transition-colors',
-                                                row.getIsSelected()
-                                                    ? 'bg-[var(--becpg-row-selected)]'
-                                                    : index % 2 === 1
-                                                      ? 'bg-[var(--becpg-row-zebra)]'
-                                                      : '',
+                                                'border-b border-[var(--becpg-line)] last:border-0 transition-colors',
+                                                row.getIsSelected() ? 'bg-[var(--becpg-row-selected)]' : '',
                                                 clickable
                                                     ? 'cursor-pointer hover:bg-[var(--becpg-row-hover)] focus:outline-none focus-visible:bg-[var(--becpg-row-selected)]'
                                                     : '',
@@ -586,18 +556,10 @@ export function DataTable({
                                                  * left border would shift the cell's
                                                  * content by 3px on hover.
                                                  *
-                                                 * It is `--becpg-orange-deep` and not
-                                                 * the brand `--becpg-orange` for the
-                                                 * one reason that justifies a shade
-                                                 * change: this rail lands *on the
-                                                 * orange wash*, where #ff642d measures
-                                                 * 2.66:1 and simply dissolves into the
-                                                 * row it is supposed to mark. The deep
-                                                 * shade is 4.24:1 against the same
-                                                 * wash.
+                                                 * `--becpg-teal`, 5.0:1 on the hover wash.
                                                  */
                                                 clickable
-                                                    ? 'hover:[&>td:first-child]:shadow-[inset_3px_0_0_var(--becpg-orange-deep)] focus-visible:[&>td:first-child]:shadow-[inset_3px_0_0_var(--becpg-orange-deep)]'
+                                                    ? 'hover:[&>td:first-child]:shadow-[inset_3px_0_0_var(--becpg-teal)] focus-visible:[&>td:first-child]:shadow-[inset_3px_0_0_var(--becpg-teal)]'
                                                     : '',
                                             ]
                                                 .filter(Boolean)

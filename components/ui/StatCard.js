@@ -5,7 +5,7 @@
  *
  * One figure, one label, one tone. The number counts up on mount — the only
  * animation, and it is disabled under `prefers-reduced-motion`. The tone is
- * carried by an icon and a coloured rail, never by the number's colour alone.
+ * carried by the icon chip beside the label, never by the number's colour alone.
  */
 
 import { useEffect } from 'react';
@@ -18,37 +18,29 @@ import { Skeleton } from '@/components/ui/Skeleton';
 const MotionLink = motion.create(Link);
 
 /*
- * Tone → rail + icon chip. The **figure itself is always `--becpg-blue`**
- * (11.0:1 on white): a KPI row where every number is a different colour reads
- * as five unrelated widgets, and the blue is what makes the row look like beCPG.
+ * Tone → icon chip. The figure itself is always `--becpg-ink`: a KPI row where
+ * every number is a different colour reads as five unrelated widgets. The tiles
+ * carry no coloured rail either: a row of four rails in four colours was the
+ * loudest thing on every list page, louder than the list it introduces.
  *
- * The tone is therefore carried by the 4px rail and by the icon chip — two
- * redundant cues on top of the icon's own shape and the tile's label, so no
- * status is ever conveyed by colour alone.
- *
- * Measured: rails on white 5.31 / 5.22 / 6.54 / 7.04:1 (≥3:1, non-text);
- * chips 4.73 / 4.70 / 5.72 / 5.57 / 4.79:1 (≥4.5:1, they hold an icon and are
- * the fallback when the rail is off-screen on a narrow tile).
+ * The chip carries the tone on top of the icon's own shape and the tile's
+ * label, so no status is ever conveyed by colour alone. Chips measure
+ * 4.73 / 4.70 / 5.72 / 5.57 / 4.79:1 (≥4.5:1, they hold an icon).
  */
 const TONES = {
     ok: {
-        rail: 'var(--status-ok)',
         chip: 'bg-[var(--status-ok-bg)] text-[var(--status-ok)]',
     },
     warn: {
-        rail: 'var(--status-warn)',
         chip: 'bg-[var(--status-warn-bg)] text-[var(--status-warn)]',
     },
     danger: {
-        rail: 'var(--status-danger)',
         chip: 'bg-[var(--status-danger-bg)] text-[var(--status-danger)]',
     },
     info: {
-        rail: 'var(--status-info)',
         chip: 'bg-[var(--status-info-bg)] text-[var(--status-info)]',
     },
     neutral: {
-        rail: 'var(--becpg-blue-light)',
         chip: 'bg-[var(--becpg-grey)] text-[var(--becpg-blue)]',
     },
 };
@@ -131,12 +123,7 @@ export function StatCard({
 
     const inner = (
         <>
-            <span
-                className="absolute inset-y-0 start-0 w-1 rounded-s-xl"
-                style={{ background: palette.rail }}
-                aria-hidden="true"
-            />
-            <div className="flex items-start gap-3 ps-2">
+            <div className="flex items-start gap-3">
                 {icon ? (
                     <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${palette.chip}`}>
                         <Icon name={icon} size={20} />
@@ -152,8 +139,8 @@ export function StatCard({
                     {loading ? (
                         <Skeleton width="55%" height={30} className="mt-1.5" />
                     ) : (
-                        <div className="mt-0.5 flex items-baseline gap-1 text-[var(--becpg-blue)]">
-                            <span className="text-2xl font-light leading-tight tabular-nums sm:text-3xl">
+                        <div className="mt-0.5 flex items-baseline gap-1 text-[var(--becpg-ink)]">
+                            <span className="text-2xl font-light leading-tight tabular-nums">
                                 <AnimatedNumber value={value ?? '—'} reduceMotion={reduceMotion} />
                             </span>
                             {unit ? (
@@ -184,7 +171,7 @@ export function StatCard({
     );
 
     const classes = [
-        'relative w-full overflow-hidden rounded-xl border border-[var(--becpg-blue-lighter)] bg-white p-4 text-start',
+        'relative w-full overflow-hidden rounded-2xl border border-[var(--becpg-line)] bg-white p-4 text-start',
         'shadow-[var(--becpg-shadow-raised)]',
         clickable
             ? 'hover-lift cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2'
