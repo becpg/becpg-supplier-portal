@@ -2188,13 +2188,21 @@ body {
   margin: 0;
 }
 
+/* Inline content, so the help bubble follows the last word of a label that
+   wraps instead of being pushed to the far edge of the column. */
 .field-readonly-term {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
   min-width: 0;
   font-size: 0.875rem;
   color: var(--becpg-muted);
+  overflow-wrap: anywhere;
+}
+
+.field-readonly-term > * + * {
+  margin-inline-start: 0.375rem;
+}
+
+.field-readonly-term > * {
+  vertical-align: middle;
 }
 
 .field-readonly-value {

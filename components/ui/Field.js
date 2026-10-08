@@ -190,11 +190,11 @@ function ReadOnlyField({ label, help, badge, action, full, className, value }) {
     return (
         <dl className={['field-readonly', full ? 'form-grid-full' : '', className].filter(Boolean).join(' ')}>
             <dt className="field-readonly-term">
-                <span className="break-words">{label}</span>
+                <span>{label}</span>
                 {help ? <Tooltip content={help} label={typeof label === 'string' ? label : undefined} /> : null}
                 {badge}
-                <span ref={setHeaderSlot} className="inline-flex min-w-0 items-center gap-1.5" />
-                {action ? <span className="ms-auto">{action}</span> : null}
+                <span ref={setHeaderSlot} className="inline-flex min-w-0 items-center gap-1.5 empty:hidden" />
+                {action ? <span className="float-end">{action}</span> : null}
             </dt>
             <dd className={empty ? 'field-readonly-value field-readonly-empty' : 'field-readonly-value'}>
                 <FieldHeaderSlotProvider value={headerSlot}>{empty ? EMPTY_VALUE : value}</FieldHeaderSlotProvider>
