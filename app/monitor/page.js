@@ -61,11 +61,11 @@ const LABELS = {
     fr: {
         title: 'Pilotage du parc fournisseurs',
         description:
-            'L’état du parc en une page : agrément, conformité documentaire, expirations, campagnes et non-conformités. Données temps réel, aucun cube requis.',
+            'L’état du parc en une page : agrément, conformité documentaire, expirations, projets et non-conformités. Données temps réel, aucun cube requis.',
         generatedAt: 'Données au {time}',
         openList: 'Voir la liste complète',
         openDocuments: 'Conformité documentaire',
-        openCampaigns: 'Campagnes',
+        openCampaigns: 'Projets',
         openQuality: 'Non-conformités',
         truncated:
             'Parc plus large que la fenêtre d’analyse : {scanned} fournisseurs lus sur {total}. Les compteurs marqués « ≈ » sont plafonnés ; la répartition et le top 10 portent sur la fenêtre.',
@@ -73,11 +73,11 @@ const LABELS = {
     en: {
         title: 'Supplier park monitoring',
         description:
-            'The park in one page: approval, document compliance, expiries, campaigns and non-conformities. Real time, no cube required.',
+            'The park in one page: approval, document compliance, expiries, projects and non-conformities. Real time, no cube required.',
         generatedAt: 'Data as of {time}',
         openList: 'See the full list',
         openDocuments: 'Document compliance',
-        openCampaigns: 'Campaigns',
+        openCampaigns: 'Projects',
         openQuality: 'Non-conformities',
         truncated:
             'Park larger than the scan window: {scanned} suppliers read out of {total}. Counters marked “≈” are capped; the breakdown and the top 10 cover the window.',

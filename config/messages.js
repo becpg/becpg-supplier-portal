@@ -50,7 +50,7 @@ export const messages = {
         'nav.monitor.suppliers': 'Fournisseurs',
         'nav.monitor.products': 'Produits fournisseurs',
         'nav.monitor.documents': 'Conformité documentaire',
-        'nav.monitor.campaigns': 'Campagnes',
+        'nav.monitor.campaigns': 'Projets',
         'nav.monitor.quality': 'Non-conformités',
         'nav.monitor.reports': 'Rapports',
         // The same tasks as on the supplier side, under the name an internal user
@@ -164,7 +164,7 @@ export const messages = {
         'nav.monitor.suppliers': 'Suppliers',
         'nav.monitor.products': 'Supplier products',
         'nav.monitor.documents': 'Document compliance',
-        'nav.monitor.campaigns': 'Campaigns',
+        'nav.monitor.campaigns': 'Projects',
         'nav.monitor.quality': 'Non-conformities',
         'nav.monitor.reports': 'Reports',
         /* See the note on the French key. */

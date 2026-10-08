@@ -40,7 +40,7 @@ import { useMessages } from '@/lib/messages';
 const LABELS = {
     fr: {
         columns: {
-            campaign: 'Campagne',
+            campaign: 'Projet',
             suppliers: 'Fournisseurs',
             response: 'Taux de réponse',
             age: 'Ancienneté',
@@ -56,7 +56,7 @@ const LABELS = {
         silenceDays: 'Il y a {count} j',
         silenceToday: 'Aujourd’hui',
         silenceHint:
-            'beCPG ne journalise pas les relances : cette colonne montre la dernière activité sur la campagne (cm:modified), le fait le plus proche réellement disponible.',
+            'beCPG ne journalise pas les relances : cette colonne montre la dernière activité sur le projet (cm:modified), le fait le plus proche réellement disponible.',
         noSilence: 'Aucune activité datée',
         noAnswer: 'Sans réponse',
         late: 'En retard',
@@ -69,8 +69,8 @@ const LABELS = {
         overdue: 'Dépassée de {count} j',
         noDue: 'Sans échéance',
         others: '+{count}',
-        search: 'Rechercher une campagne',
-        empty: 'Aucune campagne ouverte sur ce périmètre',
+        search: 'Rechercher un projet',
+        empty: 'Aucun projet ouvert sur ce périmètre',
         // Wordings of beCPG's own `pjt:projectStates` list constraint.
         projectStates: {
             Planned: 'Planifié',
@@ -82,7 +82,7 @@ const LABELS = {
     },
     en: {
         columns: {
-            campaign: 'Campaign',
+            campaign: 'Project',
             suppliers: 'Suppliers',
             response: 'Response rate',
             age: 'Age',
@@ -98,7 +98,7 @@ const LABELS = {
         silenceDays: '{count} d ago',
         silenceToday: 'Today',
         silenceHint:
-            'beCPG keeps no reminder log: this column shows the last activity on the campaign (cm:modified), the closest fact actually available.',
+            'beCPG keeps no reminder log: this column shows the last activity on the project (cm:modified), the closest fact actually available.',
         noSilence: 'No dated activity',
         noAnswer: 'No answer',
         late: 'Late',
@@ -111,8 +111,8 @@ const LABELS = {
         overdue: '{count} d overdue',
         noDue: 'No due date',
         others: '+{count}',
-        search: 'Search a campaign',
-        empty: 'No open campaign on this perimeter',
+        search: 'Search a project',
+        empty: 'No open project on this perimeter',
         projectStates: {
             Planned: 'Planned',
             InProgress: 'In progress',

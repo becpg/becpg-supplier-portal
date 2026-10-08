@@ -60,7 +60,7 @@ confidence level, never silently.
 
 ### Monitoring page for the Quality Team
 
-Approval, document compliance, expiry horizon, campaigns and non-conformities across the whole
+Approval, document compliance, expiry horizon, supplier projects and non-conformities across the whole
 supplier park — recomputed live from the repository, no OLAP cube required. When a figure
 cannot be computed on the full park, the portal says so in the screen instead of quietly
 publishing a number it cannot justify.
@@ -106,7 +106,7 @@ never sees a portal-specific password, and the portal never stores one.
   change, no state to keep in sync.
 * **Electronic signature** – draw-to-sign agreements, signed documents are stored back in the
   PLM.
-* **Monitoring space** – supplier park overview, supplier × document-type matrix, campaigns and
+* **Monitoring space** – supplier park overview, supplier × document-type matrix, supplier projects and
   quality indicators, closed to supplier accounts.
 * **AI-assisted capture** – optional: extracted values are shown with a confidence level, and a
   missing confidence is never rendered as a low one.

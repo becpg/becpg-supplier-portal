@@ -56,7 +56,7 @@ import { useMessages } from '@/lib/messages';
 const LABELS = {
     fr: {
         back: 'Fournisseurs',
-        startCampaign: 'Démarrer une campagne',
+        startCampaign: 'Démarrer un projet',
         notFound: 'Fournisseur introuvable',
         notFoundHint:
             'Ce fournisseur n’existe pas, ou il est hors de votre périmètre : le portail ne révèle jamais un nœud que vos droits beCPG ne couvrent pas.',
@@ -65,7 +65,7 @@ const LABELS = {
             completion: 'Complétude',
             documents: 'Documents obligatoires',
             nc: 'NC bloquantes',
-            campaigns: 'Campagnes en cours',
+            campaigns: 'Projets en cours',
         },
         kpiHints: {
             derived: 'Dérivé, jamais stocké',
@@ -103,8 +103,8 @@ const LABELS = {
             empty: 'Aucun sous-fournisseur déclaré',
         },
         projects: {
-            title: 'Campagnes et projets en cours',
-            empty: 'Aucune campagne ouverte',
+            title: 'Projets en cours',
+            empty: 'Aucun projet ouvert',
             manager: 'Pilote : {name}',
             due: 'Échéance {date}',
             late: 'En retard',
@@ -145,7 +145,7 @@ const LABELS = {
     },
     en: {
         back: 'Suppliers',
-        startCampaign: 'Start a campaign',
+        startCampaign: 'Start a project',
         notFound: 'Supplier not found',
         notFoundHint:
             'This supplier does not exist, or it is outside your perimeter: the portal never discloses a node your beCPG rights do not cover.',
@@ -154,7 +154,7 @@ const LABELS = {
             completion: 'Completeness',
             documents: 'Mandatory documents',
             nc: 'Blocking NCs',
-            campaigns: 'Open campaigns',
+            campaigns: 'Open projects',
         },
         kpiHints: {
             derived: 'Derived, never stored',
@@ -192,8 +192,8 @@ const LABELS = {
             empty: 'No sub-supplier declared',
         },
         projects: {
-            title: 'Open campaigns and projects',
-            empty: 'No open campaign',
+            title: 'Open projects',
+            empty: 'No open project',
             manager: 'Manager: {name}',
             due: 'Due {date}',
             late: 'Late',

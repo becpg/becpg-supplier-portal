@@ -42,7 +42,7 @@ import { useMessages } from '@/lib/messages';
 
 const LABELS = {
     fr: {
-        title: 'Démarrer une campagne',
+        title: 'Démarrer un projet',
         subtitle: 'Un projet de référencement par produit, comme « Envoyer au fournisseur » dans beCPG.',
         supplier: 'Fournisseur',
         supplierPlaceholder: 'Choisir un fournisseur…',
@@ -59,12 +59,12 @@ const LABELS = {
         noEntity: 'Aucun produit n’est rattaché à ce fournisseur : rien à envoyer.',
         noProcess: 'Aucun modèle de projet n’est ouvert au portail sur cette instance.',
         countAll: '{count} produit(s) seront envoyés, un projet par produit.',
-        done: '{count} campagne(s) démarrée(s)',
+        done: '{count} projet(s) démarré(s)',
         partial: '{done} démarrée(s), {failed} en échec',
         failedTitle: 'Ces produits n’ont pas démarré',
     },
     en: {
-        title: 'Start a campaign',
+        title: 'Start a project',
         subtitle: 'One referencing project per product, as "Send to supplier" does in beCPG.',
         supplier: 'Supplier',
         supplierPlaceholder: 'Pick a supplier…',
@@ -81,7 +81,7 @@ const LABELS = {
         noEntity: 'No product is attached to this supplier: nothing to send.',
         noProcess: 'No project template is open to the portal on this instance.',
         countAll: '{count} product(s) will be sent, one project each.',
-        done: '{count} campaign(s) started',
+        done: '{count} project(s) started',
         partial: '{done} started, {failed} failed',
         failedTitle: 'These products did not start',
     },

@@ -51,12 +51,12 @@ import { StartCampaignDialog } from '@/components/monitor/StartCampaignDialog';
 
 const LABELS = {
     fr: {
-        title: 'Campagnes',
+        title: 'Projets',
         subtitle:
-            'Projets de référencement et de renouvellement ouverts. Sélectionnez des campagnes pour relancer ou escalader leurs fournisseurs.',
+            'Projets de référencement et de renouvellement ouverts. Sélectionnez des projets pour relancer ou escalader leurs fournisseurs.',
         stats: {
-            open: 'Campagnes ouvertes',
-            openState: 'Campagnes · {state}',
+            open: 'Projets ouverts',
+            openState: 'Projets · {state}',
             response: 'Taux de réponse',
             unanswered: 'Sans réponse',
             reminders: 'Relances en attente',
@@ -69,8 +69,8 @@ const LABELS = {
             noEscalation: 'Aucune escalade requise',
             answered: '{count} ont répondu',
         },
-        startCampaign: 'Démarrer une campagne',
-        allOpen: 'Toutes les campagnes ouvertes',
+        startCampaign: 'Démarrer un projet',
+        allOpen: 'Tous les projets ouverts',
         state: 'État du projet',
         sortLabel: 'Trier par',
         sorts: {
@@ -81,30 +81,30 @@ const LABELS = {
         },
         searchSupplier: 'Filtrer par fournisseur',
         truncated:
-            'Fenêtre d’analyse : beCPG borne une liste à 250 lignes et {scanned} campagne(s) ont été lues. Le tri et les totaux de cette page portent sur cette fenêtre — affinez l’état ou le périmètre pour une vue complète.',
+            'Fenêtre d’analyse : beCPG borne une liste à 250 lignes et {scanned} projet(s) ont été lus. Le tri et les totaux de cette page portent sur cette fenêtre — affinez l’état ou le périmètre pour une vue complète.',
         scopeEmpty:
-            'Aucun fournisseur ne correspond à ce périmètre. Aucune campagne ne peut lui être rattachée : les compteurs ci-dessus sont des zéros de construction, pas des mesures.',
+            'Aucun fournisseur ne correspond à ce périmètre. Aucun projet ne peut lui être rattaché : les compteurs ci-dessus sont des zéros de construction, pas des mesures.',
         parkScoped: 'Compteurs restreints au périmètre filtré ({count} fournisseur(s)).',
-        noRate: 'Aucune campagne à évaluer',
+        noRate: 'Aucun projet à évaluer',
         unsupported:
             'Filtre(s) non pris en charge par le modèle beCPG standard : {names}. À paramétrer côté client.',
-        pageOf: '{from}–{to} sur {total} campagnes',
+        pageOf: '{from}–{to} sur {total} projets',
         previous: 'Précédent',
         next: 'Suivant',
         rows: 'Lignes',
         reminder:
-            'Votre campagne en cours sur le portail attend encore votre réponse. Merci de compléter les tâches qui vous sont assignées dès que possible.',
-        hintTargets: 'Fournisseurs des campagnes sélectionnées',
+            'Votre projet en cours sur le portail attend encore votre réponse. Merci de compléter les tâches qui vous sont assignées dès que possible.',
+        hintTargets: 'Fournisseurs des projets sélectionnés',
         noteReminder:
-            'beCPG ne journalise pas les relances : la colonne « Dernière relance » montre la dernière activité sur la campagne, le fait le plus proche réellement disponible.',
+            'beCPG ne journalise pas les relances : la colonne « Dernière relance » montre la dernière activité sur le projet, le fait le plus proche réellement disponible.',
     },
     en: {
-        title: 'Campaigns',
+        title: 'Projects',
         subtitle:
-            'Open referencing and renewal projects. Select campaigns to remind or escalate their suppliers.',
+            'Open referencing and renewal projects. Select projects to remind or escalate their suppliers.',
         stats: {
-            open: 'Open campaigns',
-            openState: 'Campaigns · {state}',
+            open: 'Open projects',
+            openState: 'Projects · {state}',
             response: 'Response rate',
             unanswered: 'No answer',
             reminders: 'Reminders due',
@@ -117,8 +117,8 @@ const LABELS = {
             noEscalation: 'No escalation needed',
             answered: '{count} answered',
         },
-        startCampaign: 'Start a campaign',
-        allOpen: 'All open campaigns',
+        startCampaign: 'Start a project',
+        allOpen: 'All open projects',
         state: 'Project state',
         sortLabel: 'Sort by',
         sorts: {
@@ -129,22 +129,22 @@ const LABELS = {
         },
         searchSupplier: 'Filter by supplier',
         truncated:
-            'Scan window: beCPG caps a listing at 250 rows and {scanned} campaign(s) were read. The sort and the totals on this page cover that window — narrow the state or the perimeter for a complete view.',
+            'Scan window: beCPG caps a listing at 250 rows and {scanned} project(s) were read. The sort and the totals on this page cover that window — narrow the state or the perimeter for a complete view.',
         scopeEmpty:
-            'No supplier matches this perimeter. No campaign can be attached to it: the counters above are zeros by construction, not measurements.',
+            'No supplier matches this perimeter. No project can be attached to it: the counters above are zeros by construction, not measurements.',
         parkScoped: 'Counters restricted to the filtered perimeter ({count} supplier(s)).',
-        noRate: 'No campaign to score',
+        noRate: 'No project to score',
         unsupported:
             'Filter(s) unsupported by the standard beCPG model: {names}. Configure them client side.',
-        pageOf: '{from}–{to} of {total} campaigns',
+        pageOf: '{from}–{to} of {total} projects',
         previous: 'Previous',
         next: 'Next',
         rows: 'Rows',
         reminder:
-            'Your open campaign on the portal is still waiting for your answer. Please complete the tasks assigned to you as soon as possible.',
-        hintTargets: 'Suppliers of the selected campaigns',
+            'Your open project on the portal is still waiting for your answer. Please complete the tasks assigned to you as soon as possible.',
+        hintTargets: 'Suppliers of the selected projects',
         noteReminder:
-            'beCPG keeps no reminder log: the "Last reminder" column shows the last activity on the campaign, the closest fact actually available.',
+            'beCPG keeps no reminder log: the "Last reminder" column shows the last activity on the project, the closest fact actually available.',
     },
 };
 

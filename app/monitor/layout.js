@@ -56,7 +56,7 @@ export const dynamic = 'force-dynamic';
 const LABELS = {
     fr: {
         metaTitle: 'Pilotage fournisseurs — beCPG',
-        metaDescription: 'Vue d’ensemble du parc fournisseurs, conformité documentaire et campagnes',
+        metaDescription: 'Vue d’ensemble du parc fournisseurs, conformité documentaire et projets',
         title: 'Espace de pilotage',
         denied: 'Espace de pilotage réservé aux équipes internes',
         deniedGroups:
@@ -65,7 +65,7 @@ const LABELS = {
     },
     en: {
         metaTitle: 'Supplier monitoring — beCPG',
-        metaDescription: 'The supplier park at a glance: document compliance and campaigns',
+        metaDescription: 'The supplier park at a glance: document compliance and projects',
         title: 'Monitoring space',
         denied: 'The monitoring space is reserved for internal teams',
         deniedGroups:

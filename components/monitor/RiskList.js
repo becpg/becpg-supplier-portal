@@ -94,8 +94,8 @@ export const RISK_REASONS = Object.freeze({
     campaignNoAnswer: {
         icon: 'campaign',
         tone: 'danger',
-        fr: '{count} campagne(s) sans réponse',
-        en: '{count} campaign(s) without answer',
+        fr: '{count} projet(s) sans réponse',
+        en: '{count} project(s) without answer',
     },
     lateTask: {
         icon: 'alarm',
@@ -142,7 +142,7 @@ const LABELS = {
         title: 'Top 10 des fournisseurs à risque',
         subtitle: 'Motif, score de risque et action directe',
         empty: 'Aucun fournisseur à risque dans ce périmètre',
-        emptyHint: 'Aucun document expiré, NC bloquante ou campagne sans réponse détecté.',
+        emptyHint: 'Aucun document expiré, NC bloquante ou projet sans réponse détecté.',
         riskScore: 'Score de risque {score}',
         level: 'Risque {level}',
         buyer: 'Acheteur : {name}',
@@ -191,7 +191,7 @@ const LABELS = {
         title: 'Top 10 suppliers at risk',
         subtitle: 'Reason, risk score and direct action',
         empty: 'No supplier at risk in this perimeter',
-        emptyHint: 'No expired document, blocking NC or unanswered campaign detected.',
+        emptyHint: 'No expired document, blocking NC or unanswered project detected.',
         riskScore: 'Risk score {score}',
         level: '{level} risk',
         buyer: 'Buyer: {name}',
