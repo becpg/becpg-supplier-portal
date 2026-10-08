@@ -369,6 +369,15 @@ export default async function DashboardPage() {
         redirect('/monitor');
     }
 
+    // The documents read the session, not this client's memo: nothing they need
+    // waits on the cards, so they start now and run beside them.
+    const documentsRead = safe(() => listDocuments({
+        session,
+        page: 1,
+        pageSize: PREVIEW.documents * 4,
+        supplier: supplierNodeRef ? [supplierNodeRef] : undefined,
+    }), null);
+
     // The four header cards. Everything below reuses this client's memo cache,
     // so the tasks and the entities are fetched exactly once for the page.
     const dashboard = await safe(() => buildDashboard(client, { supplierNodeRef }));
@@ -409,12 +418,7 @@ export default async function DashboardPage() {
             })),
             { items: [], pagination: { totalItems: 0, totalAtLeast: 0, totalExact: true } },
         ),
-        safe(() => listDocuments({
-            session,
-            page: 1,
-            pageSize: PREVIEW.documents * 4,
-            supplier: supplierNodeRef ? [supplierNodeRef] : undefined,
-        }), null),
+        documentsRead,
     ]);
 
     // --- Mes tâches ---------------------------------------------------------
@@ -440,9 +444,11 @@ export default async function DashboardPage() {
                 .filter((ref) => ref && !entityByRef.has(ref)),
         ),
     ];
-    const extraIndex = unknownRefs.length > 0
-        ? await safe(() => buildEntityIndex(client, unknownRefs), {})
-        : {};
+    // The discussions do not need the index: both run at once.
+    const [extraIndex, threads] = await Promise.all([
+        unknownRefs.length > 0 ? safe(() => buildEntityIndex(client, unknownRefs), {}) : {},
+        safe(() => loadDiscussions(client, inScope, supplierNodeRef), []),
+    ]);
 
     const tasks = previewTasks.map((task) => {
         const ref = task.entityNodeRef;
@@ -470,8 +476,6 @@ export default async function DashboardPage() {
     const documents = documentResult ? documentResult.items.slice(0, PREVIEW.documents) : [];
     const documentTotal = documentResult ? documentResult.pagination.totalItems : 0;
 
-    // --- Mes discussions ----------------------------------------------------
-    const threads = await safe(() => loadDiscussions(client, inScope, supplierNodeRef), []);
 
     const approval = dashboard ? dashboard.approval : null;
     const supplier = dashboard ? dashboard.supplier : null;

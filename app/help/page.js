@@ -1019,6 +1019,22 @@ function Topic({ topic, lang, open, onToggle, local, registerRef }) {
     );
 }
 
+/**
+ * The topic named by the URL fragment; a malformed escape (`#%E0`) names none
+ * rather than throwing out of the page.
+ *
+ * @param {string} hash `window.location.hash`
+ * @returns {string}
+ */
+function decodeHash(hash) {
+    try {
+        return decodeURIComponent((hash || '').replace(/^#/, ''));
+    }
+    catch {
+        return '';
+    }
+}
+
 export default function HelpPage() {
     const { lang } = useMessages();
     const local = LABELS[lang] || LABELS.fr;
@@ -1059,7 +1075,7 @@ export default function HelpPage() {
             return undefined;
         }
         const reveal = () => {
-            const fromHash = decodeURIComponent((window.location.hash || '').replace(/^#/, ''));
+            const fromHash = decodeHash(window.location.hash);
             const fromQuery = new URLSearchParams(window.location.search).get('topic') || '';
             const wanted = fromHash || fromQuery;
             if (!wanted) {

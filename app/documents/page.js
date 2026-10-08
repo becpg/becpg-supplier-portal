@@ -226,7 +226,9 @@ export default function DocumentsPage() {
     });
     // The flat table is only fetched when its tab is opened — the check-list is
     // what the screen is for, and a supplier on 3G should not pay for both.
-    const documents = useApi(tab === 'all' ? 'documents' : null, { params: { pageSize: 200 } });
+    const documents = useApi(tab === 'all' ? 'documents' : null, {
+        params: { pageSize: 200, ...(scopeRef ? { supplier: scopeRef } : {}) },
+    });
 
     const summary = requirements.data ? requirements.data.summary : null;
     const byStatus = (summary && summary.byStatus) || {};

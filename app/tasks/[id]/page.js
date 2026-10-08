@@ -1,5 +1,8 @@
 'use client';
 
+/** The `lg` breakpoint, where the shell opens its side column. */
+const WIDE_LAYOUT = '(min-width: 1024px)';
+
 /**
  * `/tasks/[id]` — **the task router** (spec §4.2).
  *
@@ -53,6 +56,7 @@ import { SignatureFlow } from '@/components/signature/SignatureFlow';
 import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import { Button } from '@/components/ui/Button';
 import { RichText } from '@/components/ui/RichText';
+import { useMediaQuery } from '@/lib/useMediaQuery';
 import { CommentsPanel } from '@/components/wizard/panels/CommentsPanel';
 import { TaskActions } from '@/components/tasks/TaskActions';
 import { formatDate } from '@/lib/format';
@@ -159,6 +163,8 @@ function TaskRouter() {
     // The task document, opened on demand: `DocumentViewer` is a modal, putting it
     // in the flow would leave it permanently open.
     const [viewing, setViewing] = useState(null);
+    // Where the discussion goes: the side column from `lg`, under the sheet below.
+    const wide = useMediaQuery(WIDE_LAYOUT);
 
     // The wizard id comes from the deliverable URL when it carries one — the
     // deliverable is the authority, not the entity type (invariant I1).
@@ -293,11 +299,7 @@ function TaskRouter() {
         <AppShell
             title={data.name || labels.loading}
             fullWidth
-            aside={
-                <div className="hidden lg:block">
-                    <CommentsPanel entityNodeRef={entityNodeRef} title={labels.discussion} />
-                </div>
-            }
+            aside={wide ? <CommentsPanel entityNodeRef={entityNodeRef} title={labels.discussion} /> : null}
         >
             <TaskHeader task={data} labels={labels} lang={lang} onDone={task.refresh} />
             {/*
@@ -318,7 +320,9 @@ function TaskRouter() {
                             name: data.name || '',
                             // `DocumentViewer` reads the content through the portal,
                             // never through Alfresco — see `lib/adapters/documents.js`.
-                            downloadUrl: withBasePath(`/api/v1/documents/${encodeURIComponent(uuidOf(data.documentNodeRef))}/content`),
+                            // `?task=` lets the route serve a deliverable that is not a
+                            // beCPG document (a signed sheet has no `bcpg:documentAspect`).
+                            downloadUrl: withBasePath(`/api/v1/documents/${encodeURIComponent(uuidOf(data.documentNodeRef))}/content?task=${encodeURIComponent(id)}`),
                         })}
                     >
                         {labels.viewDocument}
@@ -328,10 +332,13 @@ function TaskRouter() {
             <DocumentViewer document={viewing} onClose={() => setViewing(null)} />
             <ReviewStep entityId={entityNodeRef} wizardId={wizardId} />
             {/* Below `lg` there is no side column: the thread moves under the
-                sheet rather than disappearing. */}
-            <div className="mt-4 lg:hidden">
-                <CommentsPanel entityNodeRef={entityNodeRef} title={labels.discussion} />
-            </div>
+                sheet rather than disappearing. One panel only, never two hidden
+                by CSS: each one mounted fetches the whole discussion. */}
+            {wide ? null : (
+                <div className="mt-4">
+                    <CommentsPanel entityNodeRef={entityNodeRef} title={labels.discussion} />
+                </div>
+            )}
         </AppShell>
     );
 }

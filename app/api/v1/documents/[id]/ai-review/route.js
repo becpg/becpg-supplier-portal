@@ -61,6 +61,7 @@
 
 import { NextResponse } from 'next/server';
 import { BadRequestError, toApiResponse } from '@/lib/errors';
+import { logWarn } from '@/lib/http';
 import { requireSession, upstreamLang } from '@/lib/becpg';
 import { applySuggestion, getSuggestions } from '@/lib/adapters/suggestions';
 
@@ -225,6 +226,9 @@ export function narrowClassification(suggestedChanges, documentId) {
     return null;
 }
 
+/** The route name in logs. */
+const ROUTE = 'documents.aiReview';
+
 /**
  * @param {Request} request
  * @param {{ params: Promise<{ id: string }> }} context
@@ -244,7 +248,7 @@ export async function POST(request, context) {
                 throw new BadRequestError('Expected a JSON body');
             }
         }
-        if (body && typeof body !== 'object') {
+        if (!body || typeof body !== 'object' || Array.isArray(body)) {
             throw new BadRequestError('Expected a JSON object');
         }
 
@@ -268,6 +272,7 @@ export async function POST(request, context) {
         }
         catch (cause) {
             // The document is uploaded; only the review failed. Say so, with a 200.
+            logWarn('documents.aiReview.suggestions.failed', { route: ROUTE, document: id, code: cause?.code, message: cause?.message });
             return NextResponse.json(
                 { reviewed: false, reason: cause?.code || 'aiUnavailable', documentId: id },
                 { headers: { 'Cache-Control': 'no-store' } },
@@ -303,6 +308,7 @@ export async function POST(request, context) {
                     documentType.applied = true;
                 }
                 catch (cause) {
+                    logWarn('documents.aiReview.classification.failed', { route: ROUTE, document: id, code: cause?.code, message: cause?.message });
                     documentType.error = cause?.code || 'applyFailed';
                 }
             }
@@ -336,6 +342,7 @@ export async function POST(request, context) {
             catch (cause) {
                 // The verdict is still worth returning: the UI can show it even if it
                 // could not be persisted, and the next upload will try again.
+                logWarn('documents.aiReview.apply.failed', { route: ROUTE, document: id, code: cause?.code, message: cause?.message });
                 applyError = cause?.code || 'applyFailed';
             }
         }
@@ -359,6 +366,6 @@ export async function POST(request, context) {
         );
     }
     catch (error) {
-        return toApiResponse(error, { route: 'documents.aiReview', method: 'POST', documentId: id });
+        return toApiResponse(error, { route: ROUTE, method: 'POST', documentId: id });
     }
 }

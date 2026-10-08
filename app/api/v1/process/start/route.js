@@ -55,7 +55,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { BadRequestError, PortalError, toApiResponse } from '@/lib/errors';
+import { BadRequestError, PortalError, UpstreamError, toApiResponse } from '@/lib/errors';
 import { isNodeRef, requireSession } from '@/lib/becpg';
 import { resolveProcessTemplates } from '@/lib/adapters/processTemplates';
 import { resolveTemplate, startSupplierProject } from '@/lib/adapters/supplierProcess';

@@ -31,6 +31,28 @@ export const dynamic = 'force-dynamic';
 
 const NO_STORE = { 'Cache-Control': 'no-store, private' };
 
+/** Default ceiling of a deposit, in bytes — a certificate or a sheet, not a video. */
+const DEFAULT_MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+
+/**
+ * Refuses a deposit announced above `PORTAL_MAX_UPLOAD_BYTES` before reading it.
+ *
+ * `request.formData()` buffers the whole body in the pod's memory: a handful of
+ * concurrent oversized uploads would exhaust it. The announced length is what
+ * a browser sends for a form post; a chunked body without one is bounded by
+ * the ingress.
+ *
+ * @param {Request} request
+ * @throws {BadRequestError} 413 when the body is announced larger than allowed
+ */
+function rejectOversizedUpload(request) {
+    const maxBytes = Number(process.env.PORTAL_MAX_UPLOAD_BYTES) || DEFAULT_MAX_UPLOAD_BYTES;
+    const announced = Number(request.headers.get('content-length'));
+    if (Number.isFinite(announced) && announced > maxBytes) {
+        throw new BadRequestError('The file is too large', { status: 413, details: { maxBytes } });
+    }
+}
+
 /**
  * @returns {Promise<Object>} a session with a live Alfresco ticket
  * @throws {AuthError}
@@ -145,6 +167,7 @@ export async function POST(request) {
             throw new BadRequestError('Expected a multipart/form-data body');
         }
 
+        rejectOversizedUpload(request);
         const form = await request.formData();
         const file = form.get('file') || form.get('filedata');
         const documentRef = form.get('documentRef') || form.get('updateNodeRef');

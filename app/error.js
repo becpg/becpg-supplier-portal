@@ -20,8 +20,9 @@
  * the stable hash Next.js also writes to the server log — so a support call can
  * be correlated to the real error without ever exposing it.
  *
- * `reset()` re-renders the segment: for the common cause — one failed upstream
- * call during render — that is genuinely enough, and cheaper than a reload.
+ * `retry()` re-fetches and re-renders the segment: for the common cause — one
+ * failed upstream call during render — that is genuinely enough, and cheaper
+ * than a reload. `reset()` would only re-render the same failed payload.
  *
  * This boundary catches **render** errors only. A failed `fetch()` inside a
  * screen is not an exception here; every screen handles its own request states
@@ -69,9 +70,9 @@ function lang() {
 /**
  * @param {Object} props
  * @param {Error & {digest?: string}} props.error
- * @param {Function} props.reset re-renders the failed segment
+ * @param {Function} props.retry re-fetches and re-renders the failed segment
  */
-export default function RouteError({ error, reset }) {
+export default function RouteError({ error, retry }) {
     const local = LABELS[lang()] || LABELS.fr;
 
     useEffect(() => {
@@ -90,7 +91,7 @@ export default function RouteError({ error, reset }) {
             <p className="text-sm text-[var(--becpg-dark-grey)]">{local.message}</p>
 
             <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
-                <Button variant="primary" icon="refresh" onClick={() => reset()}>
+                <Button variant="primary" icon="refresh" onClick={() => retry()}>
                     {local.retry}
                 </Button>
                 <Link

@@ -350,7 +350,7 @@ function SurveySection({ data, loading, error, onRetry, labels, frozen, stepId }
 }
 
 /** The identity block: the properties form, read-only. */
-function IdentitySection({ data, loading, labels, lang }) {
+function IdentitySection({ data, loading, error, onRetry, labels, lang }) {
     const definition = data ? data.definition : null;
 
     const groups = useMemo(() => {
@@ -375,6 +375,9 @@ function IdentitySection({ data, loading, labels, lang }) {
 
     if (loading) {
         return <SkeletonCard lines={5} />;
+    }
+    if (error) {
+        return <ErrorState error={error} onRetry={onRetry} />;
     }
     if (groups.length === 0) {
         return <EmptyState variant="empty" icon="badge" title={labels.noProperties} compact />;
@@ -525,6 +528,13 @@ export default function CompanyPage() {
             <p className="mb-4 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
 
             {/* ---------------------------------------------- identity band */}
+            {/* The band falls back on the session's supplier name; the failed
+                read of the record itself still has to say so, with a retry. */}
+            {entity.error ? (
+                <div className="mb-3">
+                    <ErrorState error={entity.error} onRetry={entity.refresh} compact />
+                </div>
+            ) : null}
             <Card padding="lg" className="mb-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0 flex-1">
@@ -679,6 +689,8 @@ export default function CompanyPage() {
                         <IdentitySection
                             data={stepData.data}
                             loading={stepData.loading}
+                            error={stepData.error}
+                            onRetry={stepData.refresh}
                             labels={labels}
                             lang={lang}
                         />
