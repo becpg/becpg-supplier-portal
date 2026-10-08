@@ -55,6 +55,10 @@ import { useMessages } from '@/lib/messages';
 
 const LABELS = {
     fr: {
+        unavailable: {
+            title: 'Données indisponibles',
+            message: 'beCPG n’a pas pu fournir ce bloc : la liste vide ne dit rien de ce fournisseur.',
+        },
         back: 'Fournisseurs',
         startCampaign: 'Démarrer un projet',
         notFound: 'Fournisseur introuvable',
@@ -144,6 +148,10 @@ const LABELS = {
         generatedAt: 'Données au {time}',
     },
     en: {
+        unavailable: {
+            title: 'Data unavailable',
+            message: 'beCPG could not return this block: the empty list says nothing about this supplier.',
+        },
         back: 'Suppliers',
         startCampaign: 'Start a project',
         notFound: 'Supplier not found',
@@ -375,6 +383,35 @@ function ApprovalReasons({ approval, local, lang }) {
 }
 
 /**
+ * The empty state of a sheet block — or, when the API says the block could not
+ * be read (`blocks.<name>.available === false`), an error state with a retry, so
+ * "nothing to show" is never mistaken for "this supplier has nothing".
+ *
+ * @param {Object} props
+ * @param {{available: boolean}} [props.block] the block's availability
+ * @param {string} props.title empty-state title
+ * @param {string} [props.message] empty-state message
+ * @param {Object} props.unavailable `{ title, message }` labels
+ * @param {Function} props.onRetry reloads the sheet
+ */
+function BlockEmpty({ block, title, message, unavailable, onRetry }) {
+    const { t } = useMessages();
+    if (block && block.available === false) {
+        return (
+            <EmptyState
+                compact
+                variant="error"
+                title={unavailable.title}
+                message={unavailable.message}
+                actionLabel={t('action.retry')}
+                onAction={onRetry}
+            />
+        );
+    }
+    return <EmptyState compact title={title} message={message} />;
+}
+
+/**
  * *Lancer un processus* — `POST /api/v1/process/start`, restricted to the
  * instance's allow-list. Starting a project cannot be undone from the portal, so
  * it goes through a confirmation that says exactly that.
@@ -420,6 +457,11 @@ function ProcessLauncher({ supplierRef, local, onDone }) {
 
     if (catalog.loading) {
         return <SkeletonText lines={2} />;
+    }
+    // A failed catalogue read is not « no process configured »: that would send
+    // the reader to fix a configuration that is fine.
+    if (catalog.error) {
+        return <ErrorState error={catalog.error} onRetry={catalog.refresh} compact />;
     }
     if (processes.length === 0) {
         return <p className="text-xs text-[var(--becpg-dark-grey)]">{local.process.none}</p>;
@@ -476,6 +518,11 @@ export default function MonitorSupplierSheetPage() {
     const approval = (data && data.approval) || null;
     const documents = (data && data.documents) || { items: [], summary: null };
     const projects = (data && data.projects) || [];
+    const blocks = (data && data.blocks) || {};
+    // Activity merges two sources: an empty timeline is a fact only if both were read.
+    const activityBlock = blocks.activity?.available === false || blocks.comments?.available === false
+        ? { available: false }
+        : blocks.activity;
     const identity = local.identity;
 
     const target = useMemo(
@@ -776,7 +823,12 @@ export default function MonitorSupplierSheetPage() {
                     >
                         {documents.items.length === 0 ? (
                             <div className="p-4">
-                                <EmptyState compact title={local.documents.empty} />
+                                <BlockEmpty
+                                    block={blocks.documents}
+                                    title={local.documents.empty}
+                                    unavailable={local.unavailable}
+                                    onRetry={sheet.refresh}
+                                />
                             </div>
                         ) : (
                             <ul className="border-t border-[var(--becpg-grey)]">
@@ -845,12 +897,14 @@ export default function MonitorSupplierSheetPage() {
                                 /* An empty block used to read as "this supplier
                                    has no product", which is not what the query
                                    can answer — see `productScope`. */
-                                <EmptyState
-                                    compact
+                                <BlockEmpty
+                                    block={blocks.products}
                                     title={local.products.empty}
                                     message={((data.productScope || {}).unsupported || []).length > 0
                                         ? local.products.emptyHint
                                         : undefined}
+                                    unavailable={local.unavailable}
+                                    onRetry={sheet.refresh}
                                 />
                             ) : (
                                 <ul className="flex flex-col gap-2">
@@ -897,7 +951,12 @@ export default function MonitorSupplierSheetPage() {
 
                         <Card title={local.subSuppliers.title} icon="account_tree" index={1}>
                             {data.subSuppliers.length === 0 ? (
-                                <EmptyState compact title={local.subSuppliers.empty} />
+                                <BlockEmpty
+                                    block={blocks.subSuppliers}
+                                    title={local.subSuppliers.empty}
+                                    unavailable={local.unavailable}
+                                    onRetry={sheet.refresh}
+                                />
                             ) : (
                                 <ul className="flex flex-col gap-2">
                                     {data.subSuppliers.map((entry) => (
@@ -926,7 +985,12 @@ export default function MonitorSupplierSheetPage() {
                     <div className="mt-3 grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
                         <Card title={local.projects.title} icon="campaign" index={0}>
                             {projects.length === 0 ? (
-                                <EmptyState compact title={local.projects.empty} />
+                                <BlockEmpty
+                                    block={blocks.projects}
+                                    title={local.projects.empty}
+                                    unavailable={local.unavailable}
+                                    onRetry={sheet.refresh}
+                                />
                             ) : (
                                 <ul className="flex flex-col gap-3">
                                     {projects.map((project) => (
@@ -988,7 +1052,12 @@ export default function MonitorSupplierSheetPage() {
                             wants the exchanges. */}
                         <Card title={local.activity.title} icon="history" index={1}>
                             {data.activity.length === 0 ? (
-                                <EmptyState compact title={local.activity.empty} />
+                                <BlockEmpty
+                                    block={activityBlock}
+                                    title={local.activity.empty}
+                                    unavailable={local.unavailable}
+                                    onRetry={sheet.refresh}
+                                />
                             ) : (
                                 <ol className="flex flex-col gap-2.5">
                                     {data.activity.map((entry, index) => (

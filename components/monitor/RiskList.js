@@ -27,16 +27,15 @@
  *
  * ## Irreversibility
  *
- * `remind` and `escalate` post on the supplier's Alfresco forum — the thread
- * `/messages` reads and Share renders. They are reversible enough to need only a
- * message box (the API refuses an empty one).
+ * `remind` posts on the supplier's Alfresco forum — the thread `/messages` reads
+ * and Share renders. `escalate` posts on the forum of the supplier's open
+ * project, never on that thread, since the supplier reads it. Both are
+ * reversible enough to need only a message box (the API refuses an empty one).
  *
- * `suspend` is different: the approval status is **derived, never persisted**
- * (spec §5.4.3), so nothing writes "suspended" anywhere. It *starts the client's
- * suspension process*, which creates a real project and, once beCPG holds the
- * blocking NC, makes the derived status flip on its own. That is a business
- * process one cannot un-start, so it goes through an explicit danger
- * confirmation that says what will actually happen — never a one-click write.
+ * `suspend` is declared unavailable by `GET /api/v1/monitor/actions`, so its
+ * button is not rendered. The confirmation below is kept for the day it becomes
+ * available: starting a business process cannot be undone, so it must never be
+ * a one-click write.
  */
 
 import { useCallback, useMemo, useState } from 'react';
@@ -163,7 +162,7 @@ const LABELS = {
             messageHelp:
                 'Publié sur le fil de discussion du fournisseur — le même que celui du portail et de Share. Le fournisseur le reçoit par ses abonnements Alfresco.',
             escalateHelp:
-                'Publié en interne sur le même fil, avec le référent nommé dans le message. Sert de trace d’escalade.',
+                'Publié en interne sur le projet ouvert du fournisseur, jamais sur le fil qu’il lit, avec le référent nommé dans le message. Sans projet ouvert, rien n’est publié.',
             messageRequired: 'Le message est obligatoire.',
             suspendWarning:
                 'Le statut d’agrément est calculé à la volée, jamais stocké : cette action n’écrit pas « suspendu ». Elle démarre le processus de suspension configuré chez le client. Une fois la NC bloquante enregistrée par beCPG, le statut bascule de lui-même.',
@@ -212,7 +211,7 @@ const LABELS = {
             messageHelp:
                 'Posted on the supplier discussion thread — the same one the portal and Share show. The supplier receives it through their Alfresco subscriptions.',
             escalateHelp:
-                'Posted internally on the same thread, naming the referent. It is the escalation record.',
+                'Posted internally on the supplier\'s open project, never on the thread the supplier reads, naming the referent. Without an open project, nothing is posted.',
             messageRequired: 'A message is required.',
             suspendWarning:
                 'The approval status is derived on the fly, never stored: this action does not write "suspended". It starts the customer\'s suspension process. Once beCPG holds the blocking NC, the status flips on its own.',

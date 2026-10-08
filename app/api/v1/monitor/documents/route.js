@@ -27,7 +27,8 @@
  *   - `documentType` — restrict to one `bcpg:documentTypeRef` nodeRef
  *   - `mandatoryOnly=true` — only `bcpg:documentIsMandatory`
  *   - `page`, `pageSize` (≤ 100)
- *   - `format=csv` — the printable export, one line per supplier
+ *   - `format=csv` — the printable export, one line per supplier of the whole
+ *     matrix; `page` and `pageSize` are ignored
  *   - `refresh=true`
  *
  * @example
@@ -45,15 +46,13 @@ import {
 import { cookies } from 'next/headers';
 import { LANG_COOKIE, normalizeLang } from '@/config/messages';
 import { AuthError, toApiResponse } from '@/lib/errors';
+import { resolveLang } from '@/lib/lang';
 import { getLiveSession } from '@/lib/session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const NO_STORE = { 'Cache-Control': 'no-store, private' };
-
-/** Suppliers a CSV matrix may contain — one park scan. */
-const CSV_MAX_ROWS = 1000;
 
 /**
  * @param {Request} request
@@ -74,8 +73,11 @@ export async function GET(request) {
             filters: parseMonitorFilters(params),
             documentType: params.get('documentType') || undefined,
             mandatoryOnly: params.get('mandatoryOnly') === 'true',
-            page: isCsv ? 1 : params.get('page'),
-            pageSize: isCsv ? CSV_MAX_ROWS : params.get('pageSize'),
+            page: params.get('page'),
+            pageSize: params.get('pageSize'),
+            // The export is the whole matrix, not a page of it.
+            exportAll: isCsv,
+            lang: await resolveLang(session),
             refresh: params.get('refresh') === 'true',
         });
 
@@ -93,7 +95,11 @@ export async function GET(request) {
                 ...NO_STORE,
                 'Content-Type': 'text/csv; charset=utf-8',
                 'Content-Disposition': `attachment; filename="document-compliance-${stamp}.csv"`,
-                'X-Portal-Truncated': String(matrix.pagination.truncated),
+                // Tells the UI the export was cut, so it can warn instead of
+                // handing an auditor a silently incomplete file.
+                'X-Portal-Truncated': String(
+                    matrix.pagination.truncated || matrix.pagination.hasMoreItems,
+                ),
             },
         });
     }

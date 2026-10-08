@@ -41,6 +41,7 @@
 import { NextResponse } from 'next/server';
 import { listQuality, parseMonitorFilters } from '@/lib/adapters/monitor';
 import { AuthError, toApiResponse } from '@/lib/errors';
+import { resolveLang } from '@/lib/lang';
 import { getLiveSession } from '@/lib/session';
 
 export const runtime = 'nodejs';
@@ -68,6 +69,7 @@ export async function GET(request) {
             includeClosed: params.get('includeClosed') === 'true',
             page: params.get('page'),
             pageSize: params.get('pageSize'),
+            lang: await resolveLang(session),
             refresh: params.get('refresh') === 'true',
         });
 

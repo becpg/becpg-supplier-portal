@@ -4,7 +4,8 @@
  *
  * Query:
  *   - `series`   `taskTrend` | `taskStates` | `completion` | `incidents` (default: `taskTrend`)
- *   - `supplier` a supplier nodeRef, to restrict the series to it
+ *   - `supplier` a supplier nodeRef, to restrict the series to it; anything that
+ *     is not a nodeRef answers 400
  *
  * ## What this route deliberately does not accept
  *
@@ -22,6 +23,10 @@
  * the historical series describe the *customer's* supplier park and have no
  * business being read from a supplier session.
  *
+ * The cube has no row-level security either, so a series with one row per
+ * supplier (`incidents` without `supplier`) is cut down to the caller's own park
+ * before it is answered; `perimeter` in the payload says it was.
+ *
  * ## No cube is a normal answer
  *
  * `becpg.olap.enabled` is false by default and most instances run without Saiku.
@@ -33,8 +38,9 @@ import { NextResponse } from 'next/server';
 import { getLiveSession } from '@/lib/session';
 import { AuthError, BadRequestError, toApiResponse } from '@/lib/errors';
 import { isNodeRef } from '@/lib/becpg';
-import { requireMonitorAccess } from '@/lib/adapters/monitor';
-import { runOlapQuery } from '@/lib/adapters/olap';
+import { parkSupplierNames, requireMonitorAccess } from '@/lib/adapters/monitor';
+import { OLAP_QUERIES, runOlapQuery } from '@/lib/adapters/olap';
+import { resolveLang } from '@/lib/lang';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -66,13 +72,20 @@ export async function GET(request) {
             throw new BadRequestError(`Unknown series: ${series}`);
         }
 
-        // A malformed supplier is dropped rather than forwarded: the slicer is
-        // built from it, and an unrestricted query is a safer failure than one
-        // carrying half a member expression.
+        // A malformed supplier is refused, never dropped: dropping it would turn
+        // a request about one supplier into the unsliced, park-wide series.
         const requested = params.get('supplier');
-        const supplierNodeRef = requested && isNodeRef(requested) ? requested : null;
+        if (requested !== null && !isNodeRef(requested)) {
+            throw new BadRequestError('supplier must be a nodeRef');
+        }
+        const supplierNodeRef = requested || null;
 
-        const result = await runOlapQuery({ session, queryId, supplierNodeRef });
+        const perimeter = OLAP_QUERIES[queryId].supplierRows && !supplierNodeRef
+            ? await parkSupplierNames({ session, lang: await resolveLang(session) })
+            : null;
+        const result = await runOlapQuery({
+            session, queryId, supplierNodeRef, perimeter,
+        });
 
         const response = NextResponse.json({
             series,

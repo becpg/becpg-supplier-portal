@@ -31,8 +31,9 @@
  *     `completion`, `expiring`, `expired`, `nc`, `lastActivity`, `buyer`
  *   - `direction` — `desc` (default) or `asc`
  *   - `page`, `pageSize` (≤ 100)
- *   - `format=csv` — the export; `pageSize` is ignored, every scanned row is
- *     written
+ *   - `format=csv` — the export; `page` and `pageSize` are ignored, every
+ *     scanned row is written, and `X-Portal-Truncated: true` says when the scan
+ *     itself did not hold the whole park
  *   - `refresh=true` — bypass the 30 s memo
  *
  * @example
@@ -50,15 +51,13 @@ import {
 import { cookies } from 'next/headers';
 import { LANG_COOKIE, normalizeLang } from '@/config/messages';
 import { AuthError, toApiResponse } from '@/lib/errors';
+import { resolveLang } from '@/lib/lang';
 import { getLiveSession } from '@/lib/session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const NO_STORE = { 'Cache-Control': 'no-store, private' };
-
-/** Rows a CSV export may contain — the scan limit of one park query. */
-const CSV_MAX_ROWS = 1000;
 
 /**
  * @param {Request} request
@@ -80,9 +79,11 @@ export async function GET(request) {
             status: params.get('status') || undefined,
             sort: params.get('sort') || undefined,
             direction: params.get('direction') || undefined,
-            page: isCsv ? 1 : params.get('page'),
+            page: params.get('page'),
+            pageSize: params.get('pageSize'),
             // The export is the list, not a page of it.
-            pageSize: isCsv ? CSV_MAX_ROWS : params.get('pageSize'),
+            exportAll: isCsv,
+            lang: await resolveLang(session),
             refresh: params.get('refresh') === 'true',
         });
 
@@ -102,7 +103,9 @@ export async function GET(request) {
                 'Content-Disposition': `attachment; filename="suppliers-${stamp}.csv"`,
                 // Tells the UI the export was cut, so it can warn instead of
                 // handing an auditor a silently incomplete file.
-                'X-Portal-Truncated': String(payload.pagination.truncated),
+                'X-Portal-Truncated': String(
+                    payload.pagination.truncated || payload.pagination.hasMoreItems,
+                ),
             },
         });
     }

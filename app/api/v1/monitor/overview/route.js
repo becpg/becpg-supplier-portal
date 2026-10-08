@@ -41,6 +41,7 @@
 import { NextResponse } from 'next/server';
 import { buildOverview, parseMonitorFilters } from '@/lib/adapters/monitor';
 import { AuthError, toApiResponse } from '@/lib/errors';
+import { resolveLang } from '@/lib/lang';
 import { getLiveSession } from '@/lib/session';
 
 export const runtime = 'nodejs';
@@ -63,6 +64,7 @@ export async function GET(request) {
         const payload = await buildOverview({
             session,
             filters: parseMonitorFilters(params),
+            lang: await resolveLang(session),
             refresh: params.get('refresh') === 'true',
         });
 

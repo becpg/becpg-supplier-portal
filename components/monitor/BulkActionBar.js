@@ -65,7 +65,7 @@ const LABELS = {
             remind:
                 'Le message est publié sur le fil de discussion du fournisseur — celui que le portail et Share affichent déjà. Aucun autre canal n’est créé.',
             escalate:
-                'Le message est publié sur le même fil, en nommant le référent interne du fournisseur, et marqué comme escalade.',
+                'Le message est publié en interne sur le projet ouvert du fournisseur, en nommant son chef de projet. Le fournisseur ne le voit pas. Sans projet ouvert, rien n’est publié.',
             suspend:
                 'Le statut d’agrément est calculé, jamais stocké : la suspension démarre le process de suspension paramétré côté beCPG. Le statut basculera de lui-même.',
         },
@@ -116,7 +116,7 @@ const LABELS = {
             remind:
                 'The message is posted on the supplier discussion thread — the one the portal and Share already display. No other channel is created.',
             escalate:
-                'The message goes to the same thread, naming the internal referent of the supplier, and is flagged as an escalation.',
+                'The message is posted internally on the supplier’s open project, naming its project manager. The supplier does not see it. Without an open project, nothing is posted.',
             suspend:
                 'The approval status is derived, never stored: suspension starts the suspension process configured in beCPG. The status flips on its own.',
         },

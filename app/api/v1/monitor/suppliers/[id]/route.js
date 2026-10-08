@@ -40,6 +40,7 @@ import { NextResponse } from 'next/server';
 import { getSupplierScorecard } from '@/lib/adapters/monitor';
 import { AuthError, BadRequestError, toApiResponse } from '@/lib/errors';
 import { isNodeRef } from '@/lib/becpg';
+import { resolveLang } from '@/lib/lang';
 import { getLiveSession } from '@/lib/session';
 
 export const runtime = 'nodejs';
@@ -88,6 +89,7 @@ export async function GET(request, context) {
         const payload = await getSupplierScorecard({
             session,
             supplierRef: toSupplierNodeRef(id),
+            lang: await resolveLang(session),
             refresh: params.get('refresh') === 'true',
         });
 

@@ -12,13 +12,8 @@
  * | Action     | Mechanism reused                                              |
  * |------------|---------------------------------------------------------------|
  * | `remind`   | the Alfresco **forum** of the supplier node — the exact thread `GET/POST /api/v1/messages` reads and Share renders. The message lands in the supplier's portal, and Alfresco's own subscriptions mail it out. |
- * | `escalate` | the same forum, with the internal referent named in the message (`pjt:projectManager` of the open project, `cm:owner` otherwise) and a `monitor:escalate` marker in the title so both front ends can filter on it. |
- * | `suspend`  | the approval status is derived and **never persisted** (spec §5.4.3), so it cannot be written. Suspension starts the client's suspension / non-conformity process through `becpg/supplier/send-to-supplier` — the same webscript as `/api/v1/process/start`, behind the **same** `PORTAL_PROCESS_TEMPLATES` allow-list. Once beCPG holds the blocking NC, the derived status becomes `suspended` on its own. |
- *
- * The allow-list is imported from the `/process/start` handler on purpose:
- * there must be exactly one list of templates a portal user may instantiate,
- * and `deny by default` must hold for the monitoring space too. With nothing
- * configured, `suspend` answers **403** and tells the UI which ids exist.
+ * | `escalate` | the forum of the supplier's **open project**, never the supplier's own thread (the supplier reads it), with the internal referent named in the message (`pjt:projectManager`, `cm:owner` otherwise) and a `monitor:escalate` marker in the title. A supplier with no open project gets `ok: false`, `error: "noOpenProject"`, and nothing is posted. |
+ * | `suspend`  | **unavailable**. The approval status is derived and never persisted (spec §5.4.3), so a suspension can only start a process, and beCPG evaluates no supplier account on a `bcpg:supplier` record. `GET` declares it `available: false` with its reason, and `POST` answers each target with that same reason. |
  *
  * ## Semantics
  *
@@ -35,11 +30,6 @@
  * { "action": "remind",
  *   "suppliers": ["workspace://SpacesStore/…", "workspace://SpacesStore/…"],
  *   "message": "Merci de déposer votre certificat IFS avant le 30/09." }
- * ```
- * ```json
- * { "action": "suspend",
- *   "suppliers": ["workspace://SpacesStore/…"],
- *   "process": "supplier-suspension" }
  * ```
  *
  * Answer:
@@ -59,16 +49,12 @@
  */
 
 import { NextResponse } from 'next/server';
-import { MONITOR_ACTIONS, requireMonitorAccess, runMonitorActions } from '@/lib/adapters/monitor';
-// Configuration only — deliberately NOT the discovered list. Discovery answers
-// "which supplier *referencing* templates exist" (`bcpg:suppliersAspect` on a
-// project template); beCPG ships no marker for a *suspension* template, so
-// letting suspension fall back on discovery would silently start a referencing
-// project instead. Suspension therefore stays pinned to PORTAL_PROCESS_TEMPLATES
-// and answers `available: false` until an operator configures it — the same
-// deny-by-default it has always had.
-import { configuredProcessTemplates as allowedProcessTemplates } from '@/lib/adapters/processTemplates';
-import { isNodeRef } from '@/lib/becpg';
+import {
+    MONITOR_ACTIONS,
+    SUSPEND_UNAVAILABLE,
+    requireMonitorAccess,
+    runMonitorActions,
+} from '@/lib/adapters/monitor';
 import { AuthError, BadRequestError, toApiResponse } from '@/lib/errors';
 import { getLiveSession } from '@/lib/session';
 
@@ -104,11 +90,6 @@ export async function POST(request) {
             action: body.action,
             suppliers: Array.isArray(body.suppliers) ? body.suppliers : [],
             message: body.message,
-            process: body.process,
-            // One allow-list for the whole portal — the very one `/process/start`
-            // enforces, so nothing can be started here that could not be started
-            // there (deny by default when the variable is unset).
-            templates: allowedProcessTemplates(),
         });
 
         return NextResponse.json(payload, { status: 200, headers: NO_STORE });
@@ -121,8 +102,8 @@ export async function POST(request) {
 /**
  * `GET /api/v1/monitor/actions` — the actions this instance actually offers.
  *
- * Lets the UI render exactly the buttons that will work: `suspend` disappears
- * when no suspension template is allow-listed, instead of failing on click.
+ * Lets the UI render exactly the buttons that will work: `suspend` is declared
+ * unavailable, with the reason, instead of failing on click.
  *
  * @returns {Promise<Response>}
  */
@@ -137,21 +118,23 @@ export async function GET() {
         // of the monitoring actions.
         await requireMonitorAccess(session);
 
-        const templates = allowedProcessTemplates();
-        // The allow-list holds each template twice — under its id and under its
-        // nodeRef; only the human-readable ids are worth showing back.
-        const processes = [...templates.keys()].filter((key) => !isNodeRef(key));
-
         return NextResponse.json({
             actions: [
                 { id: MONITOR_ACTIONS.REMIND, available: true, mechanism: 'forum', needsMessage: true },
-                { id: MONITOR_ACTIONS.ESCALATE, available: true, mechanism: 'forum', needsMessage: true },
+                {
+                    id: MONITOR_ACTIONS.ESCALATE,
+                    available: true,
+                    mechanism: 'projectForum',
+                    needsMessage: true,
+                },
                 {
                     id: MONITOR_ACTIONS.SUSPEND,
-                    available: templates.size > 0,
-                    mechanism: 'sendToSupplier',
+                    available: false,
+                    reason: SUSPEND_UNAVAILABLE.reason,
+                    message: SUSPEND_UNAVAILABLE.message,
+                    mechanism: null,
                     needsMessage: false,
-                    processes,
+                    processes: [],
                 },
             ],
         }, { status: 200, headers: NO_STORE });
