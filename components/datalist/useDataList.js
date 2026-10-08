@@ -77,6 +77,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { request } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { formatDateTime, isIsoTimestamp } from '@/lib/format';
+import {
+    enqueueByKey,
+    isPlainDirtyStatus,
+    moveDirtyEntry,
+    patchRowFields,
+    restoreRowFields,
+} from '@/components/datalist/rowCommits';
 
 /**
  * The grid's own vocabulary.
@@ -488,6 +495,47 @@ function normalizePayload(raw) {
 let draftSequence = 0;
 
 /**
+ * What a cell prints in read mode: its pending edit when there is one,
+ * `displayValue` (already localised by beCPG) otherwise.
+ *
+ * @param {Object|undefined} pending the row's pending edits
+ * @param {Object} row
+ * @param {Object} column
+ * @param {string} lang
+ * @returns {string}
+ */
+function cellDisplay(pending, row, column, lang) {
+    if (pending && Object.prototype.hasOwnProperty.call(pending, column.name)) {
+        return localDisplay(pending[column.name], lang);
+    }
+    const display = row.displayValues?.[column.formsName];
+    if (display === null || display === undefined) {
+        return localDisplay(row.values?.[column.formsName], lang);
+    }
+    return Array.isArray(display) ? '' : String(display);
+}
+
+/** The status of a row nothing has happened to, shared so it compares equal. */
+const IDLE_STATUS = Object.freeze({ state: ROW_STATUS.IDLE });
+
+/**
+ * The row statuses after an edit. A row being saved stays SAVING, and a row
+ * already plainly DIRTY keeps its very status object: replacing it on every
+ * keystroke re-rendered every row of the grid.
+ *
+ * @param {Object} statuses keyed by row key
+ * @param {string} key
+ * @returns {Object}
+ */
+function keepOrMarkDirty(statuses, key) {
+    const current = statuses[key];
+    if (current?.state === ROW_STATUS.SAVING || isPlainDirtyStatus(current, ROW_STATUS.DIRTY)) {
+        return statuses;
+    }
+    return { ...statuses, [key]: { state: ROW_STATUS.DIRTY } };
+}
+
+/**
  * The datalist editor's data layer.
  *
  * @param {Object} options
@@ -549,6 +597,10 @@ export function useDataList(options = {}) {
     // dirty at the moment it is called, and needs the row objects behind those
     // keys without becoming a dependency of every callback that touches them.
     const rowsRef = useRef([]);
+    // One write at a time per row (see `commitRow`): the tail of each row's
+    // queue, and the persisted row each created draft became.
+    const commitChains = useRef(new Map());
+    const createdDrafts = useRef(new Map());
 
     // `dirty` is mirrored in a ref because a picker commits in the very tick it
     // changes: `commitRow` must see the edit `setCell` just recorded, and React
@@ -559,6 +611,19 @@ export function useDataList(options = {}) {
         dirtyRef.current = next;
         setDirty(next);
         return next;
+    }, []);
+
+    // The row statuses are mirrored the same way, so the instance this hook
+    // returns can stay the same object while a supplier types: the readers
+    // below go through the refs, and each row is re-rendered by its own slice
+    // (`pendingOf`, `statusOf`) rather than by a new list on every keystroke.
+    const statusRef = useRef(status);
+    const updateStatus = useCallback((updater) => {
+        const next = updater(statusRef.current);
+        if (next !== statusRef.current) {
+            statusRef.current = next;
+            setStatus(next);
+        }
     }, []);
 
     // Kept in refs and refreshed after every render, so a caller may pass inline
@@ -651,7 +716,7 @@ export function useDataList(options = {}) {
     /* ----------------------------------------------------------------- status */
 
     const setRowStatus = useCallback((key, next) => {
-        setStatus((previous) => ({ ...previous, [key]: next }));
+        updateStatus((previous) => ({ ...previous, [key]: next }));
         const timer = savedTimers.current.get(key);
         if (timer) {
             clearTimeout(timer);
@@ -663,7 +728,7 @@ export function useDataList(options = {}) {
                 setTimeout(() => {
                     savedTimers.current.delete(key);
                     if (alive.current) {
-                        setStatus((previous) => (
+                        updateStatus((previous) => (
                             previous[key]?.state === ROW_STATUS.SAVED
                                 ? { ...previous, [key]: { state: ROW_STATUS.IDLE } }
                                 : previous
@@ -672,7 +737,7 @@ export function useDataList(options = {}) {
                 }, SAVED_TTL),
             );
         }
-    }, []);
+    }, [updateStatus]);
 
     /* ------------------------------------------------------------------- rows */
 
@@ -707,29 +772,19 @@ export function useDataList(options = {}) {
      */
     const valueOf = useCallback(
         (row, column) => {
-            const pending = dirty[row.key];
+            const pending = dirtyRef.current[row.key];
             if (pending && Object.prototype.hasOwnProperty.call(pending, column.name)) {
                 return pending[column.name];
             }
             return row.values?.[column.formsName] ?? null;
         },
-        [dirty],
+        [],
     );
 
     /** What to print in read mode — `displayValue`, already localised by beCPG. */
     const displayOf = useCallback(
-        (row, column) => {
-            const pending = dirty[row.key];
-            if (pending && Object.prototype.hasOwnProperty.call(pending, column.name)) {
-                return localDisplay(pending[column.name], lang);
-            }
-            const display = row.displayValues?.[column.formsName];
-            if (display === null || display === undefined) {
-                return localDisplay(row.values?.[column.formsName], lang);
-            }
-            return Array.isArray(display) ? '' : String(display);
-        },
-        [dirty, lang],
+        (row, column) => cellDisplay(dirtyRef.current[row.key], row, column, lang),
+        [lang],
     );
 
     /** Rows of nested sub-lists, as `[{ values, displayValues }]`. */
@@ -772,6 +827,8 @@ export function useDataList(options = {}) {
     const summaryRows = useMemo(() => rows.filter(isTotalRow), [rows]);
 
     /** Client-side text filter, applied to the loaded page (see the hook doc). */
+    // Reads `dirty` itself rather than `displayOf`, whose identity does not
+    // change while typing: the filter must also match what is being typed.
     const visibleRows = useMemo(() => {
         const needle = filter.trim().toLowerCase();
         if (!needle) {
@@ -781,9 +838,10 @@ export function useDataList(options = {}) {
             if (row.draft) {
                 return true;
             }
-            return columns.some((column) => displayOf(row, column).toLowerCase().includes(needle));
+            return columns.some((column) => cellDisplay(dirty[row.key], row, column, lang)
+                .toLowerCase().includes(needle));
         });
-    }, [dataRows, columns, filter, displayOf]);
+    }, [dataRows, columns, filter, dirty, lang]);
 
     /* -------------------------------------------------------------- permissions */
 
@@ -906,12 +964,8 @@ export function useDataList(options = {}) {
             ...previous,
             [row.key]: { ...(previous[row.key] || {}), [column.name]: value },
         }));
-        setStatus((previous) => (
-            previous[row.key]?.state === ROW_STATUS.SAVING
-                ? previous
-                : { ...previous, [row.key]: { state: ROW_STATUS.DIRTY } }
-        ));
-    }, [updateDirty]);
+        updateStatus((previous) => keepOrMarkDirty(previous, row.key));
+    }, [updateDirty, updateStatus]);
 
     /**
      * Several cells of one row, in a single update.
@@ -932,17 +986,19 @@ export function useDataList(options = {}) {
             ...previous,
             [row.key]: { ...(previous[row.key] || {}), ...entries },
         }));
-        setStatus((previous) => (
-            previous[row.key]?.state === ROW_STATUS.SAVING
-                ? previous
-                : { ...previous, [row.key]: { state: ROW_STATUS.DIRTY } }
-        ));
-    }, [updateDirty]);
+        updateStatus((previous) => keepOrMarkDirty(previous, row.key));
+    }, [updateDirty, updateStatus]);
 
     const isRowDirty = useCallback(
-        (rowKey) => Object.keys(dirty[rowKey] || {}).length > 0,
-        [dirty],
+        (rowKey) => Object.keys(dirtyRef.current[rowKey] || {}).length > 0,
+        [],
     );
+
+    /** The pending edits of one row, the same object until that row changes. */
+    const pendingOf = useCallback((rowKey) => dirtyRef.current[rowKey], []);
+
+    /** One row's status; a row with none shares a single idle status object. */
+    const statusOf = useCallback((rowKey) => statusRef.current[rowKey] || IDLE_STATUS, []);
 
 
     /** Adds an empty local row. It is persisted by `commitRow`, not before. */
@@ -1037,7 +1093,7 @@ export function useDataList(options = {}) {
             delete next[row.key];
             return next;
         });
-        setStatus((previous) => {
+        updateStatus((previous) => {
             const next = { ...previous };
             delete next[row.key];
             return next;
@@ -1045,18 +1101,49 @@ export function useDataList(options = {}) {
         if (row.draft) {
             setDrafts((previous) => previous.filter((entry) => entry.key !== row.key));
         }
+    }, [updateDirty, updateStatus]);
+
+    /**
+     * Hands a created draft over to the row it became.
+     *
+     * The supplier may have kept typing in the draft while its create was in
+     * flight. Those edits were recorded under the draft's key, which vanishes
+     * with the draft: they move to the new nodeRef, and any write still queued
+     * for the draft is sent as an update of that row instead of a second
+     * create.
+     *
+     * @param {Object} draft the draft as it was sent
+     * @param {string} nodeRef the row the repository created
+     * @param {{values: Object, displayValues: Object}} written the fields the create carried
+     * @returns {boolean} whether edits are still pending on the new row
+     */
+    const adoptCreatedDraft = useCallback((draft, nodeRef, written) => {
+        createdDrafts.current.set(draft.key, {
+            ...patchRowFields(draft, written),
+            key: nodeRef,
+            nodeRef,
+            draft: false,
+        });
+        const draftChain = commitChains.current.get(draft.key);
+        if (draftChain && !commitChains.current.has(nodeRef)) {
+            commitChains.current.set(nodeRef, draftChain);
+        }
+        const next = updateDirty((previous) => moveDirtyEntry(previous, draft.key, nodeRef));
+        return Object.keys(next[nodeRef] || {}).length > 0;
     }, [updateDirty]);
 
     /**
-     * Persists a row's pending edits — create when it is a draft, update otherwise.
+     * Sends a row's pending edits, now: create when it is a draft, update
+     * otherwise. Only ever called through {@link commitRow}, which makes sure
+     * no other write of the same row is in flight.
      *
-     * Optimistic: the values are written into the local row before the call, and
-     * the previous row is restored as-is when the server refuses.
+     * Optimistic: the values are written into the local row before the call,
+     * and the fields it changed are restored when the server refuses.
      *
      * @param {Object} row
      * @returns {Promise<Object|null>} the server result, or null when there was nothing to save
      */
-    const commitRow = useCallback(
+    const writeRow = useCallback(
         async (row) => {
             const changes = dirtyRef.current[row.key];
             if (!changes || Object.keys(changes).length === 0) {
@@ -1179,8 +1266,11 @@ export function useDataList(options = {}) {
             }
 
             // --- optimistic write ------------------------------------------
-            const optimisticValues = { ...row.values };
-            const optimisticDisplays = { ...row.displayValues };
+            // Only the fields of this write are patched onto the row as it is
+            // held when the patch applies, so a refresh or an earlier write
+            // that landed meanwhile is not painted over.
+            const optimisticValues = {};
+            const optimisticDisplays = {};
             let touchesAssociation = false;
             for (const [name, value] of Object.entries(changes)) {
                 const column = columnByName.get(name);
@@ -1197,24 +1287,18 @@ export function useDataList(options = {}) {
                 }
                 optimisticDisplays[column.formsName] = localDisplay(value, lang);
             }
-            const patch = (entry) => (
-                entry.key === row.key
-                    ? { ...entry, values: optimisticValues, displayValues: optimisticDisplays }
-                    : entry
-            );
-            if (row.draft) {
-                setDrafts((previous) => previous.map(patch));
-            }
-            else {
-                setPayload((previous) => ({
-                    ...previous,
-                    rows: previous.rows.map((entry) => (
-                        entry.nodeRef === row.nodeRef
-                            ? { ...entry, values: optimisticValues, displayValues: optimisticDisplays }
-                            : entry
-                    )),
-                }));
-            }
+            const writtenFields = { values: optimisticValues, displayValues: optimisticDisplays };
+            const isThisRow = (entry) => (row.draft ? entry.key === row.key : entry.nodeRef === row.nodeRef);
+            const applyToRow = (transform) => {
+                const map = (entries) => entries.map((entry) => (isThisRow(entry) ? transform(entry) : entry));
+                if (row.draft) {
+                    setDrafts(map);
+                }
+                else {
+                    setPayload((previous) => ({ ...previous, rows: map(previous.rows) }));
+                }
+            };
+            applyToRow((entry) => patchRowFields(entry, writtenFields));
             updateDirty((previous) => {
                 const next = { ...previous };
                 delete next[row.key];
@@ -1233,11 +1317,20 @@ export function useDataList(options = {}) {
                 if (!alive.current) {
                     return result;
                 }
-                setRowStatus(result?.nodeRef || row.nodeRef || row.key, {
-                    state: ROW_STATUS.SAVED,
-                    at: result?.savedAt || new Date().toISOString(),
-                });
+                const savedKey = result?.nodeRef || row.nodeRef || row.key;
+                // Edits typed while this write was in flight are still to be
+                // sent: the row says so rather than claiming it is saved.
+                const pendingSince = row.draft && result?.nodeRef
+                    ? adoptCreatedDraft(row, result.nodeRef, writtenFields)
+                    : Object.keys(dirtyRef.current[row.key] || {}).length > 0;
+                setRowStatus(savedKey, pendingSince
+                    ? { state: ROW_STATUS.DIRTY }
+                    : { state: ROW_STATUS.SAVED, at: result?.savedAt || new Date().toISOString() });
                 if (row.draft) {
+                    if (!result?.nodeRef && dirtyRef.current[row.key]) {
+                        console.warn(`Datalist ${path}: a row was created without a nodeRef in the answer, `
+                            + 'the edits typed during its creation stay on the draft');
+                    }
                     // The draft has become a real row: drop it and re-read at once,
                     // so the line the user sees is the one the repository holds
                     // (nodeRef, permissions, server-computed display values).
@@ -1262,16 +1355,8 @@ export function useDataList(options = {}) {
                     return null;
                 }
                 // --- rollback ----------------------------------------------
-                const restore = (entry) => (entry.key === row.key ? row : entry);
-                if (row.draft) {
-                    setDrafts((previous) => previous.map(restore));
-                }
-                else {
-                    setPayload((previous) => ({
-                        ...previous,
-                        rows: previous.rows.map((entry) => (entry.nodeRef === row.nodeRef ? row : entry)),
-                    }));
-                }
+                const writtenNames = Object.keys(optimisticValues);
+                applyToRow((entry) => restoreRowFields(entry, row, writtenNames));
                 updateDirty((previous) => ({ ...previous, [row.key]: { ...changes, ...(previous[row.key] || {}) } }));
                 setRowStatus(row.key, { state: ROW_STATUS.ERROR, error: cause });
                 if (handlers.current.onError) {
@@ -1285,8 +1370,46 @@ export function useDataList(options = {}) {
                 settleInFlight();
             }
         },
-        [readOnly, path, columns, isUnlocked, setRowStatus, scheduleRefresh, refresh, updateDirty, lang],
+        [readOnly, path, columns, isUnlocked, setRowStatus, scheduleRefresh, refresh, updateDirty, lang,
+            adoptCreatedDraft],
     );
+
+    /**
+     * The row a queued write must bear on, read when it runs rather than when
+     * it was queued: an earlier write of the same row has changed its values
+     * since, and a draft may have become a persisted row.
+     *
+     * @param {Object} row the row as it was when the write was asked for
+     * @returns {Object}
+     */
+    const currentRow = useCallback((row) => {
+        const created = createdDrafts.current.get(row.key);
+        const key = created ? created.key : row.key;
+        return rowsRef.current.find((entry) => entry.key === key) || created || row;
+    }, []);
+
+    /**
+     * Persists a row's pending edits.
+     *
+     * Writes of one row are serialised: a commit asked for while another is in
+     * flight (a second blur, Enter, a picker) waits for it, then sends what is
+     * pending by then. Two concurrent PUTs of a row could land in either order,
+     * and a draft committed twice was created twice.
+     *
+     * @param {Object} row
+     * @returns {Promise<Object|null>} the server result, or null when there was nothing to save
+     */
+    const commitRow = useCallback((row) => {
+        const created = createdDrafts.current.get(row.key);
+        const key = created ? created.key : row.key;
+        const { promise, queued } = enqueueByKey(commitChains.current, key, () => writeRow(currentRow(row)));
+        if (queued) {
+            // Announced now, not when it starts: whoever waits for the grid's
+            // writes before leaving the step must wait for this one too.
+            handlers.current.onWriting?.(promise);
+        }
+        return promise;
+    }, [writeRow, currentRow]);
 
     /**
      * Persists **every** row that holds pending edits, oldest first.
@@ -1371,7 +1494,10 @@ export function useDataList(options = {}) {
 
     const commitAll = useCallback(async () => {
         const keys = Object.keys(dirtyRef.current);
-        const byKey = new Map(rowsRef.current.map((row) => [row.key, row]));
+        // A created draft's pending edits sit under its nodeRef before the
+        // re-read has brought that row on screen.
+        const created = Array.from(createdDrafts.current.values());
+        const byKey = new Map([...created, ...rowsRef.current].map((row) => [row.key, row]));
         let saved = 0;
         let failed = 0;
         for (const key of keys) {
@@ -1405,13 +1531,13 @@ export function useDataList(options = {}) {
             set.forEach((key) => delete next[key]);
             return next;
         });
-        setStatus((previous) => {
+        updateStatus((previous) => {
             const next = { ...previous };
             set.forEach((key) => delete next[key]);
             return next;
         });
         setDrafts((previous) => previous.filter((entry) => !set.has(entry.key)));
-    }, [updateDirty]);
+    }, [updateDirty, updateStatus]);
 
     /**
      * Deletes a row. Optimistic too: the line disappears immediately and comes
@@ -1449,7 +1575,7 @@ export function useDataList(options = {}) {
                     throw Object.assign(new Error('Delete refused'), { messageKey: 'error.forbidden' });
                 }
                 if (alive.current) {
-                    setStatus((previous) => {
+                    updateStatus((previous) => {
                         const next = { ...previous };
                         delete next[row.key];
                         return next;
@@ -1474,7 +1600,7 @@ export function useDataList(options = {}) {
                 return false;
             }
         },
-        [readOnly, path, payload.rows, discardRow, setRowStatus, scheduleRefresh],
+        [readOnly, path, payload.rows, discardRow, setRowStatus, scheduleRefresh, updateStatus],
     );
 
     /**
@@ -1527,7 +1653,7 @@ export function useDataList(options = {}) {
                     throw Object.assign(new Error('Delete refused'), { messageKey: 'error.forbidden' });
                 }
                 if (alive.current) {
-                    setStatus((previous) => {
+                    updateStatus((previous) => {
                         const next = { ...previous };
                         keys.forEach((key) => delete next[key]);
                         return next;
@@ -1547,7 +1673,7 @@ export function useDataList(options = {}) {
                 return false;
             }
         },
-        [readOnly, path, discardRows, setRowStatus, scheduleRefresh, refresh],
+        [readOnly, path, discardRows, setRowStatus, scheduleRefresh, refresh, updateStatus],
     );
 
     /**
@@ -1664,7 +1790,10 @@ export function useDataList(options = {}) {
     const total = payload.total;
     const pageCount = Math.max(1, Math.ceil((total || 0) / (pageSize || 1)));
 
-    return {
+    // Memoised without `dirty` and `status`: the readers above go through
+    // their refs, so this object only changes when the list itself does, and a
+    // memoised row re-renders on its own slice instead of on every keystroke.
+    return useMemo(() => ({
         /* data */
         columns,
         // `rows` is what a supplier owns: the summary rows are never in it, so
@@ -1730,7 +1859,8 @@ export function useDataList(options = {}) {
         moveRow,
         moveRows,
         isRowDirty,
-        statusOf: (rowKey) => status[rowKey] || { state: ROW_STATUS.IDLE },
+        statusOf,
+        pendingOf,
 
         /* protected fields */
         isUnlocked,
@@ -1738,5 +1868,14 @@ export function useDataList(options = {}) {
         pendingUnlock,
         confirmUnlock,
         cancelUnlock,
-    };
+    }), [
+        columns, visibleRows, summaryRows, rows, total, payload.listNodeRef, payload.itemType,
+        rowForm, payload.title, payload.step, loading, error, refresh, page, setPage, pageSize,
+        setPageSize, pageCount, sort, setSort, toggleSort, filter, setFilter, readOnly, frozen,
+        readOnlyReason, canCreate, canReorder, canEditRow, canDeleteRow, isCellEditable, valueOf,
+        displayOf, nestedRowsOf, setCell, setCells, saveRowValues, bulkEdit, commitRow, commitAll,
+        discardRow, discardRows, addRow, duplicateRow, deleteRow, deleteRows, moveRow, moveRows,
+        isRowDirty, statusOf, pendingOf, isUnlocked, requestUnlock, pendingUnlock, confirmUnlock,
+        cancelUnlock
+    ]);
 }

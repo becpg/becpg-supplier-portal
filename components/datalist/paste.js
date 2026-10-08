@@ -151,12 +151,20 @@ export function normalizeLabel(value) {
 }
 
 /**
+ * Digits grouped by three after a comma, with no leading zero: a thousands
+ * separator or a decimal one. `0,125` is not in it, no one groups thousands
+ * after a zero.
+ */
+const THOUSANDS_OR_DECIMAL_COMMA = /^[+-]?[1-9]\d{0,2}(,\d{3})+$/;
+
+/**
  * A number as a spreadsheet writes it.
  *
  * Accepts `1234.56`, `1 234,56` (with a plain or a narrow no-break space),
  * `1,234.56`, a leading sign and a trailing `%` or unit-less spaces. Returns
  * `null` for anything else — including `"~2"`, `"< 0,1"` and `"n/a"`, which
- * carry a meaning this grid must not invent a number for.
+ * carry a meaning this grid must not invent a number for, and `"1,234"`,
+ * which reads as two different numbers depending on who typed it.
  *
  * @param {string} text
  * @returns {number|null}
@@ -176,6 +184,11 @@ export function parseDecimal(text) {
         value = value.lastIndexOf(',') > value.lastIndexOf('.')
             ? value.replace(/\./g, '').replace(',', '.')
             : value.replace(/,/g, '');
+    }
+    else if (THOUSANDS_OR_DECIMAL_COMMA.test(value)) {
+        // `1,234` is 1234 in an English sheet and 1.234 in a French one, and
+        // nothing in the cell says which: refused rather than guessed.
+        return null;
     }
     else {
         value = value.replace(',', '.');

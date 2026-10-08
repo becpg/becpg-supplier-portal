@@ -199,8 +199,7 @@ export function FormStep({
                 return null;
             }
             const values = form.changes();
-            const names = Object.keys(values);
-            if (names.length === 0) {
+            if (Object.keys(values).length === 0) {
                 return null;
             }
             const result = await api.put(
@@ -212,7 +211,7 @@ export function FormStep({
             );
             // Confirm exactly what was sent — a field edited during the round
             // trip stays dirty and goes out with the next save.
-            form.markSaved(names);
+            form.markSaved(values);
             return result;
         // Keyed by step: leaving this step while its save is pending — or has
         // failed — must not let the next step's first keystroke evict what was

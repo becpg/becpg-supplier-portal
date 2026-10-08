@@ -1130,8 +1130,17 @@ export function Wizard({
             const leaving = steps.find((step) => step.id === currentId);
             const target = steps.find((step) => step.id === stepId);
 
-            // Nothing is ever left behind: whatever is pending goes out first.
-            await autoSave.flush();
+            // Nothing is ever left behind: whatever is pending goes out first,
+            // and a write that could not go out keeps the supplier on the step
+            // where the input is, with the indicator offering its retry.
+            try {
+                await autoSave.flush();
+            }
+            catch (error) {
+                console.error(`Wizard: step ${currentId} not left, its autosave failed`, error);
+                toast.error(error);
+                return;
+            }
 
             // Run **the script the step declared**, not a formulation regardless.
             //
@@ -1219,7 +1228,7 @@ export function Wizard({
                 window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
             }
         },
-        [currentId, steps, autoSave, runStepHook, formulateNow, documents, persist, reduceMotion,
+        [currentId, steps, autoSave, toast, runStepHook, formulateNow, documents, persist, reduceMotion,
             suggestionsCall],
     );
 
@@ -1342,6 +1351,8 @@ export function Wizard({
         }
         setFinishing(true);
         try {
+            // Throws when a write could not go out: the task is then never
+            // completed on a sheet the repository has not fully received.
             await autoSave.flush();
 
             // 1 — what the assistant saw with its own eyes. Except in draft
@@ -1449,8 +1460,16 @@ export function Wizard({
         if (catalogsEnabled) {
             catalogs.refresh();
         }
-        await autoSave.flush();
-        setReloadNonce((current) => current + 1);
+        try {
+            await autoSave.flush();
+            // Only once the pending input is written: the re-read reseeds the
+            // form, and would wipe a value that never reached the repository.
+            setReloadNonce((current) => current + 1);
+        }
+        catch (error) {
+            console.error('Wizard: step not re-read after an applied suggestion, its autosave failed', error);
+            toast.error(error);
+        }
         /*
          * The panel's own re-read is delayed and coalesced: applying three
          * proposals in a row is ordinary, and each re-read starts a becpg-ai run
@@ -1460,7 +1479,7 @@ export function Wizard({
          */
         clearTimeout(applyRefreshRef.current);
         applyRefreshRef.current = setTimeout(() => suggestionsCall.refresh(), APPLY_REFRESH_MS);
-    }, [catalogsEnabled, catalogs, autoSave, suggestionsCall]);
+    }, [catalogsEnabled, catalogs, autoSave, toast, suggestionsCall]);
 
     /* ----------------------------------------------------------- the panels */
 

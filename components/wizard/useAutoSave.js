@@ -19,7 +19,7 @@
  *         return null;                             // nothing to save
  *     }
  *     const result = await api.put(url, { values, formulate: false });
- *     form.markSaved(Object.keys(values));         // confirm only what was sent
+ *     form.markSaved(values);                      // confirm only what was sent
  *     return result;
  * }, { key: step.id });                            // one slot per writer
  * ```
@@ -140,7 +140,9 @@ export function useAutoSave({
     // still perfectly sendable.
     const tasksRef = useRef(new Map());
     const timerRef = useRef(null);
-    const runningRef = useRef(false);
+    // The drain in flight, so `flush()` can wait for it instead of resolving
+    // while a write is still in the air.
+    const drainRef = useRef(null);
     const attemptRef = useRef(0);
     const aliveRef = useRef(true);
     const handlers = useRef({ onSaved, onError });
@@ -168,84 +170,120 @@ export function useAutoSave({
     }, []);
 
     /**
-     * Drains the queue now, one task at a time.
+     * Drains the queue now, one task at a time, and rejects on the first
+     * failure.
      *
      * Sequential on purpose: two writers may touch the same entity, and a
      * concurrent write is exactly how a "last write wins" race loses a field.
-     * Re-entrant safe — a call made while a write is in flight is absorbed, and
-     * the runner re-checks the queue on its way out.
+     * Only one drain exists at a time: a second call gets the promise of the
+     * drain in flight, and that drain re-reads the queue before it settles, so
+     * a task scheduled meanwhile is written by it.
      *
-     * A task is removed from the queue **only when it succeeded** (and only if
+     * A task is removed from the queue only when it succeeded (and only if
      * nobody re-scheduled the same key meanwhile). A failure keeps it: it will
      * re-read the dirty values on the next attempt, so nothing typed since is
      * lost either.
      *
-     * @returns {Promise<*>} the last write result, or null when there was nothing to do
+     * @returns {Promise<*>} the last write result, or null when there was nothing to write
      */
-    const run = useCallback(async () => {
-        clearTimer();
+    const drain = useCallback(() => {
+        if (drainRef.current) {
+            return drainRef.current;
+        }
+        const promise = drainQueue().finally(() => {
+            drainRef.current = null;
+        });
+        drainRef.current = promise;
+        return promise;
 
-        if (runningRef.current || tasksRef.current.size === 0) {
-            // Not lost: whoever is running re-reads the queue when it lands.
-            return null;
+        async function drainQueue() {
+            setState((current) => ({ ...current, status: AUTOSAVE_STATUS.SAVING, error: null }));
+            let lastResult = null;
+            while (tasksRef.current.size > 0) {
+                const result = await drainPass();
+                if (result !== null) {
+                    lastResult = result;
+                    reportSaved(result);
+                }
+                else {
+                    reportNothingWritten();
+                }
+            }
+            return lastResult;
         }
 
-        runningRef.current = true;
-        setState((current) => ({ ...current, status: AUTOSAVE_STATUS.SAVING, error: null }));
-
-        let lastResult = null;
-        let wrote = false;
-
-        try {
-            // Snapshot the keys: a task scheduled during the drain is picked up
-            // by the tail call below, not half-way through this loop.
+        // Snapshots the keys: a task scheduled during the pass is picked up by
+        // the next pass, not half-way through this one.
+        async function drainPass() {
+            let lastResult = null;
             for (const key of Array.from(tasksRef.current.keys())) {
                 const task = tasksRef.current.get(key);
                 if (!task) {
                     continue;
                 }
                 const result = await task();
-                // Only drop it if nobody replaced it while we were writing.
                 if (tasksRef.current.get(key) === task) {
                     tasksRef.current.delete(key);
                 }
                 if (result !== null && result !== undefined) {
                     lastResult = result;
-                    wrote = true;
                 }
-            }
-
-            runningRef.current = false;
-            attemptRef.current = 0;
-
-            if (aliveRef.current) {
-                if (!wrote) {
-                    // Every task decided there was nothing to write (no dirty
-                    // field left). Keep the previous "saved at", it is still true.
-                    setState((current) => ({
-                        ...current,
-                        status: current.savedAt ? AUTOSAVE_STATUS.SAVED : AUTOSAVE_STATUS.IDLE,
-                        error: null,
-                    }));
-                }
-                else {
-                    const at = savedAtOf(lastResult);
-                    setState({ status: AUTOSAVE_STATUS.SAVED, savedAt: at, error: null });
-                    if (handlers.current.onSaved) {
-                        handlers.current.onSaved(lastResult, at);
-                    }
-                }
-            }
-
-            // A change made during the drain: save it too, immediately.
-            if (tasksRef.current.size > 0) {
-                return run();
             }
             return lastResult;
         }
-        catch (error) {
-            runningRef.current = false;
 
+        function reportSaved(result) {
+            attemptRef.current = 0;
+            if (!aliveRef.current) {
+                return;
+            }
+            const at = savedAtOf(result);
+            setState({ status: AUTOSAVE_STATUS.SAVED, savedAt: at, error: null });
+            handlers.current.onSaved?.(result, at);
+        }
+
+        // Every task decided there was nothing to write: the previous "saved
+        // at" is still true.
+        function reportNothingWritten() {
+            attemptRef.current = 0;
+            if (aliveRef.current) {
+                setState((current) => ({
+                    ...current,
+                    status: current.savedAt ? AUTOSAVE_STATUS.SAVED : AUTOSAVE_STATUS.IDLE,
+                    error: null,
+                }));
+            }
+        }
+    }, []);
+
+    /** Puts the hook in its definitive error state. */
+    const showError = useCallback((error) => {
+        attemptRef.current = 0;
+        if (aliveRef.current) {
+            setState((current) => ({ ...current, status: AUTOSAVE_STATUS.ERROR, error }));
+        }
+    }, []);
+
+    /**
+     * The background save, fired by the debounce timer.
+     *
+     * A call made while a drain is in flight is absorbed: that drain re-reads
+     * the queue before it settles, and its owner handles its failure. A failure
+     * arms the automatic retry, then surfaces through `onError`. Never rethrown:
+     * an autosave failure is a UI state, not an exception the caller has to
+     * catch on every keystroke.
+     *
+     * @returns {Promise<*>} the last write result, or null
+     */
+    const run = useCallback(async function runInBackground() {
+        clearTimer();
+        if (drainRef.current || tasksRef.current.size === 0) {
+            return null;
+        }
+        try {
+            return await drain();
+        }
+        catch (error) {
             if (attemptRef.current < retries) {
                 attemptRef.current += 1;
                 if (aliveRef.current) {
@@ -254,23 +292,15 @@ export function useAutoSave({
                 // The failed task is deliberately still queued: it will re-read
                 // the dirty values, so nothing typed in the meantime is lost.
                 timerRef.current = setTimeout(() => {
-                    run();
+                    runInBackground();
                 }, retryDelay);
                 return null;
             }
-
-            attemptRef.current = 0;
-            if (aliveRef.current) {
-                setState((current) => ({ ...current, status: AUTOSAVE_STATUS.ERROR, error }));
-            }
-            if (handlers.current.onError) {
-                handlers.current.onError(error);
-            }
-            // Never rethrown: an autosave failure is a UI state, not an
-            // exception the caller has to catch on every keystroke.
+            showError(error);
+            handlers.current.onError?.(error);
             return null;
         }
-    }, [clearTimer, retries, retryDelay]);
+    }, [clearTimer, drain, showError, retries, retryDelay]);
 
     /**
      * Schedules a save.
@@ -344,19 +374,49 @@ export function useAutoSave({
      * Writes whatever is pending, now, and waits for it. Called before leaving
      * a step, before completing the task, and on unmount.
      *
-     * @returns {Promise<*>}
+     * It resolves only once everything queued has reached the repository: a
+     * write already in flight is awaited, and a pending automatic retry is
+     * taken over and run inline rather than left to its timer. What follows a
+     * flush (leaving the step, completing the task) relies on that.
+     *
+     * @returns {Promise<*>} the last write result, or null when there was nothing to write
+     * @throws {Error} the last failure once the retries are exhausted; the hook
+     *         is then in its error state, and `onError` is not called, the
+     *         caller reports it
      */
     const flush = useCallback(async () => {
         // The foreign writers first: the grid sends its own PUTs, and what
-        // follows a flush — a formulation, a completion — must bear on a
+        // follows a flush, a formulation or a completion, must bear on a
         // repository that has already received them.
         await settled();
-        if (tasksRef.current.size === 0 && !runningRef.current) {
+        if (drainRef.current) {
+            // Its outcome does not matter here: a failed task stays queued
+            // and is retried just below, the owner of that drain reports it.
+            await drainRef.current.catch(() => null);
+        }
+        clearTimer();
+        if (tasksRef.current.size === 0) {
             return null;
         }
-        attemptRef.current = 0;
-        return run();
-    }, [run, settled]);
+        return drainWithRetries();
+
+        async function drainWithRetries() {
+            for (let attempt = 0; ; attempt += 1) {
+                try {
+                    return await drain();
+                }
+                catch (error) {
+                    clearTimer();
+                    if (attempt >= retries) {
+                        showError(error);
+                        throw error;
+                    }
+                    console.warn('Autosave flush failed, retrying inline', error);
+                    await new Promise((resolve) => setTimeout(resolve, retryDelay));
+                }
+            }
+        }
+    }, [clearTimer, drain, settled, showError, retries, retryDelay]);
 
     /** Manual retry, from the indicator's button. */
     const retry = useCallback(() => {

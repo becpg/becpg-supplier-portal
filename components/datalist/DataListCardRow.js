@@ -16,7 +16,7 @@
  * path — there is no second implementation to keep in sync.
  */
 
-import { useCallback, useRef, useState } from 'react';
+import { memo, useCallback, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button, Icon, IconButton } from '@/components/ui/Button';
 import {
@@ -43,8 +43,12 @@ import { useMessages } from '@/lib/messages';
  * @param {Function} [props.onDuplicate] `(row) => void` — a new card pre-filled from this one
  * @param {boolean} [props.showOrder] renders the reorder buttons
  * @param {boolean} [props.autoFocus] focus the first editable field (a new row)
+ * @param {Object} [props.rowStatus] `list.statusOf(row.key)`
+ * @param {Object} [props.pending] `list.pendingOf(row.key)`. Not read here: the
+ *   list instance keeps its identity while a supplier types, so these two
+ *   slices are what tells the memoised card that its own fields changed.
  */
-export function DataListCardRow({
+export const DataListCardRow = memo(function DataListCardRow({
     row,
     index,
     columns,
@@ -56,12 +60,13 @@ export function DataListCardRow({
     onDuplicate,
     showOrder = false,
     autoFocus = false,
+    rowStatus,
 }) {
     const label = useDataListLabels();
     const { lang } = useMessages();
     const [expanded, setExpanded] = useState(false);
     const containerRef = useRef(null);
-    const status = list.statusOf(row.key);
+    const status = rowStatus || list.statusOf(row.key);
     const dirty = list.isRowDirty(row.key);
 
     /*
@@ -282,4 +287,4 @@ export function DataListCardRow({
             </section>
         </motion.div>
     );
-}
+});

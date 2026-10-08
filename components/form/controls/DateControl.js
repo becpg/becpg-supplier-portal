@@ -24,44 +24,7 @@
 import { Input } from '@/components/ui/Field';
 import { controlParams } from '@/components/form/validation';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
-
-/**
- * @param {*} value
- * @returns {Date|null}
- */
-function toDate(value) {
-    if (value === null || value === undefined || value === '') {
-        return null;
-    }
-    if (value instanceof Date) {
-        return Number.isNaN(value.getTime()) ? null : value;
-    }
-    if (typeof value === 'object' && 'value' in value) {
-        return toDate(value.value);
-    }
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? null : date;
-}
-
-/** `2026-07-29`, in the browser's own time zone. */
-function toDateInput(date) {
-    if (!date) {
-        return '';
-    }
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${date.getFullYear()}-${month}-${day}`;
-}
-
-/** `2026-07-29T14:30`, in the browser's own time zone. */
-function toDateTimeInput(date) {
-    if (!date) {
-        return '';
-    }
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${toDateInput(date)}T${hours}:${minutes}`;
-}
+import { toDateInputValue, toDateTimeInputValue } from '@/components/form/controls/dateInput';
 
 /**
  * @param {import('./index').ControlProps} props
@@ -92,7 +55,6 @@ export function DateControl({
     const params = controlParams(field);
     const withTime =
         field?.dataType === 'd:datetime' || params.showTime === true || params.showTime === 'true';
-    const date = toDate(value);
 
     const handleChange = (text) => {
         if (!text) {
@@ -112,7 +74,7 @@ export function DateControl({
         <Input
             id={id}
             type={withTime ? 'datetime-local' : 'date'}
-            value={withTime ? toDateTimeInput(date) : toDateInput(date)}
+            value={withTime ? toDateTimeInputValue(value) : toDateInputValue(value)}
             onChange={(event) => handleChange(event.target.value)}
             invalid={Boolean(error) || invalid}
             {...rest}

@@ -24,8 +24,8 @@
  *
  * ```js
  * const form = useFormState({ definition, onDirty: () => scheduleAutosave() });
- * // …later, when the PUT succeeds:
- * form.markSaved();
+ * // …later, when the PUT succeeds, with the payload it carried:
+ * form.markSaved(sent);
  * ```
  */
 
@@ -84,6 +84,27 @@ export function seedValues(definition, initialValues) {
         values[field.name] = fromInitial.found ? fromInitial.value : (field.value ?? null);
     }
     return values;
+}
+
+/**
+ * The baseline after a successful write.
+ *
+ * The sent values are what the repository now holds, so they, and not the
+ * current values, move the baseline: a field edited while the write was in
+ * flight must stay dirty, or its new value is marked saved without ever being
+ * sent.
+ *
+ * @param {Object} baseline the last confirmed values
+ * @param {Object} current the values on screen
+ * @param {Object} [sentValues] the payload that was written; absent means
+ *        everything on screen was
+ * @returns {Object} the next baseline
+ */
+export function confirmSaved(baseline, current, sentValues) {
+    if (!sentValues || typeof sentValues !== 'object') {
+        return { ...current };
+    }
+    return { ...baseline, ...sentValues };
 }
 
 /**
@@ -236,15 +257,14 @@ export function useFormState({
     );
 
     /**
-     * Confirms a successful write: the current values become the new baseline
-     * and the form is clean again.
+     * Confirms a successful write. The values that were sent become the new
+     * baseline for their fields; without an argument, every current value does.
      *
-     * @param {string[]} [names] confirm only these fields (a partial save)
+     * @param {Object} [sentValues] the payload the repository accepted, keyed
+     *        by `field.name`, as `changes()` returned it before the write
      */
-    const markSaved = useCallback((names) => {
-        const next = names
-            ? { ...baselineRef.current, ...Object.fromEntries(names.map((name) => [name, valuesRef.current[name]])) }
-            : { ...valuesRef.current };
+    const markSaved = useCallback((sentValues) => {
+        const next = confirmSaved(baselineRef.current, valuesRef.current, sentValues);
         baselineRef.current = next;
         setBaseline(next);
     }, []);

@@ -420,11 +420,12 @@ export function DataListEditor({
     // One object, not one per row: `DataListCell` passes it straight to the
     // control registry, and a new identity on every row would defeat any
     // memoisation a control might grow.
-    const rowContext = {
+    const rowFormId = list.step?.formId || null;
+    const rowContext = useMemo(() => ({
         entityNodeRef: entityId,
         itemType: list.itemType,
-        formId: list.step?.formId || null,
-    };
+        formId: rowFormId,
+    }), [entityId, list.itemType, rowFormId]);
 
     /**
      * A block of cells from a spreadsheet, landing where the caret is.
@@ -579,6 +580,20 @@ export function DataListEditor({
         setPasteReport(null);
     }, [list, pasteReport]);
 
+    // Every entry affordance below hangs off this one flag, so a frozen list, a
+    // wizard with no assigned task and a read-only product tab all lose the same
+    // set of buttons — and lose them by **not being rendered**, never by being
+    // disabled (spec: hide, do not disable).
+    const editable = !list.readOnly;
+    // Selecting is only offered where something can be done with a selection.
+    const selectable = editable && rows.length > 0;
+    // Memoised like `rowContext`: the rows are memoised components.
+    const hasNested = nestedColumns.length > 0;
+    const sticky = useMemo(
+        () => stickyOffsets({ selectable, showOrder, hasNested }),
+        [selectable, showOrder, hasNested],
+    );
+
     if (list.error && rows.length === 0) {
         return <ErrorState error={list.error} onRetry={() => list.refresh()} />;
     }
@@ -593,18 +608,6 @@ export function DataListEditor({
         );
     }
 
-    // Every entry affordance below hangs off this one flag, so a frozen list, a
-    // wizard with no assigned task and a read-only product tab all lose the same
-    // set of buttons — and lose them by **not being rendered**, never by being
-    // disabled (spec: hide, do not disable).
-    const editable = !list.readOnly;
-    // Selecting is only offered where something can be done with a selection.
-    const selectable = editable && rows.length > 0;
-    const sticky = stickyOffsets({
-        selectable,
-        showOrder,
-        hasNested: nestedColumns.length > 0,
-    });
     const allSelected = rows.length > 0 && selection.size >= rows.length;
     const shortcutRows = label('shortcutList') || [];
     const reasons = label('pasteReasons') || {};
@@ -949,6 +952,8 @@ export function DataListEditor({
                                         zebra={index % 2 === 1}
                                         autoFocus={row.key === focusTarget?.key}
                                         autoFocusColumn={focusTarget?.column ?? 0}
+                                        rowStatus={list.statusOf(row.key)}
+                                        pending={list.pendingOf(row.key)}
                                     />
                                 ))}
                             </tbody>
@@ -1001,6 +1006,8 @@ export function DataListEditor({
                                 onDuplicate={list.canCreate ? handleDuplicate : undefined}
                                 showOrder={showOrder}
                                 autoFocus={row.key === focusTarget?.key}
+                                rowStatus={list.statusOf(row.key)}
+                                pending={list.pendingOf(row.key)}
                             />
                         ))}
                         {/* Last here too, and for the same reason — the card layout

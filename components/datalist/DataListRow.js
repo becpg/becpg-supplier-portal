@@ -49,7 +49,7 @@
  * why the `onCommit` prop was never needed, only never noticed.
  */
 
-import { createElement, useCallback, useRef, useState } from 'react';
+import { createElement, memo, useCallback, useRef, useState } from 'react';
 import { getControl } from '@/components/form/controls';
 import { needsAnswer } from '@/components/form/validation';
 import { StatusPill } from '@/components/ui/StatusPill';
@@ -776,8 +776,12 @@ function moveFocusHorizontally(rowEl, cellIndex, direction) {
  * @param {boolean} [props.zebra] paints the row as a stripe (parity is computed
  *   by the caller, not by `:nth-child`: an expanded row inserts a second `<tr>`)
  * @param {boolean} [props.autoFocus] focus the first editable cell (a new row)
+ * @param {Object} [props.rowStatus] `list.statusOf(row.key)`
+ * @param {Object} [props.pending] `list.pendingOf(row.key)`. Not read here: the
+ *   list instance keeps its identity while a supplier types, so these two
+ *   slices are what tells the memoised row that its own cells changed.
  */
-export function DataListRow({
+export const DataListRow = memo(function DataListRow({
     row,
     index,
     columns,
@@ -798,11 +802,12 @@ export function DataListRow({
     zebra = false,
     autoFocus = false,
     autoFocusColumn = 0,
+    rowStatus,
 }) {
     const label = useDataListLabels();
     const [expanded, setExpanded] = useState(false);
     const containerRef = useRef(null);
-    const status = list.statusOf(row.key);
+    const status = rowStatus || list.statusOf(row.key);
     const hasNested = nestedColumns.length > 0;
     const columnCount = columns.length + (showOrder ? 1 : 0) + (hasNested ? 1 : 0)
         + (showActions ? 1 : 0) + (selectable ? 1 : 0);
@@ -1146,4 +1151,4 @@ export function DataListRow({
             ) : null}
         </>
     );
-}
+});

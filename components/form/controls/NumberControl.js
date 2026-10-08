@@ -28,39 +28,9 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/Field';
 import { bounds, controlParams, numberFormat } from '@/components/form/validation';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
+import { isUnparsable, parseTyped, resolveOnBlur, toText } from '@/components/form/controls/numberInput';
 
-/**
- * @param {*} value
- * @returns {string} the editable text of a value
- */
-function toText(value) {
-    if (value === null || value === undefined || value === '') {
-        return '';
-    }
-    if (typeof value === 'object' && 'value' in value) {
-        return toText(value.value);
-    }
-    return String(value);
-}
-
-/**
- * Parses what the user typed. Accepts the decimal comma and spaces used as
- * thousand separators.
- *
- * @param {string} text
- * @returns {{number: number|null, partial: boolean}} `partial` = "not a number *yet*"
- */
-export function parseTyped(text) {
-    const raw = String(text ?? '').replace(/\s/g, '').replace(',', '.');
-    if (raw === '') {
-        return { number: null, partial: false };
-    }
-    if (raw === '-' || raw === '.' || raw === '-.' || raw.endsWith('.')) {
-        return { number: null, partial: true };
-    }
-    const parsed = Number(raw);
-    return Number.isFinite(parsed) ? { number: parsed, partial: false } : { number: null, partial: true };
-}
+export { parseTyped };
 
 /**
  * @param {import('./index').ControlProps & {suffix?: React.ReactNode}} props
@@ -123,11 +93,12 @@ export function NumberControl({
             value={draft}
             onChange={(event) => handleChange(event.target.value)}
             onBlur={(event) => {
-                // On blur an unfinished draft resolves to the value it means.
-                const { number } = parseTyped(event.target.value);
-                setLocal({ draft: toText(number), value: number });
-                if (number !== value) {
-                    onChange(number);
+                // On blur an unfinished draft resolves to the value it means,
+                // and a text that means no number gives the previous one back.
+                const resolved = resolveOnBlur(event.target.value, value);
+                setLocal({ draft: resolved.draft, value: resolved.value });
+                if (resolved.emit) {
+                    onChange(resolved.value);
                 }
             }}
             min={min === null ? undefined : min}
@@ -135,7 +106,7 @@ export function NumberControl({
             step={step}
             placeholder={params.placeholder || undefined}
             suffix={suffix}
-            invalid={Boolean(error) || invalid}
+            invalid={Boolean(error) || invalid || isUnparsable(draft)}
             autoComplete="off"
             {...rest}
         />

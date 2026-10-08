@@ -77,6 +77,13 @@ export function RowFormModal({ list, row, rowForm, entityNodeRef, onClose }) {
     });
 
     const submit = useCallback(async () => {
+        // Nothing edited is nothing to write: `saveRowValues` would answer null
+        // for it, which reads as a refusal.
+        const changes = form.changes();
+        if (Object.keys(changes).length === 0) {
+            onClose();
+            return;
+        }
         // `validate()` answers `{ valid, errors }`, never a boolean: testing the
         // object itself is always true, and the box would submit an invalid row
         // while painting its fields red.
@@ -86,7 +93,7 @@ export function RowFormModal({ list, row, rowForm, entityNodeRef, onClose }) {
         setSaving(true);
         setError(null);
         try {
-            const saved = await list.saveRowValues(row, form.changes());
+            const saved = await list.saveRowValues(row, changes);
             if (!saved) {
                 // The write was refused, or held back because a mandatory column
                 // is still empty. Closing here would claim a save that did not

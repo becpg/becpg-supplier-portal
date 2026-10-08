@@ -30,11 +30,12 @@
  * so it must not become a random `useId`.
  */
 
-import { createElement } from 'react';
+import { createElement, useState } from 'react';
 import { Icon, IconButton } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { resolveControlComponent } from '@/components/form/controls';
 import { formatValidationError, helpText, needsAnswer } from '@/components/form/validation';
+import { compactEntries, reconcileRows, replaceRow, seedRows } from '@/components/form/repeatingEntries';
 
 const LABELS = {
     fr: { add: 'Ajouter une valeur', remove: 'Retirer cette valeur', locked: 'Champ verrouillé' },
@@ -97,47 +98,63 @@ export function resolveErrorMessage(field, error, lang) {
         : String(error);
 }
 
+/** Source of the repeating rows' ids: unique for the page's lifetime. */
+let repeatingRowSequence = 0;
+
+function nextRepeatingRowId() {
+    repeatingRowSequence += 1;
+    return `entry-${repeatingRowSequence}`;
+}
+
 /**
  * Add/remove list for a control that does not handle repetition itself.
+ *
+ * The rows live here, keyed by a stable id, and keep their empty entries while
+ * the supplier edits; only the emitted value leaves them out.
  *
  * @param {Object} props
  */
 function RepeatingField({ control, controlProps, entries, onChange, lang }) {
     const labels = LABELS[lang] || LABELS.fr;
-    const values = entries.length > 0 ? entries : [null];
+    const [rows, setRows] = useState(() => seedRows(entries, nextRepeatingRowId));
+    // Adjusted during render rather than in an effect, the pattern
+    // `NumberControl` uses for its draft.
+    const current = reconcileRows(rows, entries, nextRepeatingRowId);
+    if (current !== rows) {
+        setRows(current);
+    }
 
-    const replace = (index, next) => {
-        const copy = [...values];
-        copy[index] = next;
-        onChange(copy.filter((entry) => entry !== null && entry !== undefined && entry !== ''));
+    const update = (next) => {
+        setRows(next);
+        onChange(compactEntries(next));
     };
 
     return (
         <div className="flex flex-col gap-2">
-            {values.map((entry, index) => (
-                <div key={`${controlProps.id}-${index}`} className="flex items-start gap-2">
+            {current.map((row, index) => (
+                <div key={row.id} className="flex items-start gap-2">
                     <div className="min-w-0 flex-1">
                         {createElement(control, {
                             ...controlProps,
                             id: index === 0 ? controlProps.id : `${controlProps.id}-${index}`,
-                            value: entry,
+                            value: row.value,
                             displayValue: null,
-                            onChange: (next) => replace(index, next),
+                            onChange: (next) => update(replaceRow(current, row.id, next)),
                         })}
                     </div>
-                    {values.length > 1 ? (
+                    {current.length > 1 ? (
                         <IconButton
                             icon="close"
                             label={labels.remove}
                             variant="subtle"
-                            onClick={() => onChange(values.filter((_, position) => position !== index))}
+                            onClick={() => update(current.filter((entry) => entry.id !== row.id))}
                         />
                     ) : null}
                 </div>
             ))}
             <button
                 type="button"
-                onClick={() => onChange([...values, ''])}
+                onClick={() => setRows([...current, { id: nextRepeatingRowId(), value: '' }])}
                 className="inline-flex items-center gap-1 self-start rounded-md px-1 py-1 text-xs text-[var(--becpg-blue-light)] hover:text-[var(--becpg-orange)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
             >
                 <Icon name="add" size={14} />
