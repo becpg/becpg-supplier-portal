@@ -77,6 +77,13 @@ export function tonePalette(tone) {
     return TONES[tone] || TONES.neutral;
 }
 
+/** The fill of a segmented bar per tone; a tone absent here fills flat. */
+export const BAR_FILLS = {
+    ok: 'linear-gradient(90deg, var(--becpg-teal), var(--becpg-teal-light))',
+    warn: 'linear-gradient(90deg, var(--becpg-orange-deep), var(--becpg-orange))',
+    accent: 'linear-gradient(90deg, var(--becpg-orange-deep), var(--becpg-orange))',
+};
+
 /**
  * Picks a tone from a percentage.
  *
@@ -249,7 +256,7 @@ export function GaugeBar({
     const percent = clampPercent(value, max);
     const finalTone = tone || (percent === null ? 'neutral' : toneForValue(percent, thresholds));
     const palette = TONES[finalTone] || TONES.neutral;
-    const height = size === 'sm' ? 4 : size === 'lg' ? 12 : 8;
+    const height = size === 'sm' ? 6 : size === 'lg' ? 10 : 8;
     const rounded = Math.round(percent === null ? 0 : percent);
     const valueText = percent === null ? '—' : `${rounded}${suffix ? ` ${suffix}` : ''}`;
 
@@ -257,7 +264,7 @@ export function GaugeBar({
         <div className={`w-full ${className}`}>
             {label || showValue ? (
                 <div className="mb-1 flex items-baseline justify-between gap-2 text-xs">
-                    {label ? <span className="truncate text-[var(--becpg-blue)]">{label}</span> : <span />}
+                    {label ? <span className="truncate text-[var(--becpg-ink)]">{label}</span> : <span />}
                     {showValue ? (
                         <span className="font-medium tabular-nums" style={{ color: palette.text }}>
                             {percent === null ? '—' : `${rounded}${suffix}`}
@@ -266,7 +273,7 @@ export function GaugeBar({
                 </div>
             ) : null}
             <div
-                className="w-full overflow-hidden rounded-full bg-[var(--becpg-grey)]"
+                className="meter-segments w-full overflow-hidden bg-[var(--becpg-grey)]"
                 style={{ height }}
                 role="meter"
                 aria-valuenow={percent === null ? undefined : rounded}
@@ -276,23 +283,12 @@ export function GaugeBar({
                 aria-label={ariaLabel || (typeof label === 'string' ? label : 'completion')}
             >
                 <motion.div
-                    className="h-full rounded-full"
-                    /* Same fill/rim rule as the dial. The rim is an *inset ring*
-                       rather than a nested element, because an inset shadow does
-                       not touch the geometry the width animation drives. Below
-                       6px there is no room for one, so the bar is drawn in the
-                       rim colour alone — a 4px mint hairline would disappear. */
-                    style={
-                        height >= 6
-                            ? {
-                                  background: palette.fill,
-                                  boxShadow:
-                                      palette.rim === palette.fill
-                                          ? undefined
-                                          : `inset 0 0 0 1.5px ${palette.rim}`,
-                              }
-                            : { background: palette.rim }
-                    }
+                    className="h-full"
+                    /* Cut into the same ten segments as the catalogue meters, by
+                       the track's mask; the fill runs from the tone's darker edge
+                       to its body, so even the first segment holds its contrast
+                       against the track. */
+                    style={{ background: BAR_FILLS[finalTone] || palette.fill }}
                     initial={{ width: reduceMotion ? `${percent || 0}%` : 0 }}
                     animate={{ width: `${percent || 0}%` }}
                     transition={reduceMotion ? { duration: 0 } : { duration: 0.8, delay, ease: 'easeOut' }}

@@ -10,7 +10,7 @@
  */
 
 import { useId } from 'react';
-import { DEFAULT_THRESHOLDS, tonePalette, toneForValue } from '@/components/ui/Gauge';
+import { BAR_FILLS, DEFAULT_THRESHOLDS, tonePalette, toneForValue } from '@/components/ui/Gauge';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
@@ -32,12 +32,6 @@ const LABELS = defineLabels('components/products/CompletionMeter#LABELS', {
 /** Beyond that, the card would outgrow the header it sits in. */
 const MAX_ROWS = 3;
 
-/** The fill runs from the tone's darker edge to its body, left to right. */
-const FILLS = {
-    ok: 'linear-gradient(90deg, var(--becpg-teal), var(--becpg-teal-light))',
-    warn: 'linear-gradient(90deg, var(--becpg-orange-deep), var(--becpg-orange))',
-    danger: 'var(--status-danger)',
-};
 
 /**
  * Catalogues that make the score first, then the weakest first: the rows a
@@ -83,7 +77,7 @@ export function CatalogMeter({ catalog, note, as: Element = 'li' }) {
             >
                 <span
                     className="absolute inset-y-0 start-0 transition-[width] duration-700 ease-out motion-reduce:transition-none"
-                    style={{ width: `${Math.max(0, Math.min(100, score))}%`, background: FILLS[tone] }}
+                    style={{ width: `${Math.max(0, Math.min(100, score))}%`, background: BAR_FILLS[tone] || tonePalette(tone).fill }}
                 />
             </span>
         </Element>
