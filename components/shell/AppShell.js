@@ -92,7 +92,10 @@ function setNavCollapsed(next) {
 /**
  * @param {Object} props
  * @param {React.ReactNode} props.children page content
- * @param {React.ReactNode} [props.title] page title (header, and `<h1>` on phones)
+ * @param {React.ReactNode} [props.title] page title, shown in the header
+ * @param {boolean} [props.ownHeading] the content draws its own `<h1>`; otherwise the
+ *        shell provides one from `title`, visually hidden, so every page has
+ *        exactly one
  * @param {React.ReactNode} [props.subtitle] rendered above the content
  * @param {React.ReactNode} [props.actions] page actions in the header
  * @param {React.ReactNode} [props.headerStatus] a StatusPill (approval status) in the header
@@ -141,6 +144,7 @@ export function AppShell({
     hideNav = false,
     fullWidth = false,
     noPadding = false,
+    ownHeading = false,
     className = '',
 }) {
     const pathname = usePathname();
@@ -272,6 +276,7 @@ export function AppShell({
                         // nothing. See the rule in globals.css.
                         data-full={!noPadding && fullWidth ? 'true' : undefined}
                     >
+                        {!ownHeading && title ? <h1 className="sr-only">{title}</h1> : null}
                         {breadcrumb ? <div className="mb-2 text-xs">{breadcrumb}</div> : null}
                         {subtitle ? (
                             <p className="mb-3 text-sm text-[var(--becpg-dark-grey)]">{subtitle}</p>

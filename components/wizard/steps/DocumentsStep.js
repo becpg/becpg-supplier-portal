@@ -142,10 +142,10 @@ export function DocumentsStep({
                     — it is not a characteristic list — so `ListIcon` resolves it
                     to the portal's own Material symbol; the point is that one
                     step is not the only heading in the wizard without a picture. */}
-                <h3 className="flex items-center gap-2 text-base font-medium text-[var(--becpg-blue)]">
+                <h2 className="flex items-center gap-2 text-base font-medium text-[var(--becpg-blue)]">
                     <ListIcon type="documents" size={18} />
                     {step.title || step.label || labels.title}
-                </h3>
+                </h2>
                 {summary ? (
                     summary.blocking > 0 ? (
                         <StatusPill

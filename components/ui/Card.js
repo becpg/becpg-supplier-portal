@@ -28,19 +28,17 @@ const STAGGER = 0.05;
 const MotionLink = motion.create(Link);
 
 /*
- * A card is a **white surface on the grey page**, outlined in
- * `--becpg-blue-lighter` rather than in the neutral `--becpg-grey`: the page
- * itself is `--becpg-grey`, so a grey border on a white card disappeared into
- * the background at the very corners where the card's shape has to be read. The
- * elevation is `--becpg-shadow-raised`, i.e. blue-tinted — a neutral black
+ * A card is a **white surface on the grey page**, outlined in `--becpg-line`
+ * and rounded at 16px, as the cards of the beCPG website are. The elevation is
+ * `--becpg-shadow-raised`, a long soft petrol-tinted shadow: a neutral black
  * shadow over `--becpg-grey` goes muddy.
  *
- * `accent` marks the one card that carries an action or a warning: an
- * `--becpg-orange` rail, the same 3px signal `.nav-item-active` uses.
+ * `accent` marks the one card that carries an action or a warning: a 4px
+ * `--becpg-orange` rail, the colour the portal keeps for what asks to act.
  * `primary` is the inverse card (white on `--becpg-blue`, 11.0:1).
  */
 const VARIANTS = {
-    default: 'bg-white border-[var(--becpg-blue-lighter)]',
+    default: 'bg-white border-[var(--becpg-line)]',
     flat: 'bg-transparent border-transparent',
     muted: 'bg-[rgba(228,236,238,0.5)] border-[var(--becpg-blue-lighter)]',
     accent: 'bg-white border-[var(--becpg-blue-lighter)] border-s-4 border-s-[var(--becpg-orange)]',
@@ -92,7 +90,7 @@ export function Card({
     const clickable = Boolean(href || onClick || interactive);
 
     const classes = [
-        'relative rounded-xl border shadow-[var(--becpg-shadow-raised)]',
+        'relative rounded-2xl border shadow-[var(--becpg-shadow-raised)]',
         VARIANTS[variant] || VARIANTS.default,
         clickable
             ? 'hover-lift cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2'
@@ -126,13 +124,13 @@ export function Card({
                 ) : null}
                 <div className="min-w-0 flex-1">
                     {title ? (
-                        <h3
+                        <h2
                             className={`truncate text-sm font-medium sm:text-base ${
                                 variant === 'primary' ? '' : 'text-[var(--becpg-blue)]'
                             }`}
                         >
                             {title}
-                        </h3>
+                        </h2>
                     ) : null}
                     {subtitle ? (
                         <p
@@ -159,7 +157,7 @@ export function Card({
                     className={`border-t px-4 py-3 text-sm ${
                         variant === 'primary'
                             ? 'border-white/25'
-                            : 'border-[var(--becpg-blue-lighter)] bg-[rgba(228,236,238,0.35)] rounded-b-xl'
+                            : 'border-[var(--becpg-blue-lighter)] bg-[rgba(228,236,238,0.35)] rounded-b-2xl'
                     }`}
                 >
                     {footer}
@@ -263,12 +261,11 @@ export function CardGrid({ columns = 3, className = '', children }) {
 export function SectionHeader({ title, subtitle, actions, icon, className = '' }) {
     return (
         <div className={`mb-3 flex flex-wrap items-end justify-between gap-2 ${className}`}>
-            {/* The 3px `--becpg-orange` rail is the range's section marker — the
-                same signal `.nav-item-active` and `.becpg-toolbar-edge` use, so a
-                heading reads as beCPG on every screen without a single new colour.
-                3.73:1 on white: a rule, not text, so 1.4.11's 3:1 is the bar. */}
-            <div className="min-w-0 border-s-[3px] border-s-[var(--becpg-orange)] ps-2.5">
-                <h2 className="flex items-center gap-2 text-base font-medium text-[var(--becpg-blue)] sm:text-lg">
+            {/* A 3px `--becpg-teal` rail marks a section, as on the beCPG website;
+                orange stays for what asks the supplier to act. 5.42:1 on white, a
+                rule rather than text, so 1.4.11's 3:1 is the bar. */}
+            <div className="min-w-0 border-s-[3px] border-s-[var(--becpg-teal)] ps-2.5">
+                <h2 className="flex items-center gap-2 text-base font-medium text-[var(--becpg-ink)] sm:text-lg">
                     {icon ? <span className="flex shrink-0 items-center">{icon}</span> : null}
                     <span className="min-w-0">{title}</span>
                 </h2>

@@ -18,7 +18,6 @@
  * thing that can turn a nodeRef into a product name.
  */
 
-import { Icon } from '@/components/ui/Button';
 import { controlParams, numberFormat } from '@/components/form/validation';
 import {
     formatDate,
@@ -201,9 +200,8 @@ export function ReadOnlyControl({
         <div
             id={id}
             className={[
-                'flex min-h-[40px] items-start gap-1.5 rounded-lg bg-[var(--becpg-grey)]/60 px-3 py-2 text-sm',
-                'whitespace-pre-wrap break-words',
-                empty ? 'text-[var(--becpg-dark-grey)]' : 'text-[var(--becpg-blue)]',
+                'flex items-start gap-1.5 text-sm whitespace-pre-wrap break-words',
+                empty ? 'font-normal text-[var(--becpg-dark-grey-deep)]' : 'font-semibold text-[var(--becpg-ink)]',
                 className,
             ]
                 .filter(Boolean)
@@ -215,25 +213,4 @@ export function ReadOnlyControl({
     );
 }
 
-/**
- * A read-only value that is *not* editable by design (a computed score, a SPEL
- * formula, a decision tree). Same rendering, plus the lock affordance, so the
- * supplier understands the difference between "not yours to fill" and "empty".
- *
- * @param {import('./index').ControlProps} props
- */
-export function LockedControl(props) {
-    return (
-        <div className="relative">
-            <ReadOnlyControl {...props} className="pe-9" />
-            <Icon
-                name="lock_outline"
-                size={16}
-                className="absolute end-3 top-2.5 text-[var(--becpg-dark-grey)]"
-            />
-        </div>
-    );
-}
-
 ReadOnlyControl.handlesRepeating = true;
-LockedControl.handlesRepeating = true;

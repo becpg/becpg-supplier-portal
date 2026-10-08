@@ -384,7 +384,7 @@ function SuggestionCard({
             <div className="mt-2 flex flex-wrap items-center gap-2">
                 {applied ? (
                     <span className="inline-flex items-center gap-1 text-xs text-[var(--becpg-dark-grey)]">
-                        <Icon name="check_circle" size={15} className="text-[var(--becpg-green)]" />
+                        <Icon name="check_circle" size={15} className="text-[var(--becpg-teal)]" />
                         {labels.appliedAt}
                     </span>
                 ) : null}
@@ -718,7 +718,7 @@ export function SuggestionsStep({
             ) : (
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                     <div className="min-w-0">
-                        <h3 className="text-base font-medium text-[var(--becpg-blue)]">{labels.title}</h3>
+                        <h2 className="text-base font-medium text-[var(--becpg-blue)]">{labels.title}</h2>
                         <p className="text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
                     </div>
                     {onRefresh ? (
@@ -730,7 +730,7 @@ export function SuggestionsStep({
             )}
 
             {readOnly ? (
-                <p className="mb-3 rounded-xl border border-[var(--becpg-grey)] bg-[var(--becpg-grey)]/40 p-3 text-sm text-[var(--becpg-dark-grey)]">
+                <p className="mb-3 rounded-xl border border-[var(--becpg-grey)] bg-[var(--becpg-grey)]/40 p-3 text-sm text-[var(--becpg-dark-grey-deep)]">
                     {labels.readOnly}
                 </p>
             ) : null}

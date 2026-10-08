@@ -240,7 +240,7 @@ export function DocumentList({ documents = [], total, index = 0, className = '' 
                                             <span className="truncate">{scope}</span>
                                         </span>
                                         {document.isMandatory ? (
-                                            <span className="rounded bg-[var(--becpg-grey)] px-1.5 py-px text-[0.6875rem] text-[var(--becpg-dark-grey)]">
+                                            <span className="rounded bg-[var(--becpg-grey)] px-1.5 py-px text-[0.6875rem] text-[var(--becpg-dark-grey-deep)]">
                                                 {local.mandatory}
                                             </span>
                                         ) : null}
@@ -272,7 +272,7 @@ export function DocumentList({ documents = [], total, index = 0, className = '' 
                                             download
                                             aria-label={local.download}
                                             title={local.download}
-                                            className="hidden h-9 w-9 items-center justify-center rounded-lg text-[var(--becpg-dark-grey)] transition-colors hover:bg-[var(--becpg-grey)] hover:text-[var(--becpg-blue)] sm:flex"
+                                            className="hidden h-9 w-9 items-center justify-center rounded-lg text-[var(--becpg-dark-grey-deep)] transition-colors hover:bg-[var(--becpg-grey)] hover:text-[var(--becpg-blue)] sm:flex"
                                         >
                                             <Icon name="download" size={18} />
                                         </a>

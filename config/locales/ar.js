@@ -47,7 +47,6 @@ const LOCALE = {
         "emptyList": "لا يوجد صف",
         "emptyListHint": "لم يُملأ هذا القسم بعد.",
         "questionnaire": "تمت الإجابة عن {done} / {total} من الأسئلة",
-        "completion": "الإنجاز",
         "noProperties": "لا توجد خاصية لعرضها",
         "yes": "نعم",
         "no": "لا",
@@ -962,7 +961,7 @@ const LOCALE = {
             "supplierRef": "مرجع المورّد",
             "certificateDate": "تاريخ الشهادة",
             "modified": "تاريخ التحديث",
-            "actions": ""
+            "actions": "الإجراءات"
         },
         "stats": {
             "total": "المنتجات",
@@ -1432,8 +1431,7 @@ const LOCALE = {
     },
     "components/form/FieldRenderer#LABELS": {
         "add": "إضافة قيمة",
-        "remove": "إزالة هذه القيمة",
-        "locked": "حقل مقفل"
+        "remove": "إزالة هذه القيمة"
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "لا يوجد حقل للتعبئة",
@@ -1966,8 +1964,13 @@ const LOCALE = {
         "goToField": "الانتقال إلى الحقل",
         "notScored": "غير مُقيَّم"
     },
+    "components/products/CompletionMeter#LABELS": {
+        "title": "الاكتمال",
+        "noScore": "لم يُقيَّم بعد",
+        "notCounted": "خارج التقييم",
+        "more": "+ {count} كتالوج آخر"
+    },
     "components/products/ProductHeader#LABELS": {
-        "completion": "الإنجاز",
         "code": "الرمز",
         "branch": "تحديث قيد التنفيذ",
         "branchFrom": "تحديث للإصدار {version}",
@@ -1982,7 +1985,6 @@ const LOCALE = {
         "version": "الإصدار",
         "legalName": "الاسم القانوني",
         "back": "منتجاتي",
-        "noScore": "لم يُقيَّم بعد",
         "types": {
             "bcpg:rawMaterial": "مادة خام",
             "bcpg:finishedProduct": "منتج نهائي",

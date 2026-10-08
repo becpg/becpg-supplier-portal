@@ -164,7 +164,7 @@ function Message({ message, mine, labels, lang, index }) {
             className={`flex gap-2.5 ${mine ? 'flex-row-reverse' : ''}`}
         >
             <span
-                className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
+                className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full leading-none text-xs font-medium ${
                     mine
                         ? 'bg-[var(--becpg-blue)] text-white'
                         : 'bg-[var(--becpg-grey)] text-[var(--becpg-blue)]'

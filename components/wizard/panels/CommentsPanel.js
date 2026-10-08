@@ -248,7 +248,7 @@ function MessageItem({ message, index, lang, labels }) {
                 to tell them apart. A remark written in beCPG carries no row
                 label, so it is named by its list alone rather than not at all. */}
             {message.field || message.source ? (
-                <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-[var(--becpg-grey)]/60 px-1.5 py-0.5 text-[11px] text-[var(--becpg-dark-grey)]">
+                <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-[var(--becpg-grey)]/60 px-1.5 py-0.5 text-[11px] text-[var(--becpg-dark-grey-deep)]">
                     <Icon name="my_location" size={12} />
                     {message.field
                         ? fill(labels.anchored, { label: message.field })

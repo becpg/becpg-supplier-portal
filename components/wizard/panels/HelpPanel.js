@@ -100,7 +100,7 @@ function Section({ id, icon, title, count, open, onToggle, children }) {
                     <Icon name={icon} size={18} className="shrink-0 text-[var(--becpg-dark-grey)]" />
                     <span className="min-w-0 flex-1 truncate">{title}</span>
                     {count > 0 ? (
-                        <span className="shrink-0 rounded-full bg-[var(--becpg-grey)] px-1.5 py-0.5 text-[11px] text-[var(--becpg-dark-grey)]">
+                        <span className="inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-[var(--becpg-grey)] px-1.5 text-[11px] leading-none tabular-nums text-[var(--becpg-dark-grey-deep)]">
                             {count}
                         </span>
                     ) : null}

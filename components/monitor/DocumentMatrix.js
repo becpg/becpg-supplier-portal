@@ -578,7 +578,7 @@ export function DocumentMatrix({
                                                             <a
                                                                 href={cell.downloadUrl}
                                                                 title={`${labels.download} — ${cell.documentName || column.label}`}
-                                                                className="rounded p-1 text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)] hover:text-[var(--becpg-blue)]"
+                                                                className="rounded p-1 text-[var(--becpg-dark-grey-deep)] hover:bg-[var(--becpg-grey)] hover:text-[var(--becpg-blue)]"
                                                             >
                                                                 <Icon name="download" size={14} />
                                                                 <span className="sr-only-text">{labels.download}</span>

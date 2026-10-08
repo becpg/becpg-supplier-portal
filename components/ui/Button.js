@@ -67,7 +67,7 @@ export function Icon({ name, size = 20, className = '', ...rest }) {
  *   white on `--becpg-orange-deep` ............ 4.83:1  ✓ (active 5.92:1)
  *   `--becpg-blue` on white / blue-lighter .... 11.01 / 8.72:1 ✓
  *   white on `--status-danger` ................. 6.54:1 ✓
- *   `--becpg-dark-grey` on white .............. 4.67:1 ✓
+ *   `--becpg-dark-grey` on white .............. 5.92:1 ✓
  *   `--becpg-blue-light` on white ............. 7.04:1 ✓ (link hover, deep orange 4.83:1)
  *
  * Every hover *darkens*: `brightness-110` used to lighten the accent and the
@@ -88,15 +88,17 @@ const VARIANTS = {
     danger:
         'bg-[var(--status-danger)] text-white border border-transparent hover:brightness-90 shadow-[0_1px_2px_rgba(0,66,84,0.25)]',
     subtle:
-        'bg-transparent text-[var(--becpg-dark-grey)] border border-transparent hover:bg-[var(--becpg-grey)] hover:text-[var(--becpg-blue)]',
+        'bg-transparent text-[var(--becpg-dark-grey-deep)] border border-transparent hover:bg-[var(--becpg-grey)] hover:text-[var(--becpg-blue)]',
     link: 'bg-transparent text-[var(--becpg-blue-light)] border border-transparent underline underline-offset-2 hover:text-[var(--becpg-orange-deep)] p-0',
 };
 
+/* Pill-shaped, as the buttons of the beCPG website; a pill needs a little more
+   side padding than a rounded rectangle to keep its label off the curve. */
 const SIZES = {
-    sm: 'text-xs px-2.5 py-1.5 gap-1.5 rounded-md min-h-[32px]',
-    md: 'text-sm px-3.5 py-2 gap-2 rounded-lg min-h-[40px]',
-    lg: 'text-base px-5 py-2.5 gap-2 rounded-lg min-h-[48px]',
-    icon: 'p-2 gap-0 rounded-lg min-h-[40px] min-w-[40px] justify-center',
+    sm: 'text-xs px-3 py-1.5 gap-1.5 rounded-full min-h-[32px]',
+    md: 'text-sm px-4 py-2 gap-2 rounded-full min-h-[40px]',
+    lg: 'text-base px-6 py-2.5 gap-2 rounded-full min-h-[48px]',
+    icon: 'p-2 gap-0 rounded-full min-h-[40px] min-w-[40px] justify-center',
 };
 
 const ICON_SIZES = { sm: 16, md: 18, lg: 20, icon: 20 };

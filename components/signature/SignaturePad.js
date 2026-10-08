@@ -475,7 +475,7 @@ export function SignaturePad({
                             className={`touch-target inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] ${
                                 kind === tab.value
                                     ? 'bg-[var(--becpg-blue)] text-white'
-                                    : 'text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)]'
+                                    : 'text-[var(--becpg-dark-grey-deep)] hover:bg-[var(--becpg-grey)]'
                             }`}
                         >
                             <Icon name={tab.icon} size={16} />

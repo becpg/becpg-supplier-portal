@@ -58,7 +58,7 @@ const LABELS = defineLabels('app/products/page#LABELS', {
             supplierRef: 'Réf. fournisseur',
             certificateDate: 'Date de référencement',
             modified: 'Mise à jour',
-            actions: '',
+            actions: 'Actions',
         },
         stats: {
             total: 'Produits',
@@ -89,7 +89,7 @@ const LABELS = defineLabels('app/products/page#LABELS', {
             supplierRef: 'Supplier reference',
             certificateDate: 'Certificate date',
             modified: 'Updated',
-            actions: '',
+            actions: 'Actions',
         },
         stats: {
             total: 'Products',
@@ -323,7 +323,7 @@ export default function ProductsPage() {
                 // Only a validated sheet can be reopened; a draft is still being
                 // worked on through the task that opened it.
                 id: 'actions',
-                header: labels.columns.actions,
+                header: () => <span className="sr-only">{labels.columns.actions}</span>,
                 enableSorting: false,
                 meta: { align: 'right', label: labels.request, width: '3.5rem', hideOnCard: true },
                 cell: ({ row }) => (row.original.state === VALID_STATE ? (

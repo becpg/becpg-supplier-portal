@@ -1031,7 +1031,7 @@ export function SignatureFlow({
         : fill(labels.progress, { seen: reading.seenCount, pages: reading.pageCount || '…' });
 
     return (
-        <AppShell title={labels.title} hideNav>
+        <AppShell ownHeading title={labels.title} hideNav>
             {header}
 
             {external ? (

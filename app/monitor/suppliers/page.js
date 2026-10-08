@@ -332,7 +332,7 @@ function MonitorSuppliersScreen() {
         || Object.values(state.filters).some((value) => Boolean(value));
 
     return (
-        <AppShell
+        <AppShell ownHeading
             fullWidth
             space="monitor"
             title={local.title}

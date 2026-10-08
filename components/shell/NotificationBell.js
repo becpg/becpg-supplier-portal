@@ -562,7 +562,7 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                      */
                     <span
                         aria-hidden="true"
-                        className="absolute end-0.5 top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--becpg-orange-deep)] px-1 text-[10px] font-medium text-white ring-2 ring-white"
+                        className="absolute end-0.5 top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full leading-none bg-[var(--becpg-orange-deep)] px-1 text-[10px] font-medium tabular-nums text-white ring-2 ring-white"
                     >
                         {badge > 99 ? '99+' : badgeText}
                     </span>

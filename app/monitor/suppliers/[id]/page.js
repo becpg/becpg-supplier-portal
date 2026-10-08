@@ -559,7 +559,7 @@ export default function MonitorSupplierSheetPage() {
     }
 
     return (
-        <AppShell
+        <AppShell ownHeading
             fullWidth
             space="monitor"
             title={supplier ? supplier.name : local.back}

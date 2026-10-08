@@ -163,7 +163,7 @@ function MonitorOverviewScreen() {
     const payloadFilters = (data && data.filters) || {};
 
     return (
-        <AppShell
+        <AppShell ownHeading
             fullWidth
             space="monitor"
             title={local.title}

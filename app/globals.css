@@ -59,16 +59,13 @@
   --mdc-theme-text-icon-on-light: #ffffff;
 
   /*
-   * Kebab-case alias of `--becpg-darkGrey`.
-   *
-   * theme.css spells it camelCase, but CSS custom properties are
-   * case-sensitive and the whole portal (342 call sites) writes
-   * `var(--becpg-dark-grey)`. Without this alias every one of those
-   * declarations is invalid at computed-value time, so every "muted" label in
-   * the portal silently inherited the blue body colour instead of being grey.
-   * The alias — not a rename — keeps theme.css copy-pasteable.
+   * The portal's muted text colour, under the name its call sites use.
+   * Deliberately not `--becpg-darkGrey`: #747474 holds 4.67:1 on white only and
+   * falls under AA on every tinted surface the portal paints (4.42:1 on the
+   * page, 3.90:1 on `--becpg-grey`). `--becpg-muted`, declared below, clears
+   * 4.5:1 on all of them.
    */
-  --becpg-dark-grey: var(--becpg-darkGrey);
+  --becpg-dark-grey: var(--becpg-muted);
 
   --background: #ffffff;
   --foreground: var(--becpg-blue);
@@ -106,6 +103,27 @@
    * uses inside a datagrid, a chip or a disabled control.
    */
   --becpg-dark-grey-deep: #666666;
+
+  /*
+   * The palette of the beCPG website, for the surfaces the five theme colours do
+   * not cover. Same petrol family, so nothing here reads as a sixth brand hue.
+   *
+   *   --becpg-teal          #00767b  on white 5.42:1 · positive fills, rails, field focus
+   *   --becpg-ink           #0b2b33  on white 14.92:1 · headings and values
+   *   --becpg-muted         #4f6870  on white 5.92:1 · labels, secondary text;
+   *                         4.94:1 on `--becpg-grey`, the darkest surface it meets
+   *   --becpg-line          #d9e5e6  hairlines and card edges, decoration only
+   *   --becpg-field-border  #76939b  on white 3.27:1 · the edge of a text field,
+   *                         which WCAG 1.4.11 wants at 3:1 (the former
+   *                         `--becpg-blue-lighter` edge measured 1.26:1)
+   */
+  --becpg-teal: #00767b;
+  --becpg-teal-wash: rgba(0, 118, 123, 0.15);
+  --becpg-teal-light: #00a99a;
+  --becpg-ink: #0b2b33;
+  --becpg-muted: #4f6870;
+  --becpg-line: #d9e5e6;
+  --becpg-field-border: #76939b;
 
   /*
    * Chrome states, derived — see the contrast notes in `.becpg-toolbar` below.
@@ -178,7 +196,7 @@
    * cool. `-raised` is the resting state of a card, `-lifted` is what
    * `.hover-lift` lands on, `-overlay` is for a popover / toast / dialog.
    */
-  --becpg-shadow-raised: 0 1px 2px rgba(0, 66, 84, 0.06), 0 2px 10px rgba(0, 66, 84, 0.04);
+  --becpg-shadow-raised: 0 1px 2px rgba(0, 67, 83, 0.06), 0 12px 32px -12px rgba(0, 67, 83, 0.22);
   --becpg-shadow-lifted: 0 10px 24px rgba(0, 66, 84, 0.14);
   --becpg-shadow-overlay: 0 12px 32px rgba(0, 66, 84, 0.18);
 
@@ -326,7 +344,7 @@
   --color-becpg-green: #00ffbd;
   --color-becpg-grey: #e4ecee;
   --color-becpg-orange: #ff642d;
-  --color-becpg-dark-grey: #747474;
+  --color-becpg-dark-grey: var(--becpg-dark-grey);
 
   --color-becpg-blue-light: var(--becpg-blue-light);
   --color-becpg-blue-lighter: var(--becpg-blue-lighter);
@@ -355,6 +373,11 @@ body {
   font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings in ink, as on the website. Zero specificity: a class always wins. */
+:where(h1, h2, h3) {
+  color: var(--becpg-ink);
 }
 
 .mdc-drawer-app-content {
@@ -736,10 +759,10 @@ body {
 /*
  * Active state, contrast-checked on the white rail:
  *   surface `--becpg-blue`, label #ffffff ..... 11.0:1 ✓
- *   icon `--becpg-orange-light` on blue ....... 4.74:1 ✓
- *   3px `--becpg-orange` rail on blue ......... 3.73:1 ✓ (non-text, 3:1)
+ *   icon `--becpg-green` on blue .............. 8.41:1 ✓
+ *   3px `--becpg-green` rail on blue .......... 8.41:1 ✓ (non-text, 3:1)
  * The state is also carried by `aria-current="page"`, the surface change and
- * the heavier label — never by the orange alone.
+ * the heavier label — never by the colour alone.
  */
 .nav-item {
   position: relative;
@@ -773,17 +796,17 @@ body {
   bottom: 0.375rem;
   width: 3px;
   border-radius: 9999px;
-  background-color: var(--becpg-orange);
+  background-color: var(--becpg-green);
 }
 
 .nav-item-active .nav-item-icon {
-  color: var(--becpg-orange-light);
+  color: var(--becpg-green);
 }
 
 /*
  * The sidebar folded to its icons.
  *
- * Only the box changes: the active entry keeps the 3px orange bar of
+ * Only the box changes: the active entry keeps the 3px green bar of
  * `.nav-item-active::before`, which is what still names the current screen once
  * the words are gone.
  */
@@ -2142,6 +2165,73 @@ body {
 @container (min-width: 68rem) {
   .form-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/*
+ * A read-only field: a term and its definition, as Share renders a form in view
+ * mode. The value carries the weight, because it is what the reader came for;
+ * the label is quiet and muted.
+ *
+ * Stacked on a narrow form, side by side once the form has room: the label
+ * column holds 11rem, or 40% of a narrow cell, so every value of a section
+ * starts on the same vertical. A hairline under each pair keeps the eye on the
+ * row across the gap.
+ *
+ *   label `--becpg-muted` on white ... 5.92:1 ✓
+ *   value `--becpg-ink` on white ..... 14.92:1 ✓
+ */
+.field-readonly {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0;
+}
+
+.field-readonly-term {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  font-size: 0.875rem;
+  color: var(--becpg-muted);
+}
+
+.field-readonly-value {
+  margin: 0;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--becpg-ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.field-readonly-empty {
+  font-weight: 400;
+  color: var(--becpg-dark-grey-deep);
+}
+
+/*
+ * A bar cut into ten segments, one per tenth: the eye counts them faster than
+ * it reads a length. The cut is a mask, so the fill underneath stays one
+ * element and its width can animate.
+ */
+.meter-segments {
+  --meter-gap: 2px;
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 calc(10% - var(--meter-gap)), transparent calc(10% - var(--meter-gap)) 10%);
+  mask-image: repeating-linear-gradient(90deg, #000 0 calc(10% - var(--meter-gap)), transparent calc(10% - var(--meter-gap)) 10%);
+}
+
+@container (min-width: 40rem) {
+  .field-readonly {
+    display: grid;
+    grid-template-columns: minmax(0, min(11rem, 40%)) minmax(0, 1fr);
+    column-gap: 1rem;
+    align-items: baseline;
+    padding-block: 0.5rem;
+    border-bottom: 1px solid var(--becpg-line);
   }
 }
 

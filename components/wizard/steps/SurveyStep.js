@@ -333,7 +333,7 @@ export function SurveyStep({
             <div className="mb-3 flex flex-col gap-2">
                 <div className="flex flex-wrap items-center gap-2">
                     {title ? (
-                        <h3 className="text-base font-medium text-[var(--becpg-blue)]">{title}</h3>
+                        <h2 className="text-base font-medium text-[var(--becpg-blue)]">{title}</h2>
                     ) : null}
                     {readOnly ? (
                         <StatusPill status="readonly" tone="neutral" icon="lock" size="sm" label={labels.readOnly} />

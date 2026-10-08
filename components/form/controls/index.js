@@ -85,7 +85,7 @@ import { DateControl } from '@/components/form/controls/DateControl';
 import { MlTextControl } from '@/components/form/controls/MlTextControl';
 import { NumberControl } from '@/components/form/controls/NumberControl';
 import { NumberUnitControl } from '@/components/form/controls/NumberUnitControl';
-import { LockedControl, ReadOnlyControl, formatValue } from '@/components/form/controls/ReadOnlyControl';
+import { ReadOnlyControl, formatValue } from '@/components/form/controls/ReadOnlyControl';
 import { SelectControl } from '@/components/form/controls/SelectControl';
 import { SizeControl } from '@/components/form/controls/SizeControl';
 import { TextControl } from '@/components/form/controls/TextControl';
@@ -199,13 +199,13 @@ export const CONTROL_REGISTRY = {
     'readonly.ftl': ReadOnlyControl,
     readonly: ReadOnlyControl,
     /* Computed by beCPG, never typed by a supplier. */
-    'spel-editor.ftl': LockedControl,
-    spel: LockedControl,
-    'nutrient-class.ftl': LockedControl,
-    'nutrient-score': LockedControl,
-    'ecoscore-class.ftl': LockedControl,
-    ecoscore: LockedControl,
-    'config-editor.ftl': LockedControl,
+    'spel-editor.ftl': ReadOnlyControl,
+    spel: ReadOnlyControl,
+    'nutrient-class.ftl': ReadOnlyControl,
+    'nutrient-score': ReadOnlyControl,
+    'ecoscore-class.ftl': ReadOnlyControl,
+    ecoscore: ReadOnlyControl,
+    'config-editor.ftl': ReadOnlyControl,
 
     /* --- Not renderable here, degraded on purpose ------------------------ */
     /* A decision tree is a Share widget with its own state machine. */
@@ -379,7 +379,6 @@ export {
     BooleanControl,
     DateControl,
     DatasourcePicker,
-    LockedControl,
     MlTextControl,
     NumberControl,
     NumberUnitControl,

@@ -170,7 +170,7 @@ export default function CampaignPage() {
     }
 
     return (
-        <AppShell
+        <AppShell ownHeading
             title={campaign.name}
             fullWidth
             aside={

@@ -29,31 +29,29 @@ export const DEFAULT_THRESHOLDS = Object.freeze([
 /**
  * Tone → `{ fill, rim, text }`.
  *
- * The brief is "`--becpg-green` for good, orange for warning, red for danger",
- * and the first two of those cannot be used naively: on the `--becpg-grey`
- * track, `#00ffbd` measures **1.09:1** and `#ff642d` **2.46:1**, so a mint arc
- * is literally invisible and an orange one is below the 3:1 that WCAG 1.4.11
- * asks of a graphical object.
+ * Good is `--becpg-teal`, not the mint `--becpg-green`: on the `--becpg-grey`
+ * track the mint measures 1.09:1, an arc nobody can see, while the teal holds
+ * 4.52:1 on its own. The orange still needs help — `#ff642d` is 2.46:1 on the
+ * track, below the 3:1 WCAG 1.4.11 asks of a graphical object — so a tone may
+ * edge its fill with a 1.5px **rim** of the same hue, dark enough to draw the
+ * shape:
  *
- * Hence two colours per tone instead of one: the **fill** is the brand colour,
- * and it is edged with a 1.5px **rim** of the same hue, dark enough to draw the
- * shape. The mint is what you see, the rim is what makes it legible:
- *
- *   ok      fill `--becpg-green`        rim `--status-ok`          rim vs track 4.44:1 ✓
+ *   ok      fill `--becpg-teal`         rim = fill                 4.52:1 ✓
  *   warn    fill `--becpg-orange`       rim `--becpg-orange-deep`  rim vs track 4.03:1 ✓
  *   danger  fill `--status-danger`      rim = fill                 5.46:1 ✓
  *   info    fill `--becpg-blue-light`   rim = fill                 5.87:1 ✓
  *   neutral fill `--becpg-dark-grey`    rim `--becpg-dark-grey-deep`     ✓
  *
- * `text` is what the numeric label uses — never the fill: `#00ffbd` as text on
- * white is 1.40:1. It is the rim colour, 4.5:1 or better in every tone.
+ * `text` is what the numeric label uses, 4.5:1 or better in every tone and on
+ * every row surface: the warn label is `--becpg-orange-deep-active`, because
+ * `--becpg-orange-deep` drops to 4.38:1 on a zebra stripe.
  */
 const TONES = {
-    ok: { fill: 'var(--becpg-green)', rim: 'var(--status-ok)', text: 'var(--status-ok)' },
+    ok: { fill: 'var(--becpg-teal)', rim: 'var(--becpg-teal)', text: 'var(--status-ok)' },
     warn: {
         fill: 'var(--becpg-orange)',
         rim: 'var(--becpg-orange-deep)',
-        text: 'var(--becpg-orange-deep)',
+        text: 'var(--becpg-orange-deep-active)',
     },
     danger: { fill: 'var(--status-danger)', rim: 'var(--status-danger)', text: 'var(--status-danger)' },
     info: { fill: 'var(--becpg-blue-light)', rim: 'var(--becpg-blue-light)', text: 'var(--becpg-blue-light)' },
@@ -65,9 +63,19 @@ const TONES = {
     accent: {
         fill: 'var(--becpg-orange)',
         rim: 'var(--becpg-orange-deep)',
-        text: 'var(--becpg-orange-deep)',
+        text: 'var(--becpg-orange-deep-active)',
     },
 };
+
+/**
+ * The colours of a tone — see {@link TONES}.
+ *
+ * @param {string} tone
+ * @returns {{fill: string, rim: string, text: string}}
+ */
+export function tonePalette(tone) {
+    return TONES[tone] || TONES.neutral;
+}
 
 /**
  * Picks a tone from a percentage.

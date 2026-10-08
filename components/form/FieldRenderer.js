@@ -39,8 +39,8 @@ import { compactEntries, reconcileRows, replaceRow, seedRows } from '@/component
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 const LABELS = defineLabels('components/form/FieldRenderer#LABELS', {
-    fr: { add: 'Ajouter une valeur', remove: 'Retirer cette valeur', locked: 'Champ verrouillé' },
-    en: { add: 'Add a value', remove: 'Remove this value', locked: 'Locked field' },
+    fr: { add: 'Ajouter une valeur', remove: 'Retirer cette valeur' },
+    en: { add: 'Add a value', remove: 'Remove this value' },
 });
 
 /** Prefix of every field id. Also the anchor the compliance panel jumps to. */
@@ -258,22 +258,11 @@ export function FieldRenderer({
             help={tooltip}
             description={description}
             required={needsAnswer(field) && !isReadOnly}
+            readOnly={isReadOnly}
             error={message}
             id={id}
             full={Boolean(control.fullWidth)}
-            badge={
-                <>
-                    {isReadOnly ? (
-                        <Icon
-                            name="lock_outline"
-                            size={14}
-                            className="text-[var(--becpg-dark-grey)]"
-                            title={labels.locked}
-                        />
-                    ) : null}
-                    {badge}
-                </>
-            }
+            badge={badge}
             action={action}
             className={className}
         >

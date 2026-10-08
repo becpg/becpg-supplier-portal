@@ -75,18 +75,21 @@ export function Field({
         .filter(Boolean)
         .join(' ');
 
-    const control = readOnly ? (
-        /* A frozen / delegated value. It is a *read* surface, so it says so with a
-           `--becpg-blue` rail on the left — the same 3px signal the nav and the
-           section headers use — rather than by looking like a broken input. */
-        <div className="min-h-[40px] whitespace-pre-wrap break-words rounded-lg border-s-[3px] border-s-[var(--becpg-blue-light)] bg-[var(--becpg-grey)] px-3 py-2 text-sm text-[var(--becpg-blue)]">
-            {value === null || value === undefined || value === '' ? (
-                <span className="text-[var(--becpg-dark-grey-deep)]">—</span>
-            ) : (
-                value
-            )}
-        </div>
-    ) : isValidElement(children) ? (
+    if (readOnly) {
+        return (
+            <ReadOnlyField
+                label={label}
+                help={help}
+                badge={badge}
+                action={action}
+                full={full}
+                className={className}
+                value={children ?? value}
+            />
+        );
+    }
+
+    const control = isValidElement(children) ? (
         cloneElement(children, {
             id: children.props.id || controlId,
             'aria-describedby': describedBy || undefined,
@@ -121,8 +124,8 @@ export function Field({
                     .join(' ')}
             >
                 <label
-                    htmlFor={readOnly ? undefined : controlId}
-                    className="min-w-0 text-sm font-medium text-[var(--becpg-blue)]"
+                    htmlFor={controlId}
+                    className="min-w-0 text-sm text-[var(--becpg-muted)]"
                 >
                     <span className="break-words">{label}</span>
                     {required ? (
@@ -136,13 +139,6 @@ export function Field({
                     ) : null}
                 </label>
                 {help ? <Tooltip content={help} label={typeof label === 'string' ? label : undefined} /> : null}
-                {readOnly ? (
-                    <Icon
-                        name="lock_outline"
-                        size={14}
-                        className="text-[var(--becpg-dark-grey)]"
-                    />
-                ) : null}
                 {badge}
                 {/* What a control has to say about itself — the languages of a
                     `d:mltext`, and how many are still owed. Empty for every
@@ -175,17 +171,52 @@ export function Field({
 }
 
 /**
+ * A read-only field, as Share renders a form in view mode: the label quiet, the
+ * value in bold, no box. A term and its definition, so a screen reader announces
+ * the pair; the layout lives in globals.css (`.field-readonly`).
+ *
+ * @param {Object} props
+ * @param {React.ReactNode} props.label
+ * @param {React.ReactNode} [props.help]
+ * @param {React.ReactNode} [props.badge]
+ * @param {React.ReactNode} [props.action]
+ * @param {boolean} [props.full]
+ * @param {string} [props.className]
+ * @param {React.ReactNode} [props.value] the value, or the read-only control that renders it
+ */
+function ReadOnlyField({ label, help, badge, action, full, className, value }) {
+    const [headerSlot, setHeaderSlot] = useState(null);
+    const empty = value === null || value === undefined || value === '';
+    return (
+        <dl className={['field-readonly', full ? 'form-grid-full' : '', className].filter(Boolean).join(' ')}>
+            <dt className="field-readonly-term">
+                <span className="break-words">{label}</span>
+                {help ? <Tooltip content={help} label={typeof label === 'string' ? label : undefined} /> : null}
+                {badge}
+                <span ref={setHeaderSlot} className="inline-flex min-w-0 items-center gap-1.5" />
+                {action ? <span className="ms-auto">{action}</span> : null}
+            </dt>
+            <dd className={empty ? 'field-readonly-value field-readonly-empty' : 'field-readonly-value'}>
+                <FieldHeaderSlotProvider value={headerSlot}>{empty ? EMPTY_VALUE : value}</FieldHeaderSlotProvider>
+            </dd>
+        </dl>
+    );
+}
+
+/** What an empty read-only value shows: a dash, never a blank a reader could miss. */
+const EMPTY_VALUE = '—';
+
+/**
  * Shared control chrome. `invalid` is consumed here and never reaches the DOM.
  *
- * The resting border is `--becpg-blue-lighter`, not the neutral `--becpg-grey`:
- * a form sits on a white card which sits on a grey page, and a grey outline
- * around a white input on a card was the same value as the page behind it.
+ * The resting border is `--becpg-field-border` (3.27:1 on white): WCAG 1.4.11
+ * wants the edge of a text field at 3:1, which a pale blue edge never reached.
+ * The value is set in medium weight, the label beside it in regular: what the
+ * supplier typed is what the eye should land on.
  *
- * Focus is the **orange ring** — the range's indicator, the same one every
- * `Button`, the header and the sidebar use. It used to be blue-light here, which
- * meant the portal had two different focus colours depending on whether you had
- * tabbed onto a button or into a field. The border darkens to
- * `--becpg-blue-light` at the same time, so focus is never colour-only.
+ * Focus turns the border `--becpg-teal` (5.42:1) and lays a soft teal halo
+ * around it, the field state of the beCPG website. The border change alone
+ * carries focus, so it is never a matter of the halo's colour.
  *
  * Disabled is a *surface* change, not `opacity`: `--becpg-grey` with a
  * `--becpg-dark-grey-deep` value (4.79:1) — a frozen field still has to be
@@ -193,14 +224,14 @@ export function Field({
  */
 function controlClasses(invalid, extra = '') {
     return [
-        'w-full rounded-lg border bg-white px-3 py-2 text-sm text-[var(--becpg-blue)]',
-        'transition-colors placeholder:text-[var(--becpg-dark-grey)]',
-        'focus:outline-none focus:ring-2 focus:ring-offset-0',
+        'w-full rounded-[0.625rem] border bg-white px-3 py-2 text-sm font-medium text-[var(--becpg-ink)]',
+        'transition-[border-color,box-shadow] placeholder:font-normal placeholder:text-[var(--becpg-muted)]',
+        'focus:outline-none focus:ring-4 focus:ring-offset-0',
         invalid
-            ? 'border-[var(--status-danger)] focus:ring-[var(--status-danger)]'
-            : 'border-[var(--becpg-blue-lighter)] focus:border-[var(--becpg-blue-light)] focus:ring-[var(--becpg-orange)]',
-        'disabled:cursor-not-allowed disabled:border-[var(--becpg-blue-lighter)] disabled:bg-[var(--becpg-grey)] disabled:text-[var(--becpg-dark-grey-deep)]',
-        'min-h-[40px]',
+            ? 'border-[var(--status-danger)] focus:ring-[var(--status-danger-bg)]'
+            : 'border-[var(--becpg-field-border)] hover:border-[var(--becpg-blue)] focus:border-[var(--becpg-teal)] focus:ring-[var(--becpg-teal-wash)]',
+        'disabled:cursor-not-allowed disabled:border-[var(--becpg-blue-lighter)] disabled:bg-[var(--becpg-grey)] disabled:font-normal disabled:text-[var(--becpg-dark-grey-deep)]',
+        'min-h-[42px]',
         extra,
     ]
         .filter(Boolean)

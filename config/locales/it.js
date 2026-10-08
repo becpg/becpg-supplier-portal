@@ -47,7 +47,6 @@ const LOCALE = {
         "emptyList": "Nessuna riga",
         "emptyListHint": "Questa sezione non è ancora stata compilata.",
         "questionnaire": "{done} / {total} domande con risposta",
-        "completion": "Completamento",
         "noProperties": "Nessuna proprietà da visualizzare",
         "yes": "Sì",
         "no": "No",
@@ -962,7 +961,7 @@ const LOCALE = {
             "supplierRef": "Riferimento fornitore",
             "certificateDate": "Data del certificato",
             "modified": "Aggiornato",
-            "actions": ""
+            "actions": "Azioni"
         },
         "stats": {
             "total": "Prodotti",
@@ -1432,8 +1431,7 @@ const LOCALE = {
     },
     "components/form/FieldRenderer#LABELS": {
         "add": "Aggiungi un valore",
-        "remove": "Rimuovi questo valore",
-        "locked": "Campo bloccato"
+        "remove": "Rimuovi questo valore"
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "Nessun campo da compilare",
@@ -1966,8 +1964,13 @@ const LOCALE = {
         "goToField": "Vai al campo",
         "notScored": "Non valutato"
     },
+    "components/products/CompletionMeter#LABELS": {
+        "title": "Completezza",
+        "noScore": "Non ancora valutata",
+        "notCounted": "escluso dal punteggio",
+        "more": "+ altri {count} cataloghi"
+    },
     "components/products/ProductHeader#LABELS": {
-        "completion": "Completamento",
         "code": "Codice",
         "branch": "Aggiornamento in corso",
         "branchFrom": "Aggiornamento della versione {version}",
@@ -1982,7 +1985,6 @@ const LOCALE = {
         "version": "Versione",
         "legalName": "Denominazione legale",
         "back": "I miei prodotti",
-        "noScore": "Non ancora valutato",
         "types": {
             "bcpg:rawMaterial": "Materia prima",
             "bcpg:finishedProduct": "Prodotto finito",

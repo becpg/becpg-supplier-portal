@@ -47,7 +47,6 @@ const LOCALE = {
         "emptyList": "Keine Zeile",
         "emptyListHint": "Dieser Abschnitt wurde noch nicht ausgefüllt.",
         "questionnaire": "{done} / {total} Fragen beantwortet",
-        "completion": "Vollständigkeit",
         "noProperties": "Keine Eigenschaft anzuzeigen",
         "yes": "Ja",
         "no": "Nein",
@@ -962,7 +961,7 @@ const LOCALE = {
             "supplierRef": "Lieferantenreferenz",
             "certificateDate": "Zertifikatsdatum",
             "modified": "Aktualisiert",
-            "actions": ""
+            "actions": "Aktionen"
         },
         "stats": {
             "total": "Produkte",
@@ -1432,8 +1431,7 @@ const LOCALE = {
     },
     "components/form/FieldRenderer#LABELS": {
         "add": "Wert hinzufügen",
-        "remove": "Diesen Wert entfernen",
-        "locked": "Gesperrtes Feld"
+        "remove": "Diesen Wert entfernen"
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "Kein Feld auszufüllen",
@@ -1966,8 +1964,13 @@ const LOCALE = {
         "goToField": "Zum Feld",
         "notScored": "Nicht bewertet"
     },
+    "components/products/CompletionMeter#LABELS": {
+        "title": "Vollständigkeit",
+        "noScore": "Noch nicht bewertet",
+        "notCounted": "nicht in der Bewertung",
+        "more": "+ {count} weitere(r) Katalog(e)"
+    },
     "components/products/ProductHeader#LABELS": {
-        "completion": "Vollständigkeit",
         "code": "Code",
         "branch": "Aktualisierung in Bearbeitung",
         "branchFrom": "Aktualisierung der Version {version}",
@@ -1982,7 +1985,6 @@ const LOCALE = {
         "version": "Version",
         "legalName": "Firmierung",
         "back": "Meine Produkte",
-        "noScore": "Noch nicht bewertet",
         "types": {
             "bcpg:rawMaterial": "Rohstoff",
             "bcpg:finishedProduct": "Fertigprodukt",

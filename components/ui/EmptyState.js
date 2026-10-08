@@ -154,9 +154,9 @@ export function EmptyState({
             >
                 <Icon name={icon || palette.icon} size={compact ? 22 : 28} />
             </span>
-            <h3 className="relative text-sm font-medium text-[var(--becpg-blue)] sm:text-base">
+            <p className="relative text-sm font-medium text-[var(--becpg-blue)] sm:text-base">
                 {title || defaultTitle}
-            </h3>
+            </p>
             {finalMessage ? (
                 <p className="relative max-w-md text-xs leading-relaxed text-[var(--becpg-dark-grey)] sm:text-sm">
                     {finalMessage}

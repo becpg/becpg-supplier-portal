@@ -51,7 +51,7 @@ export default async function NotFound() {
 
     return (
         <main className="mx-auto flex min-h-[60vh] w-full max-w-lg flex-col items-center justify-center gap-4 px-4 py-12 text-center">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--becpg-grey)] text-[var(--becpg-dark-grey)]">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--becpg-grey)] text-[var(--becpg-dark-grey-deep)]">
                 <Icon name="search_off" size={28} />
             </span>
 

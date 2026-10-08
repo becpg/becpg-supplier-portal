@@ -326,7 +326,7 @@ export default function MonitorProductsPage() {
     );
 
     return (
-        <AppShell fullWidth space="monitor" title={labels.title}>
+        <AppShell ownHeading fullWidth space="monitor" title={labels.title}>
             <PageHeader title={labels.title} description={labels.subtitle} />
 
             <div className="mb-3 flex flex-wrap items-center gap-2">

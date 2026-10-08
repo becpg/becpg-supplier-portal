@@ -179,7 +179,7 @@ function StepsSummary({ steps, currentId, labels, variant = 'rail', onToggleColl
             aria-expanded={!collapsed}
             aria-label={collapsed ? labels.expand : labels.collapse}
             title={collapsed ? labels.expand : labels.collapse}
-            className="-me-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)]/60 hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+            className="-me-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--becpg-dark-grey-deep)] hover:bg-[var(--becpg-grey)]/60 hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
         >
             <Icon name={collapsed ? 'chevron_right' : 'chevron_left'} size={18} />
         </button>
@@ -275,13 +275,13 @@ function CollapsedStepButton({ step, index, total, active, selectable, onSelect,
                 <span
                     aria-hidden="true"
                     className={[
-                        'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-medium',
+                        'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full leading-none border text-[11px] font-medium',
                         incomplete
                             ? 'border-[var(--status-warn)] bg-[var(--status-warn-bg)] text-[var(--status-warn)]'
                             : active
                               ? 'border-[var(--becpg-blue)] bg-[var(--becpg-blue)] text-white'
                               : step.evaluated === true
-                                ? 'border-[var(--becpg-green)] bg-[var(--becpg-green)]/25 text-[var(--becpg-blue)]'
+                                ? 'border-[var(--becpg-teal)] bg-[var(--becpg-teal-wash)] text-[var(--becpg-teal)]'
                                 : 'border-[var(--becpg-grey)] bg-white text-[var(--becpg-dark-grey)]',
                     ].join(' ')}
                 >
@@ -458,14 +458,14 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
                     active
                         ? 'bg-[var(--becpg-blue)]/8 text-[var(--becpg-blue)]'
                         : selectable
-                          ? 'text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)]/50 hover:text-[var(--becpg-blue)]'
+                          ? 'text-[var(--becpg-dark-grey-deep)] hover:bg-[var(--becpg-grey)]/50 hover:text-[var(--becpg-blue)]'
                           : 'cursor-not-allowed text-[var(--becpg-dark-grey)]/60',
                 ].join(' ')}
             >
                 <span
                     aria-hidden="true"
                     className={[
-                        'mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-medium',
+                        'mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full leading-none border text-[11px] font-medium',
                         // Never colour alone: the icon changes with the state
                         // (`error_outline` here), and the accessible name says it
                         // in words — AGENTS.md, "status is never conveyed by
@@ -475,7 +475,7 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
                             : active
                               ? 'border-[var(--becpg-blue)] bg-[var(--becpg-blue)] text-white'
                               : done
-                                ? 'border-[var(--becpg-green)] bg-[var(--becpg-green)]/25 text-[var(--becpg-blue)]'
+                                ? 'border-[var(--becpg-teal)] bg-[var(--becpg-teal-wash)] text-[var(--becpg-teal)]'
                                 // A step walked through, on which nobody can rule —
                                 // a list, the conformity. Still its number, so it is
                                 // never read as "complete", but no longer identical

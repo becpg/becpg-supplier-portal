@@ -201,7 +201,7 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                     {title ? (
                         <>
                             <span className="toolbar-divider mx-1 hidden lg:block" aria-hidden="true" />
-                            <h1 className="hidden min-w-0 truncate text-sm font-medium lg:block">{title}</h1>
+                            <p className="hidden min-w-0 truncate text-sm font-medium lg:block">{title}</p>
                         </>
                     ) : null}
 
@@ -237,7 +237,7 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                             >
                                 {/* The monogram inverts on the blue bar: white
                                     chip, blue letters (11:1 either way). */}
-                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-xs font-medium text-[var(--becpg-blue)]">
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full leading-none bg-white text-xs font-medium text-[var(--becpg-blue)]">
                                     {initials(displayName)}
                                 </span>
                                 <span className="hidden max-w-[10rem] truncate text-sm md:block">
@@ -350,7 +350,7 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                     white strip — one block of chrome, not two. */}
                 {title ? (
                     <div className="border-t border-[var(--becpg-toolbar-divider)] px-3 py-2 lg:hidden">
-                        <h1 className="truncate text-sm font-medium">{title}</h1>
+                        <p className="truncate text-sm font-medium">{title}</p>
                     </div>
                 ) : null}
             </div>

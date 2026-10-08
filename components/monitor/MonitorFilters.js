@@ -475,7 +475,7 @@ export function MonitorFilters({
                 >
                     <span>{local.toggle}</span>
                     {count > 0 ? (
-                        <span className="ms-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[var(--becpg-orange)] px-1.5 text-[11px] font-medium text-white">
+                        <span className="ms-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full leading-none bg-[var(--becpg-orange-deep)] px-1.5 text-[11px] font-medium tabular-nums text-white">
                             {count}
                         </span>
                     ) : null}

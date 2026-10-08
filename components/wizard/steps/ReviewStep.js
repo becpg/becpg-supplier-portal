@@ -211,7 +211,7 @@ export function ComplianceStep({
     return (
         <div className={`min-w-0 ${className}`}>
             <div className="mb-3">
-                <h3 className="text-base font-medium text-[var(--becpg-blue)]">{labels.title}</h3>
+                <h2 className="text-base font-medium text-[var(--becpg-blue)]">{labels.title}</h2>
                 <p className="text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
             </div>
 

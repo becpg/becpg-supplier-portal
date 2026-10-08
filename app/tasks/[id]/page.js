@@ -240,7 +240,7 @@ function TaskRouter() {
     // actionable instead of being a dead end.
     if (!entityNodeRef) {
         return (
-            <AppShell title={data.name || labels.loading}>
+            <AppShell ownHeading title={data.name || labels.loading}>
                 <TaskHeader task={data} labels={labels} lang={lang} onDone={task.refresh} />
                 <EmptyState
                     variant="empty"
@@ -258,7 +258,7 @@ function TaskRouter() {
 
     if (data.type === 'document') {
         return (
-            <AppShell title={data.name || labels.documents}>
+            <AppShell ownHeading title={data.name || labels.documents}>
                 <TaskHeader task={data} labels={labels} lang={lang} onDone={task.refresh} />
                 <DocumentsStep
                     entityNodeRef={entityNodeRef}
@@ -297,7 +297,7 @@ function TaskRouter() {
      * wizard, at the exact place where he entered the data.
      */
     return (
-        <AppShell
+        <AppShell ownHeading
             title={data.name || labels.loading}
             fullWidth
             aside={wide ? <CommentsPanel entityNodeRef={entityNodeRef} title={labels.discussion} /> : null}

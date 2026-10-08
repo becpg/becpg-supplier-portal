@@ -29,7 +29,8 @@ import { Button, Icon } from '@/components/ui/Button';
 import { Card, SectionHeader } from '@/components/ui/Card';
 import { DataTable } from '@/components/ui/DataTable';
 import { Field } from '@/components/ui/Field';
-import { Gauge, GaugeBar } from '@/components/ui/Gauge';
+import { GaugeBar } from '@/components/ui/Gauge';
+import { CompletionMeter } from '@/components/products/CompletionMeter';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { ListIcon } from '@/components/ui/ListIcon';
@@ -83,7 +84,6 @@ const LABELS = defineLabels('app/company/page#LABELS', {
         emptyList: 'Aucune ligne',
         emptyListHint: 'Cette rubrique n’a pas encore été renseignée.',
         questionnaire: '{done} / {total} questions répondues',
-        completion: 'Complétude',
         noProperties: 'Aucune propriété à afficher',
         yes: 'Oui',
         no: 'Non',
@@ -125,7 +125,6 @@ const LABELS = defineLabels('app/company/page#LABELS', {
         emptyList: 'No row',
         emptyListHint: 'This section has not been filled in yet.',
         questionnaire: '{done} / {total} questions answered',
-        completion: 'Completion',
         noProperties: 'No property to display',
         yes: 'Yes',
         no: 'No',
@@ -524,7 +523,7 @@ export default function CompanyPage() {
     const metrics = (status && status.metrics) || {};
 
     return (
-        <AppShell
+        <AppShell ownHeading
             title={labels.title}
             headerStatus={
                 status ? <StatusPill status={status.status} label={status.statusLabel} size="sm" /> : null
@@ -565,12 +564,7 @@ export default function CompanyPage() {
                     </div>
                     <div className="flex flex-col items-start gap-3 sm:items-end">
                         {record && record.completion ? (
-                            <Gauge
-                                value={record.completion.score}
-                                size={92}
-                                thickness={9}
-                                label={labels.completion}
-                            />
+                            <CompletionMeter completion={record.completion} />
                         ) : null}
                         {record ? (
                             <Button variant="outline" size="sm" icon="published_with_changes" onClick={() => setRequesting(true)}>

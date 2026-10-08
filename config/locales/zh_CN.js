@@ -47,7 +47,6 @@ const LOCALE = {
         "emptyList": "无数据行",
         "emptyListHint": "此部分尚未填写。",
         "questionnaire": "已回答 {done} / {total} 个问题",
-        "completion": "完整度",
         "noProperties": "无可显示的属性",
         "yes": "是",
         "no": "否",
@@ -962,7 +961,7 @@ const LOCALE = {
             "supplierRef": "供应商编号",
             "certificateDate": "证书日期",
             "modified": "更新日期",
-            "actions": ""
+            "actions": "操作"
         },
         "stats": {
             "total": "产品",
@@ -1432,8 +1431,7 @@ const LOCALE = {
     },
     "components/form/FieldRenderer#LABELS": {
         "add": "添加值",
-        "remove": "删除此值",
-        "locked": "锁定字段"
+        "remove": "删除此值"
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "无需填写的字段",
@@ -1966,8 +1964,13 @@ const LOCALE = {
         "goToField": "前往该字段",
         "notScored": "未评分"
     },
+    "components/products/CompletionMeter#LABELS": {
+        "title": "完整度",
+        "noScore": "尚未评估",
+        "notCounted": "不计入得分",
+        "more": "另有 {count} 个目录"
+    },
     "components/products/ProductHeader#LABELS": {
-        "completion": "完整度",
         "code": "代码",
         "branch": "更新进行中",
         "branchFrom": "版本 {version} 的更新",
@@ -1982,7 +1985,6 @@ const LOCALE = {
         "version": "版本",
         "legalName": "法定名称",
         "back": "我的产品",
-        "noScore": "尚未评分",
         "types": {
             "bcpg:rawMaterial": "原料",
             "bcpg:finishedProduct": "成品",

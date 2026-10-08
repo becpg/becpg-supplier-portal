@@ -42,7 +42,7 @@ export function DataListToolbar({
             {heading || description ? (
                 <div className="flex flex-wrap items-center gap-2">
                     {heading ? (
-                        <h3 className="text-base font-medium text-[var(--becpg-blue)]">{heading}</h3>
+                        <h2 className="text-base font-medium text-[var(--becpg-blue)]">{heading}</h2>
                     ) : null}
                     {list.readOnly ? (
                         <StatusPill

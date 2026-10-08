@@ -3,10 +3,10 @@
 /**
  * The identity band of a product sheet.
  *
- * Everything a supplier needs to be sure he is looking at the right item, in one
+ * Everything a supplier needs to be sure they are looking at the right item, in one
  * glance and in one screen width: name, code, ERP code, type, state, the client
  * subsidiary it belongs to, the referencing project when there is one, and the
- * completion dial derived from `bcpg:entityScore`.
+ * completion per catalogue derived from `bcpg:entityScore`.
  *
  * It is read-only by construction — the portal's write path on a product is the
  * wizard, never this sheet (spec §4.2 "fiche produit (lecture …)").
@@ -34,7 +34,7 @@ import Link from 'next/link';
 import { useMessages } from '@/lib/messages';
 import { Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Gauge } from '@/components/ui/Gauge';
+import { CompletionMeter } from '@/components/products/CompletionMeter';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { formatDate } from '@/lib/format';
@@ -53,7 +53,6 @@ function fill(template, vars) {
 
 const LABELS = defineLabels('components/products/ProductHeader#LABELS', {
     fr: {
-        completion: 'Complétude',
         code: 'Code',
         branch: 'Mise à jour en cours',
         branchFrom: 'Mise à jour de la version {version}',
@@ -70,7 +69,6 @@ const LABELS = defineLabels('components/products/ProductHeader#LABELS', {
         version: 'Version',
         legalName: 'Dénomination légale',
         back: 'Mes produits',
-        noScore: 'Pas encore évalué',
         types: {
             'bcpg:rawMaterial': 'Matière première',
             'bcpg:finishedProduct': 'Produit fini',
@@ -84,7 +82,6 @@ const LABELS = defineLabels('components/products/ProductHeader#LABELS', {
         },
     },
     en: {
-        completion: 'Completion',
         code: 'Code',
         branch: 'Update in progress',
         branchFrom: 'Update of version {version}',
@@ -101,7 +98,6 @@ const LABELS = defineLabels('components/products/ProductHeader#LABELS', {
         version: 'Version',
         legalName: 'Legal name',
         back: 'My products',
-        noScore: 'Not scored yet',
         types: {
             'bcpg:rawMaterial': 'Raw material',
             'bcpg:finishedProduct': 'Finished product',
@@ -199,9 +195,6 @@ export function ProductHeader({
         );
     }
 
-    const completion = entity.completion || null;
-    const score = completion ? completion.score : null;
-
     return (
         <Card padding="lg" className={className}>
             {backHref ? (
@@ -214,7 +207,7 @@ export function ProductHeader({
                 </Link>
             ) : null}
 
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0 flex-1">
                     <h1 className="break-words text-lg font-medium leading-tight sm:text-xl">
                         {entity.name || '—'}
@@ -274,23 +267,8 @@ export function ProductHeader({
                     </div>
                 </div>
 
-                <div className="flex shrink-0 items-center gap-4">
-                    {showCompletion ? (
-                        <Gauge
-                            value={score}
-                            size={96}
-                            thickness={9}
-                            label={labels.completion}
-                            sublabel={
-                                completion && completion.catalogCount
-                                    ? `${completion.catalogCount} catalogue(s)`
-                                    : score === null
-                                      ? labels.noScore
-                                      : undefined
-                            }
-                            ariaLabel={labels.completion}
-                        />
-                    ) : null}
+                <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                    {showCompletion ? <CompletionMeter completion={entity.completion} /> : null}
                     {actions ? (
                         <div className="flex flex-col items-stretch gap-2">{actions}</div>
                     ) : null}

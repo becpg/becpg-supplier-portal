@@ -902,7 +902,7 @@ function Block({ block, lang }) {
                 {block.ul.map((entry, index) => (
                     <li key={index} className="flex gap-2 text-sm leading-relaxed">
                         <span
-                            className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--becpg-green)]"
+                            className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--becpg-teal)]"
                             aria-hidden="true"
                         />
                         <span className="min-w-0">{inline(entry)}</span>
@@ -916,7 +916,7 @@ function Block({ block, lang }) {
             <ol className="flex flex-col gap-2.5">
                 {block.ol.map((entry, index) => (
                     <li key={index} className="flex gap-2.5 text-sm leading-relaxed">
-                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--becpg-blue-lighter)] text-xs font-medium text-[var(--becpg-blue)]">
+                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full leading-none bg-[var(--becpg-blue-lighter)] text-xs font-medium text-[var(--becpg-blue)]">
                             {index + 1}
                         </span>
                         <span className="min-w-0">{inline(entry)}</span>
@@ -1180,8 +1180,8 @@ export default function HelpPage() {
                     </span>
                     {/*
                      * A lead paragraph, deliberately *not* a heading: the page
-                     * title ("Aide") is already the `<h1>` the app header
-                     * renders, and repeating it here would add a second h1 and
+                     * title ("Aide") is already the `<h1>` the app shell
+                     * provides, and repeating it here would add a second h1 and
                      * say nothing new. The big line is the sentence that is
                      * actually useful, the small one names the tenant.
                      */}

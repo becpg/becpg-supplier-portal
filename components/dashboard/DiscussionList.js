@@ -148,7 +148,7 @@ export function DiscussionList({ threads = [], index = 0, className = '' }) {
                                     unread ? ' bg-[var(--becpg-orange)]/5' : ''
                                 }`}
                             >
-                                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--becpg-blue)] text-[0.6875rem] font-medium text-white">
+                                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full leading-none bg-[var(--becpg-blue)] text-[0.6875rem] font-medium text-white">
                                     {initials(thread.last ? thread.last.author : thread.title)}
                                 </span>
 

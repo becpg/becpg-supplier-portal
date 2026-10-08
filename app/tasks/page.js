@@ -471,7 +471,7 @@ function TasksScreen() {
     );
 
     return (
-        <AppShell title={local.title} badges={{ tasks: counters.open || 0 }} fullWidth>
+        <AppShell ownHeading title={local.title} badges={{ tasks: counters.open || 0 }} fullWidth>
             <PageHeader title={local.title} description={local.description} />
 
             {/* Which company these tasks belong to, in words — the toolbar chip

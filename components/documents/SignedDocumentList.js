@@ -60,7 +60,7 @@ function signedColumns(labels, lang) {
         },
         {
             id: 'actions',
-            header: '',
+            header: () => <span className="sr-only">{labels.download}</span>,
             enableSorting: false,
             meta: { align: 'right', label: labels.download, width: '8rem' },
             cell: ({ row }) => (

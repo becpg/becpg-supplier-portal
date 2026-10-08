@@ -417,10 +417,10 @@ export function MlTextControl({
             <div id={id} className="flex min-w-0 flex-col gap-0.5 text-sm">
                 {filled.map((locale) => (
                     <p key={locale} className="flex min-w-0 items-baseline gap-2">
-                        <span className="shrink-0 rounded bg-[var(--becpg-grey)]/70 px-1 text-[10px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">
+                        <span className="shrink-0 rounded bg-[var(--becpg-grey)]/70 px-1 text-[10px] uppercase tracking-wide text-[var(--becpg-dark-grey-deep)]">
                             {locale}
                         </span>
-                        <span className="min-w-0 break-words">{map[locale]}</span>
+                        <span className="min-w-0 break-words font-semibold text-[var(--becpg-ink)]">{map[locale]}</span>
                     </p>
                 ))}
             </div>

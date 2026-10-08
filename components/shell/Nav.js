@@ -169,7 +169,7 @@ function Badge({ count, tone = 'accent' }) {
     return (
         <span
             className={[
-                'ms-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[11px] font-semibold',
+                'ms-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full leading-none px-1.5 text-[11px] font-semibold tabular-nums',
                 TONES[tone] || TONES.accent,
             ].join(' ')}
         >
@@ -379,7 +379,7 @@ export function Nav({
                             aria-expanded={!collapsed}
                             aria-label={foldLabel}
                             title={foldLabel}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)] hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--becpg-dark-grey-deep)] hover:bg-[var(--becpg-grey)] hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
                         >
                             <Icon name={collapsed ? 'chevron_right' : 'chevron_left'} size={20} />
                         </button>
@@ -456,7 +456,7 @@ export function Nav({
                                     <span className="relative">
                                         <Icon name={item.icon} size={22} />
                                         {badges[item.badgeKey] ? (
-                                            <span className="absolute -end-2 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--becpg-blue)] px-1 text-[10px] font-semibold text-white ring-1 ring-[var(--becpg-orange)]">
+                                            <span className="absolute -end-2 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full leading-none bg-[var(--becpg-blue)] px-1 text-[10px] font-semibold tabular-nums text-white ring-1 ring-[var(--becpg-orange)]">
                                                 {badges[item.badgeKey] > 99 ? '99+' : badges[item.badgeKey]}
                                             </span>
                                         ) : null}

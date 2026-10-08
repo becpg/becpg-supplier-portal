@@ -577,9 +577,9 @@ function QuestionBlock({
 function ReadOnlyAnswer({ values, labels }) {
     const filled = (values || []).filter((value) => value !== null && value !== undefined && value !== '');
     return (
-        <div className="min-h-[40px] whitespace-pre-wrap break-words rounded-lg border-s-[3px] border-s-[var(--becpg-blue-light)] bg-[var(--becpg-grey)] px-3 py-2 text-sm text-[var(--becpg-blue)]">
+        <div className="whitespace-pre-wrap break-words text-sm font-semibold text-[var(--becpg-ink)]">
             {filled.length === 0 ? (
-                <span className="text-[var(--becpg-dark-grey-deep)]">{labels.noAnswer}</span>
+                <span className="font-normal text-[var(--becpg-dark-grey-deep)]">{labels.noAnswer}</span>
             ) : (
                 filled.join(', ')
             )}

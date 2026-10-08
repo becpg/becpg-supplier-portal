@@ -118,7 +118,7 @@ export function DocumentsCard({ documents, index = 0, className = '' }) {
                     href="/documents"
                     aria-label={local.all}
                     title={local.all}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)] hover:text-[var(--becpg-blue)]"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--becpg-dark-grey-deep)] hover:bg-[var(--becpg-grey)] hover:text-[var(--becpg-blue)]"
                 >
                     <Icon name="arrow_forward" size={18} />
                 </Link>

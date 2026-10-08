@@ -47,7 +47,6 @@ const LOCALE = {
         "emptyList": "Ingen rad",
         "emptyListHint": "Det här avsnittet har inte fyllts i ännu.",
         "questionnaire": "{done} / {total} frågor besvarade",
-        "completion": "Ifyllnadsgrad",
         "noProperties": "Inga egenskaper att visa",
         "yes": "Ja",
         "no": "Nej",
@@ -962,7 +961,7 @@ const LOCALE = {
             "supplierRef": "Leverantörsreferens",
             "certificateDate": "Certifikatdatum",
             "modified": "Uppdaterad",
-            "actions": ""
+            "actions": "Åtgärder"
         },
         "stats": {
             "total": "Produkter",
@@ -1432,8 +1431,7 @@ const LOCALE = {
     },
     "components/form/FieldRenderer#LABELS": {
         "add": "Lägg till ett värde",
-        "remove": "Ta bort värdet",
-        "locked": "Låst fält"
+        "remove": "Ta bort värdet"
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "Inga fält att fylla i",
@@ -1966,8 +1964,13 @@ const LOCALE = {
         "goToField": "Gå till fältet",
         "notScored": "Ej poängsatt"
     },
+    "components/products/CompletionMeter#LABELS": {
+        "title": "Fullständighet",
+        "noScore": "Ännu inte bedömd",
+        "notCounted": "ingår inte i poängen",
+        "more": "+ {count} katalog(er) till"
+    },
     "components/products/ProductHeader#LABELS": {
-        "completion": "Ifyllnadsgrad",
         "code": "Kod",
         "branch": "Uppdatering pågår",
         "branchFrom": "Uppdatering av version {version}",
@@ -1982,7 +1985,6 @@ const LOCALE = {
         "version": "Version",
         "legalName": "Juridiskt namn",
         "back": "Mina produkter",
-        "noScore": "Ej poängsatt ännu",
         "types": {
             "bcpg:rawMaterial": "Råvara",
             "bcpg:finishedProduct": "Färdig produkt",

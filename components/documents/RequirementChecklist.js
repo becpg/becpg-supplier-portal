@@ -438,7 +438,7 @@ function RequirementGroup({
                     <Icon name="inventory_2" size={18} />
                 </span>
                 <div className="min-w-0 flex-1">
-                    <h3 className="break-words text-sm font-medium sm:text-base">{entityName}</h3>
+                    <h2 className="break-words text-sm font-medium sm:text-base">{entityName}</h2>
                     <div className="mt-1 flex flex-wrap items-center gap-1.5">
                         {/* The code when there is one, the *translated* type otherwise.
                             The fallback used to print `group.entity.type` as it came,

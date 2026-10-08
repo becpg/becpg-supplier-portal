@@ -47,7 +47,6 @@ const LOCALE = {
         "emptyList": "Ei rivejä",
         "emptyListHint": "Tätä osiota ei ole vielä täytetty.",
         "questionnaire": "Vastatut kysymykset: {done} / {total}",
-        "completion": "Valmiusaste",
         "noProperties": "Ei näytettäviä ominaisuuksia",
         "yes": "Kyllä",
         "no": "Ei",
@@ -962,7 +961,7 @@ const LOCALE = {
             "supplierRef": "Toimittajan viite",
             "certificateDate": "Sertifikaatin päivämäärä",
             "modified": "Päivitetty",
-            "actions": ""
+            "actions": "Toiminnot"
         },
         "stats": {
             "total": "Tuotteet",
@@ -1432,8 +1431,7 @@ const LOCALE = {
     },
     "components/form/FieldRenderer#LABELS": {
         "add": "Lisää arvo",
-        "remove": "Poista tämä arvo",
-        "locked": "Lukittu kenttä"
+        "remove": "Poista tämä arvo"
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "Ei täytettäviä kenttiä",
@@ -1966,8 +1964,13 @@ const LOCALE = {
         "goToField": "Siirry kenttään",
         "notScored": "Ei pisteytetty"
     },
+    "components/products/CompletionMeter#LABELS": {
+        "title": "Täydellisyys",
+        "noScore": "Ei vielä arvioitu",
+        "notCounted": "ei mukana pisteissä",
+        "more": "+ {count} muuta luetteloa"
+    },
     "components/products/ProductHeader#LABELS": {
-        "completion": "Valmiusaste",
         "code": "Koodi",
         "branch": "Päivitys käynnissä",
         "branchFrom": "Version {version} päivitys",
@@ -1982,7 +1985,6 @@ const LOCALE = {
         "version": "Versio",
         "legalName": "Virallinen nimi",
         "back": "Omat tuotteet",
-        "noScore": "Ei vielä pisteytetty",
         "types": {
             "bcpg:rawMaterial": "Raaka-aine",
             "bcpg:finishedProduct": "Valmis tuote",

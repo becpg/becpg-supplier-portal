@@ -543,7 +543,7 @@ function RiskRow({ item, rank, local, lang, onDone }) {
         >
             <div className="flex flex-wrap items-start gap-3">
                 <span
-                    className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--becpg-grey)] text-xs font-medium tabular-nums text-[var(--becpg-blue)]"
+                    className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full leading-none bg-[var(--becpg-grey)] text-xs font-medium tabular-nums text-[var(--becpg-blue)]"
                     aria-hidden="true"
                 >
                     {rank + 1}

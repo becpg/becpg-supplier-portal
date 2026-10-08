@@ -1753,7 +1753,7 @@ export function Wizard({
            without crossing five components — see ContentLocalesProvider. */
         <ContentLocalesProvider value={wizardState.contentLocales}>
         <FieldFocusProvider value={fieldFocus}>
-        <AppShell
+        <AppShell ownHeading
             title={entity.name || labels.step}
             fullWidth={gridStep}
             aside={
@@ -1843,7 +1843,7 @@ export function Wizard({
                 </div>
 
                 {wizardState.readOnly && readOnlyReason ? (
-                    <p className="mt-2 flex items-start gap-2 rounded-lg bg-[var(--becpg-grey)]/50 p-2 text-sm text-[var(--becpg-dark-grey)]">
+                    <p className="mt-2 flex items-start gap-2 rounded-lg bg-[var(--becpg-grey)]/50 p-2 text-sm text-[var(--becpg-dark-grey-deep)]">
                         <Icon name="info" size={18} className="shrink-0" />
                         {labels.readOnlyReasons[readOnlyReason] || labels.readOnlyReasons.wizardReadOnly}
                     </p>
@@ -1903,7 +1903,7 @@ export function Wizard({
                             onClick={toggleWide}
                             title={labels.restore}
                             aria-label={labels.restore}
-                            className="mt-1 flex w-full items-center justify-center rounded-xl py-1.5 text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)]/50 hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                            className="mt-1 flex w-full items-center justify-center rounded-xl py-1.5 text-[var(--becpg-dark-grey-deep)] hover:bg-[var(--becpg-grey)]/50 hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
                         >
                             <Icon name="chevron_right" size={18} />
                         </button>

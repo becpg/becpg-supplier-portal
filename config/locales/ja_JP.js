@@ -47,7 +47,6 @@ const LOCALE = {
         "emptyList": "行がありません",
         "emptyListHint": "このセクションはまだ入力されていません。",
         "questionnaire": "{total} 問中 {done} 問回答済み",
-        "completion": "完成度",
         "noProperties": "表示するプロパティがありません",
         "yes": "はい",
         "no": "いいえ",
@@ -962,7 +961,7 @@ const LOCALE = {
             "supplierRef": "サプライヤー品番",
             "certificateDate": "証明書の日付",
             "modified": "更新日",
-            "actions": ""
+            "actions": "操作"
         },
         "stats": {
             "total": "製品",
@@ -1432,8 +1431,7 @@ const LOCALE = {
     },
     "components/form/FieldRenderer#LABELS": {
         "add": "値を追加",
-        "remove": "この値を削除",
-        "locked": "ロックされた項目"
+        "remove": "この値を削除"
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "入力する項目はありません",
@@ -1966,8 +1964,13 @@ const LOCALE = {
         "goToField": "項目へ移動",
         "notScored": "未評価"
     },
+    "components/products/CompletionMeter#LABELS": {
+        "title": "完成度",
+        "noScore": "未評価",
+        "notCounted": "スコア対象外",
+        "more": "ほか {count} 件のカタログ"
+    },
     "components/products/ProductHeader#LABELS": {
-        "completion": "完成度",
         "code": "コード",
         "branch": "更新中",
         "branchFrom": "バージョン {version} の更新",
@@ -1982,7 +1985,6 @@ const LOCALE = {
         "version": "バージョン",
         "legalName": "正式名称",
         "back": "製品",
-        "noScore": "未評価",
         "types": {
             "bcpg:rawMaterial": "原料",
             "bcpg:finishedProduct": "最終製品",

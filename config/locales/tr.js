@@ -47,7 +47,6 @@ const LOCALE = {
         "emptyList": "Satır yok",
         "emptyListHint": "Bu bölüm henüz doldurulmadı.",
         "questionnaire": "{done} / {total} soru yanıtlandı",
-        "completion": "Doluluk",
         "noProperties": "Görüntülenecek özellik yok",
         "yes": "Evet",
         "no": "Hayır",
@@ -962,7 +961,7 @@ const LOCALE = {
             "supplierRef": "Tedarikçi referansı",
             "certificateDate": "Sertifika tarihi",
             "modified": "Güncellenme",
-            "actions": ""
+            "actions": "İşlemler"
         },
         "stats": {
             "total": "Ürünler",
@@ -1432,8 +1431,7 @@ const LOCALE = {
     },
     "components/form/FieldRenderer#LABELS": {
         "add": "Değer ekle",
-        "remove": "Bu değeri kaldır",
-        "locked": "Kilitli alan"
+        "remove": "Bu değeri kaldır"
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "Doldurulacak alan yok",
@@ -1966,8 +1964,13 @@ const LOCALE = {
         "goToField": "Alana git",
         "notScored": "Puanlanmadı"
     },
+    "components/products/CompletionMeter#LABELS": {
+        "title": "Tamamlanma",
+        "noScore": "Henüz değerlendirilmedi",
+        "notCounted": "puana dahil değil",
+        "more": "+ {count} katalog daha"
+    },
     "components/products/ProductHeader#LABELS": {
-        "completion": "Doluluk",
         "code": "Kod",
         "branch": "Güncelleme devam ediyor",
         "branchFrom": "{version} sürümünün güncellemesi",
@@ -1982,7 +1985,6 @@ const LOCALE = {
         "version": "Sürüm",
         "legalName": "Yasal unvan",
         "back": "Ürünlerim",
-        "noScore": "Henüz puanlanmadı",
         "types": {
             "bcpg:rawMaterial": "Hammadde",
             "bcpg:finishedProduct": "Bitmiş ürün",

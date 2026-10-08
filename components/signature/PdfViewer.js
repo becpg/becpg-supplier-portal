@@ -640,7 +640,7 @@ export const PdfViewer = forwardRef(function PdfViewer(
                 <button
                     type="button"
                     onClick={resetZoom}
-                    className="touch-target min-w-[52px] rounded-md px-1 text-xs tabular-nums text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                    className="touch-target min-w-[52px] rounded-md px-1 text-xs tabular-nums text-[var(--becpg-dark-grey-deep)] hover:bg-[var(--becpg-grey)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
                     title={labels.fit}
                 >
                     {Math.round(scale * 100)}%
