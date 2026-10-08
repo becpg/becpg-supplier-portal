@@ -192,14 +192,15 @@ export function ValidityRange({ from, to, withIcon = true, className = '' }) {
  * @param {number} [props.noticeDays=60]
  */
 export function ExpiryBar({ daysToExpiry, noticeDays = 60, className = '' }) {
-    if (daysToExpiry === null || daysToExpiry === undefined || daysToExpiry > noticeDays) {
+    // Once expired there is nothing left to count down: the pill and the date
+    // already say it, and a full red bar under every expired row was a third
+    // copy of the same alarm.
+    if (daysToExpiry === null || daysToExpiry === undefined || daysToExpiry > noticeDays || daysToExpiry <= 0) {
         return null;
     }
     const remaining = Math.max(0, Math.min(noticeDays, daysToExpiry));
     const consumed = Math.round(((noticeDays - remaining) / noticeDays) * 100);
-    const tone = daysToExpiry <= 0
-        ? 'var(--status-danger)'
-        : daysToExpiry <= Math.round(noticeDays / 2)
+    const tone = daysToExpiry <= Math.round(noticeDays / 2)
           ? 'var(--status-warn)'
           : 'var(--becpg-blue-light)';
 

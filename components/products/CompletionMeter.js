@@ -52,23 +52,29 @@ function byRelevance(catalogs) {
         .sort((a, b) => Number(Boolean(b.counted)) - Number(Boolean(a.counted)) || a.score - b.score);
 }
 
-function CatalogRow({ catalog, labels }) {
+/**
+ * One catalogue: its name, its score written out, and the ten-segment bar.
+ *
+ * @param {Object} props
+ * @param {{label: string, score: number, counted?: boolean}} props.catalog
+ * @param {string} [props.note] said after the name, muted — "not in the score"
+ * @param {string} [props.as='li'] the element, `li` inside a list
+ */
+export function CatalogMeter({ catalog, note, as: Element = 'li' }) {
     const tone = toneForValue(catalog.score, DEFAULT_THRESHOLDS);
     const score = Math.round(catalog.score);
     return (
-        <li className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
+        <Element className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
             <span className="truncate text-xs text-[var(--becpg-ink)]" title={catalog.label || undefined}>
                 {catalog.label}
-                {catalog.counted === false ? (
-                    <span className="text-[var(--becpg-muted)]"> · {labels.notCounted}</span>
-                ) : null}
+                {note ? <span className="text-[var(--becpg-muted)]"> · {note}</span> : null}
             </span>
             <span className="text-xs font-semibold tabular-nums" style={{ color: tonePalette(tone).text }}>
                 {score} %
             </span>
             <span
                 role="meter"
-                aria-label={catalog.label || labels.title}
+                aria-label={catalog.label || undefined}
                 aria-valuenow={score}
                 aria-valuemin={0}
                 aria-valuemax={100}
@@ -80,7 +86,7 @@ function CatalogRow({ catalog, labels }) {
                     style={{ width: `${Math.max(0, Math.min(100, score))}%`, background: FILLS[tone] }}
                 />
             </span>
-        </li>
+        </Element>
     );
 }
 
@@ -119,7 +125,11 @@ export function CompletionMeter({ completion, className = '' }) {
                 ) : (
                     <ul className="m-0 flex list-none flex-col gap-2 p-0">
                         {shown.map((catalog) => (
-                            <CatalogRow key={catalog.id || catalog.label} catalog={catalog} labels={labels} />
+                            <CatalogMeter
+                                key={catalog.id || catalog.label}
+                                catalog={catalog}
+                                note={catalog.counted === false ? labels.notCounted : null}
+                            />
                         ))}
                     </ul>
                 )}
