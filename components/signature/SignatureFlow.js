@@ -107,7 +107,7 @@ const LABELS = {
         blockedConsent: 'Cochez la case de consentement.',
         successTitle: 'Document signé',
         successBody:
-            'Votre signature a été enregistrée. beCPG appose la signature sur le document et vous en envoie une copie par e-mail.',
+            'Votre signature a été enregistrée. beCPG appose la signature sur le document et vous en envoie une copie par e-mail. Vous la retrouverez aussi dans Mes documents › Signés.',
         successNext: 'Vous n’avez plus rien à faire : la tâche se clôture et votre client est notifié.',
         successDownload: 'Télécharger le document',
         successBack: 'Revenir à mes tâches',

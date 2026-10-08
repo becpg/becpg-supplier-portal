@@ -35,6 +35,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { RequirementChecklist } from '@/components/documents/RequirementChecklist';
 import { DocumentUpload, AiValidationBadge } from '@/components/documents/DocumentUpload';
 import { ExpiryPill } from '@/components/documents/ExpiryPill';
+import { SignedDocumentList } from '@/components/documents/SignedDocumentList';
 import { download, useApi } from '@/lib/client';
 import { useSession } from '@/components/providers/SessionProvider';
 import { formatDate } from '@/lib/format';
@@ -46,6 +47,7 @@ const LABELS = {
         subtitle: 'Ce que le client attend de vous, et pour quand',
         tabRequirements: 'Exigences',
         tabAll: 'Tous les documents',
+        tabSigned: 'Signés',
         deposit: 'Déposer un document',
         depositTitle: 'Déposer un document',
         depositHint:
@@ -98,6 +100,7 @@ const LABELS = {
         subtitle: 'What the customer expects from you, and by when',
         tabRequirements: 'Requirements',
         tabAll: 'All documents',
+        tabSigned: 'Signed',
         deposit: 'Upload a document',
         depositTitle: 'Upload a document',
         depositHint:
@@ -504,6 +507,7 @@ export default function DocumentsPage() {
                 {[
                     { id: 'requirements', label: labels.tabRequirements },
                     { id: 'all', label: labels.tabAll },
+                    { id: 'signed', label: labels.tabSigned },
                 ].map((entry) => (
                     <button
                         key={entry.id}
@@ -582,6 +586,8 @@ export default function DocumentsPage() {
                         }
                     />
                 </>
+            ) : tab === 'signed' ? (
+                <SignedDocumentList supplier={scopeRef} lang={lang} />
             ) : documents.error ? (
                 <ErrorState error={documents.error} onRetry={documents.refresh} />
             ) : (

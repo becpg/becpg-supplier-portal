@@ -35,7 +35,7 @@
  * <a href="/api/v1/documents/cb1c…/content?task=89e8…">the PDF to sign</a>
  */
 
-import { getDocument, streamDocument } from '@/lib/adapters/documents';
+import { getDocument, getSignedDocument, streamDocument } from '@/lib/adapters/documents';
 import { authorizeTaskDocument } from '@/lib/adapters/signature';
 import { createBecpgClient } from '@/lib/adapters/session';
 import { AuthError, toApiResponse } from '@/lib/errors';
@@ -43,6 +43,22 @@ import { getLiveSession } from '@/lib/session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+/**
+ * The document behind `id`, checked against the session perimeter. A signed
+ * copy is not a beCPG document (no `bcpg:documentAspect`), so it is looked up
+ * by its own query when the caller says it is one.
+ *
+ * @param {Object} session
+ * @param {string} id
+ * @param {boolean} signed
+ * @returns {Promise<{nodeRef: string, name: string}>}
+ */
+function perimeterDocument(session, id, signed) {
+    return signed
+        ? getSignedDocument({ session, nodeRef: id })
+        : getDocument({ session, nodeRef: id });
+}
 
 /**
  * @param {Request} request
@@ -67,7 +83,7 @@ export async function GET(request, context) {
         const document = (taskId
             ? await authorizeTaskDocument(createBecpgClient(session), taskId, id)
             : null)
-            || await getDocument({ session, nodeRef: id });
+            || await perimeterDocument(session, id, params.get('signed') === '1');
 
         return await streamDocument({
             session,
