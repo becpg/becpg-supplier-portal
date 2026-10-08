@@ -334,7 +334,7 @@ export default async function LoginPage({ searchParams }) {
                                             id="tenant"
                                             name="tenant"
                                             defaultValue={selected ? selected.id : ''}
-                                            className="min-h-[44px] w-full appearance-none rounded-lg border border-[var(--becpg-grey)] bg-white px-3 py-2 pe-9 text-sm text-[var(--becpg-blue)] focus:border-[var(--becpg-blue-light)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-1"
+                                            className="min-h-[44px] w-full appearance-none rounded-[0.625rem] border border-[var(--becpg-field-border)] bg-white px-3 py-2 pe-9 text-sm text-[var(--becpg-blue)] focus:border-[var(--becpg-blue-light)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-1"
                                         >
                                             {tenants.map((tenant) => (
                                                 <option key={tenant.id} value={tenant.id}>
@@ -368,7 +368,7 @@ export default async function LoginPage({ searchParams }) {
                                 non-text indicator. */}
                             <button
                                 type="submit"
-                                className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-lg bg-[var(--becpg-blue)] px-5 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-[var(--becpg-blue-light)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2"
+                                className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-[var(--becpg-blue)] px-5 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-[var(--becpg-blue-light)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2"
                             >
                                 <span className="material-icons" style={{ fontSize: 20 }} aria-hidden="true">
                                     login
