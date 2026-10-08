@@ -222,11 +222,14 @@ export function AppShell({
                        documentaire" needs 165 and was the one nav entry rendering
                        ellipsised at 1440. Folded: `3.25rem`, the same 52px column
                        the wizard's step rail folds to — one width for "a rail
-                       reduced to its icons" across the portal. */
+                       reduced to its icons" across the portal.
+                       `z-40`: a folded entry draws its label over the content,
+                       and the animated cards there stack above a sticky rail
+                       that declares no level. Below the header, which is `z-50`. */
                     <aside
                         className={[
                             'hidden shrink-0 border-r border-[var(--becpg-grey)] bg-white',
-                            'lg:block lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)]',
+                            'lg:block lg:sticky lg:top-14 lg:z-40 lg:h-[calc(100dvh-3.5rem)]',
                             navCollapsed ? 'w-[3.25rem]' : 'w-64',
                             reduceMotion ? '' : 'transition-[width] duration-200 ease-out',
                         ].filter(Boolean).join(' ')}
