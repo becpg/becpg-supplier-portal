@@ -49,7 +49,7 @@ import {
     buildEntityQuery,
     listMyEntities,
     NO_SUPPLIER,
-    sessionSupplierAncestors,
+    sessionSupplierScope,
 } from '@/lib/adapters/entities';
 import { listDocuments } from '@/lib/adapters/documents';
 import { getLiveSession } from '@/lib/session';
@@ -197,14 +197,14 @@ function excerpt(html, max = 140) {
  *
  * @param {Object} client
  * @param {string|null} supplierNodeRef
- * @returns {Promise<string[]>}
+ * @returns {Promise<{ancestors: string[], accessGroups?: string[]}>} `buildEntityQuery` options
  */
 async function discussionScope(client, supplierNodeRef) {
     if (supplierNodeRef) {
-        return [supplierNodeRef];
+        return { ancestors: [supplierNodeRef] };
     }
-    const ancestors = await sessionSupplierAncestors(client);
-    return ancestors === NO_SUPPLIER ? [NO_PARK_ANCESTOR] : ancestors;
+    const scope = await sessionSupplierScope(client);
+    return scope === NO_SUPPLIER ? { ancestors: [NO_PARK_ANCESTOR] } : scope;
 }
 
 async function loadDiscussions(client, tasks, supplierNodeRef = null) {
@@ -230,7 +230,7 @@ async function loadDiscussions(client, tasks, supplierNodeRef = null) {
                 // Same scope as the rest of the screen: without it, the card
                 // listed the threads of every entity the account can read,
                 // including those of another supplier (#35846).
-                query: buildEntityQuery({ ancestors: await discussionScope(client, supplierNodeRef) }),
+                query: buildEntityQuery(await discussionScope(client, supplierNodeRef)),
                 fields: 'cm:name,bcpg:code,fm:commentCount',
                 lists: 'none',
                 maxResults: ENTITY_SCAN,
