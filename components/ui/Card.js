@@ -126,7 +126,7 @@ export function Card({
                     {title ? (
                         <h2
                             className={`truncate text-sm font-medium sm:text-base ${
-                                variant === 'primary' ? '' : 'text-[var(--becpg-blue)]'
+                                variant === 'primary' ? '' : 'text-[var(--becpg-ink)]'
                             }`}
                         >
                             {title}

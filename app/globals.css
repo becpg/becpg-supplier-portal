@@ -374,11 +374,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Headings in ink, as on the website. Zero specificity: a class always wins. */
-:where(h1, h2, h3) {
-  color: var(--becpg-ink);
-}
-
 .mdc-drawer-app-content {
   background: url("/theme/default/images/shape.png") bottom right no-repeat fixed;
   flex: auto;

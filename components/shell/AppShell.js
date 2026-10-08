@@ -280,7 +280,7 @@ export function AppShell({
                         data-full={!noPadding && fullWidth ? 'true' : undefined}
                     >
                         {!ownHeading && title ? (
-                            <h1 className={showTitle ? 'mb-4 text-xl font-medium leading-tight' : 'sr-only'}>
+                            <h1 className={showTitle ? 'mb-4 text-xl font-medium leading-tight text-[var(--becpg-ink)]' : 'sr-only'}>
                                 {title}
                             </h1>
                         ) : null}
