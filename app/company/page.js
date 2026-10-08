@@ -37,6 +37,7 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 import { TabScroller } from '@/components/ui/TabScroller';
 import { RequirementChecklist } from '@/components/documents/RequirementChecklist';
 import { SpecPanel } from '@/components/specs/SpecPanel';
+import { UpdateRequestDialog } from '@/components/products/UpdateRequestDialog';
 import { DecisionTree } from '@/components/survey/DecisionTree';
 import { formatDate } from '@/lib/format';
 import { useSession } from '@/components/providers/SessionProvider';
@@ -51,6 +52,7 @@ const LABELS = defineLabels('app/company/page#LABELS', {
         noSupplier: 'Aucune fiche fournisseur',
         noSupplierHint:
             'Votre compte n’est rattaché à aucun fournisseur. Contactez votre interlocuteur chez le client.',
+        request: 'Demander une mise à jour',
         approval: 'Statut d’agrément',
         approvalHint: 'Calculé en temps réel à partir de vos documents, projets et non-conformités.',
         reasons: {
@@ -92,6 +94,7 @@ const LABELS = defineLabels('app/company/page#LABELS', {
         subtitle: 'What the customer holds about your company',
         noSupplier: 'No supplier record',
         noSupplierHint: 'Your account is not linked to any supplier. Contact your customer representative.',
+        request: 'Request an update',
         approval: 'Approval status',
         approvalHint: 'Computed in real time from your documents, projects and non-conformities.',
         reasons: {
@@ -456,6 +459,7 @@ export default function CompanyPage() {
     const supplierId = supplier ? supplier.uuid || supplier.nodeRef : null;
 
     const [section, setSection] = useState(null);
+    const [requesting, setRequesting] = useState(false);
 
     const entity = useApi(supplierId ? `entities/${supplierId}` : null);
     const approval = useApi(supplier ? 'approval' : null, {
@@ -559,16 +563,28 @@ export default function CompanyPage() {
                             ) : null}
                         </div>
                     </div>
-                    {record && record.completion ? (
-                        <Gauge
-                            value={record.completion.score}
-                            size={92}
-                            thickness={9}
-                            label={labels.completion}
-                        />
-                    ) : null}
+                    <div className="flex flex-col items-start gap-3 sm:items-end">
+                        {record && record.completion ? (
+                            <Gauge
+                                value={record.completion.score}
+                                size={92}
+                                thickness={9}
+                                label={labels.completion}
+                            />
+                        ) : null}
+                        {record ? (
+                            <Button variant="outline" size="sm" icon="published_with_changes" onClick={() => setRequesting(true)}>
+                                {labels.request}
+                            </Button>
+                        ) : null}
+                    </div>
                 </div>
             </Card>
+            <UpdateRequestDialog
+                entity={requesting ? record : null}
+                onClose={() => setRequesting(false)}
+                onDone={entity.refresh}
+            />
 
             {/* ------------------------------------------------- approval */}
             <Card padding="lg" className="mb-4">

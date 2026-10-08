@@ -51,7 +51,8 @@ const LOCALE = {
         "noProperties": "Nessuna proprietà da visualizzare",
         "yes": "Sì",
         "no": "No",
-        "code": "Codice"
+        "code": "Codice",
+        "request": "Richiedere un aggiornamento"
     },
     "app/documents/page#LABELS": {
         "title": "I miei documenti",
@@ -940,7 +941,8 @@ const LOCALE = {
         "notFound": "Prodotto non trovato",
         "notFoundHint": "Questa scheda non esiste, oppure non rientra nel vostro perimetro.",
         "back": "I miei prodotti",
-        "partial": "Questa scheda è visualizzata in modo incompleto: fa riferimento ad almeno un dato che il vostro account potrebbe non poter leggere. I campi interessati sono assenti dalla schermata — il che non significa che siano vuoti. Chiedete l'accesso al vostro referente beCPG se vi serve uno di essi."
+        "partial": "Questa scheda è visualizzata in modo incompleto: fa riferimento ad almeno un dato che il vostro account potrebbe non poter leggere. I campi interessati sono assenti dalla schermata — il che non significa che siano vuoti. Chiedete l'accesso al vostro referente beCPG se vi serve uno di essi.",
+        "request": "Richiedere un aggiornamento"
     },
     "app/products/page#LABELS": {
         "title": "I miei prodotti",
@@ -959,7 +961,8 @@ const LOCALE = {
             "project": "Progetto",
             "supplierRef": "Riferimento fornitore",
             "certificateDate": "Data del certificato",
-            "modified": "Aggiornato"
+            "modified": "Aggiornato",
+            "actions": ""
         },
         "stats": {
             "total": "Prodotti",
@@ -968,7 +971,8 @@ const LOCALE = {
             "completion": "Completamento medio"
         },
         "empty": "Nessun prodotto",
-        "emptyHint": "Nessun prodotto è ancora collegato a voi. Una scheda compare qui non appena il cliente ve ne assegna una."
+        "emptyHint": "Nessun prodotto è ancora collegato a voi. Una scheda compare qui non appena il cliente ve ne assegna una.",
+        "request": "Richiedere un aggiornamento"
     },
     "app/specs/page#LABELS": {
         "title": "Capitolati",
@@ -1146,14 +1150,6 @@ const LOCALE = {
         "all": "Vedi tutto",
         "updatedOn": "Aggiornato il {date}",
         "request": "Richiedi un aggiornamento",
-        "requestTitle": "Richiedi un aggiornamento",
-        "requestIntro": "State richiedendo un fascicolo di aggiornamento per questo prodotto. Il vostro cliente deve approvarlo; nulla viene modificato immediatamente.",
-        "process": "Tipo di richiesta",
-        "processPlaceholder": "Scegliete…",
-        "noProcess": "Nessun tipo di richiesta è aperto ai fornitori su questa istanza. Contattate il vostro referente abituale.",
-        "processUnavailable": "Non è stato possibile recuperare i tipi di richiesta. Riprovate tra un momento; se il problema persiste, contattate il vostro referente abituale.",
-        "submit": "Invia la richiesta",
-        "sent": "Richiesta inviata. Il vostro cliente la elaborerà.",
         "noCompletion": "Non valutato",
         "completion": "Completezza"
     },
@@ -1423,8 +1419,7 @@ const LOCALE = {
         "noEntity": "Documenti del fornitore",
         "aiHints": "Note di analisi",
         "deposit": "Carica un file",
-        "file": "File",
-        "onRequest": "È il vostro cliente a decidere quando aggiornare questo documento. Al di fuori di un'attività, scrivetegli da Discussioni: un caricamento verrebbe rifiutato."
+        "file": "File"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "Documento firmato",
@@ -2025,6 +2020,19 @@ const LOCALE = {
         "open": "Apri l'attività",
         "all": "Vedi le attività di questo prodotto",
         "untitled": "Attività senza titolo"
+    },
+    "components/products/UpdateRequestDialog#LABELS": {
+        "title": "Richiedere un aggiornamento",
+        "intro": "Il cliente riceve la richiesta e la gestisce come una referenziazione: riceverà un’attività per aggiornare la scheda, che il cliente convaliderà. Fino ad allora non cambia nulla.",
+        "template": "Tipo di richiesta",
+        "templatePlaceholder": "Scegliere…",
+        "noTemplate": "Il cliente non ha aperto alcun tipo di richiesta ai fornitori. Gli scriva da Messaggi.",
+        "reason": "Motivo della richiesta",
+        "reasonHint": "Nuova ricetta, nuova origine, nuovo stabilimento, nuova scheda tecnica…",
+        "file": "Nuova scheda tecnica (facoltativa)",
+        "submit": "Inviare la richiesta",
+        "sent": "Richiesta inviata. È stata aperta per lei un’attività di aggiornamento.",
+        "sentFileFailed": "Richiesta inviata, ma la scheda tecnica non è stata caricata: la carichi dall’attività."
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "Apri il menu",

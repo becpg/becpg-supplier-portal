@@ -51,7 +51,8 @@ const LOCALE = {
         "noProperties": "Görüntülenecek özellik yok",
         "yes": "Evet",
         "no": "Hayır",
-        "code": "Kod"
+        "code": "Kod",
+        "request": "Güncelleme talep et"
     },
     "app/documents/page#LABELS": {
         "title": "Belgelerim",
@@ -940,7 +941,8 @@ const LOCALE = {
         "notFound": "Ürün bulunamadı",
         "notFoundHint": "Bu kart mevcut değil veya kapsamınızda değil.",
         "back": "Ürünlerim",
-        "partial": "Bu kart eksik gösteriliyor: hesabınızın okuyamayabileceği en az bir veriye işaret ediyor. İlgili alanlar ekranda yer almıyor — bu, boş oldukları anlamına gelmez. Bunlardan birine ihtiyacınız varsa beCPG irtibat kişinizden erişim isteyin."
+        "partial": "Bu kart eksik gösteriliyor: hesabınızın okuyamayabileceği en az bir veriye işaret ediyor. İlgili alanlar ekranda yer almıyor — bu, boş oldukları anlamına gelmez. Bunlardan birine ihtiyacınız varsa beCPG irtibat kişinizden erişim isteyin.",
+        "request": "Güncelleme talep et"
     },
     "app/products/page#LABELS": {
         "title": "Ürünlerim",
@@ -959,7 +961,8 @@ const LOCALE = {
             "project": "Proje",
             "supplierRef": "Tedarikçi referansı",
             "certificateDate": "Sertifika tarihi",
-            "modified": "Güncellenme"
+            "modified": "Güncellenme",
+            "actions": ""
         },
         "stats": {
             "total": "Ürünler",
@@ -968,7 +971,8 @@ const LOCALE = {
             "completion": "Ortalama doluluk"
         },
         "empty": "Ürün yok",
-        "emptyHint": "Henüz size bağlı bir ürün yok. Müşteri bir kart atadığı anda burada görünür."
+        "emptyHint": "Henüz size bağlı bir ürün yok. Müşteri bir kart atadığı anda burada görünür.",
+        "request": "Güncelleme talep et"
     },
     "app/specs/page#LABELS": {
         "title": "Spesifikasyonlar",
@@ -1146,14 +1150,6 @@ const LOCALE = {
         "all": "Tümünü gör",
         "updatedOn": "{date} tarihinde güncellendi",
         "request": "Güncelleme talep et",
-        "requestTitle": "Güncelleme talep et",
-        "requestIntro": "Bu ürün için bir güncelleme dosyası talep ediyorsunuz. Müşterinizin onaylaması gerekir; hiçbir şey hemen değiştirilmez.",
-        "process": "Talep türü",
-        "processPlaceholder": "Seçin…",
-        "noProcess": "Bu ortamda tedarikçilere açık bir talep türü yok. Lütfen olağan irtibat kişinize başvurun.",
-        "processUnavailable": "Talep türleri alınamadı. Birazdan yeniden deneyin; sorun devam ederse lütfen olağan irtibat kişinize başvurun.",
-        "submit": "Talebi gönder",
-        "sent": "Talep gönderildi. Müşteriniz talebi işleyecek.",
         "noCompletion": "Puanlanmadı",
         "completion": "Doluluk"
     },
@@ -1423,8 +1419,7 @@ const LOCALE = {
         "noEntity": "Tedarikçi belgeleri",
         "aiHints": "Analiz notları",
         "deposit": "Dosya yükle",
-        "file": "Dosya",
-        "onRequest": "Bu belgenin ne zaman güncelleneceğine müşteriniz karar verir. Bir görev dışında, Tartışmalar üzerinden onlara yazın: yükleme reddedilir."
+        "file": "Dosya"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "İmzalı belge",
@@ -2025,6 +2020,19 @@ const LOCALE = {
         "open": "Görevi aç",
         "all": "Bu ürünün görevlerini gör",
         "untitled": "Başlıksız görev"
+    },
+    "components/products/UpdateRequestDialog#LABELS": {
+        "title": "Güncelleme talep et",
+        "intro": "Müşteriniz talebi alır ve bir listeleme gibi işler: formu güncellemeniz için bir görev alırsınız, müşteri bunu onaylar. O zamana kadar hiçbir şey değişmez.",
+        "template": "Talep türü",
+        "templatePlaceholder": "Seçin…",
+        "noTemplate": "Müşteriniz tedarikçilere hiçbir talep türü açmamış. Mesajlar bölümünden ona yazın.",
+        "reason": "Talep nedeni",
+        "reasonHint": "Yeni reçete, yeni menşe, yeni üretim tesisi, yeni teknik föy…",
+        "file": "Yeni teknik föy (isteğe bağlı)",
+        "submit": "Talebi gönder",
+        "sent": "Talep gönderildi. Sizin için bir güncelleme görevi açıldı.",
+        "sentFileFailed": "Talep gönderildi, ancak teknik föy yüklenemedi: görevden yükleyin."
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "Menüyü aç",

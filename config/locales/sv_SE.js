@@ -51,7 +51,8 @@ const LOCALE = {
         "noProperties": "Inga egenskaper att visa",
         "yes": "Ja",
         "no": "Nej",
-        "code": "Kod"
+        "code": "Kod",
+        "request": "Begär en uppdatering"
     },
     "app/documents/page#LABELS": {
         "title": "Mina dokument",
@@ -940,7 +941,8 @@ const LOCALE = {
         "notFound": "Produkten hittades inte",
         "notFoundHint": "Bladet finns inte, eller ingår inte i ditt omfång.",
         "back": "Mina produkter",
-        "partial": "Bladet visas ofullständigt: det pekar på minst en uppgift som ditt konto kanske inte får läsa. De berörda fälten saknas på skärmen — vilket inte betyder att de är tomma. Be din beCPG-kontakt om åtkomst om du behöver någon av dem."
+        "partial": "Bladet visas ofullständigt: det pekar på minst en uppgift som ditt konto kanske inte får läsa. De berörda fälten saknas på skärmen — vilket inte betyder att de är tomma. Be din beCPG-kontakt om åtkomst om du behöver någon av dem.",
+        "request": "Begär en uppdatering"
     },
     "app/products/page#LABELS": {
         "title": "Mina produkter",
@@ -959,7 +961,8 @@ const LOCALE = {
             "project": "Projekt",
             "supplierRef": "Leverantörsreferens",
             "certificateDate": "Certifikatdatum",
-            "modified": "Uppdaterad"
+            "modified": "Uppdaterad",
+            "actions": ""
         },
         "stats": {
             "total": "Produkter",
@@ -968,7 +971,8 @@ const LOCALE = {
             "completion": "Genomsnittlig ifyllnadsgrad"
         },
         "empty": "Inga produkter",
-        "emptyHint": "Ingen produkt är kopplad till dig ännu. Ett blad visas här så snart kunden tilldelar dig ett."
+        "emptyHint": "Ingen produkt är kopplad till dig ännu. Ett blad visas här så snart kunden tilldelar dig ett.",
+        "request": "Begär en uppdatering"
     },
     "app/specs/page#LABELS": {
         "title": "Specifikationer",
@@ -1146,14 +1150,6 @@ const LOCALE = {
         "all": "Visa alla",
         "updatedOn": "Uppdaterad {date}",
         "request": "Begär en uppdatering",
-        "requestTitle": "Begär en uppdatering",
-        "requestIntro": "Du begär en uppdateringsakt för den här produkten. Kunden måste godkänna den; inget ändras direkt.",
-        "process": "Typ av begäran",
-        "processPlaceholder": "Välj…",
-        "noProcess": "Ingen typ av begäran är öppen för leverantörer på den här instansen. Kontakta din vanliga kontaktperson.",
-        "processUnavailable": "Typerna av begäran kunde inte hämtas. Försök igen om en stund; om problemet kvarstår, kontakta din vanliga kontaktperson.",
-        "submit": "Skicka begäran",
-        "sent": "Begäran har skickats. Kunden kommer att behandla den.",
         "noCompletion": "Ej poängsatt",
         "completion": "Fullständighet"
     },
@@ -1423,8 +1419,7 @@ const LOCALE = {
         "noEntity": "Leverantörsdokument",
         "aiHints": "Analysanteckningar",
         "deposit": "Ladda upp en fil",
-        "file": "Fil",
-        "onRequest": "Kunden avgör när det här dokumentet uppdateras. Utanför en uppgift, skriv till kunden via Diskussioner: en uppladdning skulle avvisas."
+        "file": "Fil"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "Signerat dokument",
@@ -2025,6 +2020,19 @@ const LOCALE = {
         "open": "Öppna uppgiften",
         "all": "Visa produktens uppgifter",
         "untitled": "Uppgift utan titel"
+    },
+    "components/products/UpdateRequestDialog#LABELS": {
+        "title": "Begär en uppdatering",
+        "intro": "Din kund tar emot begäran och hanterar den som en listning: du får en uppgift att uppdatera bladet, som kunden sedan godkänner. Inget ändras förrän dess.",
+        "template": "Typ av begäran",
+        "templatePlaceholder": "Välj…",
+        "noTemplate": "Din kund har inte öppnat någon typ av begäran för leverantörer. Skriv till kunden via Meddelanden.",
+        "reason": "Orsak till begäran",
+        "reasonHint": "Nytt recept, nytt ursprung, ny produktionsanläggning, nytt produktblad…",
+        "file": "Nytt produktblad (valfritt)",
+        "submit": "Skicka begäran",
+        "sent": "Begäran skickad. En uppdateringsuppgift har öppnats åt dig.",
+        "sentFileFailed": "Begäran skickad, men produktbladet kunde inte laddas upp: ladda upp det från uppgiften."
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "Öppna menyn",

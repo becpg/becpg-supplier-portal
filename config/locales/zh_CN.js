@@ -51,7 +51,8 @@ const LOCALE = {
         "noProperties": "无可显示的属性",
         "yes": "是",
         "no": "否",
-        "code": "代码"
+        "code": "代码",
+        "request": "申请更新"
     },
     "app/documents/page#LABELS": {
         "title": "我的文件",
@@ -940,7 +941,8 @@ const LOCALE = {
         "notFound": "未找到产品",
         "notFoundHint": "此资料表不存在，或不在您的范围内。",
         "back": "我的产品",
-        "partial": "此资料表显示不完整：其中至少有一项数据您的账户无权读取。相关字段未在页面上显示 — 这并不表示它们为空。如需访问其中某项，请联系您的 beCPG 联系人。"
+        "partial": "此资料表显示不完整：其中至少有一项数据您的账户无权读取。相关字段未在页面上显示 — 这并不表示它们为空。如需访问其中某项，请联系您的 beCPG 联系人。",
+        "request": "申请更新"
     },
     "app/products/page#LABELS": {
         "title": "我的产品",
@@ -959,7 +961,8 @@ const LOCALE = {
             "project": "项目",
             "supplierRef": "供应商编号",
             "certificateDate": "证书日期",
-            "modified": "更新日期"
+            "modified": "更新日期",
+            "actions": ""
         },
         "stats": {
             "total": "产品",
@@ -968,7 +971,8 @@ const LOCALE = {
             "completion": "平均完整度"
         },
         "empty": "无产品",
-        "emptyHint": "尚无与您关联的产品。客户分配资料表后即会显示在此处。"
+        "emptyHint": "尚无与您关联的产品。客户分配资料表后即会显示在此处。",
+        "request": "申请更新"
     },
     "app/specs/page#LABELS": {
         "title": "规格书",
@@ -1146,14 +1150,6 @@ const LOCALE = {
         "all": "查看全部",
         "updatedOn": "更新于 {date}",
         "request": "申请更新",
-        "requestTitle": "申请更新",
-        "requestIntro": "您正在申请对此产品进行更新。需经客户批准；不会立即做出任何更改。",
-        "process": "申请类型",
-        "processPlaceholder": "请选择…",
-        "noProcess": "此实例未向供应商开放任何申请类型。请联系您的常用联系人。",
-        "processUnavailable": "无法获取申请类型。请稍后重试；如问题仍然存在，请联系您的常用联系人。",
-        "submit": "发送申请",
-        "sent": "申请已发送。客户将进行处理。",
         "noCompletion": "未评分",
         "completion": "完整度"
     },
@@ -1423,8 +1419,7 @@ const LOCALE = {
         "noEntity": "供应商文件",
         "aiHints": "分析备注",
         "deposit": "上传文件",
-        "file": "文件",
-        "onRequest": "此文件何时更新由客户决定。在任务之外，请通过“讨论”联系客户：直接上传将被拒绝。"
+        "file": "文件"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "已签署文件",
@@ -2025,6 +2020,19 @@ const LOCALE = {
         "open": "打开任务",
         "all": "查看此产品的任务",
         "untitled": "未命名任务"
+    },
+    "components/products/UpdateRequestDialog#LABELS": {
+        "title": "申请更新",
+        "intro": "您的客户会收到申请，并按准入流程处理：您将收到一项更新资料表的任务，由客户审核。在此之前不会有任何更改。",
+        "template": "申请类型",
+        "templatePlaceholder": "请选择…",
+        "noTemplate": "您的客户尚未向供应商开放任何申请类型。请通过“消息”与其联系。",
+        "reason": "申请原因",
+        "reasonHint": "新配方、新产地、新生产基地、新技术规格书…",
+        "file": "新技术规格书（可选）",
+        "submit": "发送申请",
+        "sent": "申请已发送。已为您创建一项更新任务。",
+        "sentFileFailed": "申请已发送，但技术规格书未能上传：请在任务中上传。"
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "打开菜单",

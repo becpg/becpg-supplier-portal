@@ -51,7 +51,8 @@ const LOCALE = {
         "noProperties": "Keine Eigenschaft anzuzeigen",
         "yes": "Ja",
         "no": "Nein",
-        "code": "Code"
+        "code": "Code",
+        "request": "Aktualisierung anfordern"
     },
     "app/documents/page#LABELS": {
         "title": "Meine Dokumente",
@@ -940,7 +941,8 @@ const LOCALE = {
         "notFound": "Produkt nicht gefunden",
         "notFoundHint": "Dieses Datenblatt existiert nicht oder gehört nicht zu Ihrem Bereich.",
         "back": "Meine Produkte",
-        "partial": "Dieses Datenblatt wird unvollständig angezeigt: Es verweist auf mindestens eine Information, die Ihr Konto nicht lesen darf. Die betroffenen Felder fehlen auf dem Bildschirm — was nicht bedeutet, dass sie leer sind. Bitten Sie Ihren beCPG-Ansprechpartner um Zugriff, wenn Sie eines davon benötigen."
+        "partial": "Dieses Datenblatt wird unvollständig angezeigt: Es verweist auf mindestens eine Information, die Ihr Konto nicht lesen darf. Die betroffenen Felder fehlen auf dem Bildschirm — was nicht bedeutet, dass sie leer sind. Bitten Sie Ihren beCPG-Ansprechpartner um Zugriff, wenn Sie eines davon benötigen.",
+        "request": "Aktualisierung anfordern"
     },
     "app/products/page#LABELS": {
         "title": "Meine Produkte",
@@ -959,7 +961,8 @@ const LOCALE = {
             "project": "Projekt",
             "supplierRef": "Lieferantenreferenz",
             "certificateDate": "Zertifikatsdatum",
-            "modified": "Aktualisiert"
+            "modified": "Aktualisiert",
+            "actions": ""
         },
         "stats": {
             "total": "Produkte",
@@ -968,7 +971,8 @@ const LOCALE = {
             "completion": "Durchschnittliche Vollständigkeit"
         },
         "empty": "Kein Produkt",
-        "emptyHint": "Ihnen ist noch kein Produkt zugeordnet. Ein Datenblatt erscheint hier, sobald der Kunde eines zuweist."
+        "emptyHint": "Ihnen ist noch kein Produkt zugeordnet. Ein Datenblatt erscheint hier, sobald der Kunde eines zuweist.",
+        "request": "Aktualisierung anfordern"
     },
     "app/specs/page#LABELS": {
         "title": "Spezifikationen",
@@ -1146,14 +1150,6 @@ const LOCALE = {
         "all": "Alle anzeigen",
         "updatedOn": "Aktualisiert am {date}",
         "request": "Aktualisierung anfordern",
-        "requestTitle": "Aktualisierung anfordern",
-        "requestIntro": "Sie fordern eine Aktualisierungsakte für dieses Produkt an. Ihr Kunde muss sie genehmigen; es wird nicht sofort etwas geändert.",
-        "process": "Anfragetyp",
-        "processPlaceholder": "Auswählen…",
-        "noProcess": "Auf dieser Instanz steht Lieferanten kein Anfragetyp offen. Bitte wenden Sie sich an Ihren gewohnten Ansprechpartner.",
-        "processUnavailable": "Die Anfragetypen konnten nicht abgerufen werden. Versuchen Sie es gleich erneut; falls das Problem weiterhin besteht, wenden Sie sich bitte an Ihren gewohnten Ansprechpartner.",
-        "submit": "Anfrage senden",
-        "sent": "Anfrage gesendet. Ihr Kunde wird sie bearbeiten.",
         "noCompletion": "Nicht bewertet",
         "completion": "Vollständigkeit"
     },
@@ -1423,8 +1419,7 @@ const LOCALE = {
         "noEntity": "Lieferantendokumente",
         "aiHints": "Analysehinweise",
         "deposit": "Datei hochladen",
-        "file": "Datei",
-        "onRequest": "Ihr Kunde entscheidet, wann dieses Dokument aktualisiert wird. Außerhalb einer Aufgabe schreiben Sie ihm unter Diskussionen: Ein Hochladen würde abgelehnt."
+        "file": "Datei"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "Unterzeichnetes Dokument",
@@ -2025,6 +2020,19 @@ const LOCALE = {
         "open": "Aufgabe öffnen",
         "all": "Aufgaben dieses Produkts anzeigen",
         "untitled": "Aufgabe ohne Titel"
+    },
+    "components/products/UpdateRequestDialog#LABELS": {
+        "title": "Aktualisierung anfordern",
+        "intro": "Ihr Kunde erhält die Anfrage und bearbeitet sie wie eine Listung: Sie erhalten eine Aufgabe, um das Datenblatt zu aktualisieren, die er anschließend freigibt. Bis dahin wird nichts geändert.",
+        "template": "Art der Anfrage",
+        "templatePlaceholder": "Auswählen…",
+        "noTemplate": "Ihr Kunde hat Lieferanten keine Art von Anfrage freigegeben. Schreiben Sie ihm über Nachrichten.",
+        "reason": "Grund der Anfrage",
+        "reasonHint": "Neue Rezeptur, neue Herkunft, neuer Produktionsstandort, neues technisches Datenblatt…",
+        "file": "Neues technisches Datenblatt (optional)",
+        "submit": "Anfrage senden",
+        "sent": "Anfrage gesendet. Eine Aktualisierungsaufgabe wurde für Sie eröffnet.",
+        "sentFileFailed": "Anfrage gesendet, aber das technische Datenblatt konnte nicht hochgeladen werden: Laden Sie es über die Aufgabe hoch."
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "Menü öffnen",

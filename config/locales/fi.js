@@ -51,7 +51,8 @@ const LOCALE = {
         "noProperties": "Ei näytettäviä ominaisuuksia",
         "yes": "Kyllä",
         "no": "Ei",
-        "code": "Koodi"
+        "code": "Koodi",
+        "request": "Pyydä päivitystä"
     },
     "app/documents/page#LABELS": {
         "title": "Asiakirjani",
@@ -940,7 +941,8 @@ const LOCALE = {
         "notFound": "Tuotetta ei löytynyt",
         "notFoundHint": "Tätä tuotekorttia ei ole olemassa tai se ei kuulu rajaukseenne.",
         "back": "Omat tuotteet",
-        "partial": "Tämä tuotekortti näytetään puutteellisena: se viittaa vähintään yhteen tietoon, jota tilinne ei ehkä voi lukea. Kyseiset kentät puuttuvat näytöltä — mikä ei tarkoita, että ne olisivat tyhjiä. Pyydä käyttöoikeutta beCPG-yhteyshenkilöltäsi, jos tarvitset jotakin niistä."
+        "partial": "Tämä tuotekortti näytetään puutteellisena: se viittaa vähintään yhteen tietoon, jota tilinne ei ehkä voi lukea. Kyseiset kentät puuttuvat näytöltä — mikä ei tarkoita, että ne olisivat tyhjiä. Pyydä käyttöoikeutta beCPG-yhteyshenkilöltäsi, jos tarvitset jotakin niistä.",
+        "request": "Pyydä päivitystä"
     },
     "app/products/page#LABELS": {
         "title": "Omat tuotteet",
@@ -959,7 +961,8 @@ const LOCALE = {
             "project": "Projekti",
             "supplierRef": "Toimittajan viite",
             "certificateDate": "Sertifikaatin päivämäärä",
-            "modified": "Päivitetty"
+            "modified": "Päivitetty",
+            "actions": ""
         },
         "stats": {
             "total": "Tuotteet",
@@ -968,7 +971,8 @@ const LOCALE = {
             "completion": "Keskimääräinen valmiusaste"
         },
         "empty": "Ei tuotteita",
-        "emptyHint": "Teihin ei ole vielä liitetty yhtään tuotetta. Tuotekortti näkyy täällä heti, kun asiakas osoittaa sen teille."
+        "emptyHint": "Teihin ei ole vielä liitetty yhtään tuotetta. Tuotekortti näkyy täällä heti, kun asiakas osoittaa sen teille.",
+        "request": "Pyydä päivitystä"
     },
     "app/specs/page#LABELS": {
         "title": "Vaatimusmäärittelyt",
@@ -1146,14 +1150,6 @@ const LOCALE = {
         "all": "Näytä kaikki",
         "updatedOn": "Päivitetty: {date}",
         "request": "Pyydä päivitystä",
-        "requestTitle": "Pyydä päivitystä",
-        "requestIntro": "Pyydätte tämän tuotteen päivitystä. Asiakkaanne on hyväksyttävä pyyntö; mitään ei muuteta heti.",
-        "process": "Pyynnön tyyppi",
-        "processPlaceholder": "Valitse…",
-        "noProcess": "Tässä instanssissa ei ole toimittajille avoimia pyyntötyyppejä. Ottakaa yhteyttä tavanomaiseen yhteyshenkilöönne.",
-        "processUnavailable": "Pyyntötyyppejä ei voitu hakea. Yrittäkää hetken kuluttua uudelleen; jos ongelma jatkuu, ottakaa yhteyttä tavanomaiseen yhteyshenkilöönne.",
-        "submit": "Lähetä pyyntö",
-        "sent": "Pyyntö lähetetty. Asiakkaanne käsittelee sen.",
         "noCompletion": "Ei arvioitu",
         "completion": "Täydellisyys"
     },
@@ -1423,8 +1419,7 @@ const LOCALE = {
         "noEntity": "Toimittajan asiakirjat",
         "aiHints": "Analyysihuomiot",
         "deposit": "Lataa tiedosto",
-        "file": "Tiedosto",
-        "onRequest": "Asiakkaanne päättää, milloin tämä asiakirja päivitetään. Tehtävän ulkopuolella kirjoittakaa hänelle Keskustelut-osiossa: lataus hylättäisiin."
+        "file": "Tiedosto"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "Allekirjoitettu asiakirja",
@@ -2025,6 +2020,19 @@ const LOCALE = {
         "open": "Avaa tehtävä",
         "all": "Näytä tämän tuotteen tehtävät",
         "untitled": "Nimetön tehtävä"
+    },
+    "components/products/UpdateRequestDialog#LABELS": {
+        "title": "Pyydä päivitystä",
+        "intro": "Asiakkaasi saa pyynnön ja käsittelee sen kuten listauksen: saat tehtävän päivittää tietolomakkeen, jonka asiakas hyväksyy. Mitään ei muuteta sitä ennen.",
+        "template": "Pyynnön tyyppi",
+        "templatePlaceholder": "Valitse…",
+        "noTemplate": "Asiakkaasi ei ole avannut toimittajille yhtään pyyntötyyppiä. Kirjoita asiakkaalle Viestit-osiossa.",
+        "reason": "Pyynnön syy",
+        "reasonHint": "Uusi resepti, uusi alkuperä, uusi tuotantopaikka, uusi tekninen tietolomake…",
+        "file": "Uusi tekninen tietolomake (valinnainen)",
+        "submit": "Lähetä pyyntö",
+        "sent": "Pyyntö lähetetty. Sinulle on avattu päivitystehtävä.",
+        "sentFileFailed": "Pyyntö lähetetty, mutta teknistä tietolomaketta ei voitu ladata: lataa se tehtävästä."
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "Avaa valikko",

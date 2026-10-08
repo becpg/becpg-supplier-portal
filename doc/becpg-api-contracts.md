@@ -259,6 +259,15 @@ Feeds the wizard's compliance panel and the dashboard's completeness gauge.
   Measured live on Alfresco with an admin ticket, portal out of the loop — checked again
   on 2026-07-31 on the local 26.1.0 instance (`HTTP 500`). **`POST /api/v1/process/start` no
   longer calls it**: it composes `becpg/workflow/start-process` (below), like Share.
+- `becpg/supplier/update-request` (POST) — a supplier asks for the update of one of its
+  validated sheets, or of its supplier record (`SupplierUpdateRequestWebScript`, branch `feature/#37152`, not released yet).
+  Body `{ "nodeRef": "<sheet>", "template": "<project template>", "reason": "…" }`, answer
+  `{ "project": "<project>", "entity": "<working copy>" }`. It runs as system, after checking
+  that the caller is one of the sheet's `bcpg:supplierAccountRef` accounts (403 otherwise),
+  that the template is a supplier template (`bcpg:suppliersAspect`) on which
+  `GROUP_ExternalUser` holds a read permission (403 otherwise), and that no supplier project
+  is open on the sheet (409). The portal calls it server-side from
+  `app/api/v1/entities/[id]/update-request/route.js`; it is not in the browser allow-list.
 - `becpg/workflow/start-process?script=create-supplier-project.js&nodeRefs=…` (POST) —
   **the entry point that works**, and the one actually used by Share's
   « Envoyer au fournisseur » dialog (`beCPG/script/workflow/process.json`,

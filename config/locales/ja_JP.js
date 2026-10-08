@@ -51,7 +51,8 @@ const LOCALE = {
         "noProperties": "表示するプロパティがありません",
         "yes": "はい",
         "no": "いいえ",
-        "code": "コード"
+        "code": "コード",
+        "request": "更新を依頼"
     },
     "app/documents/page#LABELS": {
         "title": "文書",
@@ -940,7 +941,8 @@ const LOCALE = {
         "notFound": "製品が見つかりません",
         "notFoundHint": "このシートは存在しないか、貴社の範囲外です。",
         "back": "製品",
-        "partial": "このシートは不完全な状態で表示されています。お使いのアカウントで閲覧できないデータを少なくとも 1 つ参照しています。該当する項目は画面に表示されていませんが、空であるという意味ではありません。必要な場合は、beCPG のご担当者にアクセス権を依頼してください。"
+        "partial": "このシートは不完全な状態で表示されています。お使いのアカウントで閲覧できないデータを少なくとも 1 つ参照しています。該当する項目は画面に表示されていませんが、空であるという意味ではありません。必要な場合は、beCPG のご担当者にアクセス権を依頼してください。",
+        "request": "更新を依頼"
     },
     "app/products/page#LABELS": {
         "title": "製品",
@@ -959,7 +961,8 @@ const LOCALE = {
             "project": "プロジェクト",
             "supplierRef": "サプライヤー品番",
             "certificateDate": "証明書の日付",
-            "modified": "更新日"
+            "modified": "更新日",
+            "actions": ""
         },
         "stats": {
             "total": "製品",
@@ -968,7 +971,8 @@ const LOCALE = {
             "completion": "平均完成度"
         },
         "empty": "製品はありません",
-        "emptyHint": "まだ貴社に紐付けられた製品はありません。お客様がシートを割り当てると、ここに表示されます。"
+        "emptyHint": "まだ貴社に紐付けられた製品はありません。お客様がシートを割り当てると、ここに表示されます。",
+        "request": "更新を依頼"
     },
     "app/specs/page#LABELS": {
         "title": "仕様書",
@@ -1146,14 +1150,6 @@ const LOCALE = {
         "all": "すべて表示",
         "updatedOn": "{date} に更新",
         "request": "更新を依頼",
-        "requestTitle": "更新を依頼",
-        "requestIntro": "この製品の更新を依頼します。お客様の承認が必要で、すぐに変更されることはありません。",
-        "process": "依頼の種類",
-        "processPlaceholder": "選択…",
-        "noProcess": "このインスタンスでは、サプライヤーが利用できる依頼の種類はありません。通常のご担当者にお問い合わせください。",
-        "processUnavailable": "依頼の種類を取得できませんでした。しばらくしてから再試行してください。問題が解決しない場合は、通常のご担当者にお問い合わせください。",
-        "submit": "依頼を送信",
-        "sent": "依頼を送信しました。お客様が対応します。",
         "noCompletion": "未評価",
         "completion": "完成度"
     },
@@ -1423,8 +1419,7 @@ const LOCALE = {
         "noEntity": "サプライヤー文書",
         "aiHints": "解析メモ",
         "deposit": "ファイルをアップロード",
-        "file": "ファイル",
-        "onRequest": "この文書の更新時期はお客様が決定します。タスク以外で更新したい場合は、ディスカッションからお客様にご連絡ください。アップロードは拒否されます。"
+        "file": "ファイル"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "署名済み文書",
@@ -2025,6 +2020,19 @@ const LOCALE = {
         "open": "タスクを開く",
         "all": "この製品のタスクを表示",
         "untitled": "無題のタスク"
+    },
+    "components/products/UpdateRequestDialog#LABELS": {
+        "title": "更新を依頼",
+        "intro": "お客様が依頼を受け取り、取引登録と同様に処理します。シートを更新するタスクが届き、お客様が承認します。それまでは何も変更されません。",
+        "template": "依頼の種類",
+        "templatePlaceholder": "選択…",
+        "noTemplate": "お客様はサプライヤー向けの依頼の種類を公開していません。メッセージからご連絡ください。",
+        "reason": "依頼の理由",
+        "reasonHint": "新しいレシピ、新しい原産地、新しい製造拠点、新しい技術仕様書…",
+        "file": "新しい技術仕様書（任意）",
+        "submit": "依頼を送信",
+        "sent": "依頼を送信しました。更新タスクが作成されました。",
+        "sentFileFailed": "依頼は送信されましたが、技術仕様書をアップロードできませんでした。タスクからアップロードしてください。"
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "メニューを開く",

@@ -27,10 +27,10 @@
  * falls back to the first tab.
  */
 
-import { Suspense, useCallback } from 'react';
+import { Suspense, useCallback, useState } from 'react';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AppShell } from '@/components/shell/AppShell';
-import { Icon } from '@/components/ui/Button';
+import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonCard } from '@/components/ui/Skeleton';
@@ -38,6 +38,7 @@ import { ProductHeader } from '@/components/products/ProductHeader';
 import { ProductSections } from '@/components/products/ProductSections';
 import { ContentLocalesProvider } from '@/components/form/ContentLocalesProvider';
 import { ProductTaskBanner } from '@/components/products/ProductTaskBanner';
+import { UpdateRequestDialog } from '@/components/products/UpdateRequestDialog';
 import { routeParamId, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
@@ -48,6 +49,7 @@ const LABELS = defineLabels('app/products/[id]/page#LABELS', {
         notFound: 'Produit introuvable',
         notFoundHint: 'Cette fiche n’existe pas ou ne fait pas partie de votre périmètre.',
         back: 'Mes produits',
+        request: 'Demander une mise à jour',
         partial:
             'Cette fiche est affichée de façon incomplète : elle renvoie vers au moins une'
             + ' donnée que votre compte n’est pas autorisé à lire. Les champs concernés sont'
@@ -59,6 +61,7 @@ const LABELS = defineLabels('app/products/[id]/page#LABELS', {
         notFound: 'Product not found',
         notFoundHint: 'This sheet does not exist, or is not part of your scope.',
         back: 'My products',
+        request: 'Request an update',
         partial:
             'This sheet is shown incomplete: it points at least at one piece of data your'
             + ' account may not read. The fields concerned are absent from the screen — which'
@@ -66,6 +69,9 @@ const LABELS = defineLabels('app/products/[id]/page#LABELS', {
             + ' of them.',
     },
 });
+
+/** The one state a supplier may ask to reopen. */
+const VALID_STATE = 'Valid';
 
 /**
  * The screen itself. Split out of the default export so `useSearchParams` sits
@@ -106,6 +112,7 @@ function ProductScreen() {
     // first opened. A failure here is not an error for this page: the sheet
     // degrades to the portal's own sections and the raw attributes.
     const wizard = useApi(id ? `wizard/${encodeURIComponent(id)}` : null);
+    const [requesting, setRequesting] = useState(false);
 
     if (entity.error) {
         // A 403 and a 404 get the SAME screen on purpose.
@@ -146,6 +153,16 @@ function ProductScreen() {
                 loading={entity.loading}
                 backHref="/products"
                 className="mb-4"
+                actions={product?.state === VALID_STATE ? (
+                    <Button variant="outline" size="sm" icon="published_with_changes" onClick={() => setRequesting(true)}>
+                        {labels.request}
+                    </Button>
+                ) : null}
+            />
+            <UpdateRequestDialog
+                entity={requesting ? product : null}
+                onClose={() => setRequesting(false)}
+                onDone={entity.refresh}
             />
 
             {/* The write path, on a read-only screen. Right under the identity

@@ -4,12 +4,9 @@
  * "Mes produits" — the modernised `product-catalog` dashlet (spec §4.3), plus
  * the one thing V1 never allowed: **"demander une mise à jour"** (weakness F10).
  *
- * F10 is *not* solved by letting the supplier write on production data. It is
- * solved the way beCPG already models it: the supplier **starts an authorised
- * project** from a template, which the client then validates. The allow-list
- * lives server-side in `PORTAL_PROCESS_TEMPLATES` and is deny-by-default, so
- * this component simply asks `GET /api/v1/process/start` which templates are
- * open and renders exactly those — never a guess.
+ * F10 is *not* solved by letting the supplier write on production data: the
+ * supplier starts a supplier project its customer opened to it, and goes
+ * through the whole workflow again (`UpdateRequestDialog`).
  *
  * Completion comes from `bcpg:entityScore` (already computed by beCPG), the
  * state from `bcpg:productState`.
@@ -19,19 +16,18 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Button, ButtonGroup, Icon } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
-import { Field, Select } from '@/components/ui/Field';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { GaugeBar } from '@/components/ui/Gauge';
-import { Modal } from '@/components/ui/Modal';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { useToast } from '@/components/providers/ToastProvider';
-import { api, useApi, useMutation } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { formatDate, formatTotal } from '@/lib/format';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { UpdateRequestDialog } from '@/components/products/UpdateRequestDialog';
+
+/** `bcpg:productState` of a sheet the supplier may ask to reopen. */
+const VALID_STATE = 'Valid';
 
 const LOCAL = defineLabels('components/dashboard/ProductList#LOCAL', {
     fr: {
@@ -41,20 +37,6 @@ const LOCAL = defineLabels('components/dashboard/ProductList#LOCAL', {
         all: 'Tout voir',
         updatedOn: 'MAJ {date}',
         request: 'Demander une mise à jour',
-        requestTitle: 'Demander une mise à jour',
-        requestIntro:
-            'Vous demandez l’ouverture d’un dossier de mise à jour sur ce produit. '
-            + 'Votre client devra le valider ; aucune donnée n’est modifiée immédiatement.',
-        process: 'Type de demande',
-        processPlaceholder: 'Choisir…',
-        noProcess:
-            'Aucun type de demande n’est ouvert aux fournisseurs sur cette instance. '
-            + 'Contactez votre interlocuteur habituel.',
-        processUnavailable:
-            'Les types de demande n’ont pas pu être récupérés. Réessayez dans un instant ; '
-            + 'si cela persiste, contactez votre interlocuteur habituel.',
-        submit: 'Envoyer la demande',
-        sent: 'Demande envoyée. Votre client va la traiter.',
         noCompletion: 'Non évalué',
         completion: 'Complétude',
     },
@@ -65,19 +47,6 @@ const LOCAL = defineLabels('components/dashboard/ProductList#LOCAL', {
         all: 'See all',
         updatedOn: 'Updated {date}',
         request: 'Request an update',
-        requestTitle: 'Request an update',
-        requestIntro:
-            'You are requesting an update file on this product. Your customer must approve it; '
-            + 'nothing is changed straight away.',
-        process: 'Request type',
-        processPlaceholder: 'Choose…',
-        noProcess:
-            'No request type is open to suppliers on this instance. Please contact your usual contact.',
-        processUnavailable:
-            'Request types could not be retrieved. Try again in a moment; if it persists, '
-            + 'please contact your usual contact.',
-        submit: 'Send the request',
-        sent: 'Request sent. Your customer will process it.',
         noCompletion: 'Not scored',
         completion: 'Completeness',
     },
@@ -105,133 +74,6 @@ const STATE_LABELS = defineLabels('components/dashboard/ProductList#STATE_LABELS
         Archived: 'Archived',
     },
 });
-
-/**
- * The label of a request type.
- *
- * A **discovered** template carries beCPG's own name for it ("Projet de
- * référencement fournisseur"), already in the user's locale — that is the label
- * to show, and the portal invents nothing (AGENTS rule 4). A template pinned
- * through `PORTAL_PROCESS_TEMPLATES` has no name, only an id, so the id is
- * de-slugged: it **is** the tenant's configuration.
- *
- * @param {{id: string, label: ?string}} entry
- * @returns {string}
- */
-function processLabel(entry) {
-    if (entry && entry.label) {
-        return String(entry.label);
-    }
-    return String(entry?.id || '').replace(/[-_]+/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
-}
-
-/**
- * The "demander une mise à jour" dialog.
- *
- * @param {Object} props
- * @param {Object|null} props.product the entity the request is about
- * @param {Function} props.onClose
- * @param {Function} props.onDone
- */
-function RequestUpdateModal({ product, onClose, onDone }) {
-    const { t, lang } = useMessages();
-    const local = pickLabels(LOCAL, lang);
-    const toast = useToast();
-    const [processId, setProcessId] = useState('');
-    // A request type picked for one product must not be pre-selected for the
-    // next one; reset during render, as the other dialogs of the portal do.
-    const productRef = product?.nodeRef ?? null;
-    const [shownFor, setShownFor] = useState(productRef);
-    if (shownFor !== productRef) {
-        setShownFor(productRef);
-        setProcessId('');
-    }
-
-    // Only asked for when the dialog is actually open — the allow-list is tiny
-    // but there is no reason to query it on every dashboard render.
-    const { data, loading, error, refresh } = useApi('process/start', { enabled: Boolean(product) });
-    const processes = (data && Array.isArray(data.processes) ? data.processes : []).map(
-        (entry) => ({ value: entry.id, label: processLabel(entry) }),
-    );
-    // "We could not ask beCPG" is not "nothing is open here": the first is
-    // transient and worth retrying, the second is the instance's configuration.
-    const unresolved = Boolean(data && data.discovery && data.discovery.available === false);
-
-    const send = useMutation(
-        (input) => api.post('process/start', input),
-        {
-            onSuccess: () => {
-                toast.success(local.sent);
-                onClose();
-                onDone();
-            },
-            onError: (error) => toast.error(error),
-        },
-    );
-
-    const submit = async () => {
-        if (!processId || !product) {
-            return;
-        }
-        try {
-            await send.run({ process: processId, entityNodeRef: product.nodeRef });
-        }
-        catch {
-            // The toast is already raised by onError; the dialog stays open so
-            // the supplier can pick another request type.
-        }
-    };
-
-    return (
-        <Modal
-            open={Boolean(product)}
-            onClose={onClose}
-            title={local.requestTitle}
-            description={product ? [product.code, product.name].filter(Boolean).join(' · ') : undefined}
-            size="sm"
-            footer={
-                <ButtonGroup>
-                    <Button variant="outline" onClick={onClose} disabled={send.loading}>
-                        {t('action.cancel')}
-                    </Button>
-                    <Button
-                        variant="primary"
-                        icon="send"
-                        loading={send.loading}
-                        disabled={!processId || processes.length === 0}
-                        onClick={submit}
-                    >
-                        {local.submit}
-                    </Button>
-                </ButtonGroup>
-            }
-        >
-            <p className="mb-4 text-sm leading-relaxed text-[var(--becpg-dark-grey)]">
-                {local.requestIntro}
-            </p>
-            {loading ? (
-                <Skeleton height={44} radius="0.5rem" />
-            ) : error ? (
-                // A failed read is not "nothing is open here": say so, and let
-                // the supplier ask again.
-                <ErrorState error={error} onRetry={refresh} compact />
-            ) : processes.length === 0 ? (
-                <p className="rounded-lg bg-[var(--status-warn-bg)] px-3 py-2 text-sm text-[var(--status-warn)]">
-                    {unresolved ? local.processUnavailable : local.noProcess}
-                </p>
-            ) : (
-                <Field label={local.process} required>
-                    <Select
-                        options={processes}
-                        placeholder={local.processPlaceholder}
-                        value={processId}
-                        onChange={(event) => setProcessId(event.target.value)}
-                    />
-                </Field>
-            )}
-        </Modal>
-    );
-}
 
 /**
  * @param {Object} props
@@ -375,23 +217,27 @@ export function ProductList({ products = [], total, totalAtLeast, index = 0, cla
                                     </div>
                                 </Link>
 
+{/* Only a validated sheet can be reopened: a draft is still being
+                                    worked on, through the task that opened it. */}
+                                {product.state === VALID_STATE ? (
                                 <button
-                                    type="button"
-                                    onClick={() => setRequested(product)}
-                                    aria-label={local.request}
-                                    title={local.request}
-                                    className="flex h-9 w-9 shrink-0 touch-target items-center justify-center rounded-lg text-[var(--becpg-dark-grey)] transition-colors hover:bg-[var(--becpg-blue-lighter)] hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
-                                >
-                                    <Icon name="published_with_changes" size={20} />
-                                </button>
+                                        type="button"
+                                        onClick={() => setRequested(product)}
+                                        aria-label={local.request}
+                                        title={local.request}
+                                        className="flex h-9 w-9 shrink-0 touch-target items-center justify-center rounded-lg text-[var(--becpg-dark-grey)] transition-colors hover:bg-[var(--becpg-blue-lighter)] hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                                    >
+                                        <Icon name="published_with_changes" size={20} />
+                                    </button>
+                                ) : null}
                             </motion.li>
                         ))}
                     </ul>
                 )}
             </Card>
 
-            <RequestUpdateModal
-                product={requested}
+            <UpdateRequestDialog
+                entity={requested}
                 onClose={() => setRequested(null)}
                 onDone={() => router.refresh()}
             />

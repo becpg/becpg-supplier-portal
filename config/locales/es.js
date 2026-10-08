@@ -51,7 +51,8 @@ const LOCALE = {
         "noProperties": "Ninguna propiedad que mostrar",
         "yes": "Sí",
         "no": "No",
-        "code": "Código"
+        "code": "Código",
+        "request": "Solicitar una actualización"
     },
     "app/documents/page#LABELS": {
         "title": "Mis documentos",
@@ -940,7 +941,8 @@ const LOCALE = {
         "notFound": "Producto no encontrado",
         "notFoundHint": "Esta ficha no existe o no forma parte de su ámbito.",
         "back": "Mis productos",
-        "partial": "Esta ficha se muestra incompleta: hace referencia al menos a un dato que su cuenta no puede leer. Los campos afectados no aparecen en pantalla — lo que no significa que estén vacíos. Solicite acceso a su interlocutor de beCPG si necesita alguno de ellos."
+        "partial": "Esta ficha se muestra incompleta: hace referencia al menos a un dato que su cuenta no puede leer. Los campos afectados no aparecen en pantalla — lo que no significa que estén vacíos. Solicite acceso a su interlocutor de beCPG si necesita alguno de ellos.",
+        "request": "Solicitar una actualización"
     },
     "app/products/page#LABELS": {
         "title": "Mis productos",
@@ -959,7 +961,8 @@ const LOCALE = {
             "project": "Proyecto",
             "supplierRef": "Referencia del proveedor",
             "certificateDate": "Fecha del certificado",
-            "modified": "Actualizado"
+            "modified": "Actualizado",
+            "actions": ""
         },
         "stats": {
             "total": "Productos",
@@ -968,7 +971,8 @@ const LOCALE = {
             "completion": "Cumplimentación media"
         },
         "empty": "Ningún producto",
-        "emptyHint": "Aún no tiene ningún producto vinculado. Una ficha aparece aquí en cuanto el cliente le asigna una."
+        "emptyHint": "Aún no tiene ningún producto vinculado. Una ficha aparece aquí en cuanto el cliente le asigna una.",
+        "request": "Solicitar una actualización"
     },
     "app/specs/page#LABELS": {
         "title": "Especificaciones",
@@ -1146,14 +1150,6 @@ const LOCALE = {
         "all": "Ver todo",
         "updatedOn": "Actualizado el {date}",
         "request": "Solicitar una actualización",
-        "requestTitle": "Solicitar una actualización",
-        "requestIntro": "Está solicitando un expediente de actualización de este producto. Su cliente debe aprobarlo; no se modifica nada de inmediato.",
-        "process": "Tipo de solicitud",
-        "processPlaceholder": "Elija…",
-        "noProcess": "En esta instancia no hay ningún tipo de solicitud abierto a los proveedores. Póngase en contacto con su interlocutor habitual.",
-        "processUnavailable": "No se han podido recuperar los tipos de solicitud. Vuelva a intentarlo dentro de un momento; si persiste, póngase en contacto con su interlocutor habitual.",
-        "submit": "Enviar la solicitud",
-        "sent": "Solicitud enviada. Su cliente la tramitará.",
         "noCompletion": "Sin puntuar",
         "completion": "Cumplimentación"
     },
@@ -1423,8 +1419,7 @@ const LOCALE = {
         "noEntity": "Documentos del proveedor",
         "aiHints": "Notas del análisis",
         "deposit": "Subir un archivo",
-        "file": "Archivo",
-        "onRequest": "Su cliente decide cuándo se actualiza este documento. Fuera de una tarea, escríbale desde Conversaciones: una subida sería rechazada."
+        "file": "Archivo"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "Documento firmado",
@@ -2025,6 +2020,19 @@ const LOCALE = {
         "open": "Abrir la tarea",
         "all": "Ver las tareas de este producto",
         "untitled": "Tarea sin título"
+    },
+    "components/products/UpdateRequestDialog#LABELS": {
+        "title": "Solicitar una actualización",
+        "intro": "Su cliente recibe la solicitud y la trata como un referenciamiento: recibirá una tarea para actualizar la ficha, que él validará. Nada cambia hasta entonces.",
+        "template": "Tipo de solicitud",
+        "templatePlaceholder": "Elegir…",
+        "noTemplate": "Su cliente no ha abierto ningún tipo de solicitud a los proveedores. Escríbale desde Mensajes.",
+        "reason": "Motivo de la solicitud",
+        "reasonHint": "Nueva receta, nuevo origen, nuevo centro de producción, nueva ficha técnica…",
+        "file": "Nueva ficha técnica (opcional)",
+        "submit": "Enviar la solicitud",
+        "sent": "Solicitud enviada. Se ha abierto una tarea de actualización para usted.",
+        "sentFileFailed": "Solicitud enviada, pero no se ha podido subir la ficha técnica: súbala desde la tarea."
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "Abrir el menú",

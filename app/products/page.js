@@ -22,7 +22,8 @@ import { Select } from '@/components/ui/Field';
 import { GaugeBar } from '@/components/ui/Gauge';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { Icon } from '@/components/ui/Button';
+import { Icon, IconButton } from '@/components/ui/Button';
+import { UpdateRequestDialog } from '@/components/products/UpdateRequestDialog';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { entityTypeLabel } from '@/components/products/ProductHeader';
 import { formatDate, formatTotal } from '@/lib/format';
@@ -46,6 +47,7 @@ const LABELS = defineLabels('app/products/page#LABELS', {
         allTypes: 'Tous les types',
         branch: 'MAJ',
         branchFrom: 'Mise à jour de la version {version}',
+        request: 'Demander une mise à jour',
         columns: {
             name: 'Produit',
             code: 'Code',
@@ -56,6 +58,7 @@ const LABELS = defineLabels('app/products/page#LABELS', {
             supplierRef: 'Réf. fournisseur',
             certificateDate: 'Date de référencement',
             modified: 'Mise à jour',
+            actions: '',
         },
         stats: {
             total: 'Produits',
@@ -75,6 +78,7 @@ const LABELS = defineLabels('app/products/page#LABELS', {
         allTypes: 'All types',
         branch: 'Update',
         branchFrom: 'Update of version {version}',
+        request: 'Request an update',
         columns: {
             name: 'Product',
             code: 'Code',
@@ -85,6 +89,7 @@ const LABELS = defineLabels('app/products/page#LABELS', {
             supplierRef: 'Supplier reference',
             certificateDate: 'Certificate date',
             modified: 'Updated',
+            actions: '',
         },
         stats: {
             total: 'Products',
@@ -99,6 +104,9 @@ const LABELS = defineLabels('app/products/page#LABELS', {
 });
 
 /** `bcpg:productState` values, in the order of the product life cycle. */
+/** The one state a supplier may ask to reopen. */
+const VALID_STATE = 'Valid';
+
 const STATES = ['Simulation', 'ToValidate', 'Valid', 'Refused', 'Stopped', 'Archived'];
 
 export default function ProductsPage() {
@@ -107,6 +115,7 @@ export default function ProductsPage() {
 
     const [state, setState] = useState('');
     const [type, setType] = useState('');
+    const [requested, setRequested] = useState(null);
 
     // The type filter offers what the supplier actually holds, learned from the
     // rows the repository returns — never a hard-coded list of entity types.
@@ -310,6 +319,24 @@ export default function ProductsPage() {
                     <span className="tabular-nums text-xs">{formatDate(row.original.modified, lang)}</span>
                 ),
             },
+            {
+                // Only a validated sheet can be reopened; a draft is still being
+                // worked on through the task that opened it.
+                id: 'actions',
+                header: labels.columns.actions,
+                enableSorting: false,
+                meta: { align: 'right', label: labels.request, width: '3.5rem', hideOnCard: true },
+                cell: ({ row }) => (row.original.state === VALID_STATE ? (
+                    <IconButton
+                        icon="published_with_changes"
+                        label={labels.request}
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            setRequested(row.original);
+                        }}
+                    />
+                ) : null),
+            },
         ],
         [labels, lang],
     );
@@ -364,6 +391,8 @@ export default function ProductsPage() {
                     <GaugeBar value={stats.completion} showValue={false} size="sm" className="mt-2" />
                 </StatCard>
             </StatGrid>
+
+            <UpdateRequestDialog entity={requested} onClose={() => setRequested(null)} onDone={products.refresh} />
 
             <DataTable
                 columns={columns}
