@@ -93,7 +93,12 @@ export function RichText({ value, className = '', emptyText = null, inline = fal
     return (
         <div className={className}>
             {lines.map((line, index) =>
-                line.bullet ? (
+                line.ordinal ? (
+                    <p key={index} className="flex gap-1.5">
+                        <span className="tabular-nums">{line.ordinal}.</span>
+                        <span className="min-w-0 break-words"><Line line={line} /></span>
+                    </p>
+                ) : line.bullet ? (
                     <p key={index} className="flex gap-1.5">
                         <span aria-hidden="true">•</span>
                         <span className="min-w-0 break-words"><Line line={line} /></span>

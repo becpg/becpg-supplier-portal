@@ -52,6 +52,7 @@ import { useDocumentRequirements } from '@/components/wizard/TechnicalSheetBanne
 import { SignatureFlow } from '@/components/signature/SignatureFlow';
 import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import { Button } from '@/components/ui/Button';
+import { RichText } from '@/components/ui/RichText';
 import { CommentsPanel } from '@/components/wizard/panels/CommentsPanel';
 import { TaskActions } from '@/components/tasks/TaskActions';
 import { formatDate } from '@/lib/format';
@@ -123,7 +124,7 @@ function TaskHeader({ task, labels, lang, onDone }) {
                 </div>
             </div>
             {task.description ? (
-                <p className="mt-2 whitespace-pre-wrap text-sm text-[var(--becpg-blue)]/90">{task.description}</p>
+                <RichText value={task.description} className="mt-2 text-sm text-[var(--becpg-blue)]/90" />
             ) : null}
             {/* The wizard and the signature flow close their task themselves; every
                 other screen goes through here — including the closure task, which
