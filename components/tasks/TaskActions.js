@@ -36,8 +36,9 @@ import { Textarea } from '@/components/ui/Field';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useMessages } from '@/lib/messages';
 import { api } from '@/lib/client';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/tasks/TaskActions#LABELS', {
     fr: {
         complete: 'Terminer la tâche',
         refuse: 'Refuser',
@@ -69,7 +70,7 @@ const LABELS = {
         completed: 'Task completed.',
         refused: 'Task refused.',
     },
-};
+});
 
 /**
  * @param {Object} props
@@ -79,7 +80,7 @@ const LABELS = {
  */
 export function TaskActions({ task, onDone, backHref = '/tasks' }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const toast = useToast();
     const router = useRouter();
     const [pending, setPending] = useState(null);

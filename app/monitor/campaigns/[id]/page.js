@@ -42,8 +42,9 @@ import { projectStateLabel } from '@/components/monitor/CampaignList';
 import { formatDate } from '@/lib/format';
 import { routeParamId, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/monitor/campaigns/[id]/page#LABELS', {
     fr: {
         back: 'Projets',
         notFound: 'Projet introuvable',
@@ -110,7 +111,7 @@ const LABELS = {
         discussion: 'Project discussion',
         state: 'State',
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
@@ -125,7 +126,7 @@ export default function CampaignPage() {
     // Decoded once here, encoded at each call site — see `routeParamId`.
     const id = routeParamId(params.id);
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const call = useApi(id ? `monitor/campaigns/${encodeURIComponent(id)}` : null);
     const data = call.data;

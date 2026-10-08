@@ -51,6 +51,7 @@ import { SearchInput } from '@/components/ui/Field';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonTable } from '@/components/ui/Skeleton';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** Default page sizes offered in the pagination footer. */
 export const PAGE_SIZES = [10, 25, 50, 100];
@@ -60,7 +61,7 @@ export const PAGE_SIZES = [10, 25, 50, 100];
  * mechanics, not portal vocabulary, and adding them to `config/messages.js`
  * would blow its "keep it under ~60 keys" budget).
  */
-const LOCAL_LABELS = {
+const LOCAL_LABELS = defineLabels('components/ui/DataTable#LOCAL_LABELS', {
     fr: {
         selectAll: 'Tout sélectionner',
         selectRow: 'Sélectionner la ligne',
@@ -73,7 +74,7 @@ const LOCAL_LABELS = {
         columns: 'Visible columns',
         rowsPerPage: 'Rows per page',
     },
-};
+});
 
 function columnLabel(column) {
     const meta = column.columnDef.meta || {};
@@ -89,7 +90,7 @@ function alignClass(meta) {
         return '';
     }
     if (meta.align === 'right') {
-        return 'text-right';
+        return 'text-end';
     }
     if (meta.align === 'center') {
         return 'text-center';
@@ -254,7 +255,7 @@ export function DataTable({
     className = '',
 }) {
     const { t, lang } = useMessages();
-    const local = LOCAL_LABELS[lang] || LOCAL_LABELS.fr;
+    const local = useMemo(() => pickLabels(LOCAL_LABELS, lang), [lang]);
     const router = useRouter();
     const [sorting, setSorting] = useState(initialSorting);
     const [globalFilter, setGlobalFilter] = useState('');
@@ -370,7 +371,7 @@ export function DataTable({
                         </div>
                     ) : null}
                     {toolbar}
-                    <div className="ml-auto flex items-center gap-2">
+                    <div className="ms-auto flex items-center gap-2">
                         {actions}
                         {enableColumnVisibility ? (
                             <div className="relative hidden md:block">
@@ -390,7 +391,7 @@ export function DataTable({
                                             tabIndex={-1}
                                             onClick={() => setColumnsOpen(false)}
                                         />
-                                        <div className="absolute right-0 z-20 mt-1 max-h-72 w-56 overflow-y-auto rounded-lg border border-[var(--becpg-blue-lighter)] bg-white p-2 shadow-[var(--becpg-shadow-overlay)]">
+                                        <div className="absolute end-0 z-20 mt-1 max-h-72 w-56 overflow-y-auto rounded-lg border border-[var(--becpg-blue-lighter)] bg-white p-2 shadow-[var(--becpg-shadow-overlay)]">
                                             {table
                                                 .getAllLeafColumns()
                                                 .filter((column) => column.getCanHide() && column.id !== '__select')
@@ -465,7 +466,7 @@ export function DataTable({
                                                               ? 'descending'
                                                               : undefined
                                                     }
-                                                    className={`px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide ${alignClass(meta)}`}
+                                                    className={`px-3 py-2.5 text-start text-xs font-medium uppercase tracking-wide ${alignClass(meta)}`}
                                                 >
                                                     {header.isPlaceholder ? null : sortable ? (
                                                         <button
@@ -473,7 +474,7 @@ export function DataTable({
                                                             onClick={header.column.getToggleSortingHandler()}
                                                             className="inline-flex items-center gap-1 rounded transition-colors hover:text-[var(--becpg-orange-light)]"
                                                         >
-                                                            <span className="text-left">
+                                                            <span className="text-start">
                                                                 {flexRender(
                                                                     header.column.columnDef.header,
                                                                     header.getContext(),
@@ -652,13 +653,13 @@ export function DataTable({
                                             !href && clickable ? () => onRowClick(row.original, row) : undefined
                                         }
                                         className={[
-                                            'block w-full rounded-xl border bg-white p-3 text-left',
+                                            'block w-full rounded-xl border bg-white p-3 text-start',
                                             'shadow-[var(--becpg-shadow-raised)] transition-colors',
                                             row.getIsSelected()
                                                 ? 'border-[var(--becpg-blue-light)] bg-[var(--becpg-row-selected)]'
                                                 : 'border-[var(--becpg-blue-lighter)]',
                                             clickable
-                                                ? 'border-l-[3px] border-l-[var(--becpg-orange)] active:bg-[var(--becpg-row-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2'
+                                                ? 'border-s-[3px] border-s-[var(--becpg-orange)] active:bg-[var(--becpg-row-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2'
                                                 : '',
                                         ]
                                             .filter(Boolean)
@@ -707,7 +708,7 @@ export function DataTable({
                                                         <dt className="text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">
                                                             {columnLabel(column)}
                                                         </dt>
-                                                        <dd className="min-w-0 break-words text-right text-[var(--becpg-blue)]">
+                                                        <dd className="min-w-0 break-words text-end text-[var(--becpg-blue)]">
                                                             {cellOf(row, column)}
                                                         </dd>
                                                     </div>

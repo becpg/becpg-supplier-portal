@@ -8,7 +8,9 @@
  * generic errors, status labels.
  *
  * Rule of thumb: if a client could want to rename it, it belongs in beCPG, not here.
- * Keep this file under ~60 keys.
+ *
+ * French and English are written here; the other languages are translated in
+ * `config/locales/<lang>.js` under {@link MESSAGES_NAMESPACE} (see `lib/i18n.js`).
  *
  * Usage:
  *   import { t } from '@/config/messages';
@@ -16,15 +18,61 @@
  *   t('fr', 'error.http', { status: 404 });
  */
 
-export const SUPPORTED_LANGS = ['fr', 'en'];
+import { localeDictionary } from '@/lib/localeRegistry';
+
+/**
+ * The languages the portal chrome is written in: Share's `ui-languages`
+ * (becpg-share-config.xml), Russian aside, plus Chinese and Arabic.
+ *
+ * The codes are Share's own, so a `bcpg:userLocale` read from the beCPG profile
+ * matches one as it is. `en_US` writes the English text with US dates and
+ * numbers; every other code writes its own text.
+ */
+export const SUPPORTED_LANGS = [
+    'fr', 'en', 'en_US', 'de', 'es', 'it', 'pt_BR', 'sv_SE', 'fi', 'tr', 'ja_JP', 'zh_CN', 'ar',
+];
 
 export const DEFAULT_LANG = 'fr';
+
+/** The languages whose text is written inline beside each component, the others' source. */
+export const INLINE_LANGS = ['fr', 'en'];
+
+/** Written right to left: the document takes `dir="rtl"`. */
+const RTL_LANGS = new Set(['ar']);
+
+/** Each language's name, written in that language — what a reader looks for in a list. */
+export const LANG_NAMES = {
+    fr: 'Français',
+    en: 'English (UK)',
+    en_US: 'English (US)',
+    de: 'Deutsch',
+    es: 'Español',
+    it: 'Italiano',
+    pt_BR: 'Português (Brasil)',
+    sv_SE: 'Svenska',
+    fi: 'Suomi',
+    tr: 'Türkçe',
+    ja_JP: '日本語',
+    zh_CN: '简体中文',
+    ar: 'العربية',
+};
+
+/**
+ * A bare language code, for the codes Share writes with their country:
+ * a profile set to `pt` or `ja` still finds its language.
+ */
+const BY_LANGUAGE = Object.fromEntries(
+    SUPPORTED_LANGS.filter((code) => code !== 'en_US').map((code) => [code.split('_')[0], code]),
+);
 
 /** Cookie carrying the portal chrome language (readable by the client, no secret). */
 export const LANG_COOKIE = 'becpg_portal_lang';
 
 /** Event dispatched on the window when the language changes client-side. */
 export const LANG_CHANGE_EVENT = 'portallangchange';
+
+/** The namespace these chrome strings are translated under in `config/locales/`. */
+export const MESSAGES_NAMESPACE = 'config/messages#messages';
 
 export const messages = {
     fr: {
@@ -252,17 +300,69 @@ export const messages = {
 };
 
 /**
- * Normalises any incoming locale ('fr_FR', 'EN-gb', undefined...) to a supported lang.
+ * The supported language a locale designates, or null when the portal does not
+ * speak it — so a caller can fall through to the next source instead of
+ * flattening an unknown language onto the default.
+ *
+ * `en_US`, `en-us` and `EN_us` are US English; any other English is `en`.
+ * `pt-PT`, `zh-TW` or `fr_CA` fall back on the one variant the portal has.
+ *
+ * @param {string} [lang] raw locale ('fr_FR', 'EN-gb', 'pt-BR'…)
+ * @returns {string|null} one of SUPPORTED_LANGS
+ */
+export function supportedLang(lang) {
+    if (!lang || typeof lang !== 'string') {
+        return null;
+    }
+    const [language, country] = lang.trim().split(/[-_]/);
+    const base = language.toLowerCase();
+    if (base === 'en') {
+        return country?.toUpperCase() === 'US' ? 'en_US' : 'en';
+    }
+    return BY_LANGUAGE[base] ?? null;
+}
+
+/**
+ * Normalises any incoming locale to a supported lang, the default when unknown.
  *
  * @param {string} [lang] raw locale
  * @returns {string} one of SUPPORTED_LANGS
  */
 export function normalizeLang(lang) {
-    if (!lang || typeof lang !== 'string') {
-        return DEFAULT_LANG;
+    return supportedLang(lang) ?? DEFAULT_LANG;
+}
+
+/**
+ * The inline text a language reads: its own for `fr` / `en`, English for
+ * `en_US`, null for a language whose text lives in `config/locales/`.
+ *
+ * @param {string} lang a supported lang
+ * @returns {string|null}
+ */
+export function inlineLang(lang) {
+    if (lang === 'en_US') {
+        return 'en';
     }
-    const code = lang.toLowerCase().split(/[-_]/)[0];
-    return SUPPORTED_LANGS.includes(code) ? code : DEFAULT_LANG;
+    return INLINE_LANGS.includes(lang) ? lang : null;
+}
+
+/**
+ * @param {string} lang a supported lang
+ * @returns {'rtl'|'ltr'}
+ */
+export function dirOf(lang) {
+    return RTL_LANGS.has(lang) ? 'rtl' : 'ltr';
+}
+
+/**
+ * The BCP 47 tag of a supported lang, for `<html lang>`, `Accept-Language`
+ * and `Intl`: `pt_BR` → `pt-BR`.
+ *
+ * @param {string} lang
+ * @returns {string}
+ */
+export function bcp47Of(lang) {
+    return normalizeLang(lang).replace('_', '-');
 }
 
 /**
@@ -278,11 +378,13 @@ export function normalizeLang(lang) {
  */
 export function t(lang, key, vars) {
     const code = normalizeLang(lang);
-    const dict = messages[code] || messages[DEFAULT_LANG];
-    let value = dict[key];
+    const inline = inlineLang(code);
+    let value = inline
+        ? messages[inline][key]
+        : localeDictionary(code)?.[MESSAGES_NAMESPACE]?.[key];
 
     if (value === undefined) {
-        value = messages[DEFAULT_LANG][key];
+        value = messages[inline ?? 'en'][key] ?? messages[DEFAULT_LANG][key];
     }
     if (value === undefined) {
         return key;

@@ -1,12 +1,14 @@
 import { Roboto } from "next/font/google";
 import { withBasePath } from '@/lib/basePath';
 import "./globals.css";
-import { t as translate } from "@/config/messages";
+import { bcp47Of, dirOf, t as translate } from "@/config/messages";
+import { loadLocale } from "@/lib/i18n";
 import { resolveLang } from "@/lib/lang";
 import { getSession, toPublicSession } from "@/lib/session";
 import { getTenant, toPublicTenant } from "@/lib/tenant";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
+import { LocaleProvider } from "@/components/providers/LocaleProvider";
 
 const roboto = Roboto({
     weight: ["300", "400", "500", "700"],
@@ -67,6 +69,7 @@ const THEME_METADATA = {
  */
 export async function generateMetadata() {
     const lang = await resolveLang();
+    await loadLocale(lang);
     const title = translate(lang, "app.title");
 
     return {
@@ -128,10 +131,10 @@ async function readIdentity(lang) {
 
 export default async function RootLayout({ children }) {
     const lang = await resolveLang();
-    const identity = await readIdentity(lang);
+    const [identity, dictionary] = await Promise.all([readIdentity(lang), loadLocale(lang)]);
 
     return (
-        <html lang={lang}>
+        <html lang={bcp47Of(lang)} dir={dirOf(lang)}>
             <head>
                 {/*
                     Material Icons, linked exactly as `becpg-regulatory-ui`'s root
@@ -167,9 +170,11 @@ export default async function RootLayout({ children }) {
                     page. /login renders inside them and simply never triggers the
                     session call.
                 */}
-                <SessionProvider initialIdentity={identity}>
-                    <ToastProvider>{children}</ToastProvider>
-                </SessionProvider>
+                <LocaleProvider lang={lang} dictionary={dictionary}>
+                    <SessionProvider initialIdentity={identity}>
+                        <ToastProvider>{children}</ToastProvider>
+                    </SessionProvider>
+                </LocaleProvider>
             </body>
         </html>
     );

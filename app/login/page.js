@@ -33,16 +33,19 @@ import {
     stripTenantPrefix,
     tenantIdFromHost,
 } from '@/lib/tenant';
-import { LANG_COOKIE, normalizeLang, t } from '@/config/messages';
+import { t } from '@/config/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
+import { resolveLang } from '@/lib/lang';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = {
-    title: 'beCPG — Connexion',
-};
+/** The tab title, in the reader's language like the rest of the page. */
+export async function generateMetadata() {
+    return { title: `beCPG — ${t(await resolveLang(), 'account.login')}` };
+}
 
 /** Chrome strings owned by this page only (they never appear anywhere else). */
-const PAGE_TEXT = {
+const PAGE_TEXT = defineLabels('app/login/page#PAGE_TEXT', {
     fr: {
         welcome: 'Bienvenue',
         intro: 'Connectez-vous pour accéder à votre espace fournisseur : vos tâches, vos produits, vos documents et votre statut d’agrément.',
@@ -75,10 +78,10 @@ const PAGE_TEXT = {
             { icon: 'verified', text: 'Your approval status, kept up to date by your customer' },
         ],
     },
-};
+});
 
 /** Sign-in failures worth explaining; anything else falls back to the generic one. */
-const ERROR_TEXT = {
+const ERROR_TEXT = defineLabels('app/login/page#ERROR_TEXT', {
     fr: {
         oidc_not_configured: "L'authentification n'est pas configurée pour ce client.",
         tenant_mismatch: 'Votre session appartenait à un autre client. Reconnectez-vous.',
@@ -91,7 +94,7 @@ const ERROR_TEXT = {
         dev_auth_misconfigured: 'Development mode is on but misconfigured.',
         session_expired: 'Your session has expired. Please sign in again.',
     },
-};
+});
 
 /**
  * Best-effort tenant carried by the URL. The proxy rewrites
@@ -139,9 +142,9 @@ export default async function LoginPage({ searchParams }) {
     const headerList = await headers();
     const cookieStore = await cookies();
 
-    const lang = normalizeLang(cookieStore.get(LANG_COOKIE)?.value);
-    const text = PAGE_TEXT[lang] || PAGE_TEXT.fr;
-    const errors = ERROR_TEXT[lang] || ERROR_TEXT.fr;
+    const lang = await resolveLang();
+    const text = pickLabels(PAGE_TEXT, lang);
+    const errors = pickLabels(ERROR_TEXT, lang);
 
     const tenants = listTenants();
     const urlTenant = tenantFromUrl(headerList);
@@ -331,7 +334,7 @@ export default async function LoginPage({ searchParams }) {
                                             id="tenant"
                                             name="tenant"
                                             defaultValue={selected ? selected.id : ''}
-                                            className="min-h-[44px] w-full appearance-none rounded-lg border border-[var(--becpg-grey)] bg-white px-3 py-2 pr-9 text-sm text-[var(--becpg-blue)] focus:border-[var(--becpg-blue-light)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-1"
+                                            className="min-h-[44px] w-full appearance-none rounded-lg border border-[var(--becpg-grey)] bg-white px-3 py-2 pe-9 text-sm text-[var(--becpg-blue)] focus:border-[var(--becpg-blue-light)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-1"
                                         >
                                             {tenants.map((tenant) => (
                                                 <option key={tenant.id} value={tenant.id}>
@@ -341,7 +344,7 @@ export default async function LoginPage({ searchParams }) {
                                             ))}
                                         </select>
                                         <span
-                                            className="material-icons pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--becpg-dark-grey)]"
+                                            className="material-icons pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2 text-[var(--becpg-dark-grey)]"
                                             style={{ fontSize: 18 }}
                                             aria-hidden="true"
                                         >

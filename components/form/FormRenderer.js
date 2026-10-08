@@ -50,11 +50,12 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { TabScroller } from '@/components/ui/TabScroller';
 import { FieldRenderer } from '@/components/form/FieldRenderer';
 import { readValue } from '@/components/form/validation';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/form/FormRenderer#LABELS', {
     fr: { empty: 'Aucun champ à saisir', emptyHint: 'La configuration de ce formulaire ne renvoie aucun champ.' },
     en: { empty: 'No field to fill in', emptyHint: 'The configuration of this form returns no field.' },
-};
+});
 
 /** Set appearances that draw a container of their own. */
 const APPEARANCES = {
@@ -262,7 +263,7 @@ export function FormRenderer({
     footer,
     className = '',
 }) {
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const tabs = useMemo(
         () => (Array.isArray(definition?.tabs) ? definition.tabs : []),
         [definition],

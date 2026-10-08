@@ -53,6 +53,7 @@ import {
 } from '@/components/monitor/RiskList';
 import { applyProfileOrder } from '@/components/monitor/ProfileSwitcher';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * Column id → the `sort` value `GET /monitor/suppliers` understands.
@@ -84,7 +85,7 @@ export const COLUMN_BY_SORT_PARAM = Object.freeze(
     ),
 );
 
-const LABELS = {
+const LABELS = defineLabels('components/monitor/SupplierTable#LABELS', {
     fr: {
         search: 'Filtrer les fournisseurs chargés…',
         caption: 'Fournisseurs du parc, statut d’agrément et indicateurs dérivés',
@@ -199,7 +200,7 @@ const LABELS = {
         close: 'Close',
         noReason: 'No risk reason',
     },
-};
+});
 
 /** Suppliers a single comparison may hold — past that, columns are unreadable. */
 export const MAX_COMPARED = 6;
@@ -264,7 +265,7 @@ function ApprovalCell({ approval }) {
         <Tooltip
             placement="top"
             content={(
-                <ul className="m-0 list-disc pl-4">
+                <ul className="m-0 list-disc ps-4">
                     {reasons.map((reason, position) => <li key={`${position}-${reason}`}>{reason}</li>)}
                 </ul>
             )}
@@ -282,7 +283,7 @@ function RiskCell({ risk, lang }) {
     return (
         <span className={`pill pill-sm pill-no-dot pill-${level.tone}`}>
             <Icon name={level.icon} size={13} />
-            <span>{level[lang] || level.fr}</span>
+            <span>{pickLabels(level, lang)}</span>
             <span className="tabular-nums opacity-70">{score}</span>
         </span>
     );
@@ -544,7 +545,7 @@ function compareRows(local, lang) {
  */
 export function SupplierCompare({ items, open, onClose, onDone }) {
     const { lang } = useMessages();
-    const local = LABELS[lang] || LABELS.fr;
+    const local = pickLabels(LABELS, lang);
     const shown = items.slice(0, MAX_COMPARED);
     const rows = useMemo(() => compareRows(local, lang), [local, lang]);
 
@@ -577,14 +578,14 @@ export function SupplierCompare({ items, open, onClose, onDone }) {
                     </caption>
                     <thead>
                         <tr className="border-b border-[var(--becpg-grey)]">
-                            <th scope="col" className="w-44 px-2 py-2 text-left text-xs font-medium uppercase tracking-wide text-[var(--becpg-dark-grey)]">
+                            <th scope="col" className="w-44 px-2 py-2 text-start text-xs font-medium uppercase tracking-wide text-[var(--becpg-dark-grey)]">
                                 {' '}
                             </th>
                             {shown.map((item) => (
                                 <th
                                     key={item.nodeRef}
                                     scope="col"
-                                    className="min-w-[10rem] px-2 py-2 text-left align-bottom"
+                                    className="min-w-[10rem] px-2 py-2 text-start align-bottom"
                                 >
                                     <Link
                                         href={item.href}
@@ -605,7 +606,7 @@ export function SupplierCompare({ items, open, onClose, onDone }) {
                             <tr key={row.id} className="border-b border-[var(--becpg-grey)] last:border-0">
                                 <th
                                     scope="row"
-                                    className="px-2 py-2 text-left align-top text-xs font-medium text-[var(--becpg-dark-grey)]"
+                                    className="px-2 py-2 text-start align-top text-xs font-medium text-[var(--becpg-dark-grey)]"
                                 >
                                     {row.label}
                                 </th>
@@ -617,7 +618,7 @@ export function SupplierCompare({ items, open, onClose, onDone }) {
                             </tr>
                         ))}
                         <tr>
-                            <th scope="row" className="px-2 py-2 text-left text-xs font-medium text-[var(--becpg-dark-grey)]">
+                            <th scope="row" className="px-2 py-2 text-start text-xs font-medium text-[var(--becpg-dark-grey)]">
                                 {' '}
                             </th>
                             {shown.map((item) => (
@@ -672,7 +673,7 @@ export function SupplierTable({
     className = '',
 }) {
     const { lang } = useMessages();
-    const local = LABELS[lang] || LABELS.fr;
+    const local = pickLabels(LABELS, lang);
     const [comparing, setComparing] = useState(false);
 
     const catalog = useMemo(() => buildSupplierColumns(local, lang), [local, lang]);
@@ -743,7 +744,7 @@ export function SupplierTable({
                                 onClick={() => setComparing(true)}
                             >
                                 {local.compare}
-                                <span className="ml-1 tabular-nums">({selected.length})</span>
+                                <span className="ms-1 tabular-nums">({selected.length})</span>
                             </Button>
                         ) : null}
                         {actions}

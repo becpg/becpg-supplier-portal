@@ -46,7 +46,7 @@ export function TestBanner({ isTest, message, compact = false, className = '' })
     if (compact) {
         return (
             <span className={`test-badge ${className}`} role="status">
-                <Icon name="science" size={13} className="mr-1 text-[var(--test-banner-icon)]" />
+                <Icon name="science" size={13} className="me-1 text-[var(--test-banner-icon)]" />
                 {t('test.badge')}
             </span>
         );

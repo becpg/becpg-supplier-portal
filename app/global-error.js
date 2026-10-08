@@ -24,8 +24,10 @@
  */
 
 import { useEffect } from 'react';
+import { DEFAULT_LANG, LANG_COOKIE, bcp47Of, dirOf, normalizeLang } from '@/config/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/global-error#LABELS', {
     fr: {
         title: 'Le portail n’a pas pu démarrer',
         message:
@@ -40,35 +42,35 @@ const LABELS = {
         retry: 'Try again',
         reference: 'Reference',
     },
-};
+});
 
 const BLUE = '#004254';
 const DANGER = '#b3261e';
 
-/** @returns {'fr'|'en'} */
+/** @returns {string} a supported lang */
 function lang() {
     if (typeof document === 'undefined') {
-        return 'fr';
+        return DEFAULT_LANG;
     }
-    const match = document.cookie.match(/(?:^|;\s*)becpg_portal_lang=(fr|en)/);
-    return match ? match[1] : 'fr';
+    const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${LANG_COOKIE}=([^;]+)`));
+    return normalizeLang(match ? decodeURIComponent(match[1]) : DEFAULT_LANG);
 }
 
 /**
  * @param {Object} props
  * @param {Error & {digest?: string}} props.error
- * @param {Function} props.reset
+ * @param {Function} props.retry
  */
-export default function GlobalError({ error, reset }) {
+export default function GlobalError({ error, retry }) {
     const code = lang();
-    const local = LABELS[code] || LABELS.fr;
+    const local = pickLabels(LABELS, code);
 
     useEffect(() => {
         console.error('[portal] root error', error);
     }, [error]);
 
     return (
-        <html lang={code}>
+        <html lang={bcp47Of(code)} dir={dirOf(code)}>
             <body
                 style={{
                     margin: 0,
@@ -117,7 +119,7 @@ export default function GlobalError({ error, reset }) {
 
                     <button
                         type="button"
-                        onClick={() => reset()}
+                        onClick={() => retry()}
                         style={{
                             marginTop: '0.5rem',
                             cursor: 'pointer',

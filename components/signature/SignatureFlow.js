@@ -62,6 +62,7 @@ import { SignaturePad } from '@/components/signature/SignaturePad';
 import { SignatureDocument, readStorageKey, uuidOf } from '@/components/signature/SignatureDocument';
 import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import { clearReadProgress } from '@/components/signature/useReadTracking';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** Where the idempotency key of a submission lives, per task. */
 const REQUEST_KEY_PREFIX = 'becpg-portal:sign-request:';
@@ -77,7 +78,7 @@ const OUTCOME = Object.freeze({
     CLOSED: 'closed',
 });
 
-const LABELS = {
+const LABELS = defineLabels('components/signature/SignatureFlow#LABELS', {
     fr: {
         title: 'Signature',
         back: 'Mes tâches',
@@ -199,7 +200,7 @@ const LABELS = {
         leaving: 'The signature is being sent. Leaving now may interrupt it.',
         document: 'Document',
     },
-};
+});
 
 /**
  * @param {string} template
@@ -410,7 +411,7 @@ export function SignatureFlow({
     onSigned,
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const toast = useToast();
     const session = useSession();
     const reduceMotion = useReducedMotion();

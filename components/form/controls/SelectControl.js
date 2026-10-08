@@ -25,11 +25,12 @@
 import { Select } from '@/components/ui/Field';
 import { listOptions } from '@/components/form/validation';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/form/controls/SelectControl#LABELS', {
     fr: { placeholder: 'Choisir…', offList: 'valeur hors liste', empty: 'Aucune valeur proposée' },
     en: { placeholder: 'Choose…', offList: 'value not in the list', empty: 'No value offered' },
-};
+});
 
 /**
  * @param {*} value
@@ -95,7 +96,7 @@ export function SelectControl({
     entityNodeRef,
     ...rest
 }) {
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const selected = toArray(value);
     const options = optionsWithOrphans(field, selected, labels.offList);
 

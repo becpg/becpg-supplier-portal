@@ -42,8 +42,9 @@ import { SurveyStep } from '@/components/wizard/steps/SurveyStep';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { portalCatalogs } from '@/lib/catalogs';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/wizard/steps/ReviewStep#LABELS', {
     fr: {
         title: 'Conformité',
         subtitle: 'Ce qui manque encore pour que votre client puisse valider la fiche.',
@@ -88,7 +89,7 @@ const LABELS = {
         reviewedHint: 'Tick the sections as you go: {done} of {total} reviewed.',
         empty: 'Nothing to display',
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
@@ -195,7 +196,7 @@ export function ComplianceStep({
     className = '',
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const blocking = useMemo(
         () => blockingCatalogs(catalogs, blockingIds, { translations: blockingTranslations }),
@@ -286,12 +287,12 @@ function ReviewSection({ step, open, onToggle, reviewed, onReviewed, children, l
     const reduceMotion = useReducedMotion();
     return (
         <Card padding="none" className="overflow-hidden">
-            <div className="flex items-center gap-2 pr-3">
+            <div className="flex items-center gap-2 pe-3">
                 <button
                     type="button"
                     aria-expanded={open}
                     onClick={() => onToggle(step.id)}
-                    className="touch-target flex min-w-0 flex-1 items-center gap-2 px-4 py-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                    className="touch-target flex min-w-0 flex-1 items-center gap-2 px-4 py-3 text-start focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
                 >
                     <Icon
                         name={step.frozen ? 'lock' : reviewed ? 'check_circle' : 'description'}
@@ -359,7 +360,7 @@ function ReviewSection({ step, open, onToggle, reviewed, onReviewed, children, l
  */
 export function ReviewStep({ entityId, state = null, wizardId, withCompliance = true, className = '' }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const fetched = useApi(!state && entityId ? `wizard/${encodeURIComponent(entityId)}` : null, {
         params: { wizardId },

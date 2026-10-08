@@ -132,11 +132,11 @@ export function StatCard({
     const inner = (
         <>
             <span
-                className="absolute inset-y-0 left-0 w-1 rounded-l-xl"
+                className="absolute inset-y-0 start-0 w-1 rounded-s-xl"
                 style={{ background: palette.rail }}
                 aria-hidden="true"
             />
-            <div className="flex items-start gap-3 pl-2">
+            <div className="flex items-start gap-3 ps-2">
                 {icon ? (
                     <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${palette.chip}`}>
                         <Icon name={icon} size={20} />
@@ -184,7 +184,7 @@ export function StatCard({
     );
 
     const classes = [
-        'relative w-full overflow-hidden rounded-xl border border-[var(--becpg-blue-lighter)] bg-white p-4 text-left',
+        'relative w-full overflow-hidden rounded-xl border border-[var(--becpg-blue-lighter)] bg-white p-4 text-start',
         'shadow-[var(--becpg-shadow-raised)]',
         clickable
             ? 'hover-lift cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2'

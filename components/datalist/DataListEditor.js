@@ -747,7 +747,7 @@ export function DataListEditor({
                             <span className="text-sm font-medium text-[var(--becpg-blue)]">
                                 {label('selected', { count: selectedRows.length })}
                             </span>
-                            <div className="ml-auto flex flex-wrap items-center gap-1">
+                            <div className="ms-auto flex flex-wrap items-center gap-1">
                                 {/* Before the reorder and the delete: filling a
                                     column down a selection is what a supplier
                                     does often, the rest is occasional. */}
@@ -838,7 +838,7 @@ export function DataListEditor({
                                         <th
                                             scope="col"
                                             className="px-1"
-                                            style={{ width: SELECT_WIDTH, left: sticky.selection }}
+                                            style={{ width: SELECT_WIDTH, insetInlineStart: sticky.selection }}
                                             data-sticky="start"
                                         >
                                             <input
@@ -853,7 +853,7 @@ export function DataListEditor({
                                     {showOrder ? (
                                         <th
                                             scope="col"
-                                            style={{ width: '3.5rem', left: sticky.order }}
+                                            style={{ width: '3.5rem', insetInlineStart: sticky.order }}
                                             data-sticky="start"
                                         >
                                             <span className="sr-only-text">{label('order')}</span>
@@ -863,7 +863,7 @@ export function DataListEditor({
                                         <th
                                             scope="col"
                                             className="w-10"
-                                            style={{ left: sticky.nested }}
+                                            style={{ insetInlineStart: sticky.nested }}
                                             data-sticky="start"
                                         >
                                             <span className="sr-only-text">{label('detail')}</span>
@@ -878,7 +878,7 @@ export function DataListEditor({
                                                 key={column.formsName}
                                                 scope="col"
                                                 aria-sort={sorted}
-                                                style={position === 0 ? { left: sticky.first } : undefined}
+                                                style={position === 0 ? { insetInlineStart: sticky.first } : undefined}
                                                 data-sticky={position === 0 ? 'start' : undefined}
                                                 data-sticky-edge={position === 0 ? 'true' : undefined}
                                             >
@@ -924,7 +924,7 @@ export function DataListEditor({
                                             </th>
                                         );
                                     })}
-                                    <th scope="col" className="w-24 text-right" data-sticky="end">
+                                    <th scope="col" className="w-24 text-end" data-sticky="end">
                                         <span className="sr-only-text">{label('actions')}</span>
                                     </th>
                                 </tr>

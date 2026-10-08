@@ -79,7 +79,7 @@ export function Field({
         /* A frozen / delegated value. It is a *read* surface, so it says so with a
            `--becpg-blue` rail on the left — the same 3px signal the nav and the
            section headers use — rather than by looking like a broken input. */
-        <div className="min-h-[40px] whitespace-pre-wrap break-words rounded-lg border-l-[3px] border-l-[var(--becpg-blue-light)] bg-[var(--becpg-grey)] px-3 py-2 text-sm text-[var(--becpg-blue)]">
+        <div className="min-h-[40px] whitespace-pre-wrap break-words rounded-lg border-s-[3px] border-s-[var(--becpg-blue-light)] bg-[var(--becpg-grey)] px-3 py-2 text-sm text-[var(--becpg-blue)]">
             {value === null || value === undefined || value === '' ? (
                 <span className="text-[var(--becpg-dark-grey-deep)]">—</span>
             ) : (
@@ -127,7 +127,7 @@ export function Field({
                     <span className="break-words">{label}</span>
                     {required ? (
                         <span
-                            className="ml-0.5 text-[var(--status-danger)]"
+                            className="ms-0.5 text-[var(--status-danger)]"
                             title={t('state.required')}
                             aria-hidden="true"
                         >
@@ -148,7 +148,7 @@ export function Field({
                     `d:mltext`, and how many are still owed. Empty for every
                     other control, and it costs nothing then. */}
                 <span ref={setHeaderSlot} className="inline-flex min-w-0 items-center gap-1.5" />
-                {action ? <span className="ml-auto">{action}</span> : null}
+                {action ? <span className="ms-auto">{action}</span> : null}
             </div>
             <div className={layout === 'inline' ? 'sm:flex-1' : ''}>
                 {description ? (
@@ -224,7 +224,7 @@ export const Input = forwardRef(function Input(
             ref={ref}
             /*
              * The icon and the suffix are positioned *over* the control, so the
-             * room they occupy is padding. `pl-9` / `pr-12` are how that room is
+             * room they occupy is padding. `ps-9` / `pe-12` are how that room is
              * expressed here — but a caller that restyles the control (the
              * datalist grid replaces the padding wholesale, `app/globals.css`)
              * cannot know from the outside that the room is needed. These two
@@ -233,7 +233,7 @@ export const Input = forwardRef(function Input(
              */
             data-affix-start={icon ? '' : undefined}
             data-affix-end={suffix ? '' : undefined}
-            className={controlClasses(invalid, [icon ? 'pl-9' : '', suffix ? 'pr-12' : '', className].join(' '))}
+            className={controlClasses(invalid, [icon ? 'ps-9' : '', suffix ? 'pe-12' : '', className].join(' '))}
             {...rest}
         />
     );
@@ -246,12 +246,12 @@ export const Input = forwardRef(function Input(
                 <Icon
                     name={icon}
                     size={18}
-                    className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--becpg-dark-grey)]"
+                    className="pointer-events-none absolute start-2.5 top-1/2 -translate-y-1/2 text-[var(--becpg-dark-grey)]"
                 />
             ) : null}
             {input}
             {suffix ? (
-                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-[var(--becpg-dark-grey)]">
+                <span className="absolute end-2.5 top-1/2 -translate-y-1/2 text-xs text-[var(--becpg-dark-grey)]">
                     {suffix}
                 </span>
             ) : null}
@@ -299,7 +299,7 @@ export const Select = forwardRef(function Select(
                 ref={ref}
                 /* The chevron always sits over the control — see `Input`. */
                 data-affix-end=""
-                className={controlClasses(invalid, `appearance-none pr-9 ${className}`)}
+                className={controlClasses(invalid, `appearance-none pe-9 ${className}`)}
                 {...rest}
             >
                 {placeholder ? <option value="">{placeholder}</option> : null}
@@ -314,7 +314,7 @@ export const Select = forwardRef(function Select(
             <Icon
                 name="expand_more"
                 size={18}
-                className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--becpg-dark-grey)]"
+                className="pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2 text-[var(--becpg-dark-grey)]"
             />
         </div>
     );

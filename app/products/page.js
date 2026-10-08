@@ -29,6 +29,7 @@ import { formatDate, formatTotal } from '@/lib/format';
 import { useSession } from '@/components/providers/SessionProvider';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
@@ -36,7 +37,7 @@ function fill(template, vars) {
     );
 }
 
-const LABELS = {
+const LABELS = defineLabels('app/products/page#LABELS', {
     fr: {
         title: 'Mes produits',
         subtitle: 'Les fiches que le client vous demande de tenir à jour',
@@ -95,14 +96,14 @@ const LABELS = {
         emptyHint:
             'No product is linked to you yet. A sheet shows up here as soon as the customer assigns one.',
     },
-};
+});
 
 /** `bcpg:productState` values, in the order of the product life cycle. */
 const STATES = ['Simulation', 'ToValidate', 'Valid', 'Refused', 'Stopped', 'Archived'];
 
 export default function ProductsPage() {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const [state, setState] = useState('');
     const [type, setType] = useState('');

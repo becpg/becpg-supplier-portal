@@ -16,7 +16,7 @@
  *
  * It is also where the controls read the definition from, so that "what a LIST
  * offers" or "how many decimals a number has" is answered identically by the
- * renderer and by the validator. It imports nothing but `config/messages` and is
+ * renderer and by the validator. It imports nothing but `lib/i18n` and is
  * safe on both sides of the wire.
  *
  * ## The error contract
@@ -31,6 +31,8 @@
  * back into a sentence, reading the bound to interpolate from the field's own
  * constraints — which is why it takes the field and not a bag of parameters.
  */
+
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /* -------------------------------------------------------------------------- */
 /* Constraints and control parameters                                          */
@@ -441,7 +443,7 @@ export function needsAnswer(field) {
 /* -------------------------------------------------------------------------- */
 
 /** Message keys this module can return, with their fr/en wording. */
-export const VALIDATION_MESSAGES = {
+export const VALIDATION_MESSAGES = defineLabels('components/form/validation#VALIDATION_MESSAGES', {
     fr: {
         'validation.required': 'Ce champ est obligatoire.',
         'validation.number': 'Saisissez un nombre.',
@@ -470,7 +472,7 @@ export const VALIDATION_MESSAGES = {
         'validation.minLength': 'Enter at least {min} character(s).',
         'validation.maxLength': 'Enter at most {max} character(s).',
     },
-};
+});
 
 /**
  * Turns a message key back into a sentence.
@@ -490,7 +492,7 @@ export function formatValidationError(field, key, lang = 'fr') {
     if (!key) {
         return '';
     }
-    const dictionary = VALIDATION_MESSAGES[lang] || VALIDATION_MESSAGES.fr;
+    const dictionary = pickLabels(VALIDATION_MESSAGES, lang);
     const template = dictionary[key] || VALIDATION_MESSAGES.fr[key];
     if (!template) {
         return key;

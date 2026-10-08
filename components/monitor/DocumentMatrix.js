@@ -49,6 +49,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { ExpiryPill } from '@/components/documents/ExpiryPill';
 import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** Height of a matrix row, in px — fixed, because virtualisation needs it. */
 const ROW_H = 52;
@@ -62,7 +63,7 @@ const HEADER_H = 44;
 const OVERSCAN_ROWS = 6;
 const OVERSCAN_COLS = 2;
 
-const LABELS = {
+const LABELS = defineLabels('components/monitor/DocumentMatrix#LABELS', {
     fr: {
         supplier: 'Fournisseur',
         types: '{count} type(s) de document',
@@ -97,7 +98,7 @@ const LABELS = {
         toggle: 'Show documents',
         summary: '{missing} missing · {expired} expired · {expiring} to renew',
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, key) =>
@@ -188,7 +189,7 @@ export function DocumentMatrix({
     className = '',
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const scrollRef = useRef(null);
     // Mirrored in state so the observer below attaches when the scroller
@@ -416,7 +417,7 @@ export function DocumentMatrix({
                         <tr style={{ height: HEADER_H }}>
                             <th
                                 scope="col"
-                                className="sticky left-0 top-0 z-30 bg-white px-2 text-left align-middle shadow-[inset_-1px_0_0_var(--becpg-grey),inset_0_-1px_0_var(--becpg-grey)]"
+                                className="sticky start-0 top-0 z-30 bg-white px-2 text-start align-middle shadow-[inset_-1px_0_0_var(--becpg-grey),inset_0_-1px_0_var(--becpg-grey)]"
                                 style={{ width: STICKY_W, minWidth: STICKY_W }}
                             >
                                 <span className="flex items-center gap-2">
@@ -445,7 +446,7 @@ export function DocumentMatrix({
                                     key={columnKey(column)}
                                     scope="col"
                                     title={column.label}
-                                    className="sticky top-0 z-20 bg-white px-2 text-left align-middle shadow-[inset_0_-1px_0_var(--becpg-grey)]"
+                                    className="sticky top-0 z-20 bg-white px-2 text-start align-middle shadow-[inset_0_-1px_0_var(--becpg-grey)]"
                                     style={{ width: COL_W }}
                                 >
                                     <span className="block truncate font-medium text-[var(--becpg-blue)]">
@@ -482,7 +483,7 @@ export function DocumentMatrix({
                                     <th
                                         scope="row"
                                         className={[
-                                            'sticky left-0 z-10 px-2 text-left align-middle font-normal',
+                                            'sticky start-0 z-10 px-2 text-start align-middle font-normal',
                                             'shadow-[inset_-1px_0_0_var(--becpg-grey),inset_0_-1px_0_var(--becpg-grey)]',
                                             rowSelected
                                                 ? 'bg-[#eef5f7]'
@@ -543,7 +544,7 @@ export function DocumentMatrix({
                                                                 name: supplier.name,
                                                             })}
                                                             className={[
-                                                                'flex min-w-0 flex-1 items-center gap-1 rounded-md px-1 py-1 text-left transition-colors',
+                                                                'flex min-w-0 flex-1 items-center gap-1 rounded-md px-1 py-1 text-start transition-colors',
                                                                 selected
                                                                     ? 'bg-[var(--becpg-blue-lighter)] ring-2 ring-[var(--becpg-blue-light)]'
                                                                     : 'hover:bg-[var(--becpg-grey)]/60',
@@ -566,7 +567,7 @@ export function DocumentMatrix({
                                                             {cell.isMandatory ? (
                                                                 <span
                                                                     title={labels.mandatory}
-                                                                    className="ml-auto text-[var(--becpg-orange)]"
+                                                                    className="ms-auto text-[var(--becpg-orange)]"
                                                                     aria-hidden="true"
                                                                 >
                                                                     *
@@ -737,7 +738,7 @@ export function DocumentMatrix({
  */
 export function MatrixLegend({ statuses = ['valid', 'expiring', 'expired', 'missing', 'refused', 'toValidate'] }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     return (
         <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--becpg-dark-grey)]">
             {statuses.map((status) => (

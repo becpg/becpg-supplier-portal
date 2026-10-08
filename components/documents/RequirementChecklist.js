@@ -34,8 +34,9 @@ import { DocumentValidity } from '@/components/documents/DocumentValidity';
 import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import { ExpiryPill, ExpiryBar } from '@/components/documents/ExpiryPill';
 import { entityTypeLabel } from '@/components/products/ProductHeader';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/documents/RequirementChecklist#LABELS', {
     fr: {
         mandatory: 'Obligatoire',
         satisfied: 'Fourni',
@@ -88,7 +89,7 @@ const LABELS = {
         onRequest:
             'Your customer decides when this document is updated. Outside a task, write to them from Discussions: an upload would be refused.',
     },
-};
+});
 
 /** Worst first: a supplier must see what blocks him before what is merely valid. */
 const STATUS_WEIGHT = {
@@ -101,7 +102,7 @@ const STATUS_WEIGHT = {
 };
 
 function labelsFor(lang) {
-    return LABELS[lang] || LABELS.fr;
+    return pickLabels(LABELS, lang);
 }
 
 function fill(template, vars) {
@@ -193,12 +194,12 @@ function RequirementRow({
             className="relative overflow-hidden rounded-xl border border-[var(--becpg-grey)] bg-white"
         >
             <span
-                className="absolute inset-y-0 left-0 w-1"
+                className="absolute inset-y-0 start-0 w-1"
                 style={{ background: rail }}
                 aria-hidden="true"
             />
 
-            <div className={`pl-3 ${compact ? 'p-2.5' : 'p-3'}`}>
+            <div className={`ps-3 ${compact ? 'p-2.5' : 'p-3'}`}>
                 <div className="flex items-start gap-2.5">
                     <span
                         className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${

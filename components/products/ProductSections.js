@@ -73,6 +73,7 @@ import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { parseListId } from '@/config/wizards.default';
 import { portalCatalogs } from '@/lib/catalogs';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * Portal chrome for this screen. Business labels — the tab names, the section
@@ -81,7 +82,7 @@ import { portalCatalogs } from '@/lib/catalogs';
  * (Conformité, Cahiers des charges) and the sentences of the empty / error
  * surfaces.
  */
-const LABELS = {
+const LABELS = defineLabels('components/products/ProductSections#LABELS', {
     fr: {
         sheet: 'Fiche',
         compliance: 'Conformité',
@@ -124,7 +125,7 @@ const LABELS = {
         yes: 'Yes',
         no: 'No',
     },
-};
+});
 
 /**
  * The URL segment identifying a step in `?tab=`.
@@ -299,7 +300,7 @@ export function readableValue(field, lang) {
             return null;
         }
         if (typeof entry === 'boolean') {
-            const labels = LABELS[lang] || LABELS.fr;
+            const labels = pickLabels(LABELS, lang);
             return entry ? labels.yes : labels.no;
         }
         if (typeof entry === 'number') {
@@ -563,13 +564,13 @@ function FormPanel({ entityId, attributes, step, params, lang, labels }) {
         <>
             {stepData.error || formData.error ? (
                 <p className="mb-3 text-xs text-[var(--becpg-dark-grey)]">
-                    <Icon name="info" size={14} className="mr-1 align-text-bottom" />
+                    <Icon name="info" size={14} className="me-1 align-text-bottom" />
                     {labels.configHint}
                     {stepData.error || formData.error ? (
                         <button
                             type="button"
                             onClick={stepData.error ? stepData.refresh : formData.refresh}
-                            className="ml-2 underline hover:text-[var(--becpg-blue)]"
+                            className="ms-2 underline hover:text-[var(--becpg-blue)]"
                         >
                             {t('action.retry')}
                         </button>
@@ -936,7 +937,7 @@ export function ProductSections({
 }) {
     const { lang, t } = useMessages();
     const labels = useMemo(() => {
-        const dict = LABELS[lang] || LABELS.fr;
+        const dict = pickLabels(LABELS, lang);
         return { ...dict, retryLabel: t('action.retry') };
     }, [lang, t]);
 

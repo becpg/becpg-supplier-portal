@@ -40,8 +40,9 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { formatDateTime, isIsoTimestamp } from '@/lib/format';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/wizard/steps/SuggestionsStep#LABELS', {
     fr: {
         title: 'Extraction automatique',
         subtitle:
@@ -135,7 +136,7 @@ const LABELS = {
         changes: '{count} value(s)',
         error: 'Applying the suggestion failed.',
     },
-};
+});
 
 /**
  * How long the step waits before re-reading while becpg-ai is still working.
@@ -450,7 +451,7 @@ export function SuggestionsStep({
     className = '',
 }) {
     const { lang, t } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const toast = useToast();
     const reduceMotion = useReducedMotion();
 

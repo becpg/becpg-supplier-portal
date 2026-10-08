@@ -36,8 +36,9 @@ import { Icon } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/monitor/CampaignList#LABELS', {
     fr: {
         columns: {
             campaign: 'Projet',
@@ -121,7 +122,7 @@ const LABELS = {
             Cancelled: 'Cancelled',
         },
     },
-};
+});
 
 /** `pjt:projectStates` that keep a campaign open — mirrors the adapter's config. */
 export const CAMPAIGN_OPEN_STATES = Object.freeze(['Planned', 'InProgress', 'OnHold']);
@@ -139,7 +140,7 @@ export const CAMPAIGN_CLOSED_STATES = Object.freeze(['Completed', 'Cancelled']);
  * @returns {string}
  */
 export function projectStateLabel(state, lang = 'fr') {
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     if (!state) {
         return '—';
     }
@@ -217,7 +218,7 @@ export function CampaignList({
     actions,
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const columns = useMemo(
         () => [
@@ -311,7 +312,7 @@ export function CampaignList({
                 header: labels.columns.age,
                 meta: { label: labels.columns.age, align: 'right', width: '9rem' },
                 cell: ({ row }) => (
-                    <div className="text-right">
+                    <div className="text-end">
                         <p
                             className="tabular-nums"
                             title={

@@ -68,8 +68,9 @@ import {
     surveyProgress,
     visibleQuestionIds,
 } from '@/components/survey/surveyModel';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/survey/DecisionTree#LABELS', {
     fr: {
         required: 'Question obligatoire',
         noAnswer: 'Sans réponse',
@@ -86,7 +87,7 @@ const LABELS = {
         answer: 'Answer',
         blank: 'This mandatory question is still blank.',
     },
-};
+});
 
 /** Beyond this many options a single-choice question becomes a dropdown. */
 const RADIO_LIMIT = 12;
@@ -96,19 +97,19 @@ const REQUIREMENT_STYLE = Object.freeze({
     danger: {
         icon: 'block',
         className:
-            'border-l-[var(--status-danger)] bg-[var(--status-danger-bg)] text-[var(--status-danger)]',
+            'border-s-[var(--status-danger)] bg-[var(--status-danger-bg)] text-[var(--status-danger)]',
     },
     warn: {
         icon: 'warning_amber',
-        className: 'border-l-[var(--status-warn)] bg-[var(--status-warn-bg)] text-[var(--status-warn)]',
+        className: 'border-s-[var(--status-warn)] bg-[var(--status-warn-bg)] text-[var(--status-warn)]',
     },
     ok: {
         icon: 'check_circle',
-        className: 'border-l-[var(--status-ok)] bg-[var(--status-ok-bg)] text-[var(--status-ok)]',
+        className: 'border-s-[var(--status-ok)] bg-[var(--status-ok-bg)] text-[var(--status-ok)]',
     },
     info: {
         icon: 'info',
-        className: 'border-l-[var(--status-info)] bg-[var(--status-info-bg)] text-[var(--status-info)]',
+        className: 'border-s-[var(--status-info)] bg-[var(--status-info-bg)] text-[var(--status-info)]',
     },
 });
 
@@ -141,7 +142,7 @@ function MessageBlock({ question, domId }) {
             data-question-id={question.id}
             data-question-kind="message"
             style={paint ? { backgroundColor: tint(paint), borderLeftColor: paint } : undefined}
-            className={`flex min-w-0 items-start gap-2 rounded-xl border border-[var(--becpg-blue-lighter)] border-l-4 border-l-[var(--becpg-blue-light)] px-4 py-3${paint ? '' : ' bg-[var(--becpg-grey)]/50'}`}
+            className={`flex min-w-0 items-start gap-2 rounded-xl border border-[var(--becpg-blue-lighter)] border-s-4 border-s-[var(--becpg-blue-light)] px-4 py-3${paint ? '' : ' bg-[var(--becpg-grey)]/50'}`}
         >
             <Icon name="campaign" size={18} className="mt-0.5 shrink-0 text-[var(--becpg-blue-light)]" />
             <RichText
@@ -166,7 +167,7 @@ function Requirements({ requirements }) {
                     <div
                         key={index}
                         data-requirement-type={requirement?.type || 'Info'}
-                        className={`flex items-start gap-1.5 rounded-lg border-l-4 px-2.5 py-1.5 text-xs leading-snug ${style.className}`}
+                        className={`flex items-start gap-1.5 rounded-lg border-s-4 px-2.5 py-1.5 text-xs leading-snug ${style.className}`}
                     >
                         {/* Never colour alone: the type is carried by the icon and
                             by the code as well as by the tint. */}
@@ -511,7 +512,7 @@ function QuestionBlock({
             style={paint ? { backgroundColor: tint(paint), borderLeftColor: paint } : undefined}
             className={[
                 'min-w-0 scroll-mt-24 rounded-xl border p-4 shadow-[var(--becpg-shadow-raised)] focus:outline-none',
-                paint ? 'border-l-4' : 'bg-white',
+                paint ? 'border-s-4' : 'bg-white',
                 invalid
                     ? 'border-[var(--status-danger)]'
                     : 'border-[var(--becpg-blue-lighter)]',
@@ -530,7 +531,7 @@ function QuestionBlock({
                     <RichText inline value={question.label} />
                 </span>
                 {question.mandatory ? (
-                    <span className="ml-0.5 align-middle text-[var(--status-danger)]" title={labels.required}>
+                    <span className="ms-0.5 align-middle text-[var(--status-danger)]" title={labels.required}>
                         *
                     </span>
                 ) : null}
@@ -576,7 +577,7 @@ function QuestionBlock({
 function ReadOnlyAnswer({ values, labels }) {
     const filled = (values || []).filter((value) => value !== null && value !== undefined && value !== '');
     return (
-        <div className="min-h-[40px] whitespace-pre-wrap break-words rounded-lg border-l-[3px] border-l-[var(--becpg-blue-light)] bg-[var(--becpg-grey)] px-3 py-2 text-sm text-[var(--becpg-blue)]">
+        <div className="min-h-[40px] whitespace-pre-wrap break-words rounded-lg border-s-[3px] border-s-[var(--becpg-blue-light)] bg-[var(--becpg-grey)] px-3 py-2 text-sm text-[var(--becpg-blue)]">
             {filled.length === 0 ? (
                 <span className="text-[var(--becpg-dark-grey-deep)]">{labels.noAnswer}</span>
             ) : (
@@ -618,7 +619,7 @@ export function DecisionTree({
     className = '',
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const list = useMemo(() => (Array.isArray(questions) ? questions : []), [questions]);
     const hasAnswers = Array.isArray(answers) && answers.length > 0;

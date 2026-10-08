@@ -35,8 +35,9 @@ import { RichText } from '@/components/ui/RichText';
 import { formatDateTime } from '@/lib/format';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/wizard/panels/CommentsPanel#LABELS', {
     fr: {
         title: 'Discussion',
         subtitle: 'Vos échanges avec votre client sur cette fiche',
@@ -90,7 +91,7 @@ const LABELS = {
             noPermission: 'You are not allowed to write in this discussion.',
         },
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
@@ -293,7 +294,7 @@ export function CommentsPanel({
     className = '',
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const [draft, setDraft] = useState('');
     const [sendError, setSendError] = useState(null);
 
@@ -415,7 +416,7 @@ export function CommentsPanel({
                     message={field || !onEntityThread ? undefined : labels.emptyHint}
                 />
             ) : (
-                <ul className="flex max-h-[26rem] flex-col gap-2 overflow-y-auto pr-0.5">
+                <ul className="flex max-h-[26rem] flex-col gap-2 overflow-y-auto pe-0.5">
                     <AnimatePresence initial={false}>
                         {messages.map((message, index) => (
                             <MessageItem

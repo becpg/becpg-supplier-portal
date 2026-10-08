@@ -12,6 +12,7 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import { Button, Icon } from '@/components/ui/Button';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /*
  * The medallion behind the icon. `empty` and `search` used a flat
@@ -48,7 +49,7 @@ const VARIANTS = {
  * is explicitly capped at ~60 keys — so they live here, next to the component
  * that owns them, the same way `DataTable` keeps its table mechanics local.
  */
-const SENTENCES = {
+const SENTENCES = defineLabels('components/ui/EmptyState#SENTENCES', {
     fr: {
         empty: "Il n'y a rien à afficher ici pour le moment. Les éléments apparaîtront dès qu'ils auront été créés ou transmis.",
         search: 'Aucun élément ne correspond à votre recherche. Essayez avec moins de mots ou retirez un filtre.',
@@ -61,7 +62,7 @@ const SENTENCES = {
         error: null,
         success: null,
     },
-};
+});
 
 /**
  * @param {Object} props
@@ -100,7 +101,7 @@ export function EmptyState({
               ? t('error.title')
               : t('state.empty');
 
-    const sentences = SENTENCES[lang] || SENTENCES.fr;
+    const sentences = pickLabels(SENTENCES, lang);
     const finalMessage = message === undefined || message === null ? sentences[variant] : message;
 
     const motionProps = reduceMotion
@@ -138,7 +139,7 @@ export function EmptyState({
               * never read through the mark.
               */}
             <span
-                className="bg-shape pointer-events-none absolute bottom-0 right-0 h-[72%] w-1/2 max-w-[180px]"
+                className="bg-shape pointer-events-none absolute bottom-0 end-0 h-[72%] w-1/2 max-w-[180px]"
                 /* `contain`, not the utility's `min(70%, 340px)`: an empty state is
                    a wide, short box, and a width-driven background got cropped into
                    a grey wedge. Fitting the mark to the *height* keeps it whole and

@@ -38,11 +38,12 @@
 
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
 import { isAnsweredByModel } from '@/components/form/validation';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/form/controls/BooleanControl#LABELS', {
     fr: { yes: 'Oui', no: 'Non', empty: '(vide)' },
     en: { yes: 'Yes', no: 'No', empty: '(empty)' },
-};
+});
 
 /**
  * Controls whose Share template draws three radios rather than a checkbox.
@@ -96,7 +97,7 @@ export function BooleanControl({
     entityNodeRef,
     ...rest
 }) {
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const checked = toBoolean(value);
     const isInvalid = Boolean(error) || invalid;
 

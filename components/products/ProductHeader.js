@@ -38,6 +38,7 @@ import { Gauge } from '@/components/ui/Gauge';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { formatDate } from '@/lib/format';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** `workspace://SpacesStore/<uuid>` → `<uuid>`, for a portal route. */
 function nodeRefUuid(nodeRef) {
@@ -50,7 +51,7 @@ function fill(template, vars) {
     );
 }
 
-const LABELS = {
+const LABELS = defineLabels('components/products/ProductHeader#LABELS', {
     fr: {
         completion: 'Complétude',
         code: 'Code',
@@ -113,10 +114,10 @@ const LABELS = {
             'qa:nc': 'Non-conformity',
         },
     },
-};
+});
 
 function labelsFor(lang) {
-    return LABELS[lang] || LABELS.fr;
+    return pickLabels(LABELS, lang);
 }
 
 /**

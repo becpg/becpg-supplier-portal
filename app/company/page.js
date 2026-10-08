@@ -42,8 +42,9 @@ import { formatDate } from '@/lib/format';
 import { useSession } from '@/components/providers/SessionProvider';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/company/page#LABELS', {
     fr: {
         title: 'Ma fiche',
         subtitle: 'Les informations que le client détient sur votre entreprise',
@@ -127,7 +128,7 @@ const LABELS = {
         no: 'No',
         code: 'Code',
     },
-};
+});
 
 /** Reason codes, ordered from the most to the least severe (mirrors `rules`). */
 const REASON_ORDER = [
@@ -449,7 +450,7 @@ function IdentitySection({ data, loading, error, onRetry, labels, lang }) {
 
 export default function CompanyPage() {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const session = useSession();
     const supplier = session.supplier;
     const supplierId = supplier ? supplier.uuid || supplier.nodeRef : null;

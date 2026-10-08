@@ -19,8 +19,9 @@ import { Card } from '@/components/ui/Card';
 import { Gauge, GaugeBar, toneForValue } from '@/components/ui/Gauge';
 import { useMessages } from '@/lib/messages';
 import { STATE_CARD_CLASS, STATE_RAIL } from '@/components/dashboard/ApprovalCard';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LOCAL = {
+const LOCAL = defineLabels('components/dashboard/CompletionCard#LOCAL', {
     fr: {
         title: 'Complétude',
         scope: '{scored} produit(s) évalué(s) sur {total}',
@@ -37,7 +38,7 @@ const LOCAL = {
         seeProducts: 'See my products',
         worst: 'Least complete catalogues',
     },
-};
+});
 
 /** How many catalogue bars fit under the dial without crowding a 360px screen. */
 const MAX_CATALOGS = 3;
@@ -50,7 +51,7 @@ const MAX_CATALOGS = 3;
  */
 export function CompletionCard({ completion, index = 0, className = '' }) {
     const { lang } = useMessages();
-    const local = LOCAL[lang] || LOCAL.fr;
+    const local = pickLabels(LOCAL, lang);
 
     const score = completion && typeof completion.score === 'number' ? completion.score : null;
     const catalogs = Array.isArray(completion && completion.catalogs)

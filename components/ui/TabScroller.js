@@ -50,6 +50,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import { Icon } from '@/components/ui/Button';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** Sub-pixel layout means `scrollLeft` never lands exactly on `scrollWidth - clientWidth`. */
 const EPSILON = 2;
@@ -60,10 +61,10 @@ const REVEAL_PADDING = 36;
 /** One click on a chevron moves this share of the visible width. */
 const PAGE_RATIO = 0.8;
 
-const LOCAL = {
+const LOCAL = defineLabels('components/ui/TabScroller#LOCAL', {
     fr: { previous: 'Onglets précédents', next: 'Onglets suivants' },
     en: { previous: 'Previous tabs', next: 'Next tabs' },
-};
+});
 
 /**
  * Scrolls `element` into view **horizontally only**.
@@ -122,7 +123,7 @@ export function TabScroller({
     trackClassName = '',
 }) {
     const { lang } = useMessages();
-    const local = LOCAL[lang] || LOCAL.fr;
+    const local = pickLabels(LOCAL, lang);
     const reduceMotion = useReducedMotion();
     const trackRef = useRef(null);
     const [overflow, setOverflow] = useState({ start: false, end: false });

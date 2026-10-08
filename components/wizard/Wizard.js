@@ -104,6 +104,7 @@ import { useMessages } from '@/lib/messages';
 import { formatDate } from '@/lib/format';
 import { catalogGapsByStep, portalCatalogs, stepForMissingField } from '@/lib/catalogs';
 import { suggestionScopeForStep } from '@/lib/suggestionScope';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * What the browser grants a becpg-ai analysis, aligned on the route's
@@ -119,7 +120,7 @@ const AI_TIMEOUT_MS = 180_000;
  */
 const APPLY_REFRESH_MS = 1200;
 
-const LABELS = {
+const LABELS = defineLabels('components/wizard/Wizard#LABELS', {
     fr: {
         context: 'Contexte',
         discussion: 'Discussion',
@@ -191,7 +192,7 @@ const LABELS = {
         restore: 'Restore the panels',
         steps: 'Steps',
     },
-};
+});
 
 /** Ids of the steps the portal adds on top of the configured ones. */
 const SYNTHETIC = Object.freeze({
@@ -475,7 +476,7 @@ export function Wizard({
     className = '',
 }) {
     const { lang, t } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const toast = useToast();
     const router = useRouter();
     const reduceMotion = useReducedMotion();
@@ -1267,7 +1268,7 @@ export function Wizard({
      * | layout | where the thread is | what used to happen |
      * |---|---|---|
      * | phone / tablet (`< lg`) | a modal sheet | the sheet opened — correct |
-     * | desktop, panels shown | the right-hand aside | **nothing visible** |
+     * | desktop, panels shown | the end-hand aside | **nothing visible** |
      * | desktop, « Élargir la saisie » | nowhere: `aside` is `null` | **nothing at all** |
      *
      * So *Ouvrir la discussion*, in the context panel, was a dead button on

@@ -52,8 +52,9 @@ import { StartCampaignDialog } from '@/components/monitor/StartCampaignDialog';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api, apiUrl, routeParamId, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/monitor/suppliers/[id]/page#LABELS', {
     fr: {
         unavailable: {
             title: 'Données indisponibles',
@@ -240,7 +241,7 @@ const LABELS = {
         },
         generatedAt: 'Data as of {time}',
     },
-};
+});
 
 /** Rows of one reason shown before folding the rest behind a counter. */
 const DETAIL_PREVIEW = 5;
@@ -326,7 +327,7 @@ function ApprovalReasons({ approval, local, lang }) {
                             {described ? <Icon name={described.icon} size={13} /> : null}
                             <span>{described ? described.label : group.code}</span>
                         </span>
-                        <ul className="mt-1.5 flex flex-col gap-1 pl-1">
+                        <ul className="mt-1.5 flex flex-col gap-1 ps-1">
                             {group.rows.slice(0, DETAIL_PREVIEW).map((row) => (
                                 <li key={row.nodeRef} className="flex flex-wrap items-baseline gap-1.5 text-xs">
                                     <span className="font-medium">{row.name}</span>
@@ -366,7 +367,7 @@ function ApprovalReasons({ approval, local, lang }) {
                         <Icon name="rule" size={13} />
                         <span>{local.why.catalog}</span>
                     </span>
-                    <ul className="mt-1.5 flex flex-col gap-1 pl-1 text-xs">
+                    <ul className="mt-1.5 flex flex-col gap-1 ps-1 text-xs">
                         {blockingCatalogs.map((catalog, index) => (
                             <li key={catalog.id || catalog.label || index}>
                                 {catalog.label || catalog.id}
@@ -505,7 +506,7 @@ function ProcessLauncher({ supplierRef, local, onDone }) {
  */
 export default function MonitorSupplierSheetPage() {
     const { lang, t } = useMessages();
-    const local = LABELS[lang] || LABELS.fr;
+    const local = pickLabels(LABELS, lang);
     const params = useParams();
     // Decoded once here, encoded at each call site — see `routeParamId`.
     const id = routeParamId(params.id);

@@ -28,11 +28,12 @@ import {
     isMachineValue,
     nodeLabel,
 } from '@/lib/format';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/form/controls/ReadOnlyControl#LABELS', {
     fr: { yes: 'Oui', no: 'Non', empty: '—' },
     en: { yes: 'Yes', no: 'No', empty: '—' },
-};
+});
 
 /** Anything that looks like a link, when `activateLinks` is on. */
 const URL_RE = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
@@ -52,7 +53,7 @@ const URL_RE = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
  * formatValue({ dataType: 'd:double', control: { params: { decimals: 2 } } }, 3.14159, 'fr'); // "3,14"
  */
 export function formatValue(field, value, lang = 'fr') {
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     if (value === null || value === undefined || value === '') {
         return '';
     }
@@ -187,7 +188,7 @@ export function ReadOnlyControl({
     entityNodeRef: unusedEntityNodeRef,
     ...rest
 }) {
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const params = controlParams(field);
     const text = displayValue !== null && displayValue !== undefined && displayValue !== ''
         ? String(displayValue)
@@ -224,11 +225,11 @@ export function ReadOnlyControl({
 export function LockedControl(props) {
     return (
         <div className="relative">
-            <ReadOnlyControl {...props} className="pr-9" />
+            <ReadOnlyControl {...props} className="pe-9" />
             <Icon
                 name="lock_outline"
                 size={16}
-                className="absolute right-3 top-2.5 text-[var(--becpg-dark-grey)]"
+                className="absolute end-3 top-2.5 text-[var(--becpg-dark-grey)]"
             />
         </div>
     );

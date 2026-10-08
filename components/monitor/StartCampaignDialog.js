@@ -39,8 +39,9 @@ import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/monitor/StartCampaignDialog#LABELS', {
     fr: {
         title: 'Démarrer un projet',
         subtitle: 'Un projet de référencement par produit, comme « Envoyer au fournisseur » dans beCPG.',
@@ -99,7 +100,7 @@ const LABELS = {
         loadFailed: 'The list could not be loaded.',
         retry: 'Retry',
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
@@ -216,7 +217,7 @@ function useAllPages(path, params) {
  */
 export function StartCampaignDialog({ open, onClose, supplier = null, onStarted }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const toast = useToast();
 
     const [supplierRef, setSupplierRef] = useState(supplier ? supplier.nodeRef : '');

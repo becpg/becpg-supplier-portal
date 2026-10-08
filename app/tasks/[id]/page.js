@@ -62,8 +62,9 @@ import { TaskActions } from '@/components/tasks/TaskActions';
 import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/tasks/[id]/page#LABELS', {
     fr: {
         loading: 'Tâche',
         notFound: 'Tâche introuvable',
@@ -95,7 +96,7 @@ const LABELS = {
         done: 'Completed',
         discussion: 'Discussion',
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
@@ -149,7 +150,7 @@ function TaskRouter() {
     const params = useParams();
     const search = useSearchParams();
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     // `withWizard=1`: the wizard state is resolved on the server, in parallel with

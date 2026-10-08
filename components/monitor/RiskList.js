@@ -52,6 +52,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * Reason vocabulary. The codes come from the API (`config.riskWeights` and the
@@ -60,83 +61,83 @@ import { useMessages } from '@/lib/messages';
  * @readonly
  */
 export const RISK_REASONS = Object.freeze({
-    documentExpired: {
+    documentExpired: defineLabels('components/monitor/RiskList#RISK_REASONS.documentExpired', {
         icon: 'error_outline',
         tone: 'danger',
         fr: '{count} document(s) expiré(s)',
         en: '{count} expired document(s)',
-    },
-    documentExpiring: {
+    }),
+    documentExpiring: defineLabels('components/monitor/RiskList#RISK_REASONS.documentExpiring', {
         icon: 'schedule',
         tone: 'warn',
         fr: '{count} document(s) expirant(s)',
         en: '{count} expiring document(s)',
-    },
-    documentMissing: {
+    }),
+    documentMissing: defineLabels('components/monitor/RiskList#RISK_REASONS.documentMissing', {
         icon: 'help_outline',
         tone: 'warn',
         fr: '{count} document(s) manquant(s)',
         en: '{count} missing document(s)',
-    },
-    blockingNc: {
+    }),
+    blockingNc: defineLabels('components/monitor/RiskList#RISK_REASONS.blockingNc', {
         icon: 'report_problem',
         tone: 'danger',
         fr: '{count} NC bloquante(s)',
         en: '{count} blocking NC(s)',
-    },
-    openNc: {
+    }),
+    openNc: defineLabels('components/monitor/RiskList#RISK_REASONS.openNc', {
         icon: 'report_problem',
         tone: 'warn',
         fr: '{count} NC ouverte(s)',
         en: '{count} open NC(s)',
-    },
-    campaignNoAnswer: {
+    }),
+    campaignNoAnswer: defineLabels('components/monitor/RiskList#RISK_REASONS.campaignNoAnswer', {
         icon: 'campaign',
         tone: 'danger',
         fr: '{count} projet(s) sans réponse',
         en: '{count} project(s) without answer',
-    },
-    lateTask: {
+    }),
+    lateTask: defineLabels('components/monitor/RiskList#RISK_REASONS.lateTask', {
         icon: 'alarm',
         tone: 'danger',
         fr: '{count} tâche(s) en retard',
         en: '{count} late task(s)',
-    },
-    lowCompletion: {
+    }),
+    lowCompletion: defineLabels('components/monitor/RiskList#RISK_REASONS.lowCompletion', {
         icon: 'donut_large',
         tone: 'warn',
         fr: 'Complétude faible ({score} %)',
         en: 'Low completeness ({score} %)',
-    },
-    scoreDropping: {
+    }),
+    scoreDropping: defineLabels('components/monitor/RiskList#RISK_REASONS.scoreDropping', {
         icon: 'trending_down',
         tone: 'warn',
         fr: 'Score en baisse',
         en: 'Score dropping',
-    },
-    openProject: {
+    }),
+    openProject: defineLabels('components/monitor/RiskList#RISK_REASONS.openProject', {
         icon: 'pending_actions',
         tone: 'info',
         fr: '{count} référencement(s) en cours',
         en: '{count} referencing in progress',
-    },
-    blockingCatalog: {
+    }),
+    blockingCatalog: defineLabels('components/monitor/RiskList#RISK_REASONS.blockingCatalog', {
         icon: 'rule',
         tone: 'warn',
         fr: 'Catalogue bloquant non satisfait',
         en: 'Blocking catalog unsatisfied',
-    },
+    }),
 });
 
 /** Risk level → tone + icon. The word is always rendered next to it. */
 export const RISK_LEVELS = Object.freeze({
-    critical: { tone: 'danger', icon: 'priority_high', fr: 'Critique', en: 'Critical' },
-    high: { tone: 'danger', icon: 'trending_up', fr: 'Élevé', en: 'High' },
-    medium: { tone: 'warn', icon: 'remove', fr: 'Moyen', en: 'Medium' },
-    low: { tone: 'neutral', icon: 'south', fr: 'Faible', en: 'Low' },
+    critical: defineLabels('components/monitor/RiskList#RISK_LEVELS.critical', { tone: 'danger', icon: 'priority_high', fr: 'Critique', en: 'Critical' }),
+    high: defineLabels('components/monitor/RiskList#RISK_LEVELS.high', { tone: 'danger', icon: 'trending_up', fr: 'Élevé', en: 'High' }),
+    medium: defineLabels('components/monitor/RiskList#RISK_LEVELS.medium', { tone: 'warn', icon: 'remove', fr: 'Moyen', en: 'Medium' }),
+    low: defineLabels('components/monitor/RiskList#RISK_LEVELS.low', { tone: 'neutral', icon: 'south', fr: 'Faible', en: 'Low' }),
 });
 
-const LABELS = {
+const LABELS = defineLabels('components/monitor/RiskList#LABELS', {
     fr: {
         title: 'Top 10 des fournisseurs à risque',
         subtitle: 'Motif, score de risque et action directe',
@@ -234,7 +235,7 @@ const LABELS = {
             genericReasons: 'pending documents and deadlines',
         },
     },
-};
+});
 
 function interpolate(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
@@ -254,7 +255,7 @@ export function describeReason(reason, lang) {
         return null;
     }
     return {
-        label: interpolate(entry[lang] || entry.fr, {
+        label: interpolate(pickLabels(entry, lang), {
             count: reason.count || 1,
             score: reason.score === undefined || reason.score === null ? '—' : reason.score,
         }),
@@ -298,10 +299,10 @@ export function useMonitorActionCatalog() {
  * @param {Function} [props.onDone] called after a run that succeeded at least once
  */
 export function MonitorActionDialog({ action, targets = [], processes = [], onClose, onDone }) {
-    const { lang } = useMessages();
-    const local = (LABELS[lang] || LABELS.fr).dialog;
-    const results = (LABELS[lang] || LABELS.fr).result;
-    const defaults = (LABELS[lang] || LABELS.fr).defaults;
+    const { lang, t } = useMessages();
+    const local = (pickLabels(LABELS, lang)).dialog;
+    const results = (pickLabels(LABELS, lang)).result;
+    const defaults = (pickLabels(LABELS, lang)).defaults;
     const toast = useToast();
 
     const suggested = useMemo(() => {
@@ -393,7 +394,7 @@ export function MonitorActionDialog({ action, targets = [], processes = [], onCl
             footer={
                 <ButtonGroup>
                     <Button variant="outline" onClick={onClose} disabled={busy}>
-                        {lang === 'en' ? 'Cancel' : 'Annuler'}
+                        {t('action.cancel')}
                     </Button>
                     <Button
                         variant={action === 'suspend' ? 'danger' : 'primary'}
@@ -481,7 +482,7 @@ export function MonitorActionDialog({ action, targets = [], processes = [], onCl
  */
 export function MonitorActionButtons({ targets, allowed, size = 'sm', onDone, className = '' }) {
     const { lang } = useMessages();
-    const local = (LABELS[lang] || LABELS.fr).actions;
+    const local = (pickLabels(LABELS, lang)).actions;
     const catalog = useMonitorActionCatalog();
     const [action, setAction] = useState(null);
 
@@ -572,7 +573,7 @@ function RiskRow({ item, rank, local, lang, onDone }) {
                         >
                             <Icon name={level.icon} size={13} />
                             <span>
-                                {interpolate(local.level, { level: level[lang] || level.fr })} ·{' '}
+                                {interpolate(local.level, { level: pickLabels(level, lang) })} ·{' '}
                                 <span className="tabular-nums">{(item.risk && item.risk.score) || 0}</span>
                             </span>
                         </span>
@@ -618,7 +619,7 @@ function RiskRow({ item, rank, local, lang, onDone }) {
                     />
                     <Link
                         href={item.href}
-                        className="text-right text-xs text-[var(--becpg-blue-light)] underline underline-offset-2 hover:text-[var(--becpg-orange)]"
+                        className="text-end text-xs text-[var(--becpg-blue-light)] underline underline-offset-2 hover:text-[var(--becpg-orange)]"
                     >
                         {local.openSheet}
                     </Link>
@@ -635,7 +636,7 @@ function RiskRow({ item, rank, local, lang, onDone }) {
  */
 export function RiskList({ items = [], onRefresh, className = '' }) {
     const { lang } = useMessages();
-    const local = LABELS[lang] || LABELS.fr;
+    const local = pickLabels(LABELS, lang);
     const router = useRouter();
 
     const done = useCallback(() => {

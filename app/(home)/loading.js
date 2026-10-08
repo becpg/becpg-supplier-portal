@@ -17,10 +17,10 @@
  * the same file would become the fallback of every route under the root layout.
  */
 
-import { cookies } from 'next/headers';
 import { AppShell } from '@/components/shell/AppShell';
 import { Skeleton, SkeletonCard } from '@/components/ui/Skeleton';
-import { LANG_COOKIE, normalizeLang, t as translate } from '@/config/messages';
+import { t as translate } from '@/config/messages';
+import { resolveLang } from '@/lib/lang';
 
 /** As many cards as the zone it stands in for, so nothing jumps on arrival. */
 const STATE_CARDS = 4;
@@ -32,8 +32,7 @@ const DETAIL_CARDS = 5;
  * @returns {Promise<JSX.Element>}
  */
 export default async function DashboardLoading() {
-    const cookieStore = await cookies();
-    const lang = normalizeLang(cookieStore.get(LANG_COOKIE)?.value);
+    const lang = await resolveLang();
 
     return (
         <AppShell title={translate(lang, 'nav.dashboard')}>

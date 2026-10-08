@@ -17,6 +17,19 @@ import { forwardRef } from 'react';
 import Link from 'next/link';
 
 /**
+ * Glyphs that point along the reading direction: « next » is a chevron to the
+ * right in French and to the left in Arabic. Mirrored by `.rtl-mirror` in a
+ * right-to-left document; every other glyph — a check, a cloud — is not.
+ */
+const DIRECTIONAL_ICONS = new Set([
+    'arrow_back', 'arrow_forward', 'arrow_left', 'arrow_right', 'chevron_left', 'chevron_right',
+    'navigate_before', 'navigate_next', 'first_page', 'last_page', 'keyboard_arrow_left',
+    'keyboard_arrow_right', 'keyboard_double_arrow_left', 'keyboard_double_arrow_right',
+    'east', 'west', 'logout', 'login', 'open_in_new', 'send', 'reply', 'redo', 'undo',
+    'list', 'format_list_bulleted', 'segment', 'subdirectory_arrow_right',
+]);
+
+/**
  * A Material icon.
  *
  * @param {Object} props
@@ -25,9 +38,10 @@ import Link from 'next/link';
  * @param {string} [props.className]
  */
 export function Icon({ name, size = 20, className = '', ...rest }) {
+    const mirror = DIRECTIONAL_ICONS.has(name) ? ' rtl-mirror' : '';
     return (
         <span
-            className={`material-icons shrink-0 select-none leading-none ${className}`}
+            className={`material-icons shrink-0 select-none leading-none${mirror} ${className}`}
             style={{ fontSize: `${size}px`, width: `${size}px`, height: `${size}px` }}
             aria-hidden="true"
             {...rest}

@@ -17,15 +17,17 @@
  */
 
 import Link from 'next/link';
-import { cookies } from 'next/headers';
 import { Icon } from '@/components/ui/Button';
-import { LANG_COOKIE, normalizeLang } from '@/config/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
+import { resolveLang } from '@/lib/lang';
 
+// Static by contract (`not-found.js` takes no `generateMetadata`), so the tab
+// title says what every language reads: the code, not a sentence.
 export const metadata = {
-    title: 'Page introuvable — beCPG',
+    title: '404 — beCPG',
 };
 
-const LABELS = {
+const LABELS = defineLabels('app/not-found#LABELS', {
     fr: {
         title: 'Page introuvable',
         message:
@@ -38,15 +40,14 @@ const LABELS = {
             'This address does not exist, or the item it points to is no longer accessible. If you arrived from an e-mail, the link may have expired.',
         home: 'Back to home',
     },
-};
+});
 
 /**
  * @returns {Promise<JSX.Element>}
  */
 export default async function NotFound() {
-    const cookieStore = await cookies();
-    const lang = normalizeLang(cookieStore.get(LANG_COOKIE)?.value);
-    const local = LABELS[lang] || LABELS.fr;
+    const lang = await resolveLang();
+    const local = pickLabels(LABELS, lang);
 
     return (
         <main className="mx-auto flex min-h-[60vh] w-full max-w-lg flex-col items-center justify-center gap-4 px-4 py-12 text-center">

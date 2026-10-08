@@ -31,8 +31,9 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi, useMutation } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { formatDate, formatTotal } from '@/lib/format';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LOCAL = {
+const LOCAL = defineLabels('components/dashboard/ProductList#LOCAL', {
     fr: {
         title: 'Mes produits',
         empty: 'Aucun produit',
@@ -80,13 +81,13 @@ const LOCAL = {
         noCompletion: 'Not scored',
         completion: 'Completeness',
     },
-};
+});
 
 /**
  * `bcpg:productState` → the wording spec §4.3 asks for. The machine values are
  * kept as the `status` so the pill keeps its tone and icon.
  */
-const STATE_LABELS = {
+const STATE_LABELS = defineLabels('components/dashboard/ProductList#STATE_LABELS', {
     fr: {
         Valid: 'Validé',
         ToValidate: 'En cours d’approbation',
@@ -103,7 +104,7 @@ const STATE_LABELS = {
         Stopped: 'Stopped',
         Archived: 'Archived',
     },
-};
+});
 
 /**
  * The label of a request type.
@@ -134,7 +135,7 @@ function processLabel(entry) {
  */
 function RequestUpdateModal({ product, onClose, onDone }) {
     const { t, lang } = useMessages();
-    const local = LOCAL[lang] || LOCAL.fr;
+    const local = pickLabels(LOCAL, lang);
     const toast = useToast();
     const [processId, setProcessId] = useState('');
     // A request type picked for one product must not be pre-selected for the
@@ -242,8 +243,8 @@ function RequestUpdateModal({ product, onClose, onDone }) {
  */
 export function ProductList({ products = [], total, totalAtLeast, index = 0, className = '' }) {
     const { lang } = useMessages();
-    const local = LOCAL[lang] || LOCAL.fr;
-    const stateLabels = STATE_LABELS[lang] || STATE_LABELS.fr;
+    const local = pickLabels(LOCAL, lang);
+    const stateLabels = pickLabels(STATE_LABELS, lang);
     const reduceMotion = useReducedMotion();
     const router = useRouter();
     const [requested, setRequested] = useState(null);

@@ -39,8 +39,9 @@ import { useFormState } from '@/components/form/useFormState';
 import { isEmptyValue } from '@/components/form/validation';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/wizard/steps/FormStep#LABELS', {
     fr: {
         comment: 'Commenter ce champ',
         comments: '{count} message(s) sur ce champ',
@@ -72,7 +73,7 @@ const LABELS = {
         readOnlyTitle: 'Read only',
         readOnlyText: 'This step cannot be modified.',
     },
-};
+});
 
 /**
  * Explains **why** a step cannot be edited, instead of showing a wall of greyed
@@ -84,7 +85,7 @@ const LABELS = {
  * @param {string} [props.lang='fr']
  */
 export function StepReadOnlyNotice({ reason, lang = 'fr', className = '' }) {
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const byReason = {
         frozen: { icon: 'verified', title: labels.frozenTitle, text: labels.frozenText, accent: true },
         readAccess: { icon: 'visibility', title: labels.readAccessTitle, text: labels.readAccessText },
@@ -158,7 +159,7 @@ export function FormStep({
     className = '',
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const stepData = useApi(
         entityId && step ? `wizard/${encodeURIComponent(entityId)}/step/${encodeURIComponent(step.id)}` : null,

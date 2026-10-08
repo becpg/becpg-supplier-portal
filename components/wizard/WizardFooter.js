@@ -28,8 +28,9 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Button, Icon, Spinner } from '@/components/ui/Button';
 import { useMessages } from '@/lib/messages';
 import { AutoSaveIndicator, AutoSaveReassurance } from '@/components/wizard/AutoSaveIndicator';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/wizard/WizardFooter#LABELS', {
     fr: {
         previous: 'Précédent',
         next: 'Suivant',
@@ -51,7 +52,7 @@ const LABELS = {
         /* See the note on the French key. */
         incomplete: 'Sheet incomplete',
     },
-};
+});
 
 /**
  * One gap standing between the supplier and « Terminer », drawn as the place to
@@ -130,7 +131,7 @@ export function WizardFooter({
     className = '',
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const reduceMotion = useReducedMotion();
 
     /*

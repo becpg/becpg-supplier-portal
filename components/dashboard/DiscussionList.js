@@ -22,8 +22,9 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useMessages } from '@/lib/messages';
 import { formatDate } from '@/lib/format';
 import { isUnread, markRead, readState, serverState, subscribe } from '@/lib/discussions';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LOCAL = {
+const LOCAL = defineLabels('components/dashboard/DiscussionList#LOCAL', {
     fr: {
         title: 'Mes discussions',
         empty: 'Aucune discussion',
@@ -46,7 +47,7 @@ const LOCAL = {
         unread: 'New',
         unreadCount: '{count} unread',
     },
-};
+});
 
 /** Initials of a display name, for the avatar bubble. */
 function initials(name) {
@@ -66,7 +67,7 @@ function initials(name) {
  */
 export function DiscussionList({ threads = [], index = 0, className = '' }) {
     const { lang } = useMessages();
-    const local = LOCAL[lang] || LOCAL.fr;
+    const local = pickLabels(LOCAL, lang);
     const reduceMotion = useReducedMotion();
 
     /*
@@ -157,7 +158,7 @@ export function DiscussionList({ threads = [], index = 0, className = '' }) {
                                             {unread ? (
                                                 <span
                                                     aria-hidden="true"
-                                                    className="mr-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--becpg-orange)] align-middle"
+                                                    className="me-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--becpg-orange)] align-middle"
                                                 />
                                             ) : null}
                                             {thread.title}

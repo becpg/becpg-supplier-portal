@@ -34,8 +34,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@/components/ui/Button';
 import { useSession } from '@/components/providers/SessionProvider';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/shell/SupplierSwitcher#LABELS', {
     fr: {
         all: 'Tous les fournisseurs',
         change: 'Changer de fournisseur',
@@ -50,7 +51,7 @@ const LABELS = {
         group: 'My supplier records',
         scope: 'Scope',
     },
-};
+});
 
 /**
  * @param {Object} props
@@ -59,7 +60,7 @@ const LABELS = {
  */
 export function SupplierSwitcher({ className = '' }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const { suppliers, supplier, scopeAll, selectSupplier, selectAllSuppliers } = useSession();
 
     const [open, setOpen] = useState(false);
@@ -143,7 +144,7 @@ export function SupplierSwitcher({ className = '' }) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -6 }}
                         transition={{ duration: 0.14 }}
-                        className="absolute right-0 z-50 mt-2 w-72 overflow-hidden rounded-xl border border-[var(--becpg-grey)] bg-white text-[var(--becpg-blue)] shadow-xl"
+                        className="absolute end-0 z-50 mt-2 w-72 overflow-hidden rounded-xl border border-[var(--becpg-grey)] bg-white text-[var(--becpg-blue)] shadow-xl"
                     >
                         <div className="px-3 pb-1 pt-2 text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">
                             {labels.scope}
@@ -161,7 +162,7 @@ export function SupplierSwitcher({ className = '' }) {
                                 setOpen(false);
                             }}
                             className={[
-                                'flex w-full touch-target items-center gap-2 px-3 py-2 text-left text-sm',
+                                'flex w-full touch-target items-center gap-2 px-3 py-2 text-start text-sm',
                                 scopeAll ? 'bg-[var(--becpg-blue-lighter)] font-medium' : 'hover:bg-[var(--becpg-grey)]',
                             ].join(' ')}
                         >
@@ -195,7 +196,7 @@ export function SupplierSwitcher({ className = '' }) {
                                             setOpen(false);
                                         }}
                                         className={[
-                                            'flex w-full touch-target items-center gap-2 px-3 py-2 text-left text-sm',
+                                            'flex w-full touch-target items-center gap-2 px-3 py-2 text-start text-sm',
                                             active
                                                 ? 'bg-[var(--becpg-blue-lighter)] font-medium'
                                                 : 'hover:bg-[var(--becpg-grey)]',

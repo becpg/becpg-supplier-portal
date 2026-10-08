@@ -37,13 +37,14 @@ import { daysUntil, formatDate } from '@/lib/format';
 import { useSession } from '@/components/providers/SessionProvider';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * Screen vocabulary. These are list mechanics ("Toutes les échéances"), not
  * beCPG business labels, so they stay local rather than inflating
  * `config/messages.js` — the same call `Nav.js` and `DataTable.js` already make.
  */
-const LOCAL = {
+const LOCAL = defineLabels('app/tasks/page#LOCAL', {
     fr: {
         title: 'Mes tâches',
         description: 'Tout ce que votre client attend de vous, filtrable et trié par urgence.',
@@ -132,7 +133,7 @@ const LOCAL = {
         untitled: 'Untitled task',
         caption: 'My task list',
     },
-};
+});
 
 /** How many tasks a single read pulls; the adapter caps its own scan anyway. */
 const PAGE_SIZE = 100;
@@ -183,7 +184,7 @@ function matchesDue(task, due) {
  */
 function TasksScreen() {
     const { t, lang } = useMessages();
-    const local = LOCAL[lang] || LOCAL.fr;
+    const local = pickLabels(LOCAL, lang);
     const searchParams = useSearchParams();
 
     // The dashboard links here already filtered (`/tasks?type=wizard`,

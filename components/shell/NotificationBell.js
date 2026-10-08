@@ -62,6 +62,7 @@ import { useSession } from '@/components/providers/SessionProvider';
 import { api } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { formatTime, formatTotal } from '@/lib/format';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** How often the endpoint is polled while the tab is visible. */
 export const POLL_INTERVAL_MS = 120000;
@@ -133,7 +134,7 @@ function fetchShared() {
     return inFlight;
 }
 
-const LOCAL = {
+const LOCAL = defineLabels('components/shell/NotificationBell#LOCAL', {
     fr: {
         open: 'Notifications',
         panel: 'Notifications',
@@ -162,7 +163,7 @@ const LOCAL = {
         allTasks: 'My tasks',
         allDocuments: 'My documents',
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, key) =>
@@ -238,7 +239,7 @@ function focusables(container) {
  */
 export function NotificationBell({ initialCount = 0, className = '' }) {
     const { lang } = useMessages();
-    const local = LOCAL[lang] || LOCAL.fr;
+    const local = pickLabels(LOCAL, lang);
     const words = notificationLabels(lang);
     const session = useSession();
     const pathname = usePathname();
@@ -561,7 +562,7 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                      */
                     <span
                         aria-hidden="true"
-                        className="absolute right-0.5 top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--becpg-orange-deep)] px-1 text-[10px] font-medium text-white ring-2 ring-white"
+                        className="absolute end-0.5 top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--becpg-orange-deep)] px-1 text-[10px] font-medium text-white ring-2 ring-white"
                     >
                         {badge > 99 ? '99+' : badgeText}
                     </span>
@@ -589,7 +590,7 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                         className={[
                             // Mobile first: a sheet pinned under the header, edge to
                             // edge. Above sm it becomes a dropdown anchored on the bell.
-                            'fixed left-2 right-2 top-[var(--sheet-top)] z-[60] flex max-h-[70dvh] flex-col overflow-hidden',
+                            'fixed start-2 end-2 top-[var(--sheet-top)] z-[60] flex max-h-[70dvh] flex-col overflow-hidden',
                             // `.becpg-popover` (globals.css) is what makes this a
                             // surface instead of a white rectangle on a white page:
                             // its own dark foreground — the panel is a DOM child of
@@ -597,7 +598,7 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                             // title and every notification title were 1.00:1 — a
                             // 4.67:1 border, and the theme's overlay shadow.
                             'becpg-popover rounded-xl',
-                            'sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-1 sm:w-[22rem] sm:max-h-[32rem]',
+                            'sm:absolute sm:inset-auto sm:end-0 sm:top-full sm:mt-1 sm:w-[22rem] sm:max-h-[32rem]',
                         ].join(' ')}
                     >
                         <div className="becpg-popover-band flex items-center gap-2 border-b border-[var(--becpg-overlay-border)] px-3 py-2">
@@ -695,7 +696,7 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                                 {local.allDocuments}
                             </Link>
                             {data && data.generatedAt ? (
-                                <span className="ml-auto">
+                                <span className="ms-auto">
                                     {fill(local.updatedAt, { time: formatTime(data.generatedAt, lang) })}
                                 </span>
                             ) : null}

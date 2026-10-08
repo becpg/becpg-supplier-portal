@@ -20,14 +20,15 @@
 import { controlParams } from '@/components/form/validation';
 import { formatNumber } from '@/lib/format';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** Steps of the human-readable scale, as Alfresco's `formatFileSize` uses them. */
 const UNITS = ['bytes', 'KB', 'MB', 'GB', 'TB'];
 
-const LABELS = {
+const LABELS = defineLabels('components/form/controls/SizeControl#LABELS', {
     fr: { bytes: 'octets' },
     en: { bytes: 'bytes' },
-};
+});
 
 /**
  * `12345` → `"12,1 KB"`.
@@ -50,7 +51,7 @@ export function formatFileSize(value, lang = 'fr') {
         size /= 1024;
         step += 1;
     }
-    const unit = step === 0 ? (LABELS[lang] || LABELS.fr).bytes : UNITS[step];
+    const unit = step === 0 ? (pickLabels(LABELS, lang)).bytes : UNITS[step];
     const formatted = formatNumber(size, lang, { maximumFractionDigits: step === 0 ? 0 : 1 });
     return `${formatted} ${unit}`;
 }

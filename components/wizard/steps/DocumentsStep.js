@@ -31,8 +31,9 @@ import { RequirementChecklist } from '@/components/documents/RequirementChecklis
 import { DepositedDocuments } from '@/components/documents/DepositedDocuments';
 import { StepReadOnlyNotice } from '@/components/wizard/steps/FormStep';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/wizard/steps/DocumentsStep#LABELS', {
     fr: {
         title: 'Documents attendus',
         subtitle: 'Ce que votre client attend, et pour quand.',
@@ -53,7 +54,7 @@ const LABELS = {
         allGood: 'Every mandatory document is provided',
         readOnly: 'You cannot deposit a document on this sheet.',
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
@@ -84,7 +85,7 @@ export function DocumentsStep({
     className = '',
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     // Bumped on every deposit so the folder listing re-reads: a file dropped
     // through the check-list must appear below without a page reload.

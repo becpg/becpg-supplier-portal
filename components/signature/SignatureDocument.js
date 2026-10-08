@@ -30,6 +30,7 @@ import { apiUrl } from '@/lib/client';
 import { Icon, Spinner } from '@/components/ui/Button';
 import { normalizeZones, zonePages, SignatureZones, ZoneLegend } from '@/components/signature/SignatureZones';
 import { useReadTracking } from '@/components/signature/useReadTracking';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * pdf.js has no business running on the server: it is a browser renderer, it
@@ -46,7 +47,7 @@ const PdfViewer = dynamic(() => import('@/components/signature/PdfViewer').then(
     ),
 });
 
-const LABELS = {
+const LABELS = defineLabels('components/signature/SignatureDocument#LABELS', {
     fr: {
         zonesHint: 'Les cadres indiquent où votre signature et vos paraphes seront apposés.',
         counter: 'Document {index} sur {total}',
@@ -63,7 +64,7 @@ const LABELS = {
         unavailableHint:
             'This document is no longer accessible in beCPG: it may have been replaced after signing, or your access to it was removed. Ask your customer if you need a copy.',
     },
-};
+});
 
 /**
  * @param {string} template
@@ -123,7 +124,7 @@ export function SignatureDocument({
     onProgress,
     onControls,
 }) {
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const [numPages, setNumPages] = useState(0);
 
     const uuid = uuidOf(document && document.nodeRef);
@@ -269,13 +270,13 @@ export function SignatureDocument({
                 <ZoneLegend zones={zones} lang={lang} className="mt-2">
                     {labels.zonesHint}
                     {markedPages.length ? (
-                        <span className="ml-1">
+                        <span className="ms-1">
                             {markedPages.map((page) => (
                                 <button
                                     key={page}
                                     type="button"
                                     onClick={() => goToPage(page)}
-                                    className="ml-1 underline underline-offset-2 hover:text-[var(--becpg-orange)]"
+                                    className="ms-1 underline underline-offset-2 hover:text-[var(--becpg-orange)]"
                                 >
                                     p.{page}
                                 </button>

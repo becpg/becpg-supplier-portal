@@ -26,8 +26,9 @@ import { Icon, Spinner } from '@/components/ui/Button';
 import { useMessages } from '@/lib/messages';
 import { formatTime } from '@/lib/format';
 import { AUTOSAVE_STATUS } from '@/components/wizard/useAutoSave';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/wizard/AutoSaveIndicator#LABELS', {
     fr: {
         pending: 'Modifications en attente',
         saving: 'Enregistrement…',
@@ -46,7 +47,7 @@ const LABELS = {
         retry: 'Retry',
         unsaved: 'Your changes are not lost: they will be sent again.',
     },
-};
+});
 
 /**
  * @param {Object} props
@@ -66,7 +67,7 @@ export function AutoSaveIndicator({
     className = '',
 }) {
     const { lang, t } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const reduceMotion = useReducedMotion();
 
     if (status === AUTOSAVE_STATUS.IDLE && !savedAt) {
@@ -155,7 +156,7 @@ export function AutoSaveIndicator({
  */
 export function AutoSaveReassurance({ status, className = '' }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     if (status !== AUTOSAVE_STATUS.ERROR) {
         return null;

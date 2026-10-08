@@ -47,6 +47,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { CommentsPanel } from '@/components/wizard/panels/CommentsPanel';
 import { formatDate, formatNumber } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * `qa:ncStates`, in the order of the constraint declared in
@@ -77,7 +78,7 @@ const STATE_STYLE = Object.freeze({
     closed: { tone: 'neutral', icon: 'check_circle' },
 });
 
-const LABELS = {
+const LABELS = defineLabels('components/monitor/NonConformityList#LABELS', {
     fr: {
         columns: {
             nc: 'Non-conformité',
@@ -212,7 +213,7 @@ const LABELS = {
             type: 'Type',
         },
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, key) =>
@@ -231,7 +232,7 @@ function fill(template, vars) {
  * @returns {string}
  */
 export function ncStateLabel(state, lang = 'fr') {
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     if (!state) {
         return '—';
     }
@@ -246,7 +247,7 @@ export function ncStateLabel(state, lang = 'fr') {
  * @returns {string}
  */
 export function ncTypeLabel(type, lang = 'fr') {
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     if (!type) {
         return '—';
     }
@@ -489,7 +490,7 @@ export function NonConformityList({
     actions,
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     /** The NC being consulted, or `null`. Holds the row itself: the detail needs no fetch. */
     const [opened, setOpened] = useState(null);
@@ -525,7 +526,7 @@ export function NonConformityList({
                                 event.stopPropagation();
                                 setOpened(row.original);
                             }}
-                            className="block w-full truncate rounded text-left font-medium hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                            className="block w-full truncate rounded text-start font-medium hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
                         >
                             {row.original.name || '—'}
                         </button>
@@ -639,7 +640,7 @@ export function NonConformityList({
                         );
                     }
                     return (
-                        <div className="text-right">
+                        <div className="text-end">
                             <p
                                 className={`tabular-nums ${overdue ? 'font-medium text-[var(--status-danger)]' : ''}`}
                                 title={
@@ -655,7 +656,7 @@ export function NonConformityList({
                                     <Icon
                                         name="alarm"
                                         size={14}
-                                        className="ml-1 inline align-text-bottom"
+                                        className="ms-1 inline align-text-bottom"
                                     />
                                 ) : null}
                             </p>
@@ -692,7 +693,7 @@ export function NonConformityList({
                             placement="left"
                             maxWidth={320}
                             content={
-                                <ul className="flex flex-col gap-1 text-left">
+                                <ul className="flex flex-col gap-1 text-start">
                                     {list.slice(0, 6).map((action) => (
                                         <li key={action.nodeRef}>
                                             <span className="font-medium">{action.name}</span>

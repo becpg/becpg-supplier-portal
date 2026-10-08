@@ -37,8 +37,9 @@ import { formatDateTime, formatTotal } from '@/lib/format';
 import { api, useApi } from '@/lib/client';
 import { isUnread, markRead, readState, serverState, subscribe } from '@/lib/discussions';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/messages/page#LABELS', {
     fr: {
         title: 'Discussions',
         subtitle: 'Les échanges avec le client, produit par produit',
@@ -104,7 +105,7 @@ const LABELS = {
             noPermission: 'You are not allowed to write in this discussion.',
         },
     },
-};
+});
 
 /** Same ceiling as the route handler, checked here so the user is told before sending. */
 const MAX_LENGTH = 20000;
@@ -172,7 +173,7 @@ function Message({ message, mine, labels, lang, index }) {
             >
                 {initials(name)}
             </span>
-            <div className={`min-w-0 max-w-[85%] ${mine ? 'text-right' : ''}`}>
+            <div className={`min-w-0 max-w-[85%] ${mine ? 'text-end' : ''}`}>
                 <p className="text-xs text-[var(--becpg-dark-grey)]">
                     <span className="font-medium text-[var(--becpg-blue)]">{mine ? labels.you : name}</span>
                     {message.createdOn ? <span> · {formatDateTime(message.createdOn, lang)}</span> : null}
@@ -193,7 +194,7 @@ function Message({ message, mine, labels, lang, index }) {
                  */}
                 <RichText
                     value={message.content}
-                    className={`mt-1 inline-block space-y-1 break-words rounded-xl px-3 py-2 text-left text-sm ${
+                    className={`mt-1 inline-block space-y-1 break-words rounded-xl px-3 py-2 text-start text-sm ${
                         mine
                             ? 'bg-[var(--becpg-blue-lighter)] text-[var(--becpg-blue)]'
                             : 'bg-white text-[var(--becpg-blue)] ring-1 ring-[var(--becpg-grey)]'
@@ -213,7 +214,7 @@ function Message({ message, mine, labels, lang, index }) {
  */
 function MessagesScreen() {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const session = useSession();
     const toast = useToast();
     const searchParams = useSearchParams();
@@ -499,7 +500,7 @@ function MessagesScreen() {
                                 onClick={() => select(subject.nodeRef, subject.count)}
                                 aria-current={selected === subject.nodeRef ? 'true' : undefined}
                                 className={[
-                                    'touch-target flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors',
+                                    'touch-target flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-start text-sm transition-colors',
                                     selected === subject.nodeRef
                                         ? 'bg-[var(--becpg-blue-lighter)] text-[var(--becpg-blue)]'
                                         : 'hover:bg-[var(--becpg-grey)]/60',
@@ -515,7 +516,7 @@ function MessagesScreen() {
                                         {unreadOf(subject) ? (
                                             <span
                                                 aria-hidden="true"
-                                                className="mr-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--becpg-orange)] align-middle"
+                                                className="me-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--becpg-orange)] align-middle"
                                             />
                                         ) : null}
                                         {subject.name || '—'}

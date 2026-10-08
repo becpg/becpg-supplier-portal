@@ -14,8 +14,9 @@ import { Card } from '@/components/ui/Card';
 import { useMessages } from '@/lib/messages';
 import { STATE_CARD_CLASS, STATE_RAIL } from '@/components/dashboard/ApprovalCard';
 import { formatDate } from '@/lib/format';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LOCAL = {
+const LOCAL = defineLabels('components/dashboard/ActionsCard#LOCAL', {
     fr: {
         title: 'Actions requises',
         open: 'tâche(s) ouverte(s)',
@@ -36,17 +37,17 @@ const LOCAL = {
         none: 'Nothing to do right now',
         all: 'See all my tasks',
     },
-};
+});
 
 /**
  * Task types as returned by `/api/v1/tasks` (`task.type`). Exported so the
  * tasks screen and the task list render exactly the same vocabulary.
  */
 export const TASK_TYPE_META = {
-    wizard: { icon: 'edit_note', fr: 'Assistant', en: 'Wizard' },
-    signature: { icon: 'draw', fr: 'Signature', en: 'Signature' },
-    document: { icon: 'upload_file', fr: 'Document', en: 'Document' },
-    review: { icon: 'visibility', fr: 'Revue', en: 'Review' },
+    wizard: defineLabels('components/dashboard/ActionsCard#TASK_TYPE_META.wizard', { icon: 'edit_note', fr: 'Assistant', en: 'Wizard' }),
+    signature: defineLabels('components/dashboard/ActionsCard#TASK_TYPE_META.signature', { icon: 'draw', fr: 'Signature', en: 'Signature' }),
+    document: defineLabels('components/dashboard/ActionsCard#TASK_TYPE_META.document', { icon: 'upload_file', fr: 'Document', en: 'Document' }),
+    review: defineLabels('components/dashboard/ActionsCard#TASK_TYPE_META.review', { icon: 'visibility', fr: 'Revue', en: 'Review' }),
 };
 
 /**
@@ -59,7 +60,7 @@ export function taskTypeLabel(type, lang) {
     if (!meta) {
         return type || '—';
     }
-    return lang === 'en' ? meta.en : meta.fr;
+    return pickLabels(meta, lang);
 }
 
 /**
@@ -69,7 +70,7 @@ export function taskTypeLabel(type, lang) {
  */
 export function ActionsCard({ actions, index = 0, className = '' }) {
     const { lang } = useMessages();
-    const local = LOCAL[lang] || LOCAL.fr;
+    const local = pickLabels(LOCAL, lang);
 
     const open = (actions && actions.open) || 0;
     const late = (actions && actions.late) || 0;

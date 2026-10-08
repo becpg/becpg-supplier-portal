@@ -43,7 +43,7 @@ const VARIANTS = {
     default: 'bg-white border-[var(--becpg-blue-lighter)]',
     flat: 'bg-transparent border-transparent',
     muted: 'bg-[rgba(228,236,238,0.5)] border-[var(--becpg-blue-lighter)]',
-    accent: 'bg-white border-[var(--becpg-blue-lighter)] border-l-4 border-l-[var(--becpg-orange)]',
+    accent: 'bg-white border-[var(--becpg-blue-lighter)] border-s-4 border-s-[var(--becpg-orange)]',
     primary: 'bg-[var(--becpg-blue)] text-white border-[var(--becpg-blue-light)]',
 };
 
@@ -97,7 +97,7 @@ export function Card({
         clickable
             ? 'hover-lift cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] focus-visible:ring-offset-2'
             : 'transition-shadow duration-200',
-        'w-full text-left',
+        'w-full text-start',
         className,
     ]
         .filter(Boolean)
@@ -267,7 +267,7 @@ export function SectionHeader({ title, subtitle, actions, icon, className = '' }
                 same signal `.nav-item-active` and `.becpg-toolbar-edge` use, so a
                 heading reads as beCPG on every screen without a single new colour.
                 3.73:1 on white: a rule, not text, so 1.4.11's 3:1 is the bar. */}
-            <div className="min-w-0 border-l-[3px] border-l-[var(--becpg-orange)] pl-2.5">
+            <div className="min-w-0 border-s-[3px] border-s-[var(--becpg-orange)] ps-2.5">
                 <h2 className="flex items-center gap-2 text-base font-medium text-[var(--becpg-blue)] sm:text-lg">
                     {icon ? <span className="flex shrink-0 items-center">{icon}</span> : null}
                     <span className="min-w-0">{title}</span>

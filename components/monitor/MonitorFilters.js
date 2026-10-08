@@ -43,6 +43,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Button, Icon } from '@/components/ui/Button';
 import { SearchInput, Select } from '@/components/ui/Field';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * The park filters, in the order `parseMonitorFilters()` reads them.
@@ -74,18 +75,18 @@ export const EMPTY_MONITOR_FILTERS = Object.freeze(
  * @readonly
  */
 export const SUPPLIER_STATES = Object.freeze([
-    { value: 'Valid', fr: 'Validé', en: 'Valid' },
-    { value: 'Simulation', fr: 'Brouillon', en: 'Draft' },
-    { value: 'ToValidate', fr: 'À valider', en: 'To validate' },
-    { value: 'Refused', fr: 'Refusé', en: 'Rejected' },
-    { value: 'Archived', fr: 'Archivé', en: 'Archived' },
-    { value: 'Stopped', fr: 'Arrêté', en: 'Stopped' },
+    defineLabels('components/monitor/MonitorFilters#SUPPLIER_STATES.Valid', { value: 'Valid', fr: 'Validé', en: 'Valid' }),
+    defineLabels('components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation', { value: 'Simulation', fr: 'Brouillon', en: 'Draft' }),
+    defineLabels('components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate', { value: 'ToValidate', fr: 'À valider', en: 'To validate' }),
+    defineLabels('components/monitor/MonitorFilters#SUPPLIER_STATES.Refused', { value: 'Refused', fr: 'Refusé', en: 'Rejected' }),
+    defineLabels('components/monitor/MonitorFilters#SUPPLIER_STATES.Archived', { value: 'Archived', fr: 'Archivé', en: 'Archived' }),
+    defineLabels('components/monitor/MonitorFilters#SUPPLIER_STATES.Stopped', { value: 'Stopped', fr: 'Arrêté', en: 'Stopped' }),
 ]);
 
 /** `workspace://SpacesStore/<uuid>` — a node identifier, never a label. */
 const NODEREF_RE = /^workspace:\/\/SpacesStore\/[0-9a-f-]{36}$/i;
 
-const LABELS = {
+const LABELS = defineLabels('components/monitor/MonitorFilters#LABELS', {
     fr: {
         search: 'Rechercher un fournisseur, un code, une raison sociale…',
         toggle: 'Filtres',
@@ -140,7 +141,7 @@ const LABELS = {
         activePlural: '{count} active filters',
         clearOne: 'Remove this filter',
     },
-};
+});
 
 /** The selects, in reading order. `q` and `state` are handled separately. */
 const VOCABULARY_FILTERS = Object.freeze(['family', 'subFamily', 'site', 'subsidiary', 'market']);
@@ -330,7 +331,7 @@ function FilterChip({ label, value, onClear, clearLabel }) {
                 type="button"
                 onClick={onClear}
                 aria-label={`${clearLabel} — ${label}`}
-                className="-mr-1 ml-0.5 flex h-4 w-4 items-center justify-center rounded-full hover:bg-white/60"
+                className="-me-1 ms-0.5 flex h-4 w-4 items-center justify-center rounded-full hover:bg-white/60"
             >
                 <Icon name="close" size={12} />
             </button>
@@ -363,7 +364,7 @@ export function MonitorFilters({
     className = '',
 }) {
     const { lang } = useMessages();
-    const local = LABELS[lang] || LABELS.fr;
+    const local = pickLabels(LABELS, lang);
     const reduceMotion = useReducedMotion();
     const [open, setOpen] = useState(defaultOpen);
 
@@ -384,7 +385,7 @@ export function MonitorFilters({
     }, [onChange, onReset]);
 
     const stateOptions = useMemo(
-        () => SUPPLIER_STATES.map((entry) => ({ value: entry.value, label: entry[lang] || entry.fr })),
+        () => SUPPLIER_STATES.map((entry) => ({ value: entry.value, label: pickLabels(entry, lang) })),
         [lang],
     );
 
@@ -396,7 +397,7 @@ export function MonitorFilters({
         }
         if (key === 'state') {
             const entry = SUPPLIER_STATES.find((candidate) => candidate.value === value);
-            return entry ? entry[lang] || entry.fr : value;
+            return entry ? pickLabels(entry, lang) : value;
         }
         const option = (options[key] || []).find((candidate) => candidate.value === value);
         return option ? option.label : value;
@@ -474,7 +475,7 @@ export function MonitorFilters({
                 >
                     <span>{local.toggle}</span>
                     {count > 0 ? (
-                        <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[var(--becpg-orange)] px-1.5 text-[11px] font-medium text-white">
+                        <span className="ms-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[var(--becpg-orange)] px-1.5 text-[11px] font-medium text-white">
                             {count}
                         </span>
                     ) : null}

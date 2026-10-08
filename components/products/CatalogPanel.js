@@ -30,8 +30,9 @@ import { Card } from '@/components/ui/Card';
 import { Gauge, GaugeBar, toneForValue } from '@/components/ui/Gauge';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonCard } from '@/components/ui/Skeleton';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/products/CatalogPanel#LABELS', {
     fr: {
         title: 'Conformité',
         overall: 'Complétude',
@@ -81,10 +82,10 @@ const LABELS = {
         goToField: 'Go to the field',
         notScored: 'Not scored',
     },
-};
+});
 
 function labelsFor(lang) {
-    return LABELS[lang] || LABELS.fr;
+    return pickLabels(LABELS, lang);
 }
 
 function fill(template, vars) {
@@ -171,7 +172,7 @@ function MissingField({ field, onFieldClick, catalog, label }) {
     const content = (
         <>
             <Icon name="error_outline" size={13} />
-            <span className="min-w-0 break-words text-left">{fieldLabel(field)}</span>
+            <span className="min-w-0 break-words text-start">{fieldLabel(field)}</span>
             {onFieldClick ? <Icon name="arrow_forward" size={13} className="opacity-60" /> : null}
         </>
     );
@@ -233,11 +234,11 @@ function CatalogCard({ catalog, onFieldClick, compact = false, index = 0 }) {
             className="relative overflow-hidden rounded-xl border border-[var(--becpg-grey)] bg-white"
         >
             <span
-                className="absolute inset-y-0 left-0 w-1.5"
+                className="absolute inset-y-0 start-0 w-1.5"
                 style={{ background: rail || `var(--status-${toneForValue(catalog.score || 0)})` }}
                 aria-hidden="true"
             />
-            <div className={`pl-4 ${compact ? 'p-3' : 'p-4'}`}>
+            <div className={`ps-4 ${compact ? 'p-3' : 'p-4'}`}>
                 {/*
                     CE QUI MANQUE PASSE DEVANT LE NOM DU CATALOGUE.
 

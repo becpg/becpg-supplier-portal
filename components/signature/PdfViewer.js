@@ -62,6 +62,7 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { Button, Icon, IconButton, Spinner } from '@/components/ui/Button';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * The pdf.js worker, resolved by the bundler and served from our own origin.
@@ -106,7 +107,7 @@ const SETTLE_DELAY = 700;
 /** How far off the target a settled scroll may be, in px. */
 const SETTLE_TOLERANCE = 8;
 
-const LABELS = {
+const LABELS = defineLabels('components/signature/PdfViewer#LABELS', {
     fr: {
         previous: 'Page précédente',
         next: 'Page suivante',
@@ -141,7 +142,7 @@ const LABELS = {
         retry: 'Retry',
         pinch: 'Pinch to zoom',
     },
-};
+});
 
 /**
  * @param {string} template
@@ -233,7 +234,7 @@ export const PdfViewer = forwardRef(function PdfViewer(
     ref,
 ) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const [numPages, setNumPages] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
@@ -611,7 +612,7 @@ export const PdfViewer = forwardRef(function PdfViewer(
                     disabled={!numPages || currentPage >= numPages}
                 />
 
-                <label className="ml-1 flex shrink-0 items-center gap-1 text-xs text-[var(--becpg-dark-grey)]">
+                <label className="ms-1 flex shrink-0 items-center gap-1 text-xs text-[var(--becpg-dark-grey)]">
                     <span className="sr-only">{labels.page}</span>
                     <input
                         type="number"
@@ -730,7 +731,7 @@ export const PdfViewer = forwardRef(function PdfViewer(
                                         {fill(labels.pageLoading, { page })}
                                     </div>
                                 )}
-                                <span className="pointer-events-none absolute bottom-1 right-2 rounded bg-white/80 px-1 text-[10px] tabular-nums text-[var(--becpg-dark-grey)]">
+                                <span className="pointer-events-none absolute bottom-1 end-2 rounded bg-white/80 px-1 text-[10px] tabular-nums text-[var(--becpg-dark-grey)]">
                                     {page}
                                 </span>
                             </div>

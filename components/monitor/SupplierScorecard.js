@@ -53,8 +53,9 @@ import { SkeletonText } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/monitor/SupplierScorecard#LABELS', {
     fr: {
         title: 'Scorecard',
         subtitle: 'Critères, poids et notes — paramétrés côté client',
@@ -141,7 +142,7 @@ const LABELS = {
         trendLast: 'Last point: {value} on {date}',
         trendCaption: 'Weighted score over time',
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, key) =>
@@ -197,7 +198,7 @@ export function resolveScoreScale(criteria) {
  */
 export function HistoryUnavailable({ history, compact = false, className = '' }) {
     const { lang } = useMessages();
-    const local = LABELS[lang] || LABELS.fr;
+    const local = pickLabels(LABELS, lang);
     const required = (history && history.required) || null;
 
     /*
@@ -292,7 +293,7 @@ export function HistoryUnavailable({ history, compact = false, className = '' })
  */
 function ScoreTrend({ points, max }) {
     const { lang } = useMessages();
-    const local = LABELS[lang] || LABELS.fr;
+    const local = pickLabels(LABELS, lang);
     const reduceMotion = useReducedMotion();
 
     const usable = (points || [])
@@ -391,7 +392,7 @@ function CriterionRow({ criterion, max, totalWeight, local, index }) {
                         />
                     )}
                 </span>
-                <span className="w-24 shrink-0 text-right text-sm tabular-nums">
+                <span className="w-24 shrink-0 text-end text-sm tabular-nums">
                     {score === null ? (
                         <span className="text-[var(--becpg-dark-grey)]">—</span>
                     ) : (
@@ -432,7 +433,7 @@ export function SupplierScorecard({
     className = '',
 }) {
     const { lang } = useMessages();
-    const local = LABELS[lang] || LABELS.fr;
+    const local = pickLabels(LABELS, lang);
 
     const criteria = useMemo(
         () =>

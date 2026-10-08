@@ -54,8 +54,9 @@ import { TASK_TYPES, parseDeliverableUrl } from '@/lib/adapters/tasks';
 
 export const dynamic = 'force-dynamic';
 
+// A redirect hop, shown for an instant: a title every language reads.
 export const metadata = {
-    title: 'beCPG — Portail Fournisseur',
+    title: 'beCPG',
 };
 
 /** The wizard ids this route accepts, i.e. `SUPPLIER_WIZARD_PREFIX` minus the path. */

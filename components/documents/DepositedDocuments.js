@@ -46,8 +46,9 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/documents/DepositedDocuments#LABELS', {
     fr: {
         title: 'Documents déposés',
         subtitle: 'Les fichiers présents dans le dossier de ce produit, quel que soit leur type.',
@@ -68,7 +69,7 @@ const LABELS = {
         consult: 'View',
         modified: 'Modified on {date}',
     },
-};
+});
 
 /**
  * Human file size. `null` for an unknown one — a "0 o" would read as an empty
@@ -109,7 +110,7 @@ export function DepositedDocuments({
     className = '',
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const list = useApi(
         entityNodeRef ? `entities/${encodeURIComponent(entityNodeRef)}/documents` : null,

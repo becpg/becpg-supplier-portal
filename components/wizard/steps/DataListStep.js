@@ -28,11 +28,12 @@ import { DataListEditor } from '@/components/datalist/DataListEditor';
 import { useDataList } from '@/components/datalist/useDataList';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/wizard/steps/DataListStep#LABELS', {
     fr: { row: 'Ligne {index}' },
     en: { row: 'Row {index}' },
-};
+});
 
 /**
  * Builds the labels the discussion panel shows in its "sujet" selector: the
@@ -84,7 +85,7 @@ export function DataListStep({
     className = '',
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const toast = useToast();
 
     const handleSaved = useCallback(

@@ -54,8 +54,10 @@ import {
 import { listDocuments } from '@/lib/adapters/documents';
 import { getLiveSession } from '@/lib/session';
 import { SCOPE_COOKIE, parseScopeCookie } from '@/lib/scope';
-import { LANG_COOKIE, normalizeLang, t as translate } from '@/config/messages';
+import { t as translate } from '@/config/messages';
 import { cookies } from 'next/headers';
+import { defineLabels, pickLabels } from '@/lib/i18n';
+import { resolveLang } from '@/lib/lang';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,7 +79,7 @@ const PREVIEW = { tasks: 6, products: 4, documents: 4, notifications: 4, discuss
  * vocabulary with a stated ~60-key budget, and these two sentences belong to one
  * screen. Same convention as every dashboard card's own `LOCAL`.
  */
-const LOCAL = {
+const LOCAL = defineLabels('app/(home)/page#LOCAL', {
     fr: {
         state: 'État de mon dossier',
         stateHint: 'Agrément, complétude, actions et documents — recalculés à chaque affichage.',
@@ -90,7 +92,7 @@ const LOCAL = {
         detail: 'The detail',
         detailHint: 'What is waiting for you, product by product and document by document.',
     },
-};
+});
 
 /** Same window the `pjt:taskList` scan uses; 50 open tasks is already a lot. */
 const TASK_SCAN = 50;
@@ -324,7 +326,7 @@ export default async function DashboardPage() {
     // (`useSyncExternalStore`). A server component reads the cookie and calls
     // the plain resolver from `config/messages` instead.
     const cookieStore = await cookies();
-    const lang = normalizeLang(cookieStore.get(LANG_COOKIE)?.value);
+    const lang = await resolveLang();
     const t = (key, vars) => translate(lang, key, vars);
 
     /*
@@ -498,7 +500,7 @@ export default async function DashboardPage() {
         messages: threads.length,
     };
 
-    const local = LOCAL[lang] || LOCAL.fr;
+    const local = pickLabels(LOCAL, lang);
 
     return (
         <AppShell

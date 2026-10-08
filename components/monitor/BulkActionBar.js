@@ -34,6 +34,7 @@ import { Textarea, Select } from '@/components/ui/Field';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * Targets a single `/monitor/actions` call may address — mirrors
@@ -43,7 +44,7 @@ import { useMessages } from '@/lib/messages';
  */
 export const MAX_BULK_TARGETS = 100;
 
-const LABELS = {
+const LABELS = defineLabels('components/monitor/BulkActionBar#LABELS', {
     fr: {
         selected: '{count} fournisseur sélectionné',
         selectedPlural: '{count} fournisseurs sélectionnés',
@@ -144,7 +145,7 @@ const LABELS = {
             notFound: 'Supplier outside your perimeter',
         },
     },
-};
+});
 
 /** Replaces `{name}` placeholders. */
 function fill(template, vars) {
@@ -176,7 +177,7 @@ export function BulkActionBar({
     only,
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const toast = useToast();
     const reduceMotion = useReducedMotion();
 

@@ -38,6 +38,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import SignaturePadLib from 'signature_pad';
 import { Button, Icon } from '@/components/ui/Button';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** The two ways to produce a mark. */
 export const SIGNATURE_KINDS = Object.freeze({ DRAWN: 'drawn', TYPED: 'typed' });
@@ -52,7 +53,7 @@ const TYPED_CANVAS = { width: 640, height: 200 };
 /** Ink colour — the becpg blue, not black: it reads as a signature, not as text. */
 const DEFAULT_PEN_COLOR = '#004254';
 
-const LABELS = {
+const LABELS = defineLabels('components/signature/SignaturePad#LABELS', {
     fr: {
         draw: 'Dessiner',
         type: 'Saisir mon nom',
@@ -93,7 +94,7 @@ const LABELS = {
         initialsPreview: 'Preview of your initials',
         initialsEmpty: 'No initials yet',
     },
-};
+});
 
 /**
  * Margin kept around the ink once the empty space is cut away, as a fraction of
@@ -244,7 +245,7 @@ export function SignaturePad({
     className = '',
 }) {
     const { lang } = useMessages();
-    const base = LABELS[lang] || LABELS.fr;
+    const base = pickLabels(LABELS, lang);
     // The initials reuse the whole component and override the six strings that
     // would otherwise call a paraphe a signature.
     const labels = purpose === 'initials'

@@ -33,8 +33,9 @@
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { Button, Icon } from '@/components/ui/Button';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/error#LABELS', {
     fr: {
         title: 'Cette page n’a pas pu s’afficher',
         message:
@@ -51,7 +52,7 @@ const LABELS = {
         home: 'Back to home',
         reference: 'Reference to give to support',
     },
-};
+});
 
 /**
  * Reads the language the way the rest of the chrome does, without pulling in a
@@ -73,7 +74,7 @@ function lang() {
  * @param {Function} props.retry re-fetches and re-renders the failed segment
  */
 export default function RouteError({ error, retry }) {
-    const local = LABELS[lang()] || LABELS.fr;
+    const local = pickLabels(LABELS, lang());
 
     useEffect(() => {
         // The full error goes to the browser console for a developer with the

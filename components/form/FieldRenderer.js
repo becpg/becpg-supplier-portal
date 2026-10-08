@@ -36,11 +36,12 @@ import { Field } from '@/components/ui/Field';
 import { resolveControlComponent } from '@/components/form/controls';
 import { formatValidationError, helpText, needsAnswer } from '@/components/form/validation';
 import { compactEntries, reconcileRows, replaceRow, seedRows } from '@/components/form/repeatingEntries';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/form/FieldRenderer#LABELS', {
     fr: { add: 'Ajouter une valeur', remove: 'Retirer cette valeur', locked: 'Champ verrouillé' },
     en: { add: 'Add a value', remove: 'Remove this value', locked: 'Locked field' },
-};
+});
 
 /** Prefix of every field id. Also the anchor the compliance panel jumps to. */
 export const FIELD_ID_PREFIX = 'field-';
@@ -115,7 +116,7 @@ function nextRepeatingRowId() {
  * @param {Object} props
  */
 function RepeatingField({ control, controlProps, entries, onChange, lang }) {
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const [rows, setRows] = useState(() => seedRows(entries, nextRepeatingRowId));
     // Adjusted during render rather than in an effect, the pattern
     // `NumberControl` uses for its draft.
@@ -210,7 +211,7 @@ export function FieldRenderer({
         return null;
     }
 
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const id = fieldDomId(field);
     const locked = Boolean(field.readOnly || field.protectedField || control.alwaysReadOnly);
     const isReadOnly = Boolean(readOnly) || locked;

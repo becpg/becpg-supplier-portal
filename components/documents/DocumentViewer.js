@@ -35,6 +35,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button, Icon, Spinner } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * Client-side only, exactly as `SignatureDocument` loads it and for the same
@@ -60,7 +61,7 @@ const PdfViewer = dynamic(
     },
 );
 
-const LABELS = {
+const LABELS = defineLabels('components/documents/DocumentViewer#LABELS', {
     fr: {
         title: 'Document',
         download: 'Télécharger',
@@ -80,7 +81,7 @@ const LABELS = {
         failed: 'The document could not be displayed',
         failedHint: 'It can still be downloaded.',
     },
-};
+});
 
 /**
  * What the panel can show, decided from the mimetype and, failing that, from the
@@ -119,7 +120,7 @@ export function previewKind(document) {
  */
 export function DocumentViewer({ document, onClose }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const kind = useMemo(() => previewKind(document), [document]);
     const open = Boolean(document);

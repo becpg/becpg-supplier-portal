@@ -14,8 +14,9 @@ import { DataTable } from '@/components/ui/DataTable';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { download, useApi } from '@/lib/client';
 import { formatDate } from '@/lib/format';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/documents/SignedDocumentList#LABELS', {
     fr: {
         document: 'Document signé',
         signedAt: 'Signé le',
@@ -34,7 +35,7 @@ const LABELS = {
         emptyHint: 'The documents you sign from your tasks show up here.',
         truncated: 'Partial list: not every signed document could be read.',
     },
-};
+});
 
 /**
  * @param {Object} labels
@@ -85,7 +86,7 @@ function signedColumns(labels, lang) {
  * @param {string} props.lang
  */
 export function SignedDocumentList({ supplier = null, lang }) {
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const signed = useApi('documents/signed', { params: supplier ? { supplier } : undefined });
     const columns = useMemo(() => signedColumns(labels, lang), [labels, lang]);
 

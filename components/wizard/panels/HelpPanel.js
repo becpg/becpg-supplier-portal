@@ -39,8 +39,9 @@ import { SuggestionsStep } from '@/components/wizard/steps/SuggestionsStep';
 import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/wizard/panels/HelpPanel#LABELS', {
     fr: {
         title: 'Contexte',
         suggestions: 'Suggestions de l’IA',
@@ -67,7 +68,7 @@ const LABELS = {
         seeStep: 'Open',
         more: '+{count} more',
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
@@ -94,7 +95,7 @@ function Section({ id, icon, title, count, open, onToggle, children }) {
                     aria-expanded={open}
                     aria-controls={`help-${id}`}
                     onClick={() => onToggle(id)}
-                    className="touch-target flex w-full items-center gap-2 py-2.5 text-left text-sm font-medium text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                    className="touch-target flex w-full items-center gap-2 py-2.5 text-start text-sm font-medium text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
                 >
                     <Icon name={icon} size={18} className="shrink-0 text-[var(--becpg-dark-grey)]" />
                     <span className="min-w-0 flex-1 truncate">{title}</span>
@@ -145,7 +146,7 @@ export function HelpPanel({
     className = '',
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     // Suggestions open from the start: this is what the supplier did not ask for
     // but does use, and a collapsed section is not read.
     const [open, setOpen] = useState({

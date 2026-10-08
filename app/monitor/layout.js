@@ -48,12 +48,13 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { requireMonitorAccess } from '@/lib/adapters/monitor';
 import { MONITOR_GROUPS } from '@/lib/adapters/session';
 import { getLiveSession } from '@/lib/session';
-import { LANG_COOKIE, normalizeLang } from '@/config/messages';
 import { cookies } from 'next/headers';
+import { defineLabels, pickLabels } from '@/lib/i18n';
+import { resolveLang } from '@/lib/lang';
 
 export const dynamic = 'force-dynamic';
 
-const LABELS = {
+const LABELS = defineLabels('app/monitor/layout#LABELS', {
     fr: {
         metaTitle: 'Pilotage fournisseurs — beCPG',
         metaDescription: 'Vue d’ensemble du parc fournisseurs, conformité documentaire et projets',
@@ -72,7 +73,7 @@ const LABELS = {
             'Your account belongs to none of the beCPG groups that open the monitoring space: {groups}. Ask your beCPG administrator for the membership.',
         backSupplier: 'Go to my dashboard',
     },
-};
+});
 
 /**
  * The tab title and the link preview of every monitoring screen, in the
@@ -82,8 +83,8 @@ const LABELS = {
  */
 export async function generateMetadata() {
     const cookieStore = await cookies();
-    const lang = normalizeLang(cookieStore.get(LANG_COOKIE)?.value);
-    const local = LABELS[lang] || LABELS.fr;
+    const lang = await resolveLang();
+    const local = pickLabels(LABELS, lang);
     return { title: local.metaTitle, description: local.metaDescription };
 }
 
@@ -93,8 +94,8 @@ export async function generateMetadata() {
  */
 export default async function MonitorLayout({ children }) {
     const cookieStore = await cookies();
-    const lang = normalizeLang(cookieStore.get(LANG_COOKIE)?.value);
-    const local = LABELS[lang] || LABELS.fr;
+    const lang = await resolveLang();
+    const local = pickLabels(LABELS, lang);
 
     const session = await getLiveSession();
     let denial = null;

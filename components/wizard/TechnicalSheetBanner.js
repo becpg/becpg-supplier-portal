@@ -33,8 +33,9 @@ import { ExpiryPill } from '@/components/documents/ExpiryPill';
 import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/wizard/TechnicalSheetBanner#LABELS', {
     fr: {
         title: 'Fiche technique',
         deposited: 'Déposée le {date}',
@@ -53,7 +54,7 @@ const LABELS = {
         missingHint: 'Upload your technical sheet to enable the AI suggestions.',
         missingClosed: 'No technical sheet has been uploaded on this sheet.',
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, key) =>
@@ -131,7 +132,7 @@ export function TechnicalSheetBanner({
     className = '',
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const { loading, sheet, refresh } = state;
 
     // The whole band is a drop target, not just the button: the file is already

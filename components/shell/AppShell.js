@@ -228,7 +228,7 @@ export function AppShell({
                        that declares no level. Below the header, which is `z-50`. */
                     <aside
                         className={[
-                            'hidden shrink-0 border-r border-[var(--becpg-grey)] bg-white',
+                            'hidden shrink-0 border-e border-[var(--becpg-grey)] bg-white',
                             'lg:block lg:sticky lg:top-14 lg:z-40 lg:h-[calc(100dvh-3.5rem)]',
                             navCollapsed ? 'w-[3.25rem]' : 'w-64',
                             reduceMotion ? '' : 'transition-[width] duration-200 ease-out',

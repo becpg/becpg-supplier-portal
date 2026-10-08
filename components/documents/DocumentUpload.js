@@ -48,8 +48,9 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { ValidityFields, toInputDate } from '@/components/documents/DocumentValidity';
 import { RichText } from '@/components/ui/RichText';
 import { formatDateTime, plainText } from '@/lib/format';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/documents/DocumentUpload#LABELS', {
     fr: {
         drop: 'Glissez un fichier ici',
         or: 'ou',
@@ -110,7 +111,7 @@ const LABELS = {
         validityNotApplied:
             'The file is uploaded, but its validity dates were not saved. Fill them in on the document row.',
     },
-};
+});
 
 /** Default ceiling, mirroring what Alfresco accepts comfortably through the proxy. */
 const DEFAULT_MAX_MB = 50;
@@ -143,7 +144,7 @@ const AI_POLL_DELAY = 2000;
 const AI_REVIEW_TIMEOUT = 90000;
 
 function labelsFor(lang) {
-    return LABELS[lang] || LABELS.fr;
+    return pickLabels(LABELS, lang);
 }
 
 function fill(template, vars) {

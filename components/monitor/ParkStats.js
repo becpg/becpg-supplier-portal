@@ -62,8 +62,9 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { applyProfileOrder, useMonitorProfile } from '@/components/monitor/ProfileSwitcher';
 import { formatTotal } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/monitor/ParkStats#LABELS', {
     fr: {
         /*
          * Tile labels are **short on purpose**.
@@ -232,7 +233,7 @@ const LABELS = {
         assocScope: 'Filter {names} applied on the window read (Alfresco does not index associations).',
         generatedAt: 'Data as of {time}',
     },
-};
+});
 
 /**
  * Ordinal ramp for the 30 / 60 / 90 day buckets — one hue, monotone lightness,
@@ -618,7 +619,7 @@ function ExpiryHorizon({ expiring, local, query }) {
                                     }
                                 />
                             </div>
-                            <span className="w-10 shrink-0 text-right text-sm font-medium tabular-nums">
+                            <span className="w-10 shrink-0 text-end text-sm font-medium tabular-nums">
                                 {count}
                             </span>
                         </li>
@@ -651,7 +652,7 @@ function ExpiryHorizon({ expiring, local, query }) {
  */
 export function ParkStats({ overview, query = '', className = '' }) {
     const { lang } = useMessages();
-    const local = LABELS[lang] || LABELS.fr;
+    const local = pickLabels(LABELS, lang);
     const { profile } = useMonitorProfile();
 
     if (!overview) {

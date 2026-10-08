@@ -25,7 +25,7 @@
  * comes back as an empty label.
  */
 
-import { DEFAULT_LANG, SUPPORTED_LANGS } from '@/config/messages';
+import { DEFAULT_LANG, inlineLang, normalizeLang } from '@/config/messages';
 
 /** Key → its beCPG wording, per portal language. */
 export const WIZARD_MESSAGES = {
@@ -80,6 +80,6 @@ export function wizardMessage(key, lang) {
     if (!entry) {
         return '';
     }
-    const code = SUPPORTED_LANGS.includes(lang) ? lang : DEFAULT_LANG;
+    const code = inlineLang(normalizeLang(lang)) ?? 'en';
     return entry[code] || entry[DEFAULT_LANG] || '';
 }

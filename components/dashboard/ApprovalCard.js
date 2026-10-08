@@ -21,6 +21,7 @@ import { Card } from '@/components/ui/Card';
 import { resolveStatus } from '@/components/ui/StatusPill';
 import { useMessages } from '@/lib/messages';
 import { formatDate } from '@/lib/format';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * Why the portal reached that verdict. These are the `reasons[]` codes of
@@ -28,7 +29,7 @@ import { formatDate } from '@/lib/format';
  * beCPG business vocabulary, so they live here rather than in
  * `config/messages.js` (whose stated budget is ~60 keys).
  */
-const REASONS = {
+const REASONS = defineLabels('components/dashboard/ApprovalCard#REASONS', {
     fr: {
         documentExpired: 'Document obligatoire expiré',
         documentExpiring: 'Document arrivant à échéance',
@@ -47,9 +48,9 @@ const REASONS = {
         openProject: 'Open referencing project',
         openNonConformity: 'Open non-conformity',
     },
-};
+});
 
-const LOCAL = {
+const LOCAL = defineLabels('components/dashboard/ApprovalCard#LOCAL', {
     fr: {
         title: 'Statut d’agrément',
         validUntil: 'Valide jusqu’au {date}',
@@ -68,7 +69,7 @@ const LOCAL = {
         unknownHint: 'The status could not be computed. Please try again later.',
         allGood: 'Nothing is blocking',
     },
-};
+});
 
 /**
  * Tone → the 4px rail at the left edge of the card.
@@ -96,7 +97,7 @@ export const STATE_RAIL = {
  * The class every state card puts on its `Card`, so the four have the same edge
  * treatment. The colour itself travels in `style.borderLeftColor`.
  */
-export const STATE_CARD_CLASS = 'border-l-4';
+export const STATE_CARD_CLASS = 'border-s-4';
 
 /** Tone → the surface used for the big status medallion. */
 const TONE_SURFACE = {
@@ -117,8 +118,8 @@ const TONE_SURFACE = {
 export function ApprovalCard({ approval, supplier, validUntil, index = 0, className = '' }) {
     const { t, lang } = useMessages();
     const reduceMotion = useReducedMotion();
-    const local = LOCAL[lang] || LOCAL.fr;
-    const reasonLabels = REASONS[lang] || REASONS.fr;
+    const local = pickLabels(LOCAL, lang);
+    const reasonLabels = pickLabels(REASONS, lang);
 
     const status = approval ? approval.status : null;
     const resolved = resolveStatus(status);

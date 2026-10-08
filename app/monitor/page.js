@@ -56,8 +56,9 @@ import {
 import { formatDateTime, formatTotal } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/monitor/page#LABELS', {
     fr: {
         title: 'Pilotage du parc fournisseurs',
         description:
@@ -82,7 +83,7 @@ const LABELS = {
         truncated:
             'Park larger than the scan window: {scanned} suppliers read out of {total}. Counters marked “≈” are capped; the breakdown and the top 10 cover the window.',
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, key) =>
@@ -115,7 +116,7 @@ function OverviewSkeleton() {
  */
 function MonitorOverviewScreen() {
     const { lang } = useMessages();
-    const local = LABELS[lang] || LABELS.fr;
+    const local = pickLabels(LABELS, lang);
     const searchParams = useSearchParams();
 
     /*

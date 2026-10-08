@@ -48,8 +48,9 @@ import {
 } from '@/components/monitor/CampaignList';
 import { BulkActionBar } from '@/components/monitor/BulkActionBar';
 import { StartCampaignDialog } from '@/components/monitor/StartCampaignDialog';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/monitor/campaigns/page#LABELS', {
     fr: {
         title: 'Projets',
         subtitle:
@@ -146,7 +147,7 @@ const LABELS = {
         noteReminder:
             'beCPG keeps no reminder log: the "Last reminder" column shows the last activity on the project, the closest fact actually available.',
     },
-};
+});
 
 /** Server-side sort keys `listCampaigns()` implements. */
 const SORTS = ['dueDate', 'completion', 'age', 'name'];
@@ -163,7 +164,7 @@ export default function MonitorCampaignsPage() {
     // A campaign is started from this screen: this is where one notices that one is missing.
     const [starting, setStarting] = useState(false);
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     /*
      * `?q=` seeds the filter — the page becomes addressable.

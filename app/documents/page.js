@@ -40,8 +40,9 @@ import { download, useApi } from '@/lib/client';
 import { useSession } from '@/components/providers/SessionProvider';
 import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/documents/page#LABELS', {
     fr: {
         title: 'Mes documents',
         subtitle: 'Ce que le client attend de vous, et pour quand',
@@ -142,7 +143,7 @@ const LABELS = {
         scopeEmpty:
             'Your account is not attached to any supplier, so no document requirement can be computed. The counters above are empty, not satisfied. Contact your customer representative.',
     },
-};
+});
 
 /** Notice window shown in the KPI row; the API owns the real value. */
 const NOTICE_DAYS = 60;
@@ -195,7 +196,7 @@ function matches(requirement, filter, term) {
 
 export default function DocumentsPage() {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const [tab, setTab] = useState('requirements');
     const [filter, setFilter] = useState('open');
@@ -558,7 +559,7 @@ export default function DocumentsPage() {
                                 </button>
                             ))}
                         </div>
-                        <div className="sm:ml-auto sm:w-64">
+                        <div className="sm:ms-auto sm:w-64">
                             <SearchInput value={query} onChange={setQuery} placeholder={labels.search} />
                         </div>
                     </div>

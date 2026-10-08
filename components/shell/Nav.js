@@ -44,6 +44,7 @@ import { Icon, IconButton } from '@/components/ui/Button';
 import { TenantBadge } from '@/components/shell/TenantBadge';
 import { useSession } from '@/components/providers/SessionProvider';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * Supplier space (spec §4.2). `primary` items are the four shown in the phone
@@ -96,7 +97,7 @@ export const MONITOR_NAV = Object.freeze([
 ]);
 
 /** Chrome strings that are pure navigation mechanics, not portal vocabulary. */
-const LOCAL_LABELS = {
+const LOCAL_LABELS = defineLabels('components/shell/Nav#LOCAL_LABELS', {
     fr: {
         more: 'Plus', menu: 'Menu', close: 'Fermer le menu',
         supplierSpace: 'Espace fournisseur', monitorSpace: 'Espace pilotage',
@@ -107,7 +108,7 @@ const LOCAL_LABELS = {
         supplierSpace: 'Supplier space', monitorSpace: 'Monitoring space',
         collapse: 'Collapse the menu', expand: 'Expand the menu',
     },
-};
+});
 
 /**
  * Items for a space.
@@ -168,7 +169,7 @@ function Badge({ count, tone = 'accent' }) {
     return (
         <span
             className={[
-                'ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[11px] font-semibold',
+                'ms-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[11px] font-semibold',
                 TONES[tone] || TONES.accent,
             ].join(' ')}
         >
@@ -193,7 +194,7 @@ function NavFlyout({ label }) {
     return (
         <span
             aria-hidden="true"
-            className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 hidden -translate-y-1/2 whitespace-nowrap rounded-lg border border-[var(--becpg-grey)] bg-white px-2 py-1 text-xs font-normal text-[var(--becpg-blue)] shadow-[var(--becpg-shadow-overlay)] group-hover:block group-focus-visible:block"
+            className="pointer-events-none absolute start-full top-1/2 z-50 ms-2 hidden -translate-y-1/2 whitespace-nowrap rounded-lg border border-[var(--becpg-grey)] bg-white px-2 py-1 text-xs font-normal text-[var(--becpg-blue)] shadow-[var(--becpg-shadow-overlay)] group-hover:block group-focus-visible:block"
         >
             {label}
         </span>
@@ -215,7 +216,7 @@ function CollapsedBadge({ count }) {
     return (
         <span
             aria-hidden="true"
-            className="absolute right-0.5 top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--becpg-blue)] px-1 text-[10px] font-semibold leading-none text-white ring-1 ring-[var(--becpg-orange)]"
+            className="absolute end-0.5 top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--becpg-blue)] px-1 text-[10px] font-semibold leading-none text-white ring-1 ring-[var(--becpg-orange)]"
         >
             {count > 9 ? '9+' : count}
         </span>
@@ -315,7 +316,7 @@ export function Nav({
     const pathname = appPath(usePathname());
     const session = useSession();
     const reduceMotion = useReducedMotion();
-    const local = LOCAL_LABELS[lang] || LOCAL_LABELS.fr;
+    const local = pickLabels(LOCAL_LABELS, lang);
 
     const resolvedSpace = space || session.space || 'supplier';
     const list = items || navItemsForSpace(resolvedSpace);
@@ -455,7 +456,7 @@ export function Nav({
                                     <span className="relative">
                                         <Icon name={item.icon} size={22} />
                                         {badges[item.badgeKey] ? (
-                                            <span className="absolute -right-2 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--becpg-blue)] px-1 text-[10px] font-semibold text-white ring-1 ring-[var(--becpg-orange)]">
+                                            <span className="absolute -end-2 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--becpg-blue)] px-1 text-[10px] font-semibold text-white ring-1 ring-[var(--becpg-orange)]">
                                                 {badges[item.badgeKey] > 99 ? '99+' : badges[item.badgeKey]}
                                             </span>
                                         ) : null}
@@ -519,7 +520,7 @@ export function Nav({
                         animate={reduceMotion ? { opacity: 1 } : { x: 0 }}
                         exit={reduceMotion ? { opacity: 0 } : { x: '-100%' }}
                         transition={{ duration: 0.22, ease: 'easeOut' }}
-                        className="absolute inset-y-0 left-0 flex w-[84%] max-w-xs flex-col bg-white shadow-2xl"
+                        className="absolute inset-y-0 start-0 flex w-[84%] max-w-xs flex-col bg-white shadow-2xl"
                     >
                         {/* The drawer opens with the same blue toolbar and the same
                             wordmark as the header it came from, so a phone user
@@ -543,7 +544,7 @@ export function Nav({
                                 icon="close"
                                 label={local.close}
                                 onClick={onClose}
-                                className="toolbar-item ml-auto"
+                                className="toolbar-item ms-auto"
                             />
                         </div>
                         <div className="flex items-center gap-2 border-b border-[var(--becpg-grey)] p-3">

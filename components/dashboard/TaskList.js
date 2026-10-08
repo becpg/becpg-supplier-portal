@@ -21,8 +21,9 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useMessages } from '@/lib/messages';
 import { TASK_TYPE_META, taskTypeLabel } from '@/components/dashboard/ActionsCard';
 import { formatDate, daysUntil } from '@/lib/format';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LOCAL = {
+const LOCAL = defineLabels('components/dashboard/TaskList#LOCAL', {
     fr: {
         title: 'Mes tâches',
         subtitle: 'Triées par urgence',
@@ -55,7 +56,7 @@ const LOCAL = {
         progress: 'Progress',
         untitled: 'Untitled task',
     },
-};
+});
 
 const PRIORITY_TONE = { high: 'pill-danger', medium: 'pill-warn', low: 'pill-neutral' };
 
@@ -69,7 +70,7 @@ const PRIORITY_TONE = { high: 'pill-danger', medium: 'pill-warn', low: 'pill-neu
  */
 export function DueBadge({ task }) {
     const { lang } = useMessages();
-    const local = LOCAL[lang] || LOCAL.fr;
+    const local = pickLabels(LOCAL, lang);
     const days = daysUntil(task.dueDate);
     if (days === null) {
         return (
@@ -113,7 +114,7 @@ export function DueBadge({ task }) {
  */
 export function PriorityPill({ level }) {
     const { lang } = useMessages();
-    const local = LOCAL[lang] || LOCAL.fr;
+    const local = pickLabels(LOCAL, lang);
     if (!level || !PRIORITY_TONE[level]) {
         return null;
     }
@@ -135,7 +136,7 @@ export function PriorityPill({ level }) {
 export function TaskList({ tasks = [], total, index = 0, className = '' }) {
     const { lang } = useMessages();
     const reduceMotion = useReducedMotion();
-    const local = LOCAL[lang] || LOCAL.fr;
+    const local = pickLabels(LOCAL, lang);
     const count = typeof total === 'number' ? total : tasks.length;
 
     return (

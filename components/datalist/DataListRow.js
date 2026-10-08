@@ -454,7 +454,7 @@ export function NestedSection({ row, column, list }) {
                                     <th
                                         key={child.formsName}
                                         scope="col"
-                                        className="px-2 py-1 text-left font-medium text-[var(--becpg-dark-grey)]"
+                                        className="px-2 py-1 text-start font-medium text-[var(--becpg-dark-grey)]"
                                     >
                                         {child.label}
                                     </th>
@@ -981,7 +981,7 @@ export const DataListRow = memo(function DataListRow({
                 {selectable ? (
                     <td
                         className="px-1 align-middle"
-                        style={sticky ? { width: SELECT_WIDTH, left: sticky.selection } : { width: SELECT_WIDTH }}
+                        style={sticky ? { width: SELECT_WIDTH, insetInlineStart: sticky.selection } : { width: SELECT_WIDTH }}
                         data-sticky={sticky ? 'start' : undefined}
                     >
                         {summary ? null : (
@@ -1012,7 +1012,7 @@ export const DataListRow = memo(function DataListRow({
                      */
                     <td
                         className="px-1"
-                        style={sticky ? { width: ORDER_WIDTH, left: sticky.order } : { width: ORDER_WIDTH }}
+                        style={sticky ? { width: ORDER_WIDTH, insetInlineStart: sticky.order } : { width: ORDER_WIDTH }}
                         data-sticky={sticky ? 'start' : undefined}
                     >
                         {summary ? null : (
@@ -1043,7 +1043,7 @@ export const DataListRow = memo(function DataListRow({
                 {hasNested ? (
                     <td
                         className="w-10 px-1"
-                        style={sticky ? { left: sticky.nested } : undefined}
+                        style={sticky ? { insetInlineStart: sticky.nested } : undefined}
                         data-sticky={sticky ? 'start' : undefined}
                     >
                         {summary ? null : (
@@ -1076,7 +1076,7 @@ export const DataListRow = memo(function DataListRow({
                         key={column.formsName}
                         data-column={position}
                         style={sticky && position === 0
-                            ? { minWidth: columnFloor(column), left: sticky.first }
+                            ? { minWidth: columnFloor(column), insetInlineStart: sticky.first }
                             : { minWidth: columnFloor(column) }}
                         data-sticky={sticky && position === 0 ? 'start' : undefined}
                         data-sticky-edge={sticky && position === 0 ? 'true' : undefined}
@@ -1093,7 +1093,7 @@ export const DataListRow = memo(function DataListRow({
 
                 {showActions ? (
                     <td
-                        className="text-right whitespace-nowrap"
+                        className="text-end whitespace-nowrap"
                         data-sticky={sticky ? 'end' : undefined}
                     >
                         {summary ? null : (

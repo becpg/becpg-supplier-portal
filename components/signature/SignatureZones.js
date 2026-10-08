@@ -44,6 +44,7 @@
 
 import { useMemo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** The zone types beCPG's signature service knows how to stamp. */
 export const ZONE_TYPES = Object.freeze({
@@ -69,10 +70,10 @@ const TYPE_ALIASES = {
 };
 
 /** Fallback labels, used only when the API sends no label of its own. */
-const DEFAULT_LABELS = {
+const DEFAULT_LABELS = defineLabels('components/signature/SignatureZones#DEFAULT_LABELS', {
     fr: { signature: 'Signature', initials: 'Paraphes', date: 'Date', text: 'Mention' },
     en: { signature: 'Signature', initials: 'Initials', date: 'Date', text: 'Text' },
-};
+});
 
 /**
  * @param {*} value
@@ -326,7 +327,7 @@ const TYPE_BADGES = {
  */
 export function SignatureZones({ zones, pageNumber, pageSize = null, lang = 'fr', animate = true }) {
     const reduceMotion = useReducedMotion();
-    const labels = DEFAULT_LABELS[lang] || DEFAULT_LABELS.fr;
+    const labels = pickLabels(DEFAULT_LABELS, lang);
 
     const boxes = useMemo(() => {
         return zonesForPage(zones, pageNumber)
@@ -364,7 +365,7 @@ export function SignatureZones({ zones, pageNumber, pageSize = null, lang = 'fr'
                     transition={{ duration: 0.25, ease: 'easeOut' }}
                 >
                     <span
-                        className={`absolute -top-2 left-1 max-w-full truncate rounded px-1 py-px text-[9px] font-medium leading-tight sm:text-[10px] ${
+                        className={`absolute -top-2 start-1 max-w-full truncate rounded px-1 py-px text-[9px] font-medium leading-tight sm:text-[10px] ${
                             TYPE_BADGES[zone.type] || TYPE_BADGES[ZONE_TYPES.SIGNATURE]
                         }`}
                     >
@@ -390,7 +391,7 @@ export function ZoneLegend({ zones, lang = 'fr', children, className = '' }) {
     if (!types.length) {
         return null;
     }
-    const labels = DEFAULT_LABELS[lang] || DEFAULT_LABELS.fr;
+    const labels = pickLabels(DEFAULT_LABELS, lang);
     return (
         <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--becpg-dark-grey)] ${className}`}>
             {types.map((type) => (

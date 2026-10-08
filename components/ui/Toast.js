@@ -61,8 +61,8 @@ export function Toast({ id, variant = 'info', title, message, action, onDismiss 
             aria-live={assertive ? 'assertive' : 'polite'}
             className="pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-xl border border-[var(--becpg-blue-lighter)] bg-white p-3 shadow-[var(--becpg-shadow-overlay)]"
         >
-            <span className="absolute inset-y-0 left-0 w-1" style={{ background: palette.bar }} aria-hidden="true" />
-            <span className={`ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${palette.chip}`}>
+            <span className="absolute inset-y-0 start-0 w-1" style={{ background: palette.bar }} aria-hidden="true" />
+            <span className={`ms-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${palette.chip}`}>
                 <Icon name={palette.icon} size={18} />
             </span>
             <div className="min-w-0 flex-1 py-0.5">
@@ -92,7 +92,7 @@ export function Toast({ id, variant = 'info', title, message, action, onDismiss 
                 size="sm"
                 label={t('action.close')}
                 onClick={() => onDismiss(id)}
-                className="-mr-1 -mt-1"
+                className="-me-1 -mt-1"
             />
         </div>
     );
@@ -109,7 +109,7 @@ export function ToastViewport({ toasts, onDismiss }) {
     const reduceMotion = useReducedMotion();
     return (
         <div
-            className="pointer-events-none fixed inset-x-0 top-0 z-[100] flex flex-col items-center gap-2 p-3 sm:inset-x-auto sm:bottom-0 sm:right-0 sm:top-auto sm:items-end sm:p-4"
+            className="pointer-events-none fixed inset-x-0 top-0 z-[100] flex flex-col items-center gap-2 p-3 sm:inset-x-auto sm:bottom-0 sm:end-0 sm:top-auto sm:items-end sm:p-4"
             style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top, 0px))' }}
         >
             <AnimatePresence initial={false}>

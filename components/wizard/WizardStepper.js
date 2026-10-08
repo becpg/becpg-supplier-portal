@@ -36,8 +36,9 @@ import { ListIcon } from '@/components/ui/ListIcon';
 import { Modal } from '@/components/ui/Modal';
 import { useMessages } from '@/lib/messages';
 import { hasListIcon } from '@/lib/listIcons';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/wizard/WizardStepper#LABELS', {
     fr: {
         title: 'Étapes',
         step: 'Étape {index} sur {total}',
@@ -86,7 +87,7 @@ const LABELS = {
         collapse: 'Collapse the steps',
         expand: 'Expand the steps',
     },
-};
+});
 
 /** Icon shown in a step's bullet, by step kind. */
 const KIND_ICONS = {
@@ -178,7 +179,7 @@ function StepsSummary({ steps, currentId, labels, variant = 'rail', onToggleColl
             aria-expanded={!collapsed}
             aria-label={collapsed ? labels.expand : labels.collapse}
             title={collapsed ? labels.expand : labels.collapse}
-            className="-mr-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)]/60 hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+            className="-me-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)]/60 hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
         >
             <Icon name={collapsed ? 'chevron_right' : 'chevron_left'} size={18} />
         </button>
@@ -293,7 +294,7 @@ function CollapsedStepButton({ step, index, total, active, selectable, onSelect,
                 {catalogGap ? (
                     <span
                         aria-hidden="true"
-                        className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[var(--status-danger)]"
+                        className="absolute end-1 top-1 h-2 w-2 rounded-full bg-[var(--status-danger)]"
                     />
                 ) : null}
                 {/*
@@ -304,7 +305,7 @@ function CollapsedStepButton({ step, index, total, active, selectable, onSelect,
                   */}
                 <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute left-full top-1/2 z-40 ml-1 hidden -translate-y-1/2 whitespace-nowrap rounded-lg border border-[var(--becpg-grey)] bg-white px-2 py-1 text-xs text-[var(--becpg-blue)] shadow-[var(--becpg-shadow-overlay)] group-hover:block group-focus-visible:block"
+                    className="pointer-events-none absolute start-full top-1/2 z-40 ms-1 hidden -translate-y-1/2 whitespace-nowrap rounded-lg border border-[var(--becpg-grey)] bg-white px-2 py-1 text-xs text-[var(--becpg-blue)] shadow-[var(--becpg-shadow-overlay)] group-hover:block group-focus-visible:block"
                 >
                     <span className="inline-flex items-center gap-1.5">
                         {listIconType ? <ListIcon type={listIconType} size={14} /> : null}
@@ -451,7 +452,7 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
                 aria-label={`${step.label} · ${fill(labels.step, { index, total })} · ${spoken}`}
                 onClick={() => onSelect(step.id)}
                 className={[
-                    'group flex w-full items-start gap-2.5 rounded-xl px-2 text-left transition-colors',
+                    'group flex w-full items-start gap-2.5 rounded-xl px-2 text-start transition-colors',
                     dense ? 'py-2.5' : 'py-2',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]',
                     active
@@ -561,7 +562,7 @@ export function WizardStepper({
     className = '',
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const [sheetOpen, setSheetOpen] = useState(false);
 
     const list = Array.isArray(steps) ? steps : [];
@@ -601,7 +602,7 @@ export function WizardStepper({
                     type="button"
                     onClick={() => setSheetOpen(true)}
                     aria-label={`${current ? current.label : ''} · ${fill(labels.step, { index: currentIndex + 1, total })} · ${labels.open}`}
-                    className="touch-target flex w-full items-center gap-2 rounded-lg border border-[var(--becpg-grey)] bg-white px-3 py-2 text-left text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                    className="touch-target flex w-full items-center gap-2 rounded-lg border border-[var(--becpg-grey)] bg-white px-3 py-2 text-start text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
                 >
                     <Icon name={currentIcon} size={18} className="shrink-0" />
                     <span className="min-w-0 flex-1 truncate text-sm font-medium">

@@ -40,8 +40,9 @@ import { ContentLocalesProvider } from '@/components/form/ContentLocalesProvider
 import { ProductTaskBanner } from '@/components/products/ProductTaskBanner';
 import { routeParamId, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/products/[id]/page#LABELS', {
     fr: {
         sheet: 'Fiche',
         notFound: 'Produit introuvable',
@@ -64,7 +65,7 @@ const LABELS = {
             + ' does not mean they are empty. Ask your beCPG contact for access if you need one'
             + ' of them.',
     },
-};
+});
 
 /**
  * The screen itself. Split out of the default export so `useSearchParams` sits
@@ -78,7 +79,7 @@ function ProductScreen() {
     // Decoded once here, encoded at each call site — see `routeParamId`.
     const id = routeParamId(params.id);
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const router = useRouter();
     const pathname = usePathname();

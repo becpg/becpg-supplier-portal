@@ -48,8 +48,6 @@ import {
     supplierCsvColumns,
     toCsv,
 } from '@/lib/adapters/monitor';
-import { cookies } from 'next/headers';
-import { LANG_COOKIE, normalizeLang } from '@/config/messages';
 import { AuthError, toApiResponse } from '@/lib/errors';
 import { resolveLang } from '@/lib/lang';
 import { getLiveSession } from '@/lib/session';
@@ -91,8 +89,7 @@ export async function GET(request) {
             return NextResponse.json(payload, { status: 200, headers: NO_STORE });
         }
 
-        const cookieStore = await cookies();
-        const lang = normalizeLang(cookieStore.get(LANG_COOKIE)?.value);
+        const lang = await resolveLang();
         const csv = toCsv(supplierCsvColumns(lang), payload.items);
         const stamp = payload.generatedAt.slice(0, 10);
         return new NextResponse(csv, {

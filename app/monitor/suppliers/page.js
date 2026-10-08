@@ -62,6 +62,7 @@ import { HistoryUnavailable } from '@/components/monitor/SupplierScorecard';
 import { download, useApi } from '@/lib/client';
 import { formatTotal } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** Rows fetched per call. The API caps `pageSize` at 100. */
 const WINDOW_SIZE = 100;
@@ -76,7 +77,7 @@ const STATUS_META = {
     approved: { icon: 'verified', tone: 'ok' },
 };
 
-const LABELS = {
+const LABELS = defineLabels('app/monitor/suppliers/page#LABELS', {
     fr: {
         title: 'Fournisseurs',
         description:
@@ -159,7 +160,7 @@ const LABELS = {
             buyer: 'buyer',
         },
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, key) =>
@@ -171,7 +172,7 @@ function fill(template, vars) {
  */
 function MonitorSuppliersScreen() {
     const { lang } = useMessages();
-    const local = LABELS[lang] || LABELS.fr;
+    const local = useMemo(() => pickLabels(LABELS, lang), [lang]);
     const searchParams = useSearchParams();
     const { profile } = useMonitorProfile();
 

@@ -51,8 +51,9 @@ import { SearchInput } from '@/components/ui/Field';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useSession } from '@/components/providers/SessionProvider';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/help/page#LABELS', {
     fr: {
         title: 'Aide',
         subtitle: 'Comment fonctionne le portail, étape par étape',
@@ -85,14 +86,14 @@ const LABELS = {
         monitorNotice:
             'This help describes the supplier view: the screens your suppliers see, where "your customer" means your own company. The monitoring space is not documented yet.',
     },
-};
+});
 
 /**
  * The content itself. One entry per topic, in reading order.
  *
  * @type {{fr: Array<Object>, en: Array<Object>}}
  */
-const TOPICS = {
+const TOPICS = defineLabels('app/help/page#TOPICS', {
     fr: [
         {
             id: 'start',
@@ -815,7 +816,7 @@ const TOPICS = {
             ],
         },
     ],
-};
+});
 
 /**
  * Renders `**bold**` runs, and nothing else.
@@ -969,7 +970,7 @@ function Topic({ topic, lang, open, onToggle, local, registerRef }) {
                     aria-expanded={open}
                     aria-controls={`help-panel-${topic.id}`}
                     onClick={() => onToggle(topic.id)}
-                    className="flex w-full touch-target items-start gap-3 p-3 text-left transition-colors hover:bg-[var(--becpg-grey)]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] sm:p-4"
+                    className="flex w-full touch-target items-start gap-3 p-3 text-start transition-colors hover:bg-[var(--becpg-grey)]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)] sm:p-4"
                 >
                     <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--becpg-blue-lighter)] text-[var(--becpg-blue)]">
                         <Icon name={topic.icon} size={20} />
@@ -1037,8 +1038,8 @@ function decodeHash(hash) {
 
 export default function HelpPage() {
     const { lang } = useMessages();
-    const local = LABELS[lang] || LABELS.fr;
-    const topics = TOPICS[lang] || TOPICS.fr;
+    const local = pickLabels(LABELS, lang);
+    const topics = pickLabels(TOPICS, lang);
     const session = useSession();
 
     const [openIds, setOpenIds] = useState([]);
@@ -1081,7 +1082,7 @@ export default function HelpPage() {
             if (!wanted) {
                 return;
             }
-            const known = (TOPICS[lang] || TOPICS.fr).some((topic) => topic.id === wanted);
+            const known = (pickLabels(TOPICS, lang)).some((topic) => topic.id === wanted);
             if (!known) {
                 return;
             }

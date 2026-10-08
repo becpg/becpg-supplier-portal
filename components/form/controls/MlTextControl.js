@@ -42,9 +42,9 @@
  * could not enter Italian. Measured on the reference instance the 11/08: the repository
  * declares 27 locales, the portal offered 2.
  *
- * `SUPPORTED_LANGS` remains the floor for the case where nothing answered at
- * all — degrading to zero language box would be worse than degrading to the one
- * the user is reading in.
+ * `INLINE_LANGS` (French, English) remains the floor for the case where nothing
+ * answered at all — degrading to zero language box would be worse. It is not
+ * `SUPPORTED_LANGS`, which now lists the thirteen languages of the chrome.
  *
  * **A language coming from a catalogue is marked required; one coming from the
  * repository is not.** The distinction is `useRequiredLocales()`, and it is the
@@ -66,15 +66,16 @@ import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { Icon } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Field';
-import { SUPPORTED_LANGS } from '@/config/messages';
+import { INLINE_LANGS } from '@/config/messages';
 import { useContentLocales, useRequiredLocales } from '@/components/form/ContentLocalesProvider';
 import { useFieldHeaderSlot } from '@/components/form/FieldHeaderSlot';
 import { withBasePath } from '@/lib/basePath';
 import { useFieldFocus } from '@/components/form/FieldFocusProvider';
 import { controlParams, lengthBounds, toNumber } from '@/components/form/validation';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/form/controls/MlTextControl#LABELS', {
     fr: {
         more: '{count} autre(s) langue(s)',
         less: 'Masquer les autres langues',
@@ -87,7 +88,7 @@ const LABELS = {
         required: 'required by the customer',
         missing: '{count} required language(s) still empty',
     },
-};
+});
 
 /**
  * Normalises any value into a `{ locale: text }` map.
@@ -140,7 +141,7 @@ export function toLocaleMap(value, lang) {
 export function localesFor(field, valueMap, lang, policy = null) {
     const params = controlParams(field);
     const declared = params.locales || params.languages;
-    const fallback = Array.isArray(policy) && policy.length > 0 ? policy : SUPPORTED_LANGS;
+    const fallback = Array.isArray(policy) && policy.length > 0 ? policy : INLINE_LANGS;
     const configured = Array.isArray(declared)
         ? declared.map((entry) => String(entry))
         : typeof declared === 'string'
@@ -333,7 +334,7 @@ export function MlTextControl({
     ...rest
 }) {
     const [expanded, setExpanded] = useState(false);
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const map = toLocaleMap(value, lang);
     const locales = localesFor(field, map, lang, useContentLocales());

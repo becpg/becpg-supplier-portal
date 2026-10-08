@@ -39,8 +39,9 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { api } from '@/lib/client';
 import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/documents/DocumentValidity#LABELS', {
     fr: {
         fromTo: 'Valide du {from} au {to}',
         from: 'Valide depuis le {from}',
@@ -75,10 +76,10 @@ const LABELS = {
         inverted: 'The end date precedes the start date.',
         hint: 'The dates printed on the document you are uploading.',
     },
-};
+});
 
 function labelsFor(lang) {
-    return LABELS[lang] || LABELS.fr;
+    return pickLabels(LABELS, lang);
 }
 
 function fill(template, vars) {

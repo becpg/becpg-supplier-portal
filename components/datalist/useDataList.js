@@ -84,6 +84,7 @@ import {
     patchRowFields,
     restoreRowFields,
 } from '@/components/datalist/rowCommits';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * The grid's own vocabulary.
@@ -94,7 +95,7 @@ import {
  * ~60 chrome keys, and they are shared by the four components of the folder so a
  * word is never spelled two different ways in two layouts.
  */
-export const DATALIST_LABELS = {
+export const DATALIST_LABELS = defineLabels('components/datalist/useDataList#DATALIST_LABELS', {
     fr: {
         rows: '{count} ligne(s)',
         addRow: 'Ajouter une ligne',
@@ -311,7 +312,7 @@ export const DATALIST_LABELS = {
             association: 'no exact match in the reference data',
         },
     },
-};
+});
 
 /**
  * The grid vocabulary in the current chrome language.
@@ -322,7 +323,7 @@ export function useDataListLabels() {
     const { lang } = useMessages();
     return useCallback(
         (key, vars) => {
-            const dict = DATALIST_LABELS[lang] || DATALIST_LABELS.fr;
+            const dict = pickLabels(DATALIST_LABELS, lang);
             const value = dict[key] ?? DATALIST_LABELS.fr[key] ?? key;
             // A few entries are a table rather than a sentence (the shortcut
             // list, the paste reasons); they are handed back untouched.

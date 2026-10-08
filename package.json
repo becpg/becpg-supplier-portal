@@ -29,7 +29,8 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "licenses": "node scripts/generate-third-party-licenses.mjs"
+    "licenses": "node scripts/generate-third-party-licenses.mjs",
+    "i18n:extract": "node scripts/i18n-extract.mjs"
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
@@ -44,6 +45,7 @@
     "signature_pad": "^5.0.7"
   },
   "devDependencies": {
+    "@babel/parser": "^7.29.8",
     "@eslint/eslintrc": "^3.3.5",
     "@playwright/test": "^1.62.0",
     "@tailwindcss/postcss": "^4.3.0",

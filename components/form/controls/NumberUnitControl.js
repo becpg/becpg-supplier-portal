@@ -50,6 +50,7 @@ import { controlParams } from '@/components/form/validation';
 import { formatNumber } from '@/lib/format';
 import { NumberControl } from '@/components/form/controls/NumberControl';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * Units offered for a given canonical unit — the `currUnits` lists of
@@ -99,15 +100,15 @@ const UNIT_SYMBOLS = {
     '-': '—',
 };
 
-const DURATION_SYMBOLS = {
+const DURATION_SYMBOLS = defineLabels('components/form/controls/NumberUnitControl#DURATION_SYMBOLS', {
     fr: { d: 'jours', mo: 'mois', y: 'ans' },
     en: { d: 'days', mo: 'months', y: 'years' },
-};
+});
 
-const LABELS = {
+const LABELS = defineLabels('components/form/controls/NumberUnitControl#LABELS', {
     fr: { unit: 'Unité' },
     en: { unit: 'Unit' },
-};
+});
 
 /**
  * The label of a unit.
@@ -117,7 +118,7 @@ const LABELS = {
  * @returns {string}
  */
 export function unitLabel(unit, lang = 'fr') {
-    const durations = DURATION_SYMBOLS[lang] || DURATION_SYMBOLS.fr;
+    const durations = pickLabels(DURATION_SYMBOLS, lang);
     return durations[unit] || UNIT_SYMBOLS[unit] || unit;
 }
 
@@ -291,7 +292,7 @@ export function NumberUnitControl({
             <Select
                 value={unit}
                 onChange={(event) => setUnit(event.target.value)}
-                aria-label={`${field?.label ? `${field.label} — ` : ''}${(LABELS[lang] || LABELS.fr).unit}`}
+                aria-label={`${field?.label ? `${field.label} — ` : ''}${(pickLabels(LABELS, lang)).unit}`}
                 className="becpg-number-unit-unit w-auto min-w-[5.5rem]"
                 options={family.map((entry) => ({ value: entry, label: unitLabel(entry, lang) }))}
             />

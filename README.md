@@ -110,6 +110,9 @@ never sees a portal-specific password, and the portal never stores one.
   quality indicators, closed to supplier accounts.
 * **AI-assisted capture** – optional: extracted values are shown with a confidence level, and a
   missing confidence is never rendered as a low one.
+* **Thirteen interface languages** – French, English (UK and US), German, Spanish, Italian,
+  Brazilian Portuguese, Swedish, Finnish, Turkish, Japanese, Simplified Chinese and Arabic
+  (right to left), picked from the supplier's beCPG profile; dates and numbers follow the language.
 
 ---
 

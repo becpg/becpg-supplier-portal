@@ -41,8 +41,9 @@ import { formatDate, formatTotal } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { SUPPLIER_STATES, useDebouncedValue } from '@/components/monitor/MonitorFilters';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/monitor/products/page#LABELS', {
     fr: {
         title: 'Produits fournisseurs',
         subtitle:
@@ -109,7 +110,7 @@ const LABELS = {
         rows: 'Rows per page',
         sortScope: 'Sorting applies to the page shown, not to the whole park.',
     },
-};
+});
 
 /** Page sizes offered under the table. */
 const PAGE_SIZES = [25, 50, 100];
@@ -169,7 +170,7 @@ function RefList({ refs, empty }) {
 
 export default function MonitorProductsPage() {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const [query, setQuery] = useState('');
     const [state, setState] = useState('');
@@ -206,7 +207,7 @@ export default function MonitorProductsPage() {
     }, []);
 
     const stateOptions = useMemo(
-        () => SUPPLIER_STATES.map((entry) => ({ value: entry.value, label: entry[lang] || entry.fr })),
+        () => SUPPLIER_STATES.map((entry) => ({ value: entry.value, label: pickLabels(entry, lang) })),
         [lang],
     );
 
@@ -288,7 +289,7 @@ export default function MonitorProductsPage() {
                         <span className="tabular-nums">
                             {date}
                             {age ? (
-                                <span className="ml-1 text-xs text-[var(--becpg-dark-grey)]">({age})</span>
+                                <span className="ms-1 text-xs text-[var(--becpg-dark-grey)]">({age})</span>
                             ) : null}
                         </span>
                     );

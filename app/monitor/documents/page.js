@@ -42,8 +42,9 @@ import {
     selectionTypes,
 } from '@/components/monitor/DocumentMatrix';
 import { BulkActionBar } from '@/components/monitor/BulkActionBar';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/monitor/documents/page#LABELS', {
     fr: {
         title: 'Conformité documentaire',
         subtitle:
@@ -134,7 +135,7 @@ const LABELS = {
             'Your supplier file has mandatory documents missing or expired. Please update them on the portal.',
         hintTypes: '{count} document type(s) targeted',
     },
-};
+});
 
 /** Status order of `DEFAULT_DOCUMENT_CONFIG.statusOrder`, most severe first. */
 const STATUSES = ['missing', 'refused', 'expired', 'expiring', 'toValidate', 'valid'];
@@ -149,7 +150,7 @@ function fill(template, vars) {
 
 export default function MonitorDocumentsPage() {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = useMemo(() => pickLabels(LABELS, lang), [lang]);
 
     const [query, setQuery] = useState('');
     const [documentType, setDocumentType] = useState('');

@@ -34,8 +34,15 @@ elsewhere that assumes no `.git`, it is stale.
 3. **No shadcn/ui, no Radix**, no headless UI kit. Tailwind + the portal's own components only,
    aligned on `becpg-regulatory-ui`.
 4. **No i18n library.** Business labels (fields, lists, catalogs, questionnaires) come from
-   beCPG in the user's locale. Only the portal's own chrome strings live in `config/messages.js`
-   (`fr`, `en`).
+   beCPG in the user's locale. The portal's own chrome speaks Share's UI languages minus Russian,
+   plus Chinese and Arabic: `fr en en_US de es it pt_BR sv_SE fi tr ja_JP zh_CN ar`
+   (`SUPPORTED_LANGS` in `config/messages.js`). French and English are written **inline**, in a
+   `defineLabels('<path>#<NAME>', { fr, en })` table beside the component, and read with
+   `pickLabels(TABLE, lang)` (`lib/i18n.js`) — never `TABLE[lang] || TABLE.fr`. The other languages
+   live in `config/locales/<lang>.js`, keyed by namespace; a key they lack reads English.
+   After adding or changing a label: `npm run i18n:extract -- --check` lists what each language
+   lacks. `en_US` is English text with US dates; `ar` is written right to left, so use logical
+   classes (`ms-`, `pe-`, `start-`, `text-start`, `border-s`), never `ml-`, `pr-`, `left-`.
 5. **Authentication is server side only.** OIDC code flow in route handlers, session encrypted
    as a JWE in an httpOnly cookie (`jose`). The OIDC token and the Alfresco ticket must **never**
    reach the browser. No `keycloak-js`, no `NEXT_PUBLIC_*` OIDC config, no token in

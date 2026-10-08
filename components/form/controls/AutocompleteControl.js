@@ -87,6 +87,7 @@ import { ListIcon } from '@/components/ui/ListIcon';
 import { hasListIcon } from '@/lib/listIcons';
 import { controlParams } from '@/components/form/validation';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** Pause after the last keystroke before querying, in ms. */
 export /**
@@ -115,7 +116,7 @@ const MAX_PANEL_WIDTH = 416;
 /** Below this much room under the field, the panel opens upwards instead. */
 const MIN_ROOM_BELOW = 180;
 
-const LABELS = {
+const LABELS = defineLabels('components/form/controls/AutocompleteControl#LABELS', {
     fr: {
         search: 'Rechercher…',
         // Share's own header sentence, shown above every result list
@@ -149,7 +150,7 @@ const LABELS = {
         showing: 'Showing items 1 - {count} of {total}',
         favourite: 'Favourite',
     },
-};
+});
 
 /**
  * The values currently held by the field, as an array.
@@ -383,7 +384,7 @@ export function DatasourcePicker({
     id,
     ...rest
 }) {
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const params = controlParams(field);
     const many = multiple === undefined ? isMultiple(field) : multiple;
     const saveTitle = params.saveTitle === true || params.saveTitle === 'true';

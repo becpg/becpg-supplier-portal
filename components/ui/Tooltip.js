@@ -219,7 +219,7 @@ export function Tooltip({
     const trigger = children ? (
         <button
             {...triggerProps}
-            className={`inline-flex cursor-help items-center gap-1 text-left ${className}`}
+            className={`inline-flex cursor-help items-center gap-1 text-start ${className}`}
         >
             {children}
         </button>

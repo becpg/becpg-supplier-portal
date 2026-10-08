@@ -29,8 +29,9 @@ import { ErrorState } from '@/components/ui/EmptyState';
 import { SpecPanel } from '@/components/specs/SpecPanel';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/specs/page#LABELS', {
     fr: {
         title: 'Cahiers des charges',
         subtitle: 'Les documents de référence que le client applique à vos produits',
@@ -51,11 +52,11 @@ const LABELS = {
         emptyHint:
             'No specification is available to you. The customer will share one if any applies.',
     },
-};
+});
 
 export default function SpecsPage() {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const call = useApi('specs');
 

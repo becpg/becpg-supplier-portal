@@ -65,8 +65,9 @@ import { DecisionTree, questionDomId } from '@/components/survey/DecisionTree';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/wizard/steps/SurveyStep#LABELS', {
     fr: {
         discuss: 'Discussion',
         answered: '{answered} réponse(s) sur {total}',
@@ -95,7 +96,7 @@ const LABELS = {
         noneAnsweredHint: 'The questionnaire unfolds as you answer it.',
         dropped: 'Your customer left nowhere to store {count} of your answers: {questions}. They are not saved — tell your customer.',
     },
-};
+});
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
@@ -148,7 +149,7 @@ export function SurveyStep({
     className = '',
 }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const toast = useToast();
 
     // `entityId` is a **nodeRef** on the task route (`workspace://SpacesStore/…`)
@@ -342,7 +343,7 @@ export function SurveyStep({
                             variant="outline"
                             size="sm"
                             icon="forum"
-                            className="ml-auto"
+                            className="ms-auto"
                             onClick={() =>
                                 onComment({ nodeRef: (data && data.listNodeRef) || entityId, label: step.label })}
                         >
@@ -425,7 +426,7 @@ export function SurveyStep({
                                                 <button
                                                     type="button"
                                                     onClick={() => goTo(question.id)}
-                                                    className="touch-target text-left text-sm text-[var(--becpg-blue)] underline underline-offset-2 hover:text-[var(--becpg-blue-light)]"
+                                                    className="touch-target text-start text-sm text-[var(--becpg-blue)] underline underline-offset-2 hover:text-[var(--becpg-blue-light)]"
                                                 >
                                                     {question.label}
                                                 </button>

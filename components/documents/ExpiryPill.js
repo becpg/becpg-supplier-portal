@@ -23,13 +23,14 @@ import { useMessages } from '@/lib/messages';
 import { formatDate, daysUntil } from '@/lib/format';
 import { Icon } from '@/components/ui/Button';
 import { StatusPill, resolveStatus } from '@/components/ui/StatusPill';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * Screen vocabulary of the document screens. It stays local, like `Nav.js` and
  * `DataTable.js` do, so `config/messages.js` keeps its ~60-key budget for the
  * shell (AGENTS.md rule 4).
  */
-const LABELS = {
+const LABELS = defineLabels('components/documents/ExpiryPill#LABELS', {
     fr: {
         missing: 'À fournir',
         refused: 'Refusé',
@@ -62,11 +63,11 @@ const LABELS = {
         since: 'Since',
         until: 'Until',
     },
-};
+});
 
 /** @param {string} lang @returns {Object} the label map of that language */
 function labelsFor(lang) {
-    return LABELS[lang] || LABELS.fr;
+    return pickLabels(LABELS, lang);
 }
 
 /** Replaces `{name}` placeholders. */

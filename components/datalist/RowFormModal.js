@@ -29,11 +29,12 @@ import { Button } from '@/components/ui/Button';
 import { FormRenderer } from '@/components/form/FormRenderer';
 import { useFormState } from '@/components/form/useFormState';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** Escape must find something to call, even while the write is in flight. */
 const NOOP = () => {};
 
-const LABELS = {
+const LABELS = defineLabels('components/datalist/RowFormModal#LABELS', {
     fr: {
         title: 'Modifier la ligne',
         create: 'Nouvelle ligne',
@@ -50,7 +51,7 @@ const LABELS = {
         description: 'The fields the grid does not show are entered here.',
         refused: 'The row was not saved. Check the mandatory fields, then try again.',
     },
-};
+});
 
 /**
  * @param {Object} props
@@ -62,7 +63,7 @@ const LABELS = {
  */
 export function RowFormModal({ list, row, rowForm, entityNodeRef, onClose }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
 

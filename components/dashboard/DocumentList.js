@@ -29,8 +29,9 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { api } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { formatDate, daysUntil } from '@/lib/format';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LOCAL = {
+const LOCAL = defineLabels('components/dashboard/DocumentList#LOCAL', {
     fr: {
         title: 'Mes documents',
         empty: 'Aucun document attendu',
@@ -65,7 +66,7 @@ const LOCAL = {
         uploading: 'Uploading…',
         uploaded: 'Document uploaded. It is now pending your customer’s validation.',
     },
-};
+});
 
 /**
  * The validity line: a date is useless on its own, the supplier needs the delay.
@@ -113,7 +114,7 @@ function Validity({ document, local, lang }) {
  */
 export function DocumentList({ documents = [], total, index = 0, className = '' }) {
     const { lang } = useMessages();
-    const local = LOCAL[lang] || LOCAL.fr;
+    const local = pickLabels(LOCAL, lang);
     const reduceMotion = useReducedMotion();
     const router = useRouter();
     const toast = useToast();

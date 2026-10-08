@@ -44,11 +44,13 @@ import { TestBanner } from '@/components/shell/TestBanner';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useSession } from '@/components/providers/SessionProvider';
 import { useMessages } from '@/lib/messages';
+import { LANG_NAMES, bcp47Of } from '@/config/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LOCAL_LABELS = {
+const LOCAL_LABELS = defineLabels('components/shell/Header#LOCAL_LABELS', {
     fr: { menu: 'Ouvrir le menu', account: 'Mon compte', home: 'beCPG — accueil du portail' },
     en: { menu: 'Open menu', account: 'My account', home: 'beCPG — portal home' },
-};
+});
 
 /** Two-letter monogram from a display name. */
 function initials(name) {
@@ -80,7 +82,7 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
     const [open, setOpen] = useState(false);
     const menuRef = useRef(null);
     const buttonRef = useRef(null);
-    const local = LOCAL_LABELS[lang] || LOCAL_LABELS.fr;
+    const local = pickLabels(LOCAL_LABELS, lang);
 
     useEffect(() => {
         if (!open) {
@@ -203,7 +205,7 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                         </>
                     ) : null}
 
-                    <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
+                    <div className="ms-auto flex items-center gap-0.5 sm:gap-1">
                         {status ? <span className="hidden sm:inline-flex">{status}</span> : null}
                         {actions}
 
@@ -231,7 +233,7 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                                 aria-haspopup="menu"
                                 aria-expanded={open}
                                 aria-label={local.account}
-                                className="toolbar-item flex touch-target items-center gap-2 rounded-lg p-1 pr-1 md:pr-2"
+                                className="toolbar-item flex touch-target items-center gap-2 rounded-lg p-1 pe-1 md:pe-2"
                             >
                                 {/* The monogram inverts on the blue bar: white
                                     chip, blue letters (11:1 either way). */}
@@ -253,7 +255,7 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -6 }}
                                         transition={{ duration: 0.14 }}
-                                        className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-xl border border-[var(--becpg-grey)] bg-white text-[var(--becpg-blue)] shadow-xl"
+                                        className="absolute end-0 z-50 mt-2 w-64 overflow-hidden rounded-xl border border-[var(--becpg-grey)] bg-white text-[var(--becpg-blue)] shadow-xl"
                                     >
                                         <div className="border-b border-[var(--becpg-grey)] p-3">
                                             <p className="truncate text-sm font-medium">{displayName || '—'}</p>
@@ -271,7 +273,7 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                                                     <Icon
                                                         name="apartment"
                                                         size={13}
-                                                        className="mr-1 align-text-bottom"
+                                                        className="me-1 align-text-bottom"
                                                     />
                                                     {session.scopeAll
                                                         ? t('account.allSuppliers')
@@ -302,33 +304,35 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                                                 {t('account.profile')}
                                             </Link>
 
-                                            <div className="px-3 pb-1 pt-2 text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">
+                                            <label
+                                                htmlFor="portal-language"
+                                                className="block px-3 pb-1 pt-2 text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]"
+                                            >
                                                 {t('account.language')}
-                                            </div>
-                                            <div className="flex gap-1 px-2 pb-2">
-                                                {langs.map((code) => (
-                                                    <button
-                                                        key={code}
-                                                        type="button"
-                                                        onClick={() => setLang(code)}
-                                                        aria-pressed={lang === code}
-                                                        className={[
-                                                            'flex-1 rounded-lg border px-2 py-1.5 text-xs uppercase',
-                                                            lang === code
-                                                                ? 'border-[var(--becpg-blue)] bg-[var(--becpg-blue-lighter)] font-medium text-[var(--becpg-blue)]'
-                                                                : 'border-[var(--becpg-grey)] text-[var(--becpg-dark-grey)] hover:bg-[var(--becpg-grey)]',
-                                                        ].join(' ')}
-                                                    >
-                                                        {code}
-                                                    </button>
-                                                ))}
+                                            </label>
+                                            <div className="px-2 pb-2">
+                                                {/* A native select: thirteen languages do not fit a row of
+                                                    buttons at 360px, and each name is written in its own
+                                                    language, which is what a reader scans the list for. */}
+                                                <select
+                                                    id="portal-language"
+                                                    value={lang}
+                                                    onChange={(event) => setLang(event.target.value)}
+                                                    className="w-full rounded-lg border border-[var(--becpg-grey)] bg-white px-2 py-1.5 text-sm text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                                                >
+                                                    {langs.map((code) => (
+                                                        <option key={code} value={code} lang={bcp47Of(code)}>
+                                                            {LANG_NAMES[code]}
+                                                        </option>
+                                                    ))}
+                                                </select>
                                             </div>
 
                                             <button
                                                 type="button"
                                                 role="menuitem"
                                                 onClick={() => session.signOut()}
-                                                className="flex w-full touch-target items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)]"
+                                                className="flex w-full touch-target items-center gap-2 rounded-lg px-3 py-2 text-start text-sm text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)]"
                                             >
                                                 <Icon name="logout" size={18} />
                                                 {t('account.logout')}

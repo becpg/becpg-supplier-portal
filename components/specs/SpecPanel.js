@@ -29,8 +29,9 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonList } from '@/components/ui/Skeleton';
 import { formatDate } from '@/lib/format';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/specs/SpecPanel#LABELS', {
     fr: {
         title: 'Cahiers des charges',
         subtitle: 'Documents de référence applicables à vos produits',
@@ -67,10 +68,10 @@ const LABELS = {
         readFirst: 'Read before filling in',
         unreadable: '{count} specification(s) apply to your products but your account cannot open them. Ask your customer for access.',
     },
-};
+});
 
 function labelsFor(lang) {
-    return LABELS[lang] || LABELS.fr;
+    return pickLabels(LABELS, lang);
 }
 
 function fill(template, vars) {

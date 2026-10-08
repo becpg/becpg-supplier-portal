@@ -33,6 +33,7 @@
 import { useCallback, useSyncExternalStore } from 'react';
 import { Icon } from '@/components/ui/Button';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** Where the choice is kept. Display preference only — never a permission. */
 export const PROFILE_STORAGE_KEY = 'becpg_portal_monitor_profile';
@@ -52,11 +53,11 @@ export const MONITOR_PROFILES = Object.freeze([
     Object.freeze({
         id: 'quality',
         icon: 'verified_user',
-        label: { fr: 'Qualité', en: 'Quality' },
-        focus: {
+        label: defineLabels('components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label', { fr: 'Qualité', en: 'Quality' }),
+        focus: defineLabels('components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus', {
             fr: 'Conformité documentaire, non-conformités, certifications, audits',
             en: 'Document compliance, non-conformities, certifications, audits',
-        },
+        }),
         tiles: ['compliance', 'expiring30', 'nc', 'suspended', 'toRenew', 'lateTasks', 'campaigns', 'approved'],
         panels: ['expiry', 'park'],
         columns: [
@@ -74,11 +75,11 @@ export const MONITOR_PROFILES = Object.freeze([
     Object.freeze({
         id: 'purchasing',
         icon: 'shopping_cart',
-        label: { fr: 'Achats', en: 'Purchasing' },
-        focus: {
+        label: defineLabels('components/monitor/ProfileSwitcher#MONITOR_PROFILES.purchasing.label', { fr: 'Achats', en: 'Purchasing' }),
+        focus: defineLabels('components/monitor/ProfileSwitcher#MONITOR_PROFILES.purchasing.focus', {
             fr: "Statut d'agrément (bloquant pour commander), score, réactivité",
             en: 'Approval status (blocks ordering), score, responsiveness',
-        },
+        }),
         tiles: ['approved', 'suspended', 'toRenew', 'nc', 'campaigns', 'lateTasks', 'compliance', 'expiring30'],
         panels: ['park', 'expiry'],
         columns: ['name', 'status', 'risk', 'openNc', 'openProjects', 'buyer', 'lastActivity', 'completion'],
@@ -88,11 +89,11 @@ export const MONITOR_PROFILES = Object.freeze([
     Object.freeze({
         id: 'rnd',
         icon: 'science',
-        label: { fr: 'R&D', en: 'R&D' },
-        focus: {
+        label: defineLabels('components/monitor/ProfileSwitcher#MONITOR_PROFILES.rnd.label', { fr: 'R&D', en: 'R&D' }),
+        focus: defineLabels('components/monitor/ProfileSwitcher#MONITOR_PROFILES.rnd.focus', {
             fr: 'Complétude des données techniques, catalogues, cahiers des charges',
             en: 'Technical data completeness, catalogs, specifications',
-        },
+        }),
         tiles: ['compliance', 'campaigns', 'lateTasks', 'expiring30', 'approved', 'toRenew', 'suspended', 'nc'],
         panels: ['park', 'expiry'],
         columns: ['name', 'status', 'completion', 'documentsMissing', 'openProjects', 'family', 'lastActivity'],
@@ -102,11 +103,11 @@ export const MONITOR_PROFILES = Object.freeze([
     Object.freeze({
         id: 'csr',
         icon: 'eco',
-        label: { fr: 'RSE', en: 'CSR' },
-        focus: {
+        label: defineLabels('components/monitor/ProfileSwitcher#MONITOR_PROFILES.csr.label', { fr: 'RSE', en: 'CSR' }),
+        focus: defineLabels('components/monitor/ProfileSwitcher#MONITOR_PROFILES.csr.focus', {
             fr: 'Certifications, origines, questionnaires RSE',
             en: 'Certifications, origins, CSR questionnaires',
-        },
+        }),
         tiles: ['expiring30', 'compliance', 'campaigns', 'toRenew', 'approved', 'suspended', 'nc', 'lateTasks'],
         panels: ['expiry', 'park'],
         columns: [
@@ -228,7 +229,7 @@ export function useMonitorProfile() {
     }, []);
 
     const label = useCallback(
-        (profile) => (profile && profile.label ? profile.label[lang] || profile.label.fr : ''),
+        (profile) => (profile && profile.label ? pickLabels(profile.label, lang) : ''),
         [lang],
     );
 
@@ -245,7 +246,7 @@ export function useMonitorProfile() {
 /* The selector                                                                */
 /* -------------------------------------------------------------------------- */
 
-const LABELS = {
+const LABELS = defineLabels('components/monitor/ProfileSwitcher#LABELS', {
     fr: {
         legend: 'Vue métier',
         hint: 'Même parc, quatre lectures. Réordonne les cartes et les colonnes.',
@@ -254,7 +255,7 @@ const LABELS = {
         legend: 'Business view',
         hint: 'Same park, four readings. Reorders the cards and the columns.',
     },
-};
+});
 
 /**
  * The profile selector: a radio group styled as segments on a desktop, a native
@@ -266,7 +267,7 @@ const LABELS = {
  */
 export function ProfileSwitcher({ compact = false, className = '' }) {
     const { lang } = useMessages();
-    const local = LABELS[lang] || LABELS.fr;
+    const local = pickLabels(LABELS, lang);
     const { profile, profileId, setProfile, profiles, label } = useMonitorProfile();
 
     return (
@@ -281,7 +282,7 @@ export function ProfileSwitcher({ compact = false, className = '' }) {
                         id="monitor-profile"
                         value={profileId}
                         onChange={(event) => setProfile(event.target.value)}
-                        className="w-full appearance-none rounded-lg border border-[var(--becpg-grey)] bg-white py-2 pl-9 pr-9 text-sm"
+                        className="w-full appearance-none rounded-lg border border-[var(--becpg-grey)] bg-white py-2 ps-9 pe-9 text-sm"
                     >
                         {profiles.map((entry) => (
                             <option key={entry.id} value={entry.id}>
@@ -292,12 +293,12 @@ export function ProfileSwitcher({ compact = false, className = '' }) {
                     <Icon
                         name={profile.icon}
                         size={18}
-                        className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--becpg-blue)]"
+                        className="pointer-events-none absolute start-2.5 top-1/2 -translate-y-1/2 text-[var(--becpg-blue)]"
                     />
                     <Icon
                         name="expand_more"
                         size={18}
-                        className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--becpg-dark-grey)]"
+                        className="pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2 text-[var(--becpg-dark-grey)]"
                     />
                 </div>
             </div>
@@ -320,7 +321,7 @@ export function ProfileSwitcher({ compact = false, className = '' }) {
                                 type="button"
                                 role="radio"
                                 aria-checked={active}
-                                title={entry.focus[lang] || entry.focus.fr}
+                                title={pickLabels(entry.focus, lang)}
                                 onClick={() => setProfile(entry.id)}
                                 className={[
                                     'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors',
@@ -338,7 +339,7 @@ export function ProfileSwitcher({ compact = false, className = '' }) {
                 </div>
                 {compact ? null : (
                     <p className="mt-1 text-xs text-[var(--becpg-dark-grey)]">
-                        {profile.focus[lang] || profile.focus.fr}
+                        {pickLabels(profile.focus, lang)}
                     </p>
                 )}
             </fieldset>

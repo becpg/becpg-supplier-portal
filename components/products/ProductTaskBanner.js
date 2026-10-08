@@ -28,8 +28,9 @@ import { DueBadge } from '@/components/dashboard/TaskList';
 import { TASK_TYPE_META, taskTypeLabel } from '@/components/dashboard/ActionsCard';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('components/products/ProductTaskBanner#LABELS', {
     fr: {
         one: 'Une tâche est en cours sur cette fiche',
         many: 'Plusieurs tâches sont en cours sur cette fiche',
@@ -44,7 +45,7 @@ const LABELS = {
         all: 'See this product’s tasks',
         untitled: 'Untitled task',
     },
-};
+});
 
 /** How many tasks are listed before the banner sends the user to `/tasks`. */
 const MAX_SHOWN = 3;
@@ -58,7 +59,7 @@ const MAX_SHOWN = 3;
  */
 export function ProductTaskBanner({ entityId, entityNodeRef = null, className = '' }) {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const { data } = useApi(entityId ? 'tasks' : null, {
         params: { entity: entityId, state: 'in_progress', pageSize: 10 },

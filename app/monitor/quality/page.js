@@ -60,8 +60,9 @@ import {
     ncTypeLabel,
 } from '@/components/monitor/NonConformityList';
 import { BulkActionBar } from '@/components/monitor/BulkActionBar';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
-const LABELS = {
+const LABELS = defineLabels('app/monitor/quality/page#LABELS', {
     fr: {
         title: 'Non-conformités',
         subtitle:
@@ -156,7 +157,7 @@ const LABELS = {
         note:
             'Processing delay: since the NC was created; for a closed NC, between its creation and its last modification — beCPG stores no closure date.',
     },
-};
+});
 
 const PAGE_SIZES = [25, 50, 100];
 
@@ -168,7 +169,7 @@ function fill(template, vars) {
 
 export default function MonitorQualityPage() {
     const { lang } = useMessages();
-    const labels = LABELS[lang] || LABELS.fr;
+    const labels = pickLabels(LABELS, lang);
 
     const [ncState, setNcState] = useState('');
     const [ncType, setNcType] = useState('');

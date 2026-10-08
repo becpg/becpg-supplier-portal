@@ -30,12 +30,13 @@ import { SkeletonList } from '@/components/ui/Skeleton';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { formatDate, formatTotal } from '@/lib/format';
+import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
  * Item-level notification wording, shared by the card and the bell.
  * Shell-only strings (the bell's own chrome) stay in the bell.
  */
-export const NOTIFICATION_LABELS = {
+export const NOTIFICATION_LABELS = defineLabels('components/dashboard/NotificationList#NOTIFICATION_LABELS', {
     fr: {
         title: 'Mes notifications',
         // The API ranks by severity then by oldest date — see `sortNewestFirst`
@@ -104,14 +105,14 @@ export const NOTIFICATION_LABELS = {
         },
         countTitle: '{total} pending · the {shown} most urgent below',
     },
-};
+});
 
 /**
  * @param {string} lang
  * @returns {Object} the notification wording for a language (falls back to fr)
  */
 export function notificationLabels(lang) {
-    return NOTIFICATION_LABELS[lang] || NOTIFICATION_LABELS.fr;
+    return pickLabels(NOTIFICATION_LABELS, lang);
 }
 
 /**
