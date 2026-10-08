@@ -86,10 +86,9 @@ async function readOptions(request) {
         page: url.searchParams.get('page') || undefined,
         pageSize: url.searchParams.get('pageSize') || undefined,
         sort: url.searchParams.get('sort') || undefined,
-        // What the screen already knows about the assignment: asking again costs 5 s
-        // per tab (see `getWizardState`). Same mechanism as Share.
-        knownTaskAssigned: url.searchParams.get('taskAssigned') === '1' ? true
-            : url.searchParams.get('taskAssigned') === '0' ? false : undefined,
+        // No `taskAssigned` from the query: the assignment decides whether the
+        // step is writable, and a browser that could assert it could write a
+        // sheet it has no task on. The adapter asks beCPG, and memoises it.
     };
 }
 
