@@ -21,6 +21,7 @@ import { AuthError, toApiResponse } from '@/lib/errors';
 import { createBecpgClient } from '@/lib/adapters/session';
 import { getTask, refuseTask } from '@/lib/adapters/tasks';
 import { BadRequestError } from '@/lib/errors';
+import { logWarn } from '@/lib/http';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -61,11 +62,13 @@ export async function POST(request, context) {
         const client = createBecpgClient(session);
 
         // The task first: it is the one carrying the Activiti task id, the only
-        // path by which the reason reaches the engine.
-        const before = await getTask(client, id).catch(() => null);
+        // path by which the reason reaches the engine. A failed read is answered
+        // as such, never mistaken for a task without a workflow.
+        const before = await getTask(client, id);
         const result = await refuseTask(client, id, {
             comment,
-            workflowTaskId: before && before.workflowTaskId,
+            workflowTaskId: before?.workflowTaskId,
+            workflowUnknown: before?.workflowAvailable === false,
         });
 
         // Best effort, exactly as on completion: the refusal is what matters, and
@@ -74,7 +77,8 @@ export async function POST(request, context) {
         try {
             task = await getTask(client, result.nodeRef);
         }
-        catch {
+        catch (error) {
+            logWarn('tasks.refuse.reread', { nodeRef: result.nodeRef, status: error?.status, error: error?.message });
             task = null;
         }
 

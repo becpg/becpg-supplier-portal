@@ -6,7 +6,8 @@
  * the SSO session dies with the portal session. Falls back to /login.
  *
  * Query parameters:
- *   next   path appended to the post-logout redirect (defaults to /login)
+ *   next   where to land after a portal-only logout (defaults to /login); after
+ *          an identity-provider logout the user always lands on /login
  *   local  `true` to skip the IdP round trip (portal-only logout)
  */
 
@@ -24,10 +25,13 @@ import { TENANT_COOKIE, getTenant, resolveTenant, tenantCookieOptions } from '@/
 
 export const dynamic = 'force-dynamic';
 
+/** Where the identity provider sends the user back after signing out. */
+const LOGIN_PATH = '/login';
+
 async function handle(request) {
     const url = new URL(request.url);
     const baseUrl = portalBaseUrl(request);
-    const next = safeNextPath(url.searchParams.get('next'), '/login');
+    const next = safeNextPath(url.searchParams.get('next'), LOGIN_PATH);
     const localOnly = ['1', 'true', 'yes'].includes(
         String(url.searchParams.get('local') || '').toLowerCase(),
     );
@@ -42,10 +46,13 @@ async function handle(request) {
         if (session.refreshToken) {
             await revokeToken(tenant, session.refreshToken, { host });
         }
+        // The identity provider sends the user back to the login page, the one
+        // URI it has to accept: probing a URI built on the caller's `next` cost
+        // one outbound request per distinct value.
         const endSession = await buildEndSessionUrl(tenant, {
             host,
             idToken: session.idToken,
-            postLogoutRedirectUri: portalUrl(next, baseUrl).toString(),
+            postLogoutRedirectUri: portalUrl(LOGIN_PATH, baseUrl).toString(),
         });
         if (endSession) {
             target = endSession;
