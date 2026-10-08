@@ -34,7 +34,7 @@ import { createElement } from 'react';
 import { Icon, IconButton } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { resolveControlComponent } from '@/components/form/controls';
-import { formatValidationError, helpText } from '@/components/form/validation';
+import { formatValidationError, helpText, needsAnswer } from '@/components/form/validation';
 
 const LABELS = {
     fr: { add: 'Ajouter une valeur', remove: 'Retirer cette valeur', locked: 'Champ verrouillé' },
@@ -239,7 +239,7 @@ export function FieldRenderer({
             label={field.label || field.name}
             help={tooltip}
             description={description}
-            required={Boolean(field.mandatory) && !isReadOnly}
+            required={needsAnswer(field) && !isReadOnly}
             error={message}
             id={id}
             full={Boolean(control.fullWidth)}

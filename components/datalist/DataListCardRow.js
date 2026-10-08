@@ -25,6 +25,7 @@ import {
     RowStatus,
 } from '@/components/datalist/DataListRow';
 import { renderDataListCell } from '@/components/datalist/renderers';
+import { needsAnswer } from '@/components/form/validation';
 import { isTotalRow, ROW_STATUS, useDataListLabels } from '@/components/datalist/useDataList';
 import { isMachineValue, readableInk } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
@@ -212,7 +213,7 @@ export function DataListCardRow({
                             <div key={column.formsName} className="flex flex-col gap-1">
                                 <dt className="flex items-center gap-1 text-xs font-medium text-[var(--becpg-dark-grey)]">
                                     <span>{column.label}</span>
-                                    {column.mandatory ? (
+                                    {needsAnswer(column) ? (
                                         <span
                                             aria-label={label('mandatory')}
                                             className="text-[var(--becpg-orange)]"

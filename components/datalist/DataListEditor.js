@@ -84,6 +84,7 @@ import { DataListToolbar, ReadOnlyNotice } from '@/components/datalist/DataListT
 import { isNestedColumn, useDataList, useDataListLabels } from '@/components/datalist/useDataList';
 import { normalizeLabel, parseClipboardTable, planPaste } from '@/components/datalist/paste';
 import { PAGE_SIZES } from '@/components/datalist/pageSizes';
+import { needsAnswer } from '@/components/form/validation';
 
 /** Suggestions asked for when resolving one pasted label. */
 const RESOLVE_PAGE_SIZE = 25;
@@ -885,7 +886,7 @@ export function DataListEditor({
                                                     className="becpg-grid-sort"
                                                 >
                                                     <span>{column.label}</span>
-                                                    {column.mandatory ? (
+                                                    {needsAnswer(column) ? (
                                                         <span
                                                             aria-label={label('mandatory')}
                                                             title={label('mandatory')}

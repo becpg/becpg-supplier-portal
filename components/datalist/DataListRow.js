@@ -51,6 +51,7 @@
 
 import { createElement, useCallback, useRef, useState } from 'react';
 import { getControl } from '@/components/form/controls';
+import { needsAnswer } from '@/components/form/validation';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { renderDataListCell } from '@/components/datalist/renderers';
 import { isAccessDeniedDisplay, isMachineValue, readableInk } from '@/lib/format';
@@ -221,7 +222,7 @@ export function DataListCell({ row, column, list, context, autoFocus = false, la
         return <span className={valueClass}>{display || '—'}</span>;
     }
 
-    const missing = column.mandatory && (value === null || value === undefined || value === '');
+    const missing = needsAnswer(column) && (value === null || value === undefined || value === '');
 
     /*
      * A picker commits as soon as it is used — but **never while the row is still
@@ -258,7 +259,7 @@ export function DataListCell({ row, column, list, context, autoFocus = false, la
         id,
         value,
         displayValue: display,
-        required: column.mandatory,
+        required: needsAnswer(column),
         invalid: missing,
         readOnly: false,
         disabled: list.statusOf(row.key).state === ROW_STATUS.DELETING,

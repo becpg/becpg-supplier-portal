@@ -407,6 +407,35 @@ function scalarsOf(value) {
     return [value];
 }
 
+/**
+ * Is this field a boolean the model already answers?
+ *
+ * `bcpg:ingListIsGMO` and `bcpg:ingListIsIonized` are declared mandatory with a
+ * `false` default: the control is then a plain checkbox, which has no blank
+ * state, so the field can never be left unanswered.
+ *
+ * @param {Object} field a normalised field or column
+ * @returns {boolean}
+ */
+export function isAnsweredByModel(field) {
+    return field?.dataType === 'd:boolean'
+        && field.defaultValue !== null
+        && field.defaultValue !== undefined;
+}
+
+/**
+ * Does this field ask the user for an answer — the asterisk, the red outline?
+ *
+ * Model mandatory is not enough: a mandatory boolean with a model default is
+ * always filled, and marking it read as a question nobody could leave blank.
+ *
+ * @param {Object} field a normalised field or column
+ * @returns {boolean}
+ */
+export function needsAnswer(field) {
+    return Boolean(field?.mandatory) && !isAnsweredByModel(field);
+}
+
 /* -------------------------------------------------------------------------- */
 /* Validation                                                                  */
 /* -------------------------------------------------------------------------- */

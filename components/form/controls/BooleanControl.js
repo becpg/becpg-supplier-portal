@@ -37,6 +37,7 @@
  */
 
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
+import { isAnsweredByModel } from '@/components/form/validation';
 
 const LABELS = {
     fr: { yes: 'Oui', no: 'Non', empty: '(vide)' },
@@ -103,8 +104,7 @@ export function BooleanControl({
         return <ReadOnlyControl field={field} value={value} displayValue={displayValue} lang={lang} id={id} />;
     }
 
-    // A boolean the model already answers is not an unanswered question.
-    const answeredByModel = field?.defaultValue !== null && field?.defaultValue !== undefined;
+    const answeredByModel = isAnsweredByModel(field);
     const triState = TRI_STATE_CONTROLS.has(field?.control?.name);
 
     if (field?.mandatory && !answeredByModel) {
