@@ -59,6 +59,8 @@ const LABELS = {
         aiHints: 'Remarques de l’analyse',
         deposit: 'Déposer un fichier',
         file: 'Fichier',
+        onRequest:
+            'Ce document se met à jour à la demande de votre client. En dehors d’une tâche, écrivez-lui depuis Discussions : le dépôt sera refusé.',
     },
     en: {
         mandatory: 'Mandatory',
@@ -83,6 +85,8 @@ const LABELS = {
         aiHints: 'Analysis notes',
         deposit: 'Upload a file',
         file: 'File',
+        onRequest:
+            'Your customer decides when this document is updated. Outside a task, write to them from Discussions: an upload would be refused.',
     },
 };
 
@@ -361,6 +365,13 @@ function RequirementRow({
                                             withHints
                                         />
                                     </div>
+                                ) : null}
+
+                                {requirement.updateOnRequest ? (
+                                    <p className="mt-3 flex items-start gap-2 text-xs text-[var(--becpg-dark-grey)]" role="note">
+                                        <Icon name="info" size={16} className="mt-0.5 shrink-0" />
+                                        <span>{labels.onRequest}</span>
+                                    </p>
                                 ) : null}
 
                                 <div className="mt-3">
