@@ -48,6 +48,7 @@ import { CommentsPanel } from '@/components/wizard/panels/CommentsPanel';
 import { formatDate, formatNumber } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { DateText } from '@/components/ui/DateText';
 
 /**
  * `qa:ncStates`, in the order of the constraint declared in
@@ -398,8 +399,8 @@ function NonConformityDetail({ nc, onClose, labels, lang }) {
                             value={nc.priority === null ? null : (labels.priorities[nc.priority] || nc.priority)}
                         />
                         <Fact label="Code" value={nc.code} />
-                        <Fact label={words.created} value={formatDate(nc.createdAt, lang)} />
-                        <Fact label={words.modified} value={formatDate(nc.modifiedAt, lang)} />
+                        <Fact label={words.created} value={<DateText value={nc.createdAt} lang={lang} />} />
+                        <Fact label={words.modified} value={<DateText value={nc.modifiedAt} lang={lang} />} />
                         <Fact label={words.cost} value={formatNumber(nc.cost, lang)} />
                     </dl>
 
@@ -428,7 +429,7 @@ function NonConformityDetail({ nc, onClose, labels, lang }) {
                                         <span className="min-w-0 flex-1 truncate">{action.name || '—'}</span>
                                         {action.dueDate ? (
                                             <span className="shrink-0 text-xs text-[var(--becpg-dark-grey)]">
-                                                {formatDate(action.dueDate, lang)}
+                                                <DateText value={action.dueDate} lang={lang} />
                                             </span>
                                         ) : null}
                                     </li>

@@ -32,10 +32,10 @@ import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { Select, Textarea } from '@/components/ui/Field';
 import { SkeletonList } from '@/components/ui/Skeleton';
 import { RichText } from '@/components/ui/RichText';
-import { formatDateTime } from '@/lib/format';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { DateText } from '@/components/ui/DateText';
 
 const LABELS = defineLabels('components/wizard/panels/CommentsPanel#LABELS', {
     fr: {
@@ -239,7 +239,7 @@ function MessageItem({ message, index, lang, labels }) {
                     {message.author.displayName || message.author.username}
                 </span>
                 <span className="text-[11px] text-[var(--becpg-dark-grey)]">
-                    {formatDateTime(message.createdOn, lang)}
+                    <DateText value={message.createdOn} lang={lang} withTime />
                 </span>
             </div>
             {/* Where the message hangs: a field of the sheet, or the row whose own

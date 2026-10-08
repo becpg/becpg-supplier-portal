@@ -118,15 +118,17 @@ function SpecRow({ specification, variant, index = 0 }) {
              * In a panel this row is ALREADY inside a card, itself inside a
              * collapsible section: a border here made three nested boxes for one
              * specification. Embedded, it is a plain row on a hairline; standing
-             * on its own page it keeps its card.
+             * on its own page it is one line of a single list card, its actions
+             * at the end of the line on a wide screen.
              */
             className={
                 panel
                     ? 'border-b border-[var(--becpg-grey)] py-2.5 first:pt-0 last:border-b-0 last:pb-0'
-                    : 'rounded-xl border border-[var(--becpg-grey)] bg-white p-3 sm:p-4'
+                    : 'border-b border-[var(--becpg-line)] px-4 py-3 last:border-b-0'
             }
         >
-            <div className="flex items-start gap-2.5">
+            <div className={panel ? 'flex flex-col' : 'flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4'}>
+                <div className="flex min-w-0 flex-1 items-start gap-2.5">
                 {/* The section header already carries this glyph, once, for the
                     whole list — repeating it per row is a plate that names
                     nothing. */}
@@ -175,10 +177,12 @@ function SpecRow({ specification, variant, index = 0 }) {
                         </p>
                     ) : null}
 
+                </div>
+                </div>
                     {/* One wrapping row, not two stacked ones: on the 320px
                         context panel, three actions on three lines were taller
                         than the specification they act on. */}
-                    <div className="mt-2 flex flex-wrap gap-2">
+                    <div className={panel ? 'mt-2 flex flex-wrap gap-2' : 'flex shrink-0 flex-wrap gap-2 sm:justify-end'}>
                         {/*
                          * The cahier des charges as an *entity*: its properties and
                          * the documents deposited under its `SupplierDocuments`.
@@ -225,7 +229,6 @@ function SpecRow({ specification, variant, index = 0 }) {
                             </a>
                         ) : null}
                     </div>
-                </div>
             </div>
         </motion.li>
     );
@@ -332,7 +335,11 @@ export function SpecPanel({
     }
     else {
         body = (
-            <ul className={`flex list-none flex-col p-0 ${panel ? '' : 'gap-2'}`}>
+            <ul
+                className={`m-0 flex list-none flex-col p-0 ${
+                    panel ? '' : 'overflow-hidden rounded-2xl border border-[var(--becpg-line)] bg-white shadow-[var(--becpg-shadow-raised)]'
+                }`}
+            >
                 {list.map((specification, index) => (
                     <SpecRow
                         key={specification.nodeRef || specification.uuid || index}

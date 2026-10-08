@@ -53,6 +53,7 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { api, apiUrl, routeParamId, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { DateText } from '@/components/ui/DateText';
 
 const LABELS = defineLabels('app/monitor/suppliers/[id]/page#LABELS', {
     fr: {
@@ -338,7 +339,7 @@ function ApprovalReasons({ approval, local, lang }) {
                                     ) : null}
                                     {row.validTo ? (
                                         <span className="text-[var(--becpg-dark-grey)]">
-                                            {formatDate(row.validTo, lang)}
+                                            <DateText value={row.validTo} lang={lang} />
                                         </span>
                                     ) : null}
                                     {row.priority !== undefined && row.priority !== null ? (
@@ -1092,7 +1093,7 @@ export default function MonitorSupplierSheetPage() {
                                                         </span>
                                                     ) : null}
                                                     <span className="text-[var(--becpg-dark-grey)] tabular-nums">
-                                                        {formatDateTime(entry.date, lang)}
+                                                        <DateText value={entry.date} lang={lang} withTime />
                                                     </span>
                                                 </span>
                                                 {entry.excerpt ? (

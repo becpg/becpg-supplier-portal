@@ -36,10 +36,10 @@ import { Card } from '@/components/ui/Card';
 import { SkeletonText } from '@/components/ui/Skeleton';
 import { SpecPanel } from '@/components/specs/SpecPanel';
 import { SuggestionsStep } from '@/components/wizard/steps/SuggestionsStep';
-import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { DateText } from '@/components/ui/DateText';
 
 const LABELS = defineLabels('components/wizard/panels/HelpPanel#LABELS', {
     fr: {
@@ -311,7 +311,7 @@ export function HelpPanel({
                                         {entry.by ? (
                                             <span className="font-medium text-[var(--becpg-blue)]">{entry.by}</span>
                                         ) : null}
-                                        {entry.date ? <span>{formatDate(entry.date, lang)}</span> : null}
+                                        {entry.date ? <span><DateText value={entry.date} lang={lang} /></span> : null}
                                     </p>
                                     {/*
                                         Le motif, quand il y en a un : un refus saisi

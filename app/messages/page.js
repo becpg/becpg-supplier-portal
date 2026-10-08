@@ -33,11 +33,12 @@ import { SkeletonList } from '@/components/ui/Skeleton';
 import { RichText } from '@/components/ui/RichText';
 import { useToast } from '@/components/providers/ToastProvider';
 import { useSession } from '@/components/providers/SessionProvider';
-import { formatDateTime, formatTotal } from '@/lib/format';
+import { formatTotal } from '@/lib/format';
 import { api, useApi } from '@/lib/client';
 import { isUnread, markRead, readState, serverState, subscribe } from '@/lib/discussions';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { DateText } from '@/components/ui/DateText';
 
 const LABELS = defineLabels('app/messages/page#LABELS', {
     fr: {
@@ -174,7 +175,7 @@ function Message({ message, mine, labels, lang, index }) {
             <div className={`min-w-0 max-w-[85%] ${mine ? 'text-end' : ''}`}>
                 <p className="text-xs text-[var(--becpg-dark-grey)]">
                     <span className="font-medium text-[var(--becpg-blue)]">{mine ? labels.you : name}</span>
-                    {message.createdOn ? <span> · {formatDateTime(message.createdOn, lang)}</span> : null}
+                    {message.createdOn ? <span> · <DateText value={message.createdOn} lang={lang} withTime /></span> : null}
                     {message.edited ? <span> · {labels.edited}</span> : null}
                 </p>
                 {message.field ? (
@@ -715,7 +716,7 @@ function MessagesScreen() {
                     {selected ? (
                         threadView
                     ) : (
-                        <Card padding="lg">
+                        <Card padding="lg" className="lg:flex lg:min-h-[28rem] lg:items-center lg:justify-center">
                             <EmptyState
                                 variant="empty"
                                 icon="forum"

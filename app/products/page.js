@@ -26,11 +26,12 @@ import { Icon, IconButton } from '@/components/ui/Button';
 import { UpdateRequestDialog } from '@/components/products/UpdateRequestDialog';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { entityTypeLabel } from '@/components/products/ProductHeader';
-import { formatDate, formatTotal } from '@/lib/format';
+import { formatTotal } from '@/lib/format';
 import { useSession } from '@/components/providers/SessionProvider';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { DateText } from '@/components/ui/DateText';
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, name) =>
@@ -257,12 +258,8 @@ export default function ProductsPage() {
                 id: 'certificateDate',
                 accessorKey: 'certificateDate',
                 header: labels.columns.certificateDate,
-                meta: { label: labels.columns.certificateDate, align: 'right', width: '10rem' },
-                cell: ({ row }) => (
-                    <span className="tabular-nums text-[var(--becpg-dark-grey)]">
-                        {formatDate(row.original.certificateDate, lang) || '—'}
-                    </span>
-                ),
+                meta: { label: labels.columns.certificateDate, width: '9rem' },
+                cell: ({ row }) => <DateText value={row.original.certificateDate} lang={lang} />,
             },
             {
                 id: 'type',
@@ -312,10 +309,8 @@ export default function ProductsPage() {
                 id: 'modified',
                 accessorFn: (row) => row.modified || '',
                 header: labels.columns.modified,
-                meta: { label: labels.columns.modified, align: 'right', width: '8rem' },
-                cell: ({ row }) => (
-                    <span className="tabular-nums text-xs">{formatDate(row.original.modified, lang)}</span>
-                ),
+                meta: { label: labels.columns.modified, width: '8rem' },
+                cell: ({ row }) => <DateText value={row.original.modified} lang={lang} />,
             },
             {
                 // Only a validated sheet can be reopened; a draft is still being

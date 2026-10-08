@@ -37,6 +37,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { DateText } from '@/components/ui/DateText';
 
 const LABELS = defineLabels('components/monitor/CampaignList#LABELS', {
     fr: {
@@ -326,7 +327,7 @@ export function CampaignList({
                                 : fill(labels.days, { count: row.original.ageDays })}
                         </p>
                         <p className="text-xs text-[var(--becpg-dark-grey)]">
-                            {formatDate(row.original.startedAt, lang)}
+                            <DateText value={row.original.startedAt} lang={lang} />
                         </p>
                     </div>
                 ),
@@ -375,7 +376,7 @@ export function CampaignList({
                                         : fill(labels.silenceDays, { count: silence })}
                                 </span>
                                 <span className="text-xs text-[var(--becpg-dark-grey)]">
-                                    {formatDate(row.original.modified, lang)}
+                                    <DateText value={row.original.modified} lang={lang} />
                                 </span>
                             </span>
                         </Tooltip>
@@ -394,7 +395,7 @@ export function CampaignList({
                     }
                     return (
                         <div>
-                            <p className="tabular-nums">{formatDate(dueDate, lang)}</p>
+                            <p className="tabular-nums"><DateText value={dueDate} lang={lang} /></p>
                             <p
                                 className={`text-xs ${isLate ? 'text-[var(--status-danger)]' : 'text-[var(--becpg-dark-grey)]'}`}
                             >

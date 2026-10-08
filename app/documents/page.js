@@ -38,9 +38,9 @@ import { ExpiryPill } from '@/components/documents/ExpiryPill';
 import { SignedDocumentList } from '@/components/documents/SignedDocumentList';
 import { download, useApi } from '@/lib/client';
 import { useSession } from '@/components/providers/SessionProvider';
-import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { DateText } from '@/components/ui/DateText';
 
 const LABELS = defineLabels('app/documents/page#LABELS', {
     fr: {
@@ -338,7 +338,7 @@ export default function DocumentsPage() {
                 meta: { label: labels.columns.modified },
                 cell: ({ row }) => (
                     <span className="whitespace-nowrap text-sm text-[var(--becpg-dark-grey)]">
-                        {formatDate(row.original.modified, lang)}
+                        <DateText value={row.original.modified} lang={lang} />
                     </span>
                 ),
             },

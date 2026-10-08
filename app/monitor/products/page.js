@@ -42,6 +42,7 @@ import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { SUPPLIER_STATES, useDebouncedValue } from '@/components/monitor/MonitorFilters';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { DateText } from '@/components/ui/DateText';
 
 const LABELS = defineLabels('app/monitor/products/page#LABELS', {
     fr: {
@@ -310,7 +311,7 @@ export default function MonitorProductsPage() {
                 header: labels.columns.modified,
                 meta: { label: labels.columns.modified, align: 'right', width: '9rem' },
                 cell: ({ row }) => (
-                    <span className="tabular-nums text-xs">{formatDate(row.original.modified, lang)}</span>
+                    <span className="tabular-nums text-xs"><DateText value={row.original.modified} lang={lang} /></span>
                 ),
             },
         ],

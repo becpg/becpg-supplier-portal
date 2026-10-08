@@ -20,9 +20,9 @@ import { Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useMessages } from '@/lib/messages';
-import { formatDate } from '@/lib/format';
 import { isUnread, markRead, readState, serverState, subscribe } from '@/lib/discussions';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { DateText } from '@/components/ui/DateText';
 
 const LOCAL = defineLabels('components/dashboard/DiscussionList#LOCAL', {
     fr: {
@@ -165,7 +165,7 @@ export function DiscussionList({ threads = [], index = 0, className = '' }) {
                                         </span>
                                         {thread.last && thread.last.date ? (
                                             <span className="shrink-0 text-xs text-[var(--becpg-dark-grey)]">
-                                                {formatDate(thread.last.date, lang)}
+                                                <DateText value={thread.last.date} lang={lang} />
                                             </span>
                                         ) : null}
                                     </span>
