@@ -57,7 +57,6 @@ const LOCALE = {
         "tabSigned": "Firmati",
         "deposit": "Carica un documento",
         "depositTitle": "Carica un documento",
-        "depositHint": "Scegliete il prodotto a cui si riferisce, poi trascinate il file. Tipo e validità sono dedotti da beCPG.",
         "entity": "Prodotto collegato",
         "chooseEntity": "Scegliete un prodotto…",
         "filters": {
@@ -776,6 +775,20 @@ const LOCALE = {
             "noCertificate": "Senza data di referenziazione"
         }
     },
+    "app/monitor/quality/[id]/page#LABELS": {
+        "back": "Non conformità",
+        "notFound": "Non conformità non trovata",
+        "notFoundHint": "Non esiste oppure è fuori dal vostro perimetro.",
+        "blocking": "Bloccante",
+        "priority": "Priorità",
+        "product": "Prodotto",
+        "suppliers": "Fornitori",
+        "batch": "Lotto",
+        "created": "Creata il",
+        "modified": "Aggiornata",
+        "cost": "Costo",
+        "discussion": "Discussione"
+    },
     "app/monitor/quality/page#LABELS": {
         "title": "Non conformità",
         "subtitle": "NC fornitori, tempi di trattamento e avanzamento delle azioni correttive. Selezionate delle NC per sollecitare, fare escalation o sospendere i fornitori interessati.",
@@ -936,6 +949,7 @@ const LOCALE = {
         "versionBack": "Torna alla versione attuale",
         "versionFailed": "Impossibile leggere questa versione.",
         "request": "Richiedere un aggiornamento",
+        "startProject": "Avvia un progetto",
         "partial": "Questa scheda è visualizzata in modo incompleto: fa riferimento ad almeno un dato che il vostro account potrebbe non poter leggere. I campi interessati sono assenti dalla schermata — il che non significa che siano vuoti. Chiedete l'accesso al vostro referente beCPG se vi serve uno di essi."
     },
     "app/products/page#LABELS": {
@@ -1170,7 +1184,6 @@ const LOCALE = {
         "create": "Nuova riga",
         "save": "Salva",
         "cancel": "Annulla",
-        "description": "I campi che la griglia non mostra si inseriscono qui.",
         "refused": "La riga non è stata salvata. Verificate i campi obbligatori, poi riprovate."
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
@@ -1236,7 +1249,6 @@ const LOCALE = {
         "bulkEdit": "Modifica",
         "bulkEditLong": "Modifica la selezione",
         "bulkEditTitle": "Modifica {count} riga/righe",
-        "bulkEditDescription": "Gli stessi valori, su ogni riga selezionata, in un'unica scrittura.",
         "bulkEditPickFields": "Campi da compilare",
         "bulkEditSearchField": "Cerca un campo",
         "bulkEditApply": "Applica a {count} riga/righe",
@@ -2208,16 +2220,13 @@ const LOCALE = {
     },
     "components/products/UpdateRequestDialog#LABELS": {
         "title": "Richiedere un aggiornamento",
-        "intro": "Il cliente riceve la richiesta e la gestisce come una referenziazione: riceverà un’attività per aggiornare la scheda, che il cliente convaliderà. Fino ad allora non cambia nulla.",
         "template": "Tipo di richiesta",
         "templatePlaceholder": "Scegliere…",
         "noTemplate": "Il cliente non ha aperto alcun tipo di richiesta ai fornitori. Gli scriva da Messaggi.",
         "reason": "Motivo della richiesta",
         "reasonHint": "Nuova ricetta, nuova origine, nuovo stabilimento, nuova scheda tecnica…",
-        "file": "Nuova scheda tecnica (facoltativa)",
         "submit": "Inviare la richiesta",
-        "sent": "Richiesta inviata. È stata aperta per lei un’attività di aggiornamento.",
-        "sentFileFailed": "Richiesta inviata, ma la scheda tecnica non è stata caricata: la carichi dall’attività."
+        "sent": "Richiesta inviata. È stata aperta per lei un’attività di aggiornamento."
     },
     "components/products/VersionPicker#LABELS": {
         "open": "Versioni della scheda",
@@ -2393,7 +2402,6 @@ const LOCALE = {
         "completeTitle": "Completare questa attività?",
         "completeMessage": "L'attività verrà contrassegnata come completata e il progetto passerà alla fase successiva.",
         "refuseTitle": "Rifiutare questa attività?",
-        "refuseMessage": "Il progetto torna alla fase definita dal percorso di rifiuto. La motivazione qui sotto viene inviata al fornitore.",
         "refuseReason": "Motivazione del rifiuto",
         "refuseReasonHint": "Questo testo viene inviato al fornitore: indicategli che cosa correggere.",
         "refuseReasonRequired": "Per rifiutare è necessaria una motivazione.",

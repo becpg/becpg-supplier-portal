@@ -57,7 +57,6 @@ const LOCALE = {
         "tabSigned": "Signerade",
         "deposit": "Ladda upp ett dokument",
         "depositTitle": "Ladda upp ett dokument",
-        "depositHint": "Välj den produkt dokumentet hör till och släpp sedan filen. Typ och giltighet härleds av beCPG.",
         "entity": "Tillhörande produkt",
         "chooseEntity": "Välj en produkt…",
         "filters": {
@@ -776,6 +775,20 @@ const LOCALE = {
             "noCertificate": "Utan listningsdatum"
         }
     },
+    "app/monitor/quality/[id]/page#LABELS": {
+        "back": "Avvikelser",
+        "notFound": "Avvikelsen hittades inte",
+        "notFoundHint": "Den finns inte eller ligger utanför ditt omfång.",
+        "blocking": "Blockerande",
+        "priority": "Prioritet",
+        "product": "Produkt",
+        "suppliers": "Leverantörer",
+        "batch": "Batch",
+        "created": "Skapad den",
+        "modified": "Uppdaterad",
+        "cost": "Kostnad",
+        "discussion": "Diskussion"
+    },
     "app/monitor/quality/page#LABELS": {
         "title": "Avvikelser",
         "subtitle": "Leverantörsavvikelser, handläggningstid och förlopp för korrigerande åtgärder. Välj avvikelser för att påminna, eskalera eller stänga av berörda leverantörer.",
@@ -936,6 +949,7 @@ const LOCALE = {
         "versionBack": "Tillbaka till den aktuella versionen",
         "versionFailed": "Den här versionen kunde inte läsas.",
         "request": "Begär en uppdatering",
+        "startProject": "Starta ett projekt",
         "partial": "Bladet visas ofullständigt: det pekar på minst en uppgift som ditt konto kanske inte får läsa. De berörda fälten saknas på skärmen — vilket inte betyder att de är tomma. Be din beCPG-kontakt om åtkomst om du behöver någon av dem."
     },
     "app/products/page#LABELS": {
@@ -1170,7 +1184,6 @@ const LOCALE = {
         "create": "Ny rad",
         "save": "Spara",
         "cancel": "Avbryt",
-        "description": "Fält som tabellen inte visar fylls i här.",
         "refused": "Raden sparades inte. Kontrollera de obligatoriska fälten och försök sedan igen."
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
@@ -1236,7 +1249,6 @@ const LOCALE = {
         "bulkEdit": "Redigera",
         "bulkEditLong": "Redigera urvalet",
         "bulkEditTitle": "Redigera {count} rad(er)",
-        "bulkEditDescription": "Samma värden, på varje vald rad, i en enda skrivning.",
         "bulkEditPickFields": "Fält att fylla i",
         "bulkEditSearchField": "Sök ett fält",
         "bulkEditApply": "Tillämpa på {count} rad(er)",
@@ -2208,16 +2220,13 @@ const LOCALE = {
     },
     "components/products/UpdateRequestDialog#LABELS": {
         "title": "Begär en uppdatering",
-        "intro": "Din kund tar emot begäran och hanterar den som en listning: du får en uppgift att uppdatera bladet, som kunden sedan godkänner. Inget ändras förrän dess.",
         "template": "Typ av begäran",
         "templatePlaceholder": "Välj…",
         "noTemplate": "Din kund har inte öppnat någon typ av begäran för leverantörer. Skriv till kunden via Meddelanden.",
         "reason": "Orsak till begäran",
         "reasonHint": "Nytt recept, nytt ursprung, ny produktionsanläggning, nytt produktblad…",
-        "file": "Nytt produktblad (valfritt)",
         "submit": "Skicka begäran",
-        "sent": "Begäran skickad. En uppdateringsuppgift har öppnats åt dig.",
-        "sentFileFailed": "Begäran skickad, men produktbladet kunde inte laddas upp: ladda upp det från uppgiften."
+        "sent": "Begäran skickad. En uppdateringsuppgift har öppnats åt dig."
     },
     "components/products/VersionPicker#LABELS": {
         "open": "Bladets versioner",
@@ -2393,7 +2402,6 @@ const LOCALE = {
         "completeTitle": "Slutföra uppgiften?",
         "completeMessage": "Uppgiften markeras som klar och projektet går vidare till nästa steg.",
         "refuseTitle": "Avvisa uppgiften?",
-        "refuseMessage": "Projektet går tillbaka till det steg som avvisningsflödet anger. Motiveringen nedan skickas till leverantören.",
         "refuseReason": "Motivering till avvisningen",
         "refuseReasonHint": "Texten skickas till leverantören: ange vad som ska korrigeras.",
         "refuseReasonRequired": "En motivering krävs för att avvisa.",

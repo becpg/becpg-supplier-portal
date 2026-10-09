@@ -57,7 +57,6 @@ const LOCALE = {
         "tabSigned": "署名済み",
         "deposit": "文書をアップロード",
         "depositTitle": "文書をアップロード",
-        "depositHint": "対象の製品を選択してから、ファイルをドロップしてください。種類と有効期限は beCPG が判定します。",
         "entity": "関連製品",
         "chooseEntity": "製品を選択…",
         "filters": {
@@ -776,6 +775,20 @@ const LOCALE = {
             "noCertificate": "登録日なし"
         }
     },
+    "app/monitor/quality/[id]/page#LABELS": {
+        "back": "不適合",
+        "notFound": "不適合が見つかりません",
+        "notFoundHint": "存在しないか、担当範囲外です。",
+        "blocking": "ブロッキング",
+        "priority": "優先度",
+        "product": "製品",
+        "suppliers": "サプライヤー",
+        "batch": "ロット",
+        "created": "作成日",
+        "modified": "更新日",
+        "cost": "コスト",
+        "discussion": "ディスカッション"
+    },
     "app/monitor/quality/page#LABELS": {
         "title": "不適合",
         "subtitle": "サプライヤーの NC、処理日数、是正処置の進捗。NC を選択して、該当サプライヤーへのリマインド、エスカレーション、停止を行います。",
@@ -936,6 +949,7 @@ const LOCALE = {
         "versionBack": "現在のバージョンに戻る",
         "versionFailed": "このバージョンを読み込めませんでした。",
         "request": "更新を依頼",
+        "startProject": "プロジェクトを開始",
         "partial": "このシートは不完全な状態で表示されています。お使いのアカウントで閲覧できないデータを少なくとも 1 つ参照しています。該当する項目は画面に表示されていませんが、空であるという意味ではありません。必要な場合は、beCPG のご担当者にアクセス権を依頼してください。"
     },
     "app/products/page#LABELS": {
@@ -1170,7 +1184,6 @@ const LOCALE = {
         "create": "新しい行",
         "save": "保存",
         "cancel": "キャンセル",
-        "description": "表に表示されない項目はここで入力します。",
         "refused": "行は保存されませんでした。必須項目を確認してから、再試行してください。"
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
@@ -1236,7 +1249,6 @@ const LOCALE = {
         "bulkEdit": "編集",
         "bulkEditLong": "選択した行を編集",
         "bulkEditTitle": "{count} 行を編集",
-        "bulkEditDescription": "選択したすべての行に、同じ値を一度に書き込みます。",
         "bulkEditPickFields": "入力する項目",
         "bulkEditSearchField": "項目を検索",
         "bulkEditApply": "{count} 行に適用",
@@ -2208,16 +2220,13 @@ const LOCALE = {
     },
     "components/products/UpdateRequestDialog#LABELS": {
         "title": "更新を依頼",
-        "intro": "お客様が依頼を受け取り、取引登録と同様に処理します。シートを更新するタスクが届き、お客様が承認します。それまでは何も変更されません。",
         "template": "依頼の種類",
         "templatePlaceholder": "選択…",
         "noTemplate": "お客様はサプライヤー向けの依頼の種類を公開していません。メッセージからご連絡ください。",
         "reason": "依頼の理由",
         "reasonHint": "新しいレシピ、新しい原産地、新しい製造拠点、新しい技術仕様書…",
-        "file": "新しい技術仕様書（任意）",
         "submit": "依頼を送信",
-        "sent": "依頼を送信しました。更新タスクが作成されました。",
-        "sentFileFailed": "依頼は送信されましたが、技術仕様書をアップロードできませんでした。タスクからアップロードしてください。"
+        "sent": "依頼を送信しました。更新タスクが作成されました。"
     },
     "components/products/VersionPicker#LABELS": {
         "open": "シートのバージョン",
@@ -2393,7 +2402,6 @@ const LOCALE = {
         "completeTitle": "このタスクを完了しますか？",
         "completeMessage": "タスクは完了としてマークされ、プロジェクトは次のステップに進みます。",
         "refuseTitle": "このタスクを差し戻しますか？",
-        "refuseMessage": "プロジェクトは差し戻しルートで定義されたステップに戻ります。以下の理由がサプライヤーに送信されます。",
         "refuseReason": "差し戻しの理由",
         "refuseReasonHint": "このテキストはサプライヤーに送信されます。修正すべき内容を記入してください。",
         "refuseReasonRequired": "差し戻すには理由が必要です。",

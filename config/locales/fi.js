@@ -57,7 +57,6 @@ const LOCALE = {
         "tabSigned": "Allekirjoitetut",
         "deposit": "Lataa asiakirja",
         "depositTitle": "Lataa asiakirja",
-        "depositHint": "Valitse tuote, johon asiakirja liittyy, ja pudota sitten tiedosto. beCPG päättelee tyypin ja voimassaoloajan.",
         "entity": "Liittyvä tuote",
         "chooseEntity": "Valitse tuote…",
         "filters": {
@@ -776,6 +775,20 @@ const LOCALE = {
             "noCertificate": "Ei listauspäivää"
         }
     },
+    "app/monitor/quality/[id]/page#LABELS": {
+        "back": "Poikkeamat",
+        "notFound": "Poikkeamaa ei löytynyt",
+        "notFoundHint": "Sitä ei ole olemassa, tai se on rajauksesi ulkopuolella.",
+        "blocking": "Estävä",
+        "priority": "Prioriteetti",
+        "product": "Tuote",
+        "suppliers": "Toimittajat",
+        "batch": "Erä",
+        "created": "Luotu",
+        "modified": "Päivitetty",
+        "cost": "Kustannus",
+        "discussion": "Keskustelu"
+    },
     "app/monitor/quality/page#LABELS": {
         "title": "Poikkeamat",
         "subtitle": "Toimittajien NC:t, käsittelyaika ja korjaavien toimenpiteiden eteneminen. Valitse NC:t muistuttaaksesi, eskaloidaksesi tai keskeyttääksesi kyseiset toimittajat.",
@@ -936,6 +949,7 @@ const LOCALE = {
         "versionBack": "Palaa nykyiseen versioon",
         "versionFailed": "Tätä versiota ei voitu lukea.",
         "request": "Pyydä päivitystä",
+        "startProject": "Käynnistä projekti",
         "partial": "Tämä tuotekortti näytetään puutteellisena: se viittaa vähintään yhteen tietoon, jota tilinne ei ehkä voi lukea. Kyseiset kentät puuttuvat näytöltä — mikä ei tarkoita, että ne olisivat tyhjiä. Pyydä käyttöoikeutta beCPG-yhteyshenkilöltäsi, jos tarvitset jotakin niistä."
     },
     "app/products/page#LABELS": {
@@ -1170,7 +1184,6 @@ const LOCALE = {
         "create": "Uusi rivi",
         "save": "Tallenna",
         "cancel": "Peruuta",
-        "description": "Kentät, joita taulukko ei näytä, täytetään tässä.",
         "refused": "Riviä ei tallennettu. Tarkistakaa pakolliset kentät ja yrittäkää uudelleen."
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
@@ -1236,7 +1249,6 @@ const LOCALE = {
         "bulkEdit": "Muokkaa",
         "bulkEditLong": "Muokkaa valintaa",
         "bulkEditTitle": "Muokattavia rivejä: {count}",
-        "bulkEditDescription": "Samat arvot kaikille valituille riveille yhdellä tallennuksella.",
         "bulkEditPickFields": "Täytettävät kentät",
         "bulkEditSearchField": "Hae kenttää",
         "bulkEditApply": "Käytä riveihin ({count})",
@@ -2208,16 +2220,13 @@ const LOCALE = {
     },
     "components/products/UpdateRequestDialog#LABELS": {
         "title": "Pyydä päivitystä",
-        "intro": "Asiakkaasi saa pyynnön ja käsittelee sen kuten listauksen: saat tehtävän päivittää tietolomakkeen, jonka asiakas hyväksyy. Mitään ei muuteta sitä ennen.",
         "template": "Pyynnön tyyppi",
         "templatePlaceholder": "Valitse…",
         "noTemplate": "Asiakkaasi ei ole avannut toimittajille yhtään pyyntötyyppiä. Kirjoita asiakkaalle Viestit-osiossa.",
         "reason": "Pyynnön syy",
         "reasonHint": "Uusi resepti, uusi alkuperä, uusi tuotantopaikka, uusi tekninen tietolomake…",
-        "file": "Uusi tekninen tietolomake (valinnainen)",
         "submit": "Lähetä pyyntö",
-        "sent": "Pyyntö lähetetty. Sinulle on avattu päivitystehtävä.",
-        "sentFileFailed": "Pyyntö lähetetty, mutta teknistä tietolomaketta ei voitu ladata: lataa se tehtävästä."
+        "sent": "Pyyntö lähetetty. Sinulle on avattu päivitystehtävä."
     },
     "components/products/VersionPicker#LABELS": {
         "open": "Tuotekortin versiot",
@@ -2393,7 +2402,6 @@ const LOCALE = {
         "completeTitle": "Suoritetaanko tämä tehtävä?",
         "completeMessage": "Tehtävä merkitään tehdyksi ja projekti siirtyy seuraavaan vaiheeseen.",
         "refuseTitle": "Hylätäänkö tämä tehtävä?",
-        "refuseMessage": "Projekti palaa hylkäyspolun määrittämään vaiheeseen. Alla oleva syy lähetetään toimittajalle.",
         "refuseReason": "Hylkäyksen syy",
         "refuseReasonHint": "Tämä teksti lähetetään toimittajalle: kertokaa, mitä on korjattava.",
         "refuseReasonRequired": "Hylkääminen edellyttää syytä.",

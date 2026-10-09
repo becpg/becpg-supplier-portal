@@ -57,7 +57,6 @@ const LOCALE = {
         "tabSigned": "已签署",
         "deposit": "上传文件",
         "depositTitle": "上传文件",
-        "depositHint": "选择文件所属的产品，然后拖放文件。类型和有效期由 beCPG 推导。",
         "entity": "相关产品",
         "chooseEntity": "选择产品…",
         "filters": {
@@ -776,6 +775,20 @@ const LOCALE = {
             "noCertificate": "无准入日期"
         }
     },
+    "app/monitor/quality/[id]/page#LABELS": {
+        "back": "不合格项",
+        "notFound": "未找到不合格项",
+        "notFoundHint": "该项不存在，或不在您的范围内。",
+        "blocking": "阻断性",
+        "priority": "优先级",
+        "product": "产品",
+        "suppliers": "供应商",
+        "batch": "批次",
+        "created": "创建于",
+        "modified": "更新于",
+        "cost": "成本",
+        "discussion": "讨论"
+    },
     "app/monitor/quality/page#LABELS": {
         "title": "不合格项",
         "subtitle": "供应商 NC、处理时长和纠正措施进度。选择 NC 以提醒、升级或暂停相关供应商。",
@@ -936,6 +949,7 @@ const LOCALE = {
         "versionBack": "返回当前版本",
         "versionFailed": "无法读取此版本。",
         "request": "申请更新",
+        "startProject": "发起项目",
         "partial": "此资料表显示不完整：其中至少有一项数据您的账户无权读取。相关字段未在页面上显示 — 这并不表示它们为空。如需访问其中某项，请联系您的 beCPG 联系人。"
     },
     "app/products/page#LABELS": {
@@ -1170,7 +1184,6 @@ const LOCALE = {
         "create": "新行",
         "save": "保存",
         "cancel": "取消",
-        "description": "表格中未显示的字段在此处填写。",
         "refused": "该行未保存。请检查必填字段后重试。"
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
@@ -1236,7 +1249,6 @@ const LOCALE = {
         "bulkEdit": "编辑",
         "bulkEditLong": "编辑所选行",
         "bulkEditTitle": "编辑 {count} 行",
-        "bulkEditDescription": "在一次写入中，为所有所选行设置相同的值。",
         "bulkEditPickFields": "要填写的字段",
         "bulkEditSearchField": "搜索字段",
         "bulkEditApply": "应用到 {count} 行",
@@ -2208,16 +2220,13 @@ const LOCALE = {
     },
     "components/products/UpdateRequestDialog#LABELS": {
         "title": "申请更新",
-        "intro": "您的客户会收到申请，并按准入流程处理：您将收到一项更新资料表的任务，由客户审核。在此之前不会有任何更改。",
         "template": "申请类型",
         "templatePlaceholder": "请选择…",
         "noTemplate": "您的客户尚未向供应商开放任何申请类型。请通过“消息”与其联系。",
         "reason": "申请原因",
         "reasonHint": "新配方、新产地、新生产基地、新技术规格书…",
-        "file": "新技术规格书（可选）",
         "submit": "发送申请",
-        "sent": "申请已发送。已为您创建一项更新任务。",
-        "sentFileFailed": "申请已发送，但技术规格书未能上传：请在任务中上传。"
+        "sent": "申请已发送。已为您创建一项更新任务。"
     },
     "components/products/VersionPicker#LABELS": {
         "open": "资料表版本",
@@ -2393,7 +2402,6 @@ const LOCALE = {
         "completeTitle": "完成此任务？",
         "completeMessage": "任务将被标记为已完成，项目将进入下一步。",
         "refuseTitle": "拒绝此任务？",
-        "refuseMessage": "项目将退回到拒绝路径所定义的步骤。以下理由将发送给供应商。",
         "refuseReason": "拒绝理由",
         "refuseReasonHint": "此文本将发送给供应商：请告知需要更正的内容。",
         "refuseReasonRequired": "拒绝时必须填写理由。",

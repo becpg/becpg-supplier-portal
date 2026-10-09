@@ -34,7 +34,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Icon, Spinner } from '@/components/ui/Button';
+import { Button, ButtonGroup, Icon, Spinner } from '@/components/ui/Button';
 import { Field, Select } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/providers/ToastProvider';
@@ -215,8 +215,10 @@ function useAllPages(path, params) {
  * @param {{nodeRef: string, name: string}|null} [props.supplier] fixed supplier — the
  *        dialog then asks for the scope only
  * @param {Function} [props.onStarted] called once at least one project was created
+ * @param {{nodeRef: string, name: string}|null} [props.entity] fixed record — the
+ *        dialog then asks for the template only
  */
-export function StartCampaignDialog({ open, onClose, supplier = null, onStarted }) {
+export function StartCampaignDialog({ open, onClose, supplier = null, entity = null, onStarted }) {
     const { lang } = useMessages();
     const labels = pickLabels(LABELS, lang);
     const toast = useToast();
@@ -252,10 +254,10 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
     }
 
     // Only while the dialog is open: none of this is worth a request otherwise.
-    const suppliers = useAllPages(open && !supplier ? 'monitor/suppliers' : null, NO_PARAMS);
+    const suppliers = useAllPages(open && !supplier && !entity ? 'monitor/suppliers' : null, NO_PARAMS);
     const processes = useApi(open ? 'process/start' : null);
     const entityParams = useMemo(() => ({ supplier: supplierRef }), [supplierRef]);
-    const entities = useAllPages(open && supplierRef ? 'entities' : null, entityParams);
+    const entities = useAllPages(open && supplierRef && !entity ? 'entities' : null, entityParams);
 
     const processOptions = useMemo(
         () => ((processes.data && processes.data.processes) || []).map((entry) => ({
@@ -274,9 +276,9 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
         ? fill(labels.atLeast, { count: listing.totalAtLeast })
         : listing.totalItems);
 
-    const targets = scopeTargets({ scope, supplierRef, entityRef, entityItems });
+    const targets = entity ? [entity.nodeRef] : scopeTargets({ scope, supplierRef, entityRef, entityItems });
 
-    const canStart = Boolean(supplierRef) && targets.length > 0 && Boolean(selectedProcess) && !starting;
+    const canStart = Boolean(entity || supplierRef) && targets.length > 0 && Boolean(selectedProcess) && !starting;
 
     const start = async () => {
         setStarting(true);
@@ -318,20 +320,21 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
             open={open}
             onClose={starting ? () => {} : onClose}
             title={labels.title}
+            description={entity ? entity.name : undefined}
             size="md"
             footer={(
-                <div className="flex flex-wrap justify-end gap-2">
-                    <Button variant="subtle" onClick={onClose} disabled={starting}>
+                <ButtonGroup>
+                    <Button variant="outline" onClick={onClose} disabled={starting}>
                         {labels.cancel}
                     </Button>
-                    <Button icon="rocket_launch" onClick={start} disabled={!canStart} loading={starting}>
+                    <Button variant="primary" icon="rocket_launch" onClick={start} disabled={!canStart} loading={starting}>
                         {starting ? labels.starting : labels.start}
                     </Button>
-                </div>
+                </ButtonGroup>
             )}
         >
             <div className="flex flex-col gap-3">
-                {supplier ? null : (
+                {supplier || entity ? null : (
                     <Field label={labels.supplier} required>
                         <Select
                             value={supplierRef}
@@ -356,6 +359,7 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
                     </Field>
                 )}
 
+                {entity ? null : (
                 <Field label={labels.scope} required>
                     <div className="flex flex-col gap-1.5">
                         {[[SCOPE_SUPPLIER, labels.scopeSupplier], ['all', labels.scopeAll], ['one', labels.scopeOne]].map(([value, text]) => (
@@ -373,8 +377,9 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
                         ))}
                     </div>
                 </Field>
+                )}
 
-                {scope === 'one' ? (
+                {!entity && scope === 'one' ? (
                     <Field label={labels.entity} required>
                         <Select
                             value={entityRef}
@@ -404,10 +409,10 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
                         <Spinner size={13} />
                     </p>
                 ) : null}
-                {scope !== SCOPE_SUPPLIER && supplierRef && !entities.loading && !entities.error && entityItems.length === 0 ? (
+                {!entity && scope !== SCOPE_SUPPLIER && supplierRef && !entities.loading && !entities.error && entityItems.length === 0 ? (
                     <p className="text-xs text-[var(--status-warn)]">{labels.noEntity}</p>
                 ) : null}
-                {scope !== SCOPE_SUPPLIER && supplierRef ? (
+                {!entity && scope !== SCOPE_SUPPLIER && supplierRef ? (
                     <ListingNotice
                         listing={entities}
                         labels={labels}
@@ -417,7 +422,7 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
                         })}
                     />
                 ) : null}
-                {scope === 'all' && entityItems.length > 0 && entities.complete ? (
+                {!entity && scope === 'all' && entityItems.length > 0 && entities.complete ? (
                     <p className="text-xs text-[var(--becpg-dark-grey)]">
                         {fill(labels.countAll, { count: entityItems.length })}
                     </p>

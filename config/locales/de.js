@@ -57,7 +57,6 @@ const LOCALE = {
         "tabSigned": "Unterzeichnet",
         "deposit": "Dokument hochladen",
         "depositTitle": "Dokument hochladen",
-        "depositHint": "Wählen Sie das zugehörige Produkt und legen Sie dann die Datei ab. Typ und Gültigkeit werden von beCPG ermittelt.",
         "entity": "Zugehöriges Produkt",
         "chooseEntity": "Produkt auswählen…",
         "filters": {
@@ -776,6 +775,20 @@ const LOCALE = {
             "noCertificate": "Ohne Listungsdatum"
         }
     },
+    "app/monitor/quality/[id]/page#LABELS": {
+        "back": "Abweichungen",
+        "notFound": "Abweichung nicht gefunden",
+        "notFoundHint": "Sie existiert nicht oder liegt außerhalb Ihres Bereichs.",
+        "blocking": "Blockierend",
+        "priority": "Priorität",
+        "product": "Produkt",
+        "suppliers": "Lieferanten",
+        "batch": "Charge",
+        "created": "Erstellt am",
+        "modified": "Aktualisiert",
+        "cost": "Kosten",
+        "discussion": "Diskussion"
+    },
     "app/monitor/quality/page#LABELS": {
         "title": "Abweichungen",
         "subtitle": "Lieferanten-NCs, Bearbeitungsdauer und Fortschritt der Korrekturmaßnahmen. Wählen Sie NCs aus, um die betroffenen Lieferanten zu erinnern, zu eskalieren oder zu sperren.",
@@ -936,6 +949,7 @@ const LOCALE = {
         "versionBack": "Zurück zur aktuellen Version",
         "versionFailed": "Diese Version konnte nicht gelesen werden.",
         "request": "Aktualisierung anfordern",
+        "startProject": "Projekt starten",
         "partial": "Dieses Datenblatt wird unvollständig angezeigt: Es verweist auf mindestens eine Information, die Ihr Konto nicht lesen darf. Die betroffenen Felder fehlen auf dem Bildschirm — was nicht bedeutet, dass sie leer sind. Bitten Sie Ihren beCPG-Ansprechpartner um Zugriff, wenn Sie eines davon benötigen."
     },
     "app/products/page#LABELS": {
@@ -1170,7 +1184,6 @@ const LOCALE = {
         "create": "Neue Zeile",
         "save": "Speichern",
         "cancel": "Abbrechen",
-        "description": "Die Felder, die das Raster nicht anzeigt, werden hier eingegeben.",
         "refused": "Die Zeile wurde nicht gespeichert. Prüfen Sie die Pflichtfelder und versuchen Sie es erneut."
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
@@ -1236,7 +1249,6 @@ const LOCALE = {
         "bulkEdit": "Bearbeiten",
         "bulkEditLong": "Auswahl bearbeiten",
         "bulkEditTitle": "{count} Zeile(n) bearbeiten",
-        "bulkEditDescription": "Dieselben Werte für jede ausgewählte Zeile, in einem einzigen Schreibvorgang.",
         "bulkEditPickFields": "Auszufüllende Felder",
         "bulkEditSearchField": "Feld suchen",
         "bulkEditApply": "Auf {count} Zeile(n) anwenden",
@@ -2208,16 +2220,13 @@ const LOCALE = {
     },
     "components/products/UpdateRequestDialog#LABELS": {
         "title": "Aktualisierung anfordern",
-        "intro": "Ihr Kunde erhält die Anfrage und bearbeitet sie wie eine Listung: Sie erhalten eine Aufgabe, um das Datenblatt zu aktualisieren, die er anschließend freigibt. Bis dahin wird nichts geändert.",
         "template": "Art der Anfrage",
         "templatePlaceholder": "Auswählen…",
         "noTemplate": "Ihr Kunde hat Lieferanten keine Art von Anfrage freigegeben. Schreiben Sie ihm über Nachrichten.",
         "reason": "Grund der Anfrage",
         "reasonHint": "Neue Rezeptur, neue Herkunft, neuer Produktionsstandort, neues technisches Datenblatt…",
-        "file": "Neues technisches Datenblatt (optional)",
         "submit": "Anfrage senden",
-        "sent": "Anfrage gesendet. Eine Aktualisierungsaufgabe wurde für Sie eröffnet.",
-        "sentFileFailed": "Anfrage gesendet, aber das technische Datenblatt konnte nicht hochgeladen werden: Laden Sie es über die Aufgabe hoch."
+        "sent": "Anfrage gesendet. Eine Aktualisierungsaufgabe wurde für Sie eröffnet."
     },
     "components/products/VersionPicker#LABELS": {
         "open": "Versionen des Datenblatts",
@@ -2393,7 +2402,6 @@ const LOCALE = {
         "completeTitle": "Diese Aufgabe abschließen?",
         "completeMessage": "Die Aufgabe wird als erledigt markiert und das Projekt geht zum nächsten Schritt über.",
         "refuseTitle": "Diese Aufgabe ablehnen?",
-        "refuseMessage": "Das Projekt kehrt zu dem Schritt zurück, den der Ablehnungspfad festlegt. Die folgende Begründung wird an den Lieferanten gesendet.",
         "refuseReason": "Grund der Ablehnung",
         "refuseReasonHint": "Dieser Text wird an den Lieferanten gesendet: Teilen Sie ihm mit, was zu korrigieren ist.",
         "refuseReasonRequired": "Für eine Ablehnung ist eine Begründung erforderlich.",

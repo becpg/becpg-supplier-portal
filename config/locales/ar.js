@@ -57,7 +57,6 @@ const LOCALE = {
         "tabSigned": "الموقّعة",
         "deposit": "رفع مستند",
         "depositTitle": "رفع مستند",
-        "depositHint": "اختاروا المنتج الذي يخصه المستند، ثم أفلتوا الملف. يستنتج beCPG النوع ومدة الصلاحية.",
         "entity": "المنتج المرتبط",
         "chooseEntity": "اختيار منتج…",
         "filters": {
@@ -776,6 +775,20 @@ const LOCALE = {
             "noCertificate": "بدون تاريخ اعتماد"
         }
     },
+    "app/monitor/quality/[id]/page#LABELS": {
+        "back": "حالات عدم المطابقة",
+        "notFound": "لم يتم العثور على حالة عدم المطابقة",
+        "notFoundHint": "إنها غير موجودة، أو تقع خارج نطاقكم.",
+        "blocking": "معيقة",
+        "priority": "الأولوية",
+        "product": "المنتج",
+        "suppliers": "الموردون",
+        "batch": "الدفعة",
+        "created": "أُنشئت في",
+        "modified": "تاريخ التحديث",
+        "cost": "التكلفة",
+        "discussion": "المناقشة"
+    },
     "app/monitor/quality/page#LABELS": {
         "title": "حالات عدم المطابقة",
         "subtitle": "حالات NC لدى الموردين، ومدة المعالجة، وتقدم الإجراءات التصحيحية. اختاروا حالات NC لتذكير الموردين المعنيين أو التصعيد إليهم أو تعليقهم.",
@@ -936,6 +949,7 @@ const LOCALE = {
         "versionBack": "العودة إلى الإصدار الحالي",
         "versionFailed": "تعذّرت قراءة هذا الإصدار.",
         "request": "طلب تحديث",
+        "startProject": "بدء مشروع",
         "partial": "تُعرض هذه البطاقة غير مكتملة: فهي تشير إلى معلومة واحدة على الأقل قد لا يحق لحسابكم قراءتها. الحقول المعنية غائبة عن الشاشة — وهذا لا يعني أنها فارغة. اطلبوا الوصول من جهة اتصالكم لدى beCPG إن احتجتم إلى أحدها."
     },
     "app/products/page#LABELS": {
@@ -1170,7 +1184,6 @@ const LOCALE = {
         "create": "صف جديد",
         "save": "حفظ",
         "cancel": "إلغاء",
-        "description": "تُدخَل هنا الحقول التي لا يعرضها الجدول.",
         "refused": "لم يُحفظ الصف. تحقّقوا من الحقول الإلزامية ثم أعيدوا المحاولة."
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
@@ -1236,7 +1249,6 @@ const LOCALE = {
         "bulkEdit": "تعديل",
         "bulkEditLong": "تعديل التحديد",
         "bulkEditTitle": "تعديل {count} صف(صفوف)",
-        "bulkEditDescription": "القيم نفسها، على كل صف محدد، في عملية كتابة واحدة.",
         "bulkEditPickFields": "الحقول المطلوب ملؤها",
         "bulkEditSearchField": "البحث عن حقل",
         "bulkEditApply": "تطبيق على {count} صف(صفوف)",
@@ -2208,16 +2220,13 @@ const LOCALE = {
     },
     "components/products/UpdateRequestDialog#LABELS": {
         "title": "طلب تحديث",
-        "intro": "يتلقى عميلك الطلب ويعالجه كعملية اعتماد: ستتلقى مهمة لتحديث البطاقة، ثم يعتمدها العميل. لن يتغير شيء قبل ذلك.",
         "template": "نوع الطلب",
         "templatePlaceholder": "اختر…",
         "noTemplate": "لم يفتح عميلك أي نوع من الطلبات للموردين. راسله من قسم الرسائل.",
         "reason": "سبب الطلب",
         "reasonHint": "وصفة جديدة، منشأ جديد، موقع إنتاج جديد، بطاقة فنية جديدة…",
-        "file": "بطاقة فنية جديدة (اختياري)",
         "submit": "إرسال الطلب",
-        "sent": "تم إرسال الطلب. فُتحت لك مهمة تحديث.",
-        "sentFileFailed": "تم إرسال الطلب، لكن تعذّر رفع البطاقة الفنية: ارفعها من المهمة."
+        "sent": "تم إرسال الطلب. فُتحت لك مهمة تحديث."
     },
     "components/products/VersionPicker#LABELS": {
         "open": "إصدارات البطاقة",
@@ -2393,7 +2402,6 @@ const LOCALE = {
         "completeTitle": "إكمال هذه المهمة؟",
         "completeMessage": "ستُعلَّم المهمة كمنجزة وينتقل المشروع إلى الخطوة التالية.",
         "refuseTitle": "رفض هذه المهمة؟",
-        "refuseMessage": "يعود المشروع إلى الخطوة التي يحددها مسار الرفض. يُرسَل السبب أدناه إلى المورّد.",
         "refuseReason": "سبب الرفض",
         "refuseReasonHint": "يُرسَل هذا النص إلى المورّد: أخبروه بما يجب تصحيحه.",
         "refuseReasonRequired": "السبب مطلوب للرفض.",

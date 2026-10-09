@@ -170,7 +170,6 @@ export function BulkEditModal({ list, rows, onClose, onApplied }) {
             open
             onClose={applying ? NOOP : onClose}
             title={label('bulkEditTitle', { count: targets.length })}
-            description={label('bulkEditDescription')}
             size="lg"
             footer={(
                 <div className="flex justify-end gap-2">

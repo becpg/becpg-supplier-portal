@@ -207,7 +207,9 @@ export function buildProductTabs(steps, labels, entityType = null) {
     // Unknown type: keep both tabs. The sheet is opened for products the vast
     // majority of the time, and hiding a section because the type has not
     // arrived yet would make tabs appear a moment later.
-    const isSpecification = entityType === 'bcpg:productSpecification';
+    // A specification is the requirement itself, and a non-conformity is no
+    // product: neither is scored against catalogs nor bound to specifications.
+    const isSpecification = entityType === 'bcpg:productSpecification' || entityType === 'qa:nc';
 
     const wizardSteps = Array.isArray(steps) ? steps : [];
     const tabs = [];

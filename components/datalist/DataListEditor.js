@@ -828,7 +828,7 @@ export function DataListEditor({
                       */}
                     <div
                         ref={markScroll}
-                        className="table-scroll hidden rounded-xl border border-[var(--becpg-grey)] bg-white md:block"
+                        className="table-scroll hidden rounded-2xl border border-[var(--becpg-line)] bg-white shadow-[var(--becpg-shadow-raised)] md:block"
                         data-sticky="true"
                         onScroll={(event) => markScroll(event.currentTarget)}
                         onPaste={editable ? handlePaste : undefined}

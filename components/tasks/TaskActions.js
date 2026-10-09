@@ -46,8 +46,6 @@ const LABELS = defineLabels('components/tasks/TaskActions#LABELS', {
         completeMessage:
             'La tâche sera marquée comme terminée et le projet passera à l’étape suivante.',
         refuseTitle: 'Refuser cette tâche ?',
-        refuseMessage:
-            'Le projet repartira à l’étape prévue par le circuit de refus. Le motif ci-dessous sera transmis au fournisseur.',
         refuseReason: 'Motif du refus',
         refuseReasonHint: 'Ce texte est envoyé au fournisseur : dites-lui ce qu’il doit corriger.',
         refuseReasonRequired: 'Un motif est nécessaire pour refuser.',
@@ -61,8 +59,6 @@ const LABELS = defineLabels('components/tasks/TaskActions#LABELS', {
         completeTitle: 'Complete this task?',
         completeMessage: 'The task will be marked as done and the project moves to the next step.',
         refuseTitle: 'Refuse this task?',
-        refuseMessage:
-            'The project goes back to the step the refusal path defines. The reason below is sent to the supplier.',
         refuseReason: 'Reason for the refusal',
         refuseReasonHint: 'This text is sent to the supplier: tell them what to correct.',
         refuseReasonRequired: 'A reason is required to refuse.',
@@ -153,19 +149,9 @@ export function TaskActions({ task, onDone, backHref = '/tasks' }) {
                 onClose={() => setConfirming(null)}
                 title={labels.refuseTitle}
                 size="md"
-            >
-                <div className="flex flex-col gap-3">
-                    <p className="text-sm text-[var(--becpg-dark-grey)]">{labels.refuseMessage}</p>
-                    <Textarea
-                        label={labels.refuseReason}
-                        hint={labels.refuseReasonHint}
-                        value={reason}
-                        rows={4}
-                        required
-                        onChange={(event) => setReason(event.target.value)}
-                    />
-                    <div className="flex justify-end gap-2">
-                        <Button variant="ghost" onClick={() => setConfirming(null)}>
+                footer={(
+                    <ButtonGroup>
+                        <Button variant="outline" onClick={() => setConfirming(null)}>
                             {labels.cancel}
                         </Button>
                         <Button
@@ -177,8 +163,17 @@ export function TaskActions({ task, onDone, backHref = '/tasks' }) {
                         >
                             {labels.refuse}
                         </Button>
-                    </div>
-                </div>
+                    </ButtonGroup>
+                )}
+            >
+                <Textarea
+                    label={labels.refuseReason}
+                    hint={labels.refuseReasonHint}
+                    value={reason}
+                    rows={4}
+                    required
+                    onChange={(event) => setReason(event.target.value)}
+                />
             </Modal>
 
             <ConfirmModal

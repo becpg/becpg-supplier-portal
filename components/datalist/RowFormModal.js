@@ -40,7 +40,6 @@ const LABELS = defineLabels('components/datalist/RowFormModal#LABELS', {
         create: 'Nouvelle ligne',
         save: 'Enregistrer',
         cancel: 'Annuler',
-        description: 'Les champs que la grille n’affiche pas se saisissent ici.',
         refused: 'La ligne n’a pas été enregistrée. Vérifiez les champs obligatoires, puis réessayez.',
     },
     en: {
@@ -48,7 +47,6 @@ const LABELS = defineLabels('components/datalist/RowFormModal#LABELS', {
         create: 'New row',
         save: 'Save',
         cancel: 'Cancel',
-        description: 'The fields the grid does not show are entered here.',
         refused: 'The row was not saved. Check the mandatory fields, then try again.',
     },
 });
@@ -120,7 +118,6 @@ export function RowFormModal({ list, row, rowForm, entityNodeRef, onClose }) {
             // A no-op rather than `undefined`: Escape calls it unconditionally.
             onClose={saving ? NOOP : onClose}
             title={row?.draft ? labels.create : labels.title}
-            description={labels.description}
             size="lg"
             footer={(
                 <div className="flex justify-end gap-2">

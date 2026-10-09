@@ -57,7 +57,6 @@ const LOCALE = {
         "tabSigned": "Assinados",
         "deposit": "Enviar um documento",
         "depositTitle": "Enviar um documento",
-        "depositHint": "Selecione o produto ao qual ele pertence e depois solte o arquivo. O tipo e a validade são definidos pelo beCPG.",
         "entity": "Produto relacionado",
         "chooseEntity": "Escolha um produto…",
         "filters": {
@@ -776,6 +775,20 @@ const LOCALE = {
             "noCertificate": "Sem data de referenciamento"
         }
     },
+    "app/monitor/quality/[id]/page#LABELS": {
+        "back": "Não conformidades",
+        "notFound": "Não conformidade não encontrada",
+        "notFoundHint": "Ela não existe ou está fora do seu perímetro.",
+        "blocking": "Bloqueante",
+        "priority": "Prioridade",
+        "product": "Produto",
+        "suppliers": "Fornecedores",
+        "batch": "Lote",
+        "created": "Criada em",
+        "modified": "Atualizada",
+        "cost": "Custo",
+        "discussion": "Discussão"
+    },
     "app/monitor/quality/page#LABELS": {
         "title": "Não conformidades",
         "subtitle": "NCs de fornecedores, prazo de tratamento e andamento das ações corretivas. Selecione NCs para lembrar, escalar ou suspender os fornecedores envolvidos.",
@@ -936,6 +949,7 @@ const LOCALE = {
         "versionBack": "Voltar à versão atual",
         "versionFailed": "Não foi possível ler esta versão.",
         "request": "Solicitar uma atualização",
+        "startProject": "Iniciar um projeto",
         "partial": "Esta ficha é exibida incompleta: ela aponta para pelo menos um dado que sua conta não tem permissão para ler. Os campos envolvidos não aparecem na tela — o que não significa que estejam vazios. Solicite acesso ao seu interlocutor beCPG se precisar de algum deles."
     },
     "app/products/page#LABELS": {
@@ -1170,7 +1184,6 @@ const LOCALE = {
         "create": "Nova linha",
         "save": "Salvar",
         "cancel": "Cancelar",
-        "description": "Os campos que a grade não exibe são preenchidos aqui.",
         "refused": "A linha não foi salva. Verifique os campos obrigatórios e tente novamente."
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
@@ -1236,7 +1249,6 @@ const LOCALE = {
         "bulkEdit": "Editar",
         "bulkEditLong": "Editar a seleção",
         "bulkEditTitle": "Editar {count} linha(s)",
-        "bulkEditDescription": "Os mesmos valores, em todas as linhas selecionadas, em uma única gravação.",
         "bulkEditPickFields": "Campos a preencher",
         "bulkEditSearchField": "Pesquisar um campo",
         "bulkEditApply": "Aplicar a {count} linha(s)",
@@ -2208,16 +2220,13 @@ const LOCALE = {
     },
     "components/products/UpdateRequestDialog#LABELS": {
         "title": "Solicitar uma atualização",
-        "intro": "Seu cliente recebe a solicitação e a trata como um referenciamento: você receberá uma tarefa para atualizar a ficha, que ele validará. Nada muda até lá.",
         "template": "Tipo de solicitação",
         "templatePlaceholder": "Escolher…",
         "noTemplate": "Seu cliente não abriu nenhum tipo de solicitação aos fornecedores. Escreva para ele em Mensagens.",
         "reason": "Motivo da solicitação",
         "reasonHint": "Nova receita, nova origem, novo local de produção, nova ficha técnica…",
-        "file": "Nova ficha técnica (opcional)",
         "submit": "Enviar a solicitação",
-        "sent": "Solicitação enviada. Uma tarefa de atualização foi aberta para você.",
-        "sentFileFailed": "Solicitação enviada, mas a ficha técnica não pôde ser enviada: envie-a pela tarefa."
+        "sent": "Solicitação enviada. Uma tarefa de atualização foi aberta para você."
     },
     "components/products/VersionPicker#LABELS": {
         "open": "Versões da ficha",
@@ -2393,7 +2402,6 @@ const LOCALE = {
         "completeTitle": "Concluir esta tarefa?",
         "completeMessage": "A tarefa será marcada como concluída e o projeto passa para a etapa seguinte.",
         "refuseTitle": "Recusar esta tarefa?",
-        "refuseMessage": "O projeto volta para a etapa definida pelo caminho de recusa. O motivo abaixo é enviado ao fornecedor.",
         "refuseReason": "Motivo da recusa",
         "refuseReasonHint": "Este texto é enviado ao fornecedor: indique o que deve ser corrigido.",
         "refuseReasonRequired": "Um motivo é obrigatório para recusar.",

@@ -57,7 +57,6 @@ const LOCALE = {
         "tabSigned": "İmzalananlar",
         "deposit": "Belge yükle",
         "depositTitle": "Belge yükle",
-        "depositHint": "Belgenin ait olduğu ürünü seçin, ardından dosyayı bırakın. Tür ve geçerlilik beCPG tarafından belirlenir.",
         "entity": "İlgili ürün",
         "chooseEntity": "Bir ürün seçin…",
         "filters": {
@@ -776,6 +775,20 @@ const LOCALE = {
             "noCertificate": "Listeleme tarihi olmayanlar"
         }
     },
+    "app/monitor/quality/[id]/page#LABELS": {
+        "back": "Uygunsuzluklar",
+        "notFound": "Uygunsuzluk bulunamadı",
+        "notFoundHint": "Mevcut değil veya kapsamınızın dışında.",
+        "blocking": "Engelleyici",
+        "priority": "Öncelik",
+        "product": "Ürün",
+        "suppliers": "Tedarikçiler",
+        "batch": "Parti",
+        "created": "Oluşturulma tarihi",
+        "modified": "Güncellendi",
+        "cost": "Maliyet",
+        "discussion": "Tartışma"
+    },
     "app/monitor/quality/page#LABELS": {
         "title": "Uygunsuzluklar",
         "subtitle": "Tedarikçi NC'leri, işlem süresi ve düzeltici faaliyet ilerlemesi. İlgili tedarikçilere hatırlatma göndermek, üst kademeye iletmek veya askıya almak için NC'leri seçin.",
@@ -936,6 +949,7 @@ const LOCALE = {
         "versionBack": "Güncel sürüme dön",
         "versionFailed": "Bu sürüm okunamadı.",
         "request": "Güncelleme talep et",
+        "startProject": "Proje başlat",
         "partial": "Bu kart eksik gösteriliyor: hesabınızın okuyamayabileceği en az bir veriye işaret ediyor. İlgili alanlar ekranda yer almıyor — bu, boş oldukları anlamına gelmez. Bunlardan birine ihtiyacınız varsa beCPG irtibat kişinizden erişim isteyin."
     },
     "app/products/page#LABELS": {
@@ -1170,7 +1184,6 @@ const LOCALE = {
         "create": "Yeni satır",
         "save": "Kaydet",
         "cancel": "İptal",
-        "description": "Tablonun göstermediği alanlar buraya girilir.",
         "refused": "Satır kaydedilmedi. Zorunlu alanları kontrol edip yeniden deneyin."
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
@@ -1236,7 +1249,6 @@ const LOCALE = {
         "bulkEdit": "Düzenle",
         "bulkEditLong": "Seçimi düzenle",
         "bulkEditTitle": "{count} satırı düzenle",
-        "bulkEditDescription": "Seçilen her satıra aynı değerler, tek bir yazma işlemiyle.",
         "bulkEditPickFields": "Doldurulacak alanlar",
         "bulkEditSearchField": "Alan ara",
         "bulkEditApply": "{count} satıra uygula",
@@ -2208,16 +2220,13 @@ const LOCALE = {
     },
     "components/products/UpdateRequestDialog#LABELS": {
         "title": "Güncelleme talep et",
-        "intro": "Müşteriniz talebi alır ve bir listeleme gibi işler: formu güncellemeniz için bir görev alırsınız, müşteri bunu onaylar. O zamana kadar hiçbir şey değişmez.",
         "template": "Talep türü",
         "templatePlaceholder": "Seçin…",
         "noTemplate": "Müşteriniz tedarikçilere hiçbir talep türü açmamış. Mesajlar bölümünden ona yazın.",
         "reason": "Talep nedeni",
         "reasonHint": "Yeni reçete, yeni menşe, yeni üretim tesisi, yeni teknik föy…",
-        "file": "Yeni teknik föy (isteğe bağlı)",
         "submit": "Talebi gönder",
-        "sent": "Talep gönderildi. Sizin için bir güncelleme görevi açıldı.",
-        "sentFileFailed": "Talep gönderildi, ancak teknik föy yüklenemedi: görevden yükleyin."
+        "sent": "Talep gönderildi. Sizin için bir güncelleme görevi açıldı."
     },
     "components/products/VersionPicker#LABELS": {
         "open": "Kart sürümleri",
@@ -2393,7 +2402,6 @@ const LOCALE = {
         "completeTitle": "Bu görev tamamlansın mı?",
         "completeMessage": "Görev tamamlandı olarak işaretlenecek ve proje bir sonraki adıma geçecek.",
         "refuseTitle": "Bu görev reddedilsin mi?",
-        "refuseMessage": "Proje, ret yolunun tanımladığı adıma geri döner. Aşağıdaki gerekçe tedarikçiye gönderilir.",
         "refuseReason": "Ret gerekçesi",
         "refuseReasonHint": "Bu metin tedarikçiye gönderilir: neyi düzeltmesi gerektiğini belirtin.",
         "refuseReasonRequired": "Reddetmek için bir gerekçe gereklidir.",

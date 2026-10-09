@@ -50,8 +50,6 @@ const LABELS = defineLabels('app/documents/page#LABELS', {
         tabSigned: 'Signés',
         deposit: 'Déposer un document',
         depositTitle: 'Déposer un document',
-        depositHint:
-            'Choisissez le produit concerné, puis déposez le fichier. Le type et la durée de validité sont déduits par beCPG.',
         entity: 'Produit concerné',
         chooseEntity: 'Choisir un produit…',
         filters: {
@@ -102,8 +100,6 @@ const LABELS = defineLabels('app/documents/page#LABELS', {
         tabSigned: 'Signed',
         deposit: 'Upload a document',
         depositTitle: 'Upload a document',
-        depositHint:
-            'Pick the product it belongs to, then drop the file. Type and validity are derived by beCPG.',
         entity: 'Related product',
         chooseEntity: 'Choose a product…',
         filters: {
@@ -607,7 +603,6 @@ export default function DocumentsPage() {
                 open={depositOpen}
                 onClose={() => setDepositOpen(false)}
                 title={labels.depositTitle}
-                description={labels.depositHint}
                 size="md"
             >
                 <div className="flex flex-col gap-3">

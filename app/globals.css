@@ -283,11 +283,11 @@
    */
   --becpg-grid-font-size: 13px;
   --becpg-grid-line-height: 16px;
-  --becpg-grid-cell-padding: 8px;
+  --becpg-grid-cell-padding: 9px 12px;
   --becpg-grid-control-height: 26px;
-  --becpg-grid-row-border: var(--becpg-grey);
-  --becpg-grid-header-border: var(--status-neutral-border);
-  --becpg-grid-header-color: var(--becpg-dark-grey-deep);
+  --becpg-grid-row-border: var(--becpg-line);
+  --becpg-grid-header-border: var(--becpg-line);
+  --becpg-grid-header-color: var(--becpg-muted);
 
   /*
    * The synthetic total row (`itemType: "total"`, appended by the repository's
@@ -1464,7 +1464,6 @@ body {
   height: 34px;
   padding: var(--becpg-grid-cell-padding);
   font-size: var(--becpg-grid-font-size);
-  font-weight: 400;
   line-height: var(--becpg-grid-line-height);
   /* Share's header is sentence case, not the uppercase micro-label the
      portal used: at 13px, uppercase costs ~15% width per column and is what
@@ -1477,7 +1476,8 @@ body {
      twelve-column list past any screen and trade a wrapped word for a
      horizontal scrollbar. */
   color: var(--becpg-grid-header-color);
-  background-color: var(--background);
+  font-weight: 500;
+  background-color: var(--becpg-page-surface);
   border-bottom: 1px solid var(--becpg-grid-header-border);
 }
 
@@ -1493,20 +1493,15 @@ body {
 }
 
 /*
- * Zebra, hover and row state paint the **cells**, not the row: a `<tr>`
- * background is painted under the `<td>` backgrounds, so a single rule on the
- * cells is the only one that cannot be silently covered. Parity is handed down
- * as `data-zebra` rather than read with `:nth-child`, because an expanded row
- * inserts a second `<tr>` and would flip every stripe below it.
+ * Hover and row state paint the **cells**, not the row: a `<tr>` background
+ * is painted under the `<td>` backgrounds, so a single rule on the cells is the
+ * only one that cannot be silently covered.
  *
- * Order matters and is deliberate: stripe, then the authored colour, then
- * hover, then the row's own state — a row that failed to save keeps saying so
+ * No stripe: the lists of the portal mark the row under the pointer, the way
+ * the monitoring lists do. Order matters and is deliberate: the authored
+ * colour, then hover, then the row's own state — a row that failed to save keeps saying so
  * under the pointer.
  */
-.becpg-grid tbody tr[data-zebra='true'] td {
-  background-color: var(--becpg-row-zebra);
-}
-
 /*
  * The colour the customer authored on the line (`bcpg:color`).
  *
@@ -1537,10 +1532,6 @@ body {
  * written once (the token), and the pinned cells need it as a variable rather
  * than as a `background-color` they would inherit translucent.
  */
-.becpg-grid tbody tr[data-zebra='true'] {
-  --becpg-grid-row-tint: var(--becpg-row-zebra);
-}
-
 .becpg-grid tbody tr[data-painted='true'] {
   --becpg-grid-row-tint: var(--becpg-grid-row-paint);
 }
