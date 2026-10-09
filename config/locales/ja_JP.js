@@ -813,94 +813,76 @@ const LOCALE = {
         "truncatedShort": "範囲：{scanned} 件の不適合を読み込み"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
-        "unavailable": {
-            "title": "データを取得できません",
-            "message": "beCPG はこのブロックを返せませんでした。リストが空でも、このサプライヤーについて何も示すものではありません。"
-        },
         "back": "サプライヤー",
-        "startCampaign": "プロジェクトを開始",
         "notFound": "サプライヤーが見つかりません",
-        "notFoundHint": "このサプライヤーは存在しないか、担当範囲外です。ポータルは、beCPG の権限で許可されていないノードを表示することはありません。",
-        "kpi": {
-            "approval": "承認ステータス",
-            "completion": "完成度",
+        "notFoundHint": "このサプライヤーは存在しないか、担当範囲外です。",
+        "tiles": {
+            "label": "サプライヤー指標",
+            "nc": "ブロッキング NC",
+            "ncHint": "未解決",
+            "projects": "進行中のプロジェクト",
+            "projectsHint": "未回答 {count} 件",
             "documents": "必須文書",
-            "nc": "ブロッキングの NC",
-            "campaigns": "進行中のプロジェクト"
+            "documentsHint": "期限切れ {expired} · 不足 {missing}",
+            "documentsNone": "対象なし",
+            "products": "製品",
+            "productsHint": "紐付け済み",
+            "delay": "回答期間",
+            "delayHint": "{period} の平均",
+            "delayNone": "意思決定モジュール",
+            "completion": "完成度",
+            "completionHint": "有効なカタログ {count} 件",
+            "completionNone": "有効なカタログなし",
+            "days": "日"
         },
-        "kpiHints": {
-            "derived": "算出値（保存されません）",
-            "documents": "期限切れ {expired} · 期限間近 {expiring} · 未提出 {missing}",
-            "completion": "有効なカタログ {count} 件",
-            "campaigns": "期限超過 {late} 件",
-            "cached": "キャッシュから取得したステータス"
+        "tabs": {
+            "label": "サプライヤーシート",
+            "overview": "概要",
+            "nc": "不適合",
+            "projects": "プロジェクト",
+            "documents": "文書",
+            "products": "製品",
+            "history": "履歴"
         },
-        "why": {
-            "title": "このステータスの理由",
-            "subtitle": "ステータスを決定している行",
-            "empty": "異常はありません：必須文書は有効で、ブロッキングの NC もブロッキングのカタログもありません。",
-            "more": "… ほか {count} 件",
-            "entity": "{name} について",
-            "priority": "優先度 {priority}",
-            "catalog": "ブロッキングのカタログ要件が未充足"
+        "status": "承認ステータス",
+        "statusHelp": "ステータスは表示のたびに算出され、保存されません。最初に該当したルールが優先されます。",
+        "risk": "リスクスコア",
+        "riskHelp": "各要因はその重みを加算し、同じ要因が重なるごとに逓減する加点が加わります。",
+        "riskFrom": "{from} 以上",
+        "reasonNames": {
+            "documentExpired": "期限切れの文書",
+            "blockingNc": "ブロッキング NC",
+            "campaignNoAnswer": "未回答のプロジェクト",
+            "scoreDropping": "スコア低下",
+            "documentExpiring": "期限間近の文書",
+            "lateTask": "遅延タスク",
+            "lowCompletion": "完成度が低い",
+            "documentMissing": "不足している文書",
+            "openNc": "未解決の NC"
         },
-        "documents": {
-            "title": "文書",
-            "subtitle": "求められている文書と有効期限",
-            "empty": "このサプライヤーに求められている文書、または提出済みの文書はありません",
-            "mandatory": "必須",
-            "download": "ダウンロード",
-            "summary": "必須 {mandatory} 件中 {satisfied} 件充足 · 文書 {total} 件"
-        },
-        "products": {
-            "title": "関連製品",
-            "subtitle": "サプライヤーに紐付けられたエンティティ",
-            "empty": "関連製品はありません",
-            "emptyHint": "検出できるのは、サプライヤーの下に保存された製品、またはそのプロジェクトや文書に紐付けられた製品のみです。「サプライヤー」で紐付けられていても別の場所に保存されたエンティティは、Alfresco でインデックスされません。"
-        },
-        "subSuppliers": {
-            "title": "二次サプライヤー",
-            "empty": "登録された二次サプライヤーはありません"
-        },
-        "projects": {
-            "title": "進行中のプロジェクト",
-            "empty": "進行中のプロジェクトはありません",
-            "manager": "責任者：{name}",
-            "due": "期限 {date}",
-            "late": "期限超過",
-            "unanswered": "{days} 日間回答なし"
-        },
-        "activity": {
-            "title": "やり取りの履歴",
-            "empty": "記録されたやり取りはありません",
-            "message": "メッセージ",
-            "activity": "アクティビティ"
-        },
-        "process": {
-            "title": "プロセスを開始",
-            "hint": "取引登録、更新、NC の起票など、インスタンスで許可されている内容に応じて開始できます。",
-            "none": "このインスタンスで許可されているプロセスはありません（PORTAL_PROCESS_TEMPLATES）。",
-            "launch": "開始",
-            "confirmTitle": "「{process}」を開始しますか？",
-            "confirmMessage": "許可リストのテンプレートから、このサプライヤーの beCPG プロジェクトが作成されます。開始したプロセスはポータルから取り消せません。",
-            "started": "プロセスを開始しました。"
-        },
-        "identity": {
+        "activity": "活動と対応状況",
+        "activityHelp": "サプライヤーに割り当てたタスクと年ごとの平均回答期間（意思決定モジュールから取得）。",
+        "identity": "基本情報",
+        "identityRows": {
             "code": "コード",
             "erpCode": "ERP コード",
             "legalName": "正式名称",
-            "state": "beCPG の状態",
+            "state": "beCPG 状態",
             "family": "ファミリー",
             "subFamily": "サブファミリー",
             "sites": "拠点",
             "subsidiaries": "子会社",
-            "buyer": "担当バイヤー",
-            "email": "連絡先",
-            "lastActivity": "最終アクティビティ",
             "parent": "親サプライヤー",
-            "none": "—"
+            "subSuppliers": "下位サプライヤー",
+            "catalogs": "有効なカタログ"
         },
-        "generatedAt": "{time} 時点のデータ"
+        "scorecard": "評価",
+        "scorecardHelp": "サプライヤーの直近のプロジェクトで評価された基準の加重平均。",
+        "allNc": "すべての NC",
+        "exchanges": "やり取り",
+        "ncFile": "supplier-ncs",
+        "projectsFile": "supplier-projects",
+        "none": "—"
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "サプライヤー",
@@ -933,8 +915,7 @@ const LOCALE = {
             "expiring": "期限間近の文書",
             "expired": "期限切れの文書",
             "nc": "未解決の NC",
-            "lastActivity": "最終アクティビティ",
-            "buyer": "バイヤー"
+            "lastActivity": "最終アクティビティ"
         },
         "truncatedShort": "範囲：{scanned} 社のサプライヤーを読み込み"
     },
@@ -1616,12 +1597,9 @@ const LOCALE = {
         "subFamily": "サブファミリー",
         "site": "拠点",
         "subsidiary": "子会社",
-        "buyer": "担当バイヤー",
         "market": "市場",
         "state": "サプライヤーの状態",
         "any": "すべて",
-        "anyBuyer": "すべてのバイヤー",
-        "buyerHint": "beCPG のユーザー名（cm:owner）",
         "windowScoped": "読み込み範囲のみ",
         "windowScopedHelp": "Alfresco は関連付けをインデックスしません。このフィルターはサプライヤーベース全体ではなく、既に読み込んだサプライヤーに適用されます。",
         "unsupported": "未設定",
@@ -1735,7 +1713,6 @@ const LOCALE = {
         "emptyHint": "期限切れの文書、ブロッキングの NC、回答のないプロジェクトは検出されませんでした。",
         "riskScore": "リスクスコア {score}",
         "level": "リスク：{level}",
-        "buyer": "バイヤー：{name}",
         "lastActivity": "最終アクティビティ {date}",
         "completion": "完成度 {value} %",
         "openSheet": "シートを開く",
@@ -1851,7 +1828,6 @@ const LOCALE = {
             "openProjects": "プロジェクト",
             "family": "ファミリー",
             "sites": "拠点",
-            "buyer": "バイヤー",
             "lastActivity": "最終アクティビティ"
         },
         "metrics": {
@@ -1862,7 +1838,6 @@ const LOCALE = {
             "openProjects": "進行中のプロジェクト {count} 件"
         },
         "none": "—",
-        "noBuyer": "未割り当て",
         "empty": "この範囲にサプライヤーはいません",
         "emptyHint": "フィルターの範囲を広げるか、バイヤーとしての担当範囲を確認してください。",
         "emptyFiltered": "これらのフィルターに該当するサプライヤーはいません。",
@@ -1882,7 +1857,6 @@ const LOCALE = {
             "state": "beCPG の状態",
             "family": "ファミリー",
             "sites": "拠点",
-            "buyer": "担当バイヤー",
             "lastActivity": "最終アクティビティ"
         },
         "openSheet": "シートを開く",
@@ -2077,6 +2051,78 @@ const LOCALE = {
         },
         "noFamily": "ファミリーなし",
         "noSubFamily": "サブファミリーなし"
+    },
+    "components/monitor/supplier/ActivityChart#LABELS": {
+        "tasks": "タスク",
+        "delay": "平均回答期間（日）",
+        "days": "日",
+        "aria": "このサプライヤーの年ごとのタスク数と平均回答期間"
+    },
+    "components/monitor/supplier/RiskScore#LABELS": {
+        "ring": "リスクスコア {score}/100、レベル {level}",
+        "none": "リスク要因なし"
+    },
+    "components/monitor/supplier/SheetLists#LABELS": {
+        "documents": {
+            "search": "文書を検索",
+            "document": "文書",
+            "mandatory": "必須",
+            "validity": "有効期限",
+            "status": "ステータス",
+            "entity": "紐付け先",
+            "download": "ダウンロード",
+            "empty": "要求・提出された文書はありません",
+            "file": "supplier-documents",
+            "yes": "はい",
+            "no": "いいえ"
+        },
+        "products": {
+            "search": "製品を検索",
+            "product": "製品",
+            "code": "コード",
+            "state": "状態",
+            "completion": "完成度",
+            "modified": "更新日",
+            "empty": "紐付けられた製品はありません",
+            "file": "supplier-products"
+        },
+        "activity": {
+            "empty": "記録されたやり取りはありません",
+            "message": "メッセージ",
+            "activity": "アクティビティ"
+        },
+        "unavailable": "beCPG がこの一覧を返せませんでした。このサプライヤーについては何も示していません。"
+    },
+    "components/monitor/supplier/StatusLadder#LABELS": {
+        "current": "該当したルール",
+        "next": "次に",
+        "approvedWhen": "承認条件",
+        "approvedNow": "すべての条件を満たしています",
+        "seeAll": "{count} 件すべて表示",
+        "days": "{count} 日",
+        "on": "{name} について",
+        "conditions": {
+            "documentExpired": "期限切れの必須文書なし",
+            "blockingNc": "ブロッキング NC なし",
+            "documentExpiring": "更新が必要な文書なし",
+            "openProject": "進行中のプロジェクトなし",
+            "documentMissing": "不足している必須文書なし",
+            "blockingCatalog": "ブロッキングカタログを充足"
+        },
+        "met": "充足",
+        "unmet": "未充足"
+    },
+    "components/monitor/supplier/SupplierBand#LABELS": {
+        "erp": "ERP {code}",
+        "risk": "リスク {level} · {score}",
+        "created": "作成日",
+        "lastActivity": "最終アクティビティ",
+        "startProject": "プロジェクトを開始",
+        "openInBecpg": "beCPG で開く",
+        "since": "{count} 日間",
+        "approved": "停止・更新・保留のいずれのルールにも該当しません。",
+        "actions": "サプライヤーの操作",
+        "verdict": "{status}："
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "適合性",
@@ -2588,7 +2634,6 @@ const LOCALE = {
         "openNc": "未解決の NC",
         "openProjects": "進行中のプロジェクト",
         "family": "ファミリー",
-        "buyer": "バイヤー",
         "lastActivity": "最終アクティビティ",
         "state": "状態",
         "compliance": "適合率（%）"

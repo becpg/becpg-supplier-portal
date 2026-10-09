@@ -144,7 +144,6 @@ const LABELS = defineLabels('components/monitor/RiskList#LABELS', {
         emptyHint: 'Aucun document expiré, NC bloquante ou projet sans réponse détecté.',
         riskScore: 'Score de risque {score}',
         level: 'Risque {level}',
-        buyer: 'Acheteur : {name}',
         lastActivity: 'Dernière activité le {date}',
         completion: 'Complétude {value} %',
         openSheet: 'Ouvrir la fiche',
@@ -191,7 +190,6 @@ const LABELS = defineLabels('components/monitor/RiskList#LABELS', {
         emptyHint: 'No expired document, blocking NC or unanswered project detected.',
         riskScore: 'Risk score {score}',
         level: '{level} risk',
-        buyer: 'Buyer: {name}',
         lastActivity: 'Last activity on {date}',
         completion: 'Completeness {value} %',
         openSheet: 'Open the sheet',
@@ -532,7 +530,6 @@ function RiskRow({ item, rank, local, lang, onDone }) {
     const lowCompletion = ((item.risk && item.risk.reasons) || []).some((reason) => reason.code === 'lowCompletion');
     const details = [
         ...reasons.map((reason) => reason.label),
-        item.buyer ? interpolate(local.buyer, { name: item.buyer }) : null,
         // Said once: a low completion is already one of the reasons when it is one.
         typeof item.completion === 'number' && !lowCompletion
             ? interpolate(local.completion, { value: item.completion })
@@ -590,7 +587,7 @@ function RiskRow({ item, rank, local, lang, onDone }) {
                             </span>
                         </div>
                         {/* the motive — never a rank without its reason — then the
-                            buyer, the completion and the last activity */}
+                            completion and the last activity */}
                         <p className="mt-0.5 truncate text-xs text-[var(--becpg-dark-grey)]" title={details}>
                             {details}
                         </p>

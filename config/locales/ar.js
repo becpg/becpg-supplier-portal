@@ -813,94 +813,76 @@ const LOCALE = {
         "truncatedShort": "النافذة: تمت قراءة {scanned} حالة عدم مطابقة"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
-        "unavailable": {
-            "title": "البيانات غير متاحة",
-            "message": "تعذّر على beCPG إرجاع هذه الكتلة: القائمة الفارغة لا تقول شيئًا عن هذا المورّد."
-        },
         "back": "الموردون",
-        "startCampaign": "بدء مشروع",
         "notFound": "المورّد غير موجود",
-        "notFoundHint": "هذا المورّد غير موجود، أو يقع خارج نطاقكم: لا تكشف البوابة أبدًا عن عقدة لا تشملها صلاحياتكم في beCPG.",
-        "kpi": {
-            "approval": "حالة الاعتماد",
-            "completion": "الاكتمال",
+        "notFoundHint": "هذا المورّد غير موجود، أو يقع خارج نطاقكم.",
+        "tiles": {
+            "label": "مؤشرات المورد",
+            "nc": "حالات NC المانعة",
+            "ncHint": "مفتوحة",
+            "projects": "المشاريع المفتوحة",
+            "projectsHint": "{count} دون رد",
             "documents": "المستندات الإلزامية",
-            "nc": "حالات NC المعيقة",
-            "campaigns": "المشاريع المفتوحة"
+            "documentsHint": "{expired} منتهية · {missing} ناقصة",
+            "documentsNone": "لا شيء مطلوب",
+            "products": "المنتجات",
+            "productsHint": "مرتبطة",
+            "delay": "مهلة الرد",
+            "delayHint": "متوسط {period}",
+            "delayNone": "وحدة القرار",
+            "completion": "الاكتمال",
+            "completionHint": "{count} كتالوج نشط",
+            "completionNone": "لا يوجد كتالوج نشط",
+            "days": "ي"
         },
-        "kpiHints": {
-            "derived": "مُستنتَجة، لا تُخزَّن أبدًا",
-            "documents": "{expired} منتهية · {expiring} قاربت على الانتهاء · {missing} ناقصة",
-            "completion": "{count} كتالوج(ات) نشطة",
-            "campaigns": "{late} متأخرة",
-            "cached": "الحالة مقدَّمة من ذاكرة التخزين المؤقت"
+        "tabs": {
+            "label": "بطاقة المورد",
+            "overview": "نظرة عامة",
+            "nc": "حالات عدم المطابقة",
+            "projects": "المشاريع",
+            "documents": "المستندات",
+            "products": "المنتجات",
+            "history": "السجل"
         },
-        "why": {
-            "title": "لماذا هذه الحالة",
-            "subtitle": "الصفوف التي تحدد الحالة",
-            "empty": "لا يوجد خلل: المستندات الإلزامية صالحة، ولا توجد حالة NC معيقة، ولا كتالوج معيق.",
-            "more": "… و{count} أخرى",
-            "entity": "على {name}",
-            "priority": "الأولوية {priority}",
-            "catalog": "كتالوج معيق غير مستوفى"
+        "status": "حالة الاعتماد",
+        "statusHelp": "تُحسب الحالة عند كل عرض ولا تُخزَّن أبدًا: تسري أول قاعدة متحققة.",
+        "risk": "درجة المخاطر",
+        "riskHelp": "يضيف كل سبب وزنه؛ ويضيف كل تكرار إضافي علاوة متناقصة.",
+        "riskFrom": "ابتداءً من {from}",
+        "reasonNames": {
+            "documentExpired": "مستند منتهي الصلاحية",
+            "blockingNc": "حالة NC مانعة",
+            "campaignNoAnswer": "مشروع دون رد",
+            "scoreDropping": "درجة متراجعة",
+            "documentExpiring": "مستند قارب على الانتهاء",
+            "lateTask": "مهمة متأخرة",
+            "lowCompletion": "اكتمال منخفض",
+            "documentMissing": "مستند ناقص",
+            "openNc": "حالة NC مفتوحة"
         },
-        "documents": {
-            "title": "المستندات",
-            "subtitle": "المستندات المتوقعة وتواريخ الصلاحية",
-            "empty": "لا يوجد مستند متوقع أو مقدَّم لهذا المورّد",
-            "mandatory": "إلزامي",
-            "download": "تنزيل",
-            "summary": "{satisfied}/{mandatory} إلزامية مستوفاة · {total} مستندات"
-        },
-        "products": {
-            "title": "المنتجات المرتبطة",
-            "subtitle": "الكيانات المرتبطة بالمورّد",
-            "empty": "لا يوجد منتج مرتبط",
-            "emptyHint": "لا يمكن العثور إلا على المنتجات المصنّفة تحت المورّد، أو المرتبطة بأحد مشاريعه أو مستنداته: الكيان المرتبط عبر «الموردون» والمصنّف في مكان آخر لا يفهرسه Alfresco."
-        },
-        "subSuppliers": {
-            "title": "الموردون من الباطن",
-            "empty": "لم يُصرَّح بأي مورّد من الباطن"
-        },
-        "projects": {
-            "title": "المشاريع المفتوحة",
-            "empty": "لا يوجد مشروع مفتوح",
-            "manager": "المسؤول: {name}",
-            "due": "الاستحقاق {date}",
-            "late": "متأخر",
-            "unanswered": "لا إجابة منذ {days} يوم"
-        },
-        "activity": {
-            "title": "سجل المراسلات",
-            "empty": "لا توجد مراسلات مسجلة",
-            "message": "رسالة",
-            "activity": "نشاط"
-        },
-        "process": {
-            "title": "بدء إجراء",
-            "hint": "إدراج، تجديد، فتح حالة NC… بحسب ما يسمح به النظام.",
-            "none": "لا يُسمح بأي إجراء على هذا النظام (PORTAL_PROCESS_TEMPLATES).",
-            "launch": "بدء",
-            "confirmTitle": "بدء «{process}»؟",
-            "confirmMessage": "سيُنشأ مشروع beCPG لهذا المورّد انطلاقًا من القالب المسموح به. لا يمكن إلغاء إجراء بدأ من البوابة.",
-            "started": "بدأ الإجراء."
-        },
-        "identity": {
+        "activity": "النشاط وسرعة الاستجابة",
+        "activityHelp": "المهام المسندة إلى المورد ومتوسط مهلة الرد، لكل سنة، مقروءة من وحدة القرار.",
+        "identity": "الهوية",
+        "identityRows": {
             "code": "الرمز",
             "erpCode": "رمز ERP",
             "legalName": "الاسم القانوني",
-            "state": "الحالة في beCPG",
+            "state": "حالة beCPG",
             "family": "العائلة",
             "subFamily": "العائلة الفرعية",
             "sites": "المواقع",
             "subsidiaries": "الشركات التابعة",
-            "buyer": "المشتري المرجعي",
-            "email": "جهة الاتصال",
-            "lastActivity": "آخر نشاط",
-            "parent": "المورّد الأم",
-            "none": "—"
+            "parent": "المورد الرئيسي",
+            "subSuppliers": "الموردون الفرعيون",
+            "catalogs": "الكتالوجات النشطة"
         },
-        "generatedAt": "البيانات حتى {time}"
+        "scorecard": "التقييم",
+        "scorecardHelp": "المتوسط المرجّح للمعايير المقيَّمة في أحدث مشاريع المورد.",
+        "allNc": "جميع حالات NC",
+        "exchanges": "المراسلات",
+        "ncFile": "supplier-ncs",
+        "projectsFile": "supplier-projects",
+        "none": "—"
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "الموردون",
@@ -933,8 +915,7 @@ const LOCALE = {
             "expiring": "المستندات التي قاربت على الانتهاء",
             "expired": "المستندات المنتهية الصلاحية",
             "nc": "حالات NC المفتوحة",
-            "lastActivity": "آخر نشاط",
-            "buyer": "المشتري"
+            "lastActivity": "آخر نشاط"
         },
         "truncatedShort": "النافذة: تمت قراءة {scanned} مورد"
     },
@@ -1616,12 +1597,9 @@ const LOCALE = {
         "subFamily": "العائلة الفرعية",
         "site": "الموقع",
         "subsidiary": "الشركة التابعة",
-        "buyer": "المشتري المرجعي",
         "market": "السوق",
         "state": "حالة المورّد",
         "any": "الكل",
-        "anyBuyer": "جميع المشترين",
-        "buyerHint": "اسم مستخدم beCPG (cm:owner)",
         "windowScoped": "ضمن النافذة",
         "windowScopedHelp": "لا يفهرس Alfresco الارتباطات: يُطبَّق هذا الفلتر على الموردين المقروئين بالفعل، لا على قاعدة الموردين بأكملها.",
         "unsupported": "غير مهيّأ",
@@ -1735,7 +1713,6 @@ const LOCALE = {
         "emptyHint": "لم يُكتشف أي مستند منتهي الصلاحية أو حالة NC معيقة أو مشروع بلا إجابة.",
         "riskScore": "درجة المخاطر {score}",
         "level": "مخاطر {level}",
-        "buyer": "المشتري: {name}",
         "lastActivity": "آخر نشاط في {date}",
         "completion": "الاكتمال {value} %",
         "openSheet": "فتح البطاقة",
@@ -1851,7 +1828,6 @@ const LOCALE = {
             "openProjects": "المشاريع",
             "family": "العائلة",
             "sites": "المواقع",
-            "buyer": "المشتري",
             "lastActivity": "آخر نشاط"
         },
         "metrics": {
@@ -1862,7 +1838,6 @@ const LOCALE = {
             "openProjects": "{count} مشروع(مشاريع) مفتوحة"
         },
         "none": "—",
-        "noBuyer": "غير مُسنَد",
         "empty": "لا يوجد مورّد في هذا النطاق",
         "emptyHint": "وسّعوا الفلاتر، أو تحقّقوا من نطاقكم كمشترٍ.",
         "emptyFiltered": "لا يوجد مورّد يطابق هذه الفلاتر.",
@@ -1882,7 +1857,6 @@ const LOCALE = {
             "state": "الحالة في beCPG",
             "family": "العائلة",
             "sites": "المواقع",
-            "buyer": "المشتري المرجعي",
             "lastActivity": "آخر نشاط"
         },
         "openSheet": "فتح البطاقة",
@@ -2077,6 +2051,78 @@ const LOCALE = {
         },
         "noFamily": "بلا عائلة",
         "noSubFamily": "بلا عائلة فرعية"
+    },
+    "components/monitor/supplier/ActivityChart#LABELS": {
+        "tasks": "المهام",
+        "delay": "متوسط مهلة الرد (ي)",
+        "days": "ي",
+        "aria": "المهام ومتوسط مهلة الرد لكل سنة لهذا المورد"
+    },
+    "components/monitor/supplier/RiskScore#LABELS": {
+        "ring": "درجة المخاطر {score} من 100، المستوى {level}",
+        "none": "لا يوجد سبب للمخاطر"
+    },
+    "components/monitor/supplier/SheetLists#LABELS": {
+        "documents": {
+            "search": "البحث عن مستند",
+            "document": "المستند",
+            "mandatory": "إلزامي",
+            "validity": "الصلاحية",
+            "status": "الحالة",
+            "entity": "مرتبط بـ",
+            "download": "تنزيل",
+            "empty": "لا توجد مستندات مطلوبة أو مقدَّمة",
+            "file": "supplier-documents",
+            "yes": "نعم",
+            "no": "لا"
+        },
+        "products": {
+            "search": "البحث عن منتج",
+            "product": "المنتج",
+            "code": "الرمز",
+            "state": "الحالة",
+            "completion": "الاكتمال",
+            "modified": "آخر تحديث",
+            "empty": "لا توجد منتجات مرتبطة",
+            "file": "supplier-products"
+        },
+        "activity": {
+            "empty": "لا توجد مراسلات مسجلة",
+            "message": "الرسالة",
+            "activity": "النشاط"
+        },
+        "unavailable": "تعذّر على beCPG إرجاع هذه القائمة: فهي لا تدل على شيء بشأن هذا المورد."
+    },
+    "components/monitor/supplier/StatusLadder#LABELS": {
+        "current": "القاعدة المتحققة",
+        "next": "ثم",
+        "approvedWhen": "يُعتمد عندما",
+        "approvedNow": "جميع الشروط متحققة",
+        "seeAll": "عرض الكل ({count})",
+        "days": "{count} ي",
+        "on": "على {name}",
+        "conditions": {
+            "documentExpired": "لا يوجد مستند إلزامي منتهي الصلاحية",
+            "blockingNc": "لا توجد حالة NC مانعة",
+            "documentExpiring": "لا يوجد مستند يلزم تجديده",
+            "openProject": "لا يوجد مشروع مفتوح",
+            "documentMissing": "لا يوجد مستند إلزامي ناقص",
+            "blockingCatalog": "الكتالوجات المانعة مستوفاة"
+        },
+        "met": "متحقق",
+        "unmet": "غير متحقق"
+    },
+    "components/monitor/supplier/SupplierBand#LABELS": {
+        "erp": "ERP {code}",
+        "risk": "مخاطر {level} · {score}",
+        "created": "تاريخ الإنشاء",
+        "lastActivity": "آخر نشاط",
+        "startProject": "بدء مشروع",
+        "openInBecpg": "فتح في beCPG",
+        "since": "منذ {count} يومًا",
+        "approved": "لا تنطبق أي قاعدة تعليق أو تجديد أو انتظار.",
+        "actions": "إجراءات المورد",
+        "verdict": "{status}:"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "المطابقة",
@@ -2588,7 +2634,6 @@ const LOCALE = {
         "openNc": "حالات NC المفتوحة",
         "openProjects": "المشاريع المفتوحة",
         "family": "العائلة",
-        "buyer": "المشتري",
         "lastActivity": "آخر نشاط",
         "state": "الحالة",
         "compliance": "المطابقة (%)"

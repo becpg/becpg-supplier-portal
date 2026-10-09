@@ -2,7 +2,7 @@
  * `GET /api/v1/monitor/suppliers` — the supplier monitoring list (spec §4.6.2).
  *
  * Columns: approval status, score, completion, expiring documents, open
- * non-conformities, last activity, referring buyer. Multi-criteria filters,
+ * non-conformities, last activity. Multi-criteria filters,
  * sorting, pagination — and the **CSV export variant** on the same URL with
  * `format=csv`, so the export can never drift from the screen: it is literally
  * the same rows.
@@ -23,12 +23,12 @@
  * Cost: 1 park query + 7 approval queries ≈ 8, independent of the park.
  *
  * Query:
- *   - filters — `family`, `subFamily`, `site`, `subsidiary`, `buyer`, `market`,
+ *   - filters — `family`, `subFamily`, `site`, `subsidiary`, `market`,
  *     `state`, `q`
  *   - `status` — one or more approval statuses, comma-separated
  *     (`suspended,toRenew,inProgress,approved`)
  *   - `sort` — `risk` (default), `name`, `code`, `status`, `score`,
- *     `completion`, `expiring`, `expired`, `nc`, `lastActivity`, `buyer`
+ *     `completion`, `expiring`, `expired`, `nc`, `lastActivity`
  *   - `direction` — `desc` (default) or `asc`
  *   - `page`, `pageSize` (≤ 100)
  *   - `format=csv` — the export; `page` and `pageSize` are ignored, every

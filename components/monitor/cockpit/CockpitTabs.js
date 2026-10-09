@@ -20,9 +20,12 @@ const TAB_STORAGE_KEY = 'becpg_portal_cockpit_tab';
 const ARROW_STEPS = Object.freeze({ ArrowRight: 1, ArrowLeft: -1 });
 
 /** The stored tab, when it is one of `ids`. */
-function readStoredTab(ids) {
+function readStoredTab(ids, storageKey) {
+    if (!storageKey) {
+        return null;
+    }
     try {
-        const stored = typeof window === 'undefined' ? null : window.localStorage.getItem(TAB_STORAGE_KEY);
+        const stored = typeof window === 'undefined' ? null : window.localStorage.getItem(storageKey);
         return ids.includes(stored) ? stored : null;
     }
     catch {
@@ -31,9 +34,12 @@ function readStoredTab(ids) {
 }
 
 /** Remembers the tab; a browser that refuses storage keeps working without it. */
-function storeTab(id) {
+function storeTab(id, storageKey) {
+    if (!storageKey) {
+        return;
+    }
     try {
-        window.localStorage.setItem(TAB_STORAGE_KEY, id);
+        window.localStorage.setItem(storageKey, id);
     }
     catch {
         // A private window or blocked storage: the tab is simply not remembered.
@@ -61,17 +67,22 @@ function targetIndex(key, index, count) {
  * @param {Array<{id: string, label: string, icon: string, badge?: React.ReactNode,
  *                render: () => React.ReactNode}>} props.tabs
  * @param {string} props.label accessible name of the tablist
+ * @param {string} [props.active] the selected tab, when the caller drives it
+ * @param {Function} [props.onSelect] `(id) => void`, with `active`
+ * @param {?string} [props.storageKey] where the last tab is remembered; `null` forgets it
  */
-export function CockpitTabs({ tabs, label }) {
+export function CockpitTabs({ tabs, label, active: controlled, onSelect, storageKey = TAB_STORAGE_KEY }) {
     const ids = tabs.map((tab) => tab.id);
-    const [active, setActive] = useState(() => readStoredTab(ids) || ids[0]);
+    const [own, setOwn] = useState(() => readStoredTab(ids, storageKey) || ids[0]);
+    const active = controlled ?? own;
     const buttons = useRef({});
     const prefix = useId();
 
     const select = useCallback((id) => {
-        setActive(id);
-        storeTab(id);
-    }, []);
+        setOwn(id);
+        onSelect?.(id);
+        storeTab(id, storageKey);
+    }, [onSelect, storageKey]);
 
     const onKeyDown = (event, index) => {
         const next = targetIndex(event.key, index, tabs.length);

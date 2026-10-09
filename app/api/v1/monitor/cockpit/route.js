@@ -11,7 +11,7 @@
  * Access: internal monitoring groups only, through `requireMonitorAccess()`.
  *
  * Query: the filters of `/api/v1/monitor/overview` (`family`, `subFamily`, `site`,
- * `subsidiary`, `buyer`, `market`, `state`, `q`) and `refresh=true`.
+ * `subsidiary`, `market`, `state`, `q`) and `refresh=true`.
  */
 
 import { NextResponse } from 'next/server';

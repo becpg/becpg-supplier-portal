@@ -26,7 +26,7 @@
  * Cost: 4 count queries + 1 project scan + 1 task read ≈ 6.
  *
  * Query:
- *   - filters — `family`, `subFamily`, `site`, `subsidiary`, `buyer`, `market`,
+ *   - filters — `family`, `subFamily`, `site`, `subsidiary`, `market`,
  *     `state` (supplier state), `q`
  *   - `ncState` — one `qa:ncState`
  *   - `ncType` — one `qa:ncType`

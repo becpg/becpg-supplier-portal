@@ -9,7 +9,7 @@
  *
  * What the sheet returns:
  *
- *   - `supplier`      identity, family, sites, referring buyer, last activity;
+ *   - `supplier`      identity, family, sites, last activity;
  *   - `approval`      the derived status with the reasons and the offending
  *                     rows (spec §5.4.3) — cached, invalidated on upload;
  *   - `scorecard`     `pjt:scoreList` of the supplier's projects, weighted the

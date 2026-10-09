@@ -74,7 +74,6 @@ export const SORT_PARAM_BY_COLUMN = Object.freeze({
     documentsExpired: 'expired',
     openNc: 'nc',
     lastActivity: 'lastActivity',
-    buyer: 'buyer',
 });
 
 /** The inverse: what column a `sort` value refers to. */
@@ -101,7 +100,6 @@ const LABELS = defineLabels('components/monitor/SupplierTable#LABELS', {
             openProjects: 'Projets',
             family: 'Famille',
             sites: 'Sites',
-            buyer: 'Acheteur',
             lastActivity: 'Dernière activité',
         },
         metrics: {
@@ -112,9 +110,8 @@ const LABELS = defineLabels('components/monitor/SupplierTable#LABELS', {
             openProjects: '{count} projet(s) en cours',
         },
         none: '—',
-        noBuyer: 'Non affecté',
         empty: 'Aucun fournisseur dans ce périmètre',
-        emptyHint: 'Élargissez les filtres, ou vérifiez votre périmètre d’acheteur.',
+        emptyHint: 'Élargissez les filtres.',
         emptyFiltered: 'Aucun fournisseur ne correspond à ces filtres.',
         compare: 'Comparer',
         compareTitle: 'Comparaison de {count} fournisseurs',
@@ -133,7 +130,6 @@ const LABELS = defineLabels('components/monitor/SupplierTable#LABELS', {
             state: 'État beCPG',
             family: 'Famille',
             sites: 'Sites',
-            buyer: 'Acheteur référent',
             lastActivity: 'Dernière activité',
         },
         openSheet: 'Ouvrir la fiche',
@@ -157,7 +153,6 @@ const LABELS = defineLabels('components/monitor/SupplierTable#LABELS', {
             openProjects: 'Projects',
             family: 'Family',
             sites: 'Sites',
-            buyer: 'Buyer',
             lastActivity: 'Last activity',
         },
         metrics: {
@@ -168,9 +163,8 @@ const LABELS = defineLabels('components/monitor/SupplierTable#LABELS', {
             openProjects: '{count} open project(s)',
         },
         none: '—',
-        noBuyer: 'Unassigned',
         empty: 'No supplier in this perimeter',
-        emptyHint: 'Widen the filters, or check your buyer perimeter.',
+        emptyHint: 'Widen the filters.',
         emptyFiltered: 'No supplier matches these filters.',
         compare: 'Compare',
         compareTitle: 'Comparing {count} suppliers',
@@ -189,7 +183,6 @@ const LABELS = defineLabels('components/monitor/SupplierTable#LABELS', {
             state: 'beCPG state',
             family: 'Family',
             sites: 'Sites',
-            buyer: 'Referring buyer',
             lastActivity: 'Last activity',
         },
         openSheet: 'Open the sheet',
@@ -393,18 +386,6 @@ export function buildSupplierColumns(local, lang) {
             ),
         },
         {
-            id: 'buyer',
-            accessorFn: (row) => row.buyer || '',
-            header: columns.buyer,
-            meta: { label: columns.buyer, width: '9rem' },
-            cell: ({ getValue }) =>
-                getValue() ? (
-                    <span className="block max-w-[9rem] truncate text-xs">{getValue()}</span>
-                ) : (
-                    <span className="text-xs text-[var(--becpg-dark-grey)]">{local.noBuyer}</span>
-                ),
-        },
-        {
             id: 'lastActivity',
             accessorFn: (row) => (row.lastActivity ? Date.parse(row.lastActivity) : 0),
             header: columns.lastActivity,
@@ -513,11 +494,6 @@ function compareRows(local, lang) {
                     {(item.sites || []).map((site) => site.label).join(', ') || local.none}
                 </span>
             ),
-        },
-        {
-            id: 'buyer',
-            label: rows.buyer,
-            render: (item) => <span className="text-xs">{item.buyer || local.noBuyer}</span>,
         },
         {
             id: 'lastActivity',

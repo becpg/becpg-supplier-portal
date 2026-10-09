@@ -23,7 +23,7 @@
  * Cost: 1 campaign scan + 1 task read (+ 1 park query when filtered) ≈ 2–3.
  *
  * Query:
- *   - filters — `family`, `subFamily`, `site`, `subsidiary`, `buyer`, `market`,
+ *   - filters — `family`, `subFamily`, `site`, `subsidiary`, `market`,
  *     `state`, `q` (park filters; a campaign is kept when one of its
  *     `bcpg:suppliers` is in the filtered park)
  *   - `states` — comma-separated project states, defaults to the open ones
@@ -32,7 +32,7 @@
  *
  * @example
  * fetch('/api/v1/monitor/campaigns?sort=age');
- * fetch('/api/v1/monitor/campaigns?states=InProgress,OnHold&buyer=jdoe');
+ * fetch('/api/v1/monitor/campaigns?states=InProgress,OnHold');
  */
 
 import { NextResponse } from 'next/server';

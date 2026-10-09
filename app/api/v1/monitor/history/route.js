@@ -40,6 +40,7 @@ import { AuthError, BadRequestError, toApiResponse } from '@/lib/errors';
 import { isNodeRef } from '@/lib/becpg';
 import { parkSupplierNames, requireMonitorAccess } from '@/lib/adapters/monitor';
 import { OLAP_QUERIES, runOlapQuery } from '@/lib/adapters/olap';
+import { toOlapSeries } from '@/lib/adapters/cockpit';
 import { resolveLang } from '@/lib/lang';
 
 export const runtime = 'nodejs';
@@ -87,10 +88,14 @@ export async function GET(request) {
             session, queryId, supplierNodeRef, perimeter,
         });
 
+        // `points` names each value by its measure id: the cube's own column
+        // captions are localised, so a screen cannot match them by name.
+        const { measures } = OLAP_QUERIES[queryId];
         const response = NextResponse.json({
             series,
             supplier: supplierNodeRef,
             ...result,
+            points: toOlapSeries(result, measures, measures).points,
             generatedAt: new Date().toISOString(),
         }, { status: 200 });
         // The cube is refreshed by a batch, not live: a minute of caching spares

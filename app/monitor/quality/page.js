@@ -43,6 +43,7 @@
  */
 
 import { useCallback, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { AppShell, PageHeader } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -175,10 +176,12 @@ export default function MonitorQualityPage() {
     const { lang } = useMessages();
     const labels = pickLabels(LABELS, lang);
 
+    // A supplier sheet links here already narrowed to its supplier.
+    const searchParams = useSearchParams();
     const [ncState, setNcState] = useState('');
     const [ncType, setNcType] = useState('');
-    const [includeClosed, setIncludeClosed] = useState(false);
-    const [supplier, setSupplier] = useState('');
+    const [includeClosed, setIncludeClosed] = useState(() => searchParams.get('includeClosed') === 'true');
+    const [supplier, setSupplier] = useState(() => searchParams.get('q') || '');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);
     const [rowSelection, setRowSelection] = useState({});

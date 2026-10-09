@@ -813,94 +813,76 @@ const LOCALE = {
         "truncatedShort": "Ventana: {scanned} NC leídas"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
-        "unavailable": {
-            "title": "Datos no disponibles",
-            "message": "beCPG no ha podido devolver este bloque: la lista vacía no indica nada sobre este proveedor."
-        },
         "back": "Proveedores",
-        "startCampaign": "Iniciar un proyecto",
         "notFound": "Proveedor no encontrado",
-        "notFoundHint": "Este proveedor no existe o está fuera de su perímetro: el portal nunca revela un nodo que sus permisos de beCPG no cubren.",
-        "kpi": {
-            "approval": "Estado de homologación",
-            "completion": "Cumplimentación",
-            "documents": "Documentos obligatorios",
+        "notFoundHint": "Este proveedor no existe o está fuera de su perímetro.",
+        "tiles": {
+            "label": "Indicadores del proveedor",
             "nc": "NC bloqueantes",
-            "campaigns": "Proyectos abiertos"
+            "ncHint": "abiertas",
+            "projects": "Proyectos abiertos",
+            "projectsHint": "{count} sin respuesta",
+            "documents": "Documentos obligatorios",
+            "documentsHint": "{expired} caducado(s) · {missing} faltante(s)",
+            "documentsNone": "ninguno esperado",
+            "products": "Productos",
+            "productsHint": "vinculados",
+            "delay": "Plazo de respuesta",
+            "delayHint": "media {period}",
+            "delayNone": "módulo decisional",
+            "completion": "Cumplimentación",
+            "completionHint": "{count} catálogo(s) activo(s)",
+            "completionNone": "ningún catálogo activo",
+            "days": "d"
         },
-        "kpiHints": {
-            "derived": "Calculado, nunca almacenado",
-            "documents": "{expired} caducados · {expiring} a punto de caducar · {missing} faltan",
-            "completion": "{count} catálogo(s) activo(s)",
-            "campaigns": "{late} con retraso",
-            "cached": "estado servido desde la caché"
+        "tabs": {
+            "label": "Ficha del proveedor",
+            "overview": "Resumen",
+            "nc": "No conformidades",
+            "projects": "Proyectos",
+            "documents": "Documentos",
+            "products": "Productos",
+            "history": "Historial"
         },
-        "why": {
-            "title": "Por qué este estado",
-            "subtitle": "Las filas que determinan el estado",
-            "empty": "Ninguna anomalía: documentos obligatorios válidos, ninguna NC bloqueante, ningún catálogo bloqueante.",
-            "more": "… y {count} más",
-            "entity": "en {name}",
-            "priority": "prioridad {priority}",
-            "catalog": "Catálogo bloqueante no cumplido"
+        "status": "Estado de homologación",
+        "statusHelp": "El estado se calcula en cada visualización, nunca se almacena: prevalece la primera regla que se cumple.",
+        "risk": "Puntuación de riesgo",
+        "riskHelp": "Cada motivo suma su peso; cada ocurrencia adicional suma una bonificación decreciente.",
+        "riskFrom": "a partir de {from}",
+        "reasonNames": {
+            "documentExpired": "Documento caducado",
+            "blockingNc": "NC bloqueante",
+            "campaignNoAnswer": "Proyecto sin respuesta",
+            "scoreDropping": "Puntuación en descenso",
+            "documentExpiring": "Documento por caducar",
+            "lateTask": "Tarea atrasada",
+            "lowCompletion": "Cumplimentación baja",
+            "documentMissing": "Documento faltante",
+            "openNc": "NC abierta"
         },
-        "documents": {
-            "title": "Documentos",
-            "subtitle": "Documentos esperados y fechas de validez",
-            "empty": "Ningún documento esperado ni aportado para este proveedor",
-            "mandatory": "obligatorio",
-            "download": "Descargar",
-            "summary": "{satisfied}/{mandatory} obligatorios cumplidos · {total} documentos"
-        },
-        "products": {
-            "title": "Productos vinculados",
-            "subtitle": "Entidades asociadas al proveedor",
-            "empty": "Ningún producto vinculado",
-            "emptyHint": "Solo se pueden encontrar los productos archivados bajo el proveedor o asociados a uno de sus proyectos o documentos: una entidad vinculada mediante «Proveedores» y archivada en otro lugar no está indexada por Alfresco."
-        },
-        "subSuppliers": {
-            "title": "Subproveedores",
-            "empty": "Ningún subproveedor declarado"
-        },
-        "projects": {
-            "title": "Proyectos abiertos",
-            "empty": "Ningún proyecto abierto",
-            "manager": "Responsable: {name}",
-            "due": "Vence el {date}",
-            "late": "Con retraso",
-            "unanswered": "Sin respuesta desde hace {days} días"
-        },
-        "activity": {
-            "title": "Historial de intercambios",
-            "empty": "Ningún intercambio registrado",
-            "message": "Mensaje",
-            "activity": "Actividad"
-        },
-        "process": {
-            "title": "Iniciar un proceso",
-            "hint": "Referenciación, renovación, apertura de una NC… según lo que permita la instancia.",
-            "none": "No se permite ningún proceso en esta instancia (PORTAL_PROCESS_TEMPLATES).",
-            "launch": "Iniciar",
-            "confirmTitle": "¿Iniciar «{process}»?",
-            "confirmMessage": "Se creará un proyecto de beCPG para este proveedor a partir de la plantilla autorizada. Un proceso iniciado no se puede cancelar desde el portal.",
-            "started": "Proceso iniciado."
-        },
-        "identity": {
+        "activity": "Actividad y capacidad de respuesta",
+        "activityHelp": "Tareas asignadas al proveedor y plazo medio de respuesta, por año, leídos en el módulo decisional.",
+        "identity": "Identidad",
+        "identityRows": {
             "code": "Código",
             "erpCode": "Código ERP",
             "legalName": "Razón social",
-            "state": "Estado en beCPG",
+            "state": "Estado beCPG",
             "family": "Familia",
             "subFamily": "Subfamilia",
-            "sites": "Centros",
+            "sites": "Sitios",
             "subsidiaries": "Filiales",
-            "buyer": "Comprador de referencia",
-            "email": "Contacto",
-            "lastActivity": "Última actividad",
             "parent": "Proveedor principal",
-            "none": "—"
+            "subSuppliers": "Subproveedores",
+            "catalogs": "Catálogos activos"
         },
-        "generatedAt": "Datos a {time}"
+        "scorecard": "Evaluación",
+        "scorecardHelp": "Media ponderada de los criterios evaluados en los últimos proyectos del proveedor.",
+        "allNc": "Todas sus NC",
+        "exchanges": "Intercambios",
+        "ncFile": "nc-proveedor",
+        "projectsFile": "proyectos-proveedor",
+        "none": "—"
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "Proveedores",
@@ -933,8 +915,7 @@ const LOCALE = {
             "expiring": "documentos a punto de caducar",
             "expired": "documentos caducados",
             "nc": "NC abiertas",
-            "lastActivity": "última actividad",
-            "buyer": "comprador"
+            "lastActivity": "última actividad"
         },
         "truncatedShort": "Ventana: {scanned} proveedores leídos"
     },
@@ -1616,12 +1597,9 @@ const LOCALE = {
         "subFamily": "Subfamilia",
         "site": "Centro",
         "subsidiary": "Filial",
-        "buyer": "Comprador de referencia",
         "market": "Mercado",
         "state": "Estado del proveedor",
         "any": "Todos",
-        "anyBuyer": "Todos los compradores",
-        "buyerHint": "Nombre de usuario de beCPG (cm:owner)",
         "windowScoped": "limitado a la ventana",
         "windowScopedHelp": "Alfresco no indexa las asociaciones: este filtro se aplica a los proveedores ya leídos, no a todo el parque.",
         "unsupported": "no configurado",
@@ -1735,7 +1713,6 @@ const LOCALE = {
         "emptyHint": "No se ha detectado ningún documento caducado, NC bloqueante ni proyecto sin respuesta.",
         "riskScore": "Puntuación de riesgo {score}",
         "level": "Riesgo {level}",
-        "buyer": "Comprador: {name}",
         "lastActivity": "Última actividad el {date}",
         "completion": "Cumplimentación {value} %",
         "openSheet": "Abrir la ficha",
@@ -1851,7 +1828,6 @@ const LOCALE = {
             "openProjects": "Proyectos",
             "family": "Familia",
             "sites": "Centros",
-            "buyer": "Comprador",
             "lastActivity": "Última actividad"
         },
         "metrics": {
@@ -1862,7 +1838,6 @@ const LOCALE = {
             "openProjects": "{count} proyecto(s) abierto(s)"
         },
         "none": "—",
-        "noBuyer": "Sin asignar",
         "empty": "Ningún proveedor en este perímetro",
         "emptyHint": "Amplíe los filtros o compruebe su perímetro de comprador.",
         "emptyFiltered": "Ningún proveedor coincide con estos filtros.",
@@ -1882,7 +1857,6 @@ const LOCALE = {
             "state": "Estado en beCPG",
             "family": "Familia",
             "sites": "Centros",
-            "buyer": "Comprador de referencia",
             "lastActivity": "Última actividad"
         },
         "openSheet": "Abrir la ficha",
@@ -2077,6 +2051,78 @@ const LOCALE = {
         },
         "noFamily": "Sin familia",
         "noSubFamily": "Sin subfamilia"
+    },
+    "components/monitor/supplier/ActivityChart#LABELS": {
+        "tasks": "Tareas",
+        "delay": "Plazo medio de respuesta (d)",
+        "days": "d",
+        "aria": "Tareas y plazo medio de respuesta por año para este proveedor"
+    },
+    "components/monitor/supplier/RiskScore#LABELS": {
+        "ring": "Puntuación de riesgo {score} sobre 100, nivel {level}",
+        "none": "Ningún motivo de riesgo"
+    },
+    "components/monitor/supplier/SheetLists#LABELS": {
+        "documents": {
+            "search": "Buscar un documento",
+            "document": "Documento",
+            "mandatory": "Obligatorio",
+            "validity": "Validez",
+            "status": "Estado",
+            "entity": "Vinculado a",
+            "download": "Descargar",
+            "empty": "Ningún documento esperado ni aportado",
+            "file": "documentos-proveedor",
+            "yes": "Sí",
+            "no": "No"
+        },
+        "products": {
+            "search": "Buscar un producto",
+            "product": "Producto",
+            "code": "Código",
+            "state": "Estado",
+            "completion": "Cumplimentación",
+            "modified": "Actualizado",
+            "empty": "Ningún producto vinculado",
+            "file": "productos-proveedor"
+        },
+        "activity": {
+            "empty": "Ningún intercambio registrado",
+            "message": "Mensaje",
+            "activity": "Actividad"
+        },
+        "unavailable": "beCPG no ha podido devolver esta lista: no dice nada de este proveedor."
+    },
+    "components/monitor/supplier/StatusLadder#LABELS": {
+        "current": "Regla cumplida",
+        "next": "Después",
+        "approvedWhen": "Homologado cuando",
+        "approvedNow": "Se cumplen todas las condiciones",
+        "seeAll": "Ver los {count}",
+        "days": "{count} d",
+        "on": "en {name}",
+        "conditions": {
+            "documentExpired": "Ningún documento obligatorio caducado",
+            "blockingNc": "Ninguna NC bloqueante",
+            "documentExpiring": "Ningún documento por renovar",
+            "openProject": "Ningún proyecto abierto",
+            "documentMissing": "Ningún documento obligatorio faltante",
+            "blockingCatalog": "Catálogos bloqueantes satisfechos"
+        },
+        "met": "cumplida",
+        "unmet": "no cumplida"
+    },
+    "components/monitor/supplier/SupplierBand#LABELS": {
+        "erp": "ERP {code}",
+        "risk": "Riesgo {level} · {score}",
+        "created": "Creado el",
+        "lastActivity": "Última actividad",
+        "startProject": "Iniciar un proyecto",
+        "openInBecpg": "Abrir en beCPG",
+        "since": "desde hace {count} días",
+        "approved": "no se aplica ninguna regla de suspensión, renovación o espera.",
+        "actions": "Acciones sobre el proveedor",
+        "verdict": "{status}:"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "Conformidad",
@@ -2588,7 +2634,6 @@ const LOCALE = {
         "openNc": "NC abiertas",
         "openProjects": "Proyectos abiertos",
         "family": "Familia",
-        "buyer": "Comprador",
         "lastActivity": "Última actividad",
         "state": "Estado",
         "compliance": "Conformidad (%)"

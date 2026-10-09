@@ -22,7 +22,7 @@
  * scan window (`truncated: true` says when it did not fit).
  *
  * Query:
- *   - filters — `family`, `subFamily`, `site`, `subsidiary`, `buyer`, `market`,
+ *   - filters — `family`, `subFamily`, `site`, `subsidiary`, `market`,
  *     `state`, `q`
  *   - `documentType` — restrict to one `bcpg:documentTypeRef` nodeRef
  *   - `mandatoryOnly=true` — only `bcpg:documentIsMandatory`

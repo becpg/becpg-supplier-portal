@@ -813,94 +813,76 @@ const LOCALE = {
         "truncatedShort": "Pencere: {scanned} uygunsuzluk okundu"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
-        "unavailable": {
-            "title": "Veri kullanılamıyor",
-            "message": "beCPG bu bloğu döndüremedi: boş liste bu tedarikçi hakkında hiçbir şey söylemez."
-        },
         "back": "Tedarikçiler",
-        "startCampaign": "Proje başlat",
         "notFound": "Tedarikçi bulunamadı",
-        "notFoundHint": "Bu tedarikçi mevcut değil veya kapsamınızın dışında: portal, beCPG haklarınızın kapsamadığı bir düğümü asla göstermez.",
-        "kpi": {
-            "approval": "Onay durumu",
-            "completion": "Doluluk",
-            "documents": "Zorunlu belgeler",
+        "notFoundHint": "Bu tedarikçi mevcut değil veya kapsamınızın dışında.",
+        "tiles": {
+            "label": "Tedarikçi göstergeleri",
             "nc": "Engelleyici NC'ler",
-            "campaigns": "Açık projeler"
+            "ncHint": "açık",
+            "projects": "Açık projeler",
+            "projectsHint": "{count} yanıtsız",
+            "documents": "Zorunlu belgeler",
+            "documentsHint": "{expired} süresi dolmuş · {missing} eksik",
+            "documentsNone": "beklenen yok",
+            "products": "Ürünler",
+            "productsHint": "bağlı",
+            "delay": "Yanıt süresi",
+            "delayHint": "{period} ortalaması",
+            "delayNone": "karar modülü",
+            "completion": "Doluluk",
+            "completionHint": "{count} aktif katalog",
+            "completionNone": "aktif katalog yok",
+            "days": "g"
         },
-        "kpiHints": {
-            "derived": "Türetilir, asla saklanmaz",
-            "documents": "{expired} süresi dolmuş · {expiring} süresi doluyor · {missing} eksik",
-            "completion": "{count} etkin katalog",
-            "campaigns": "{late} gecikmiş",
-            "cached": "durum önbellekten sunuldu"
+        "tabs": {
+            "label": "Tedarikçi kartı",
+            "overview": "Genel bakış",
+            "nc": "Uygunsuzluklar",
+            "projects": "Projeler",
+            "documents": "Belgeler",
+            "products": "Ürünler",
+            "history": "Geçmiş"
         },
-        "why": {
-            "title": "Bu durumun nedeni",
-            "subtitle": "Durumu belirleyen satırlar",
-            "empty": "Anomali yok: zorunlu belgeler geçerli, engelleyici NC yok, engelleyici katalog yok.",
-            "more": "… ve {count} tane daha",
-            "entity": "{name} üzerinde",
-            "priority": "öncelik {priority}",
-            "catalog": "Engelleyici katalog karşılanmadı"
+        "status": "Onay durumu",
+        "statusHelp": "Durum her görüntülemede hesaplanır, asla saklanmaz: karşılanan ilk kural geçerlidir.",
+        "risk": "Risk puanı",
+        "riskHelp": "Her neden kendi ağırlığını ekler; her ek tekrar azalan bir ek puan ekler.",
+        "riskFrom": "{from} itibarıyla",
+        "reasonNames": {
+            "documentExpired": "Süresi dolmuş belge",
+            "blockingNc": "Engelleyici NC",
+            "campaignNoAnswer": "Yanıtsız proje",
+            "scoreDropping": "Düşen puan",
+            "documentExpiring": "Süresi dolmak üzere olan belge",
+            "lateTask": "Geciken görev",
+            "lowCompletion": "Düşük doluluk",
+            "documentMissing": "Eksik belge",
+            "openNc": "Açık NC"
         },
-        "documents": {
-            "title": "Belgeler",
-            "subtitle": "Beklenen belgeler ve geçerlilik tarihleri",
-            "empty": "Bu tedarikçi için beklenen veya sağlanan belge yok",
-            "mandatory": "zorunlu",
-            "download": "İndir",
-            "summary": "{satisfied}/{mandatory} zorunlu belge karşılandı · {total} belge"
-        },
-        "products": {
-            "title": "Bağlı ürünler",
-            "subtitle": "Tedarikçiye bağlı varlıklar",
-            "empty": "Bağlı ürün yok",
-            "emptyHint": "Yalnızca tedarikçinin altında dosyalanmış veya projelerinden ya da belgelerinden birine bağlı ürünler bulunabilir: \"Tedarikçiler\" ile bağlanmış ve başka bir yerde dosyalanmış bir varlık Alfresco tarafından dizinlenmez."
-        },
-        "subSuppliers": {
-            "title": "Alt tedarikçiler",
-            "empty": "Beyan edilmiş alt tedarikçi yok"
-        },
-        "projects": {
-            "title": "Açık projeler",
-            "empty": "Açık proje yok",
-            "manager": "Yönetici: {name}",
-            "due": "Son tarih {date}",
-            "late": "Gecikmiş",
-            "unanswered": "{days} gündür yanıt yok"
-        },
-        "activity": {
-            "title": "Yazışma geçmişi",
-            "empty": "Kaydedilmiş yazışma yok",
-            "message": "Mesaj",
-            "activity": "Etkinlik"
-        },
-        "process": {
-            "title": "Süreç başlat",
-            "hint": "Listeleme, yenileme, NC açma… ortamın izin verdiğine bağlı olarak.",
-            "none": "Bu ortamda hiçbir sürece izin verilmiyor (PORTAL_PROCESS_TEMPLATES).",
-            "launch": "Başlat",
-            "confirmTitle": "\"{process}\" başlatılsın mı?",
-            "confirmMessage": "İzin verilen şablondan bu tedarikçi için bir beCPG projesi oluşturulacak. Başlatılan bir süreç portaldan iptal edilemez.",
-            "started": "Süreç başlatıldı."
-        },
-        "identity": {
+        "activity": "Etkinlik ve yanıt verme hızı",
+        "activityHelp": "Tedarikçiye verilen görevler ve yıllık ortalama yanıt süresi, karar modülünden okunur.",
+        "identity": "Kimlik",
+        "identityRows": {
             "code": "Kod",
             "erpCode": "ERP kodu",
-            "legalName": "Yasal unvan",
+            "legalName": "Ticari unvan",
             "state": "beCPG durumu",
             "family": "Aile",
             "subFamily": "Alt aile",
             "sites": "Tesisler",
             "subsidiaries": "Bağlı şirketler",
-            "buyer": "Sorumlu satın almacı",
-            "email": "İrtibat",
-            "lastActivity": "Son etkinlik",
-            "parent": "Üst tedarikçi",
-            "none": "—"
+            "parent": "Ana tedarikçi",
+            "subSuppliers": "Alt tedarikçiler",
+            "catalogs": "Aktif kataloglar"
         },
-        "generatedAt": "{time} itibarıyla veriler"
+        "scorecard": "Değerlendirme",
+        "scorecardHelp": "Tedarikçinin son projelerinde puanlanan kriterlerin ağırlıklı ortalaması.",
+        "allNc": "Tüm NC'leri",
+        "exchanges": "Yazışmalar",
+        "ncFile": "tedarikci-nc",
+        "projectsFile": "tedarikci-projeler",
+        "none": "—"
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "Tedarikçiler",
@@ -933,8 +915,7 @@ const LOCALE = {
             "expiring": "süresi dolmak üzere olan belgeler",
             "expired": "süresi dolmuş belgeler",
             "nc": "açık NC'ler",
-            "lastActivity": "son etkinlik",
-            "buyer": "satın almacı"
+            "lastActivity": "son etkinlik"
         },
         "truncatedShort": "Pencere: {scanned} tedarikçi okundu"
     },
@@ -1616,12 +1597,9 @@ const LOCALE = {
         "subFamily": "Alt aile",
         "site": "Tesis",
         "subsidiary": "Bağlı şirket",
-        "buyer": "Sorumlu satın almacı",
         "market": "Pazar",
         "state": "Tedarikçi durumu",
         "any": "Tümü",
-        "anyBuyer": "Tüm satın almacılar",
-        "buyerHint": "beCPG kullanıcı adı (cm:owner)",
         "windowScoped": "pencereyle sınırlı",
         "windowScopedHelp": "Alfresco ilişkileri dizinlemez: bu filtre portföyün tamamına değil, halihazırda okunmuş tedarikçilere uygulanır.",
         "unsupported": "yapılandırılmamış",
@@ -1735,7 +1713,6 @@ const LOCALE = {
         "emptyHint": "Süresi dolmuş belge, engelleyici NC veya yanıtsız proje tespit edilmedi.",
         "riskScore": "Risk puanı {score}",
         "level": "{level} risk",
-        "buyer": "Satın almacı: {name}",
         "lastActivity": "Son etkinlik: {date}",
         "completion": "Doluluk %{value}",
         "openSheet": "Kartı aç",
@@ -1851,7 +1828,6 @@ const LOCALE = {
             "openProjects": "Projeler",
             "family": "Aile",
             "sites": "Tesisler",
-            "buyer": "Satın almacı",
             "lastActivity": "Son etkinlik"
         },
         "metrics": {
@@ -1862,7 +1838,6 @@ const LOCALE = {
             "openProjects": "{count} açık proje"
         },
         "none": "—",
-        "noBuyer": "Atanmamış",
         "empty": "Bu kapsamda tedarikçi yok",
         "emptyHint": "Filtreleri genişletin veya satın almacı kapsamınızı kontrol edin.",
         "emptyFiltered": "Bu filtrelere uyan tedarikçi yok.",
@@ -1882,7 +1857,6 @@ const LOCALE = {
             "state": "beCPG durumu",
             "family": "Aile",
             "sites": "Tesisler",
-            "buyer": "Sorumlu satın almacı",
             "lastActivity": "Son etkinlik"
         },
         "openSheet": "Kartı aç",
@@ -2077,6 +2051,78 @@ const LOCALE = {
         },
         "noFamily": "Ailesiz",
         "noSubFamily": "Alt ailesiz"
+    },
+    "components/monitor/supplier/ActivityChart#LABELS": {
+        "tasks": "Görevler",
+        "delay": "Ortalama yanıt süresi (g)",
+        "days": "g",
+        "aria": "Bu tedarikçi için yıllara göre görevler ve ortalama yanıt süresi"
+    },
+    "components/monitor/supplier/RiskScore#LABELS": {
+        "ring": "Risk puanı 100 üzerinden {score}, seviye {level}",
+        "none": "Risk nedeni yok"
+    },
+    "components/monitor/supplier/SheetLists#LABELS": {
+        "documents": {
+            "search": "Belge ara",
+            "document": "Belge",
+            "mandatory": "Zorunlu",
+            "validity": "Geçerlilik",
+            "status": "Durum",
+            "entity": "Bağlı olduğu öğe",
+            "download": "İndir",
+            "empty": "Beklenen veya sağlanan belge yok",
+            "file": "tedarikci-belgeler",
+            "yes": "Evet",
+            "no": "Hayır"
+        },
+        "products": {
+            "search": "Ürün ara",
+            "product": "Ürün",
+            "code": "Kod",
+            "state": "Durum",
+            "completion": "Doluluk",
+            "modified": "Güncellendi",
+            "empty": "Bağlı ürün yok",
+            "file": "tedarikci-urunler"
+        },
+        "activity": {
+            "empty": "Kayıtlı yazışma yok",
+            "message": "Mesaj",
+            "activity": "Etkinlik"
+        },
+        "unavailable": "beCPG bu listeyi getiremedi: liste bu tedarikçi hakkında bir şey söylemiyor."
+    },
+    "components/monitor/supplier/StatusLadder#LABELS": {
+        "current": "Karşılanan kural",
+        "next": "Ardından",
+        "approvedWhen": "Onaylanma koşulu",
+        "approvedNow": "Tüm koşullar karşılandı",
+        "seeAll": "{count} öğenin tümünü gör",
+        "days": "{count} g",
+        "on": "{name} üzerinde",
+        "conditions": {
+            "documentExpired": "Süresi dolmuş zorunlu belge yok",
+            "blockingNc": "Engelleyici NC yok",
+            "documentExpiring": "Yenilenecek belge yok",
+            "openProject": "Açık proje yok",
+            "documentMissing": "Eksik zorunlu belge yok",
+            "blockingCatalog": "Engelleyici kataloglar karşılandı"
+        },
+        "met": "karşılandı",
+        "unmet": "karşılanmadı"
+    },
+    "components/monitor/supplier/SupplierBand#LABELS": {
+        "erp": "ERP {code}",
+        "risk": "Risk {level} · {score}",
+        "created": "Oluşturulma",
+        "lastActivity": "Son etkinlik",
+        "startProject": "Proje başlat",
+        "openInBecpg": "beCPG'de aç",
+        "since": "{count} gündür",
+        "approved": "askıya alma, yenileme veya bekleme kuralı uygulanmıyor.",
+        "actions": "Tedarikçi işlemleri",
+        "verdict": "{status}:"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "Uygunluk",
@@ -2588,7 +2634,6 @@ const LOCALE = {
         "openNc": "Açık NC'ler",
         "openProjects": "Açık projeler",
         "family": "Aile",
-        "buyer": "Satın almacı",
         "lastActivity": "Son etkinlik",
         "state": "Durum",
         "compliance": "Uygunluk (%)"

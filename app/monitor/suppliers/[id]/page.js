@@ -1,138 +1,98 @@
 'use client';
 
 /**
- * `/monitor/suppliers/[id]` — the steering sheet of one supplier
- * (spec §4.6.2, scorecard §4.6.4).
+ * `/monitor/suppliers/[id]` - the steering sheet of one supplier (spec §4.6.2).
  *
- * One call, `GET /api/v1/monitor/suppliers/{nodeRef}`, brings the whole sheet:
- * identity, the derived approval status **with the rows that caused it**, the
- * `pjt:scoreList` scorecard, the catalogue completeness, the documents with their
- * validity, the linked products, the sub-suppliers, the open campaigns and the
- * exchange history (`bcpg:activityList` merged with the forum thread Share
- * renders). A nodeRef outside the caller's perimeter answers 404 — never a leak.
+ * One call, `GET /api/v1/monitor/suppliers/{nodeRef}`, brings the sheet; the
+ * yearly activity comes apart from the decision module, so a slow cube never
+ * holds the sheet back. A nodeRef outside the caller's perimeter answers 404.
  *
- * ## What the screen adds
- *
- *  - **The status is explained, not asserted.** The approval status is derived and
- *    never persisted (spec §5.4.3), so the only honest way to show it is next to
- *    the offending rows: which mandatory document expired, which NC blocks, which
- *    campaign is still open. That block is the difference between "suspendu" and
- *    "suspendu parce que".
- *  - **The four actions of §4.6.2** — relancer, escalader, suspendre (through
- *    `POST /monitor/actions`, which reuses beCPG's own mechanisms) and *lancer un
- *    processus* (référencement, renouvellement, ouverture de NC…) through
- *    `POST /process/start`, restricted to the instance's `PORTAL_PROCESS_TEMPLATES`
- *    allow-list. A process that is not allow-listed is not offered, rather than
- *    failing on click.
- *  - **Honest degradation on history**: no cube, no curve (`HistoryUnavailable`).
+ * Laid out to answer three questions in order: why this status (the verdict and
+ * the rule ladder), how risky (the score and its reasons), and what is behind
+ * each figure (six counters, each opening the tab that lists its rows).
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { AppShell, PageHeader } from '@/components/shell/AppShell';
+import { AppShell } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
-import { GaugeBar } from '@/components/ui/Gauge';
-import { ConfirmModal } from '@/components/ui/Modal';
-import { Select } from '@/components/ui/Field';
-import { SkeletonCard, SkeletonText } from '@/components/ui/Skeleton';
-import { StatCard, StatGrid } from '@/components/ui/StatCard';
-import { StatusPill, resolveStatus } from '@/components/ui/StatusPill';
-import { ExpiryPill, ValidityRange } from '@/components/documents/ExpiryPill';
-import { formatDate, formatDateTime } from '@/lib/format';
-import {
-    MonitorActionButtons,
-    describeReason,
-    useMonitorActionCatalog,
-} from '@/components/monitor/RiskList';
-import { SupplierScorecard } from '@/components/monitor/SupplierScorecard';
+import { SkeletonCard } from '@/components/ui/Skeleton';
+import { StatCard } from '@/components/ui/StatCard';
+import { StatusPill } from '@/components/ui/StatusPill';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { RISK_LEVELS } from '@/components/monitor/RiskList';
+import { useListExport } from '@/components/ui/useListExport';
+import { CampaignList } from '@/components/monitor/CampaignList';
+import { NonConformityList } from '@/components/monitor/NonConformityList';
 import { StartCampaignDialog } from '@/components/monitor/StartCampaignDialog';
-import { useToast } from '@/components/providers/ToastProvider';
-import { api, apiUrl, routeParamId, useApi } from '@/lib/client';
+import { CockpitTabs } from '@/components/monitor/cockpit/CockpitTabs';
+import { SourcePill } from '@/components/monitor/cockpit/parts';
+import { SupplierBand } from '@/components/monitor/supplier/SupplierBand';
+import { StatusLadder } from '@/components/monitor/supplier/StatusLadder';
+import { RiskScore } from '@/components/monitor/supplier/RiskScore';
+import { ActivityChart, latestDelay } from '@/components/monitor/supplier/ActivityChart';
+import { ActivityTimeline, DocumentTable, ProductTable } from '@/components/monitor/supplier/SheetLists';
+import { routeParamId, useApi } from '@/lib/client';
+import { formatNumber } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
-import { DateText } from '@/components/ui/DateText';
 
 const LABELS = defineLabels('app/monitor/suppliers/[id]/page#LABELS', {
     fr: {
-        unavailable: {
-            title: 'Données indisponibles',
-            message: 'beCPG n’a pas pu fournir ce bloc : la liste vide ne dit rien de ce fournisseur.',
-        },
         back: 'Fournisseurs',
-        startCampaign: 'Démarrer un projet',
         notFound: 'Fournisseur introuvable',
-        notFoundHint:
-            'Ce fournisseur n’existe pas, ou il est hors de votre périmètre : le portail ne révèle jamais un nœud que vos droits beCPG ne couvrent pas.',
-        kpi: {
-            approval: 'Statut d’agrément',
-            completion: 'Complétude',
-            documents: 'Documents obligatoires',
+        notFoundHint: 'Ce fournisseur n’existe pas, ou il est hors de votre périmètre.',
+        tiles: {
+            label: 'Indicateurs du fournisseur',
             nc: 'NC bloquantes',
-            campaigns: 'Projets en cours',
+            ncHint: 'ouvertes',
+            projects: 'Projets ouverts',
+            projectsHint: '{count} sans réponse',
+            documents: 'Documents obligatoires',
+            documentsHint: '{expired} expiré(s) · {missing} manquant(s)',
+            documentsNone: 'aucun attendu',
+            products: 'Produits',
+            productsHint: 'rattachés',
+            delay: 'Délai de réponse',
+            delayHint: 'moyenne {period}',
+            delayNone: 'module décisionnel',
+            completion: 'Complétude',
+            completionHint: '{count} catalogue(s) actif(s)',
+            completionNone: 'aucun catalogue actif',
+            days: 'j',
         },
-        kpiHints: {
-            derived: 'Dérivé, jamais stocké',
-            documents: '{expired} expirés · {expiring} expirants · {missing} manquants',
-            completion: '{count} catalogue(s) actif(s)',
-            campaigns: '{late} en retard',
-            cached: 'statut mis en cache',
+        tabs: {
+            label: 'Fiche fournisseur',
+            overview: 'Vue d’ensemble',
+            nc: 'Non-conformités',
+            projects: 'Projets',
+            documents: 'Documents',
+            products: 'Produits',
+            history: 'Historique',
         },
-        why: {
-            title: 'Pourquoi ce statut',
-            subtitle: 'Les lignes qui décident du statut',
-            empty: 'Aucune anomalie : documents obligatoires valides, aucune NC bloquante, aucun catalogue bloquant.',
-            more: '… et {count} autre(s)',
-            entity: 'sur {name}',
-            priority: 'priorité {priority}',
-            catalog: 'Catalogue bloquant non satisfait',
+        status: 'Statut d’agrément',
+        statusHelp: 'Le statut est calculé à chaque affichage, jamais stocké : la première règle vérifiée l’emporte.',
+        risk: 'Score de risque',
+        riskHelp: 'Chaque motif ajoute son poids ; une occurrence de plus ajoute un bonus dégressif.',
+        riskFrom: 'à partir de {from}',
+        reasonNames: {
+            documentExpired: 'Document expiré',
+            blockingNc: 'NC bloquante',
+            campaignNoAnswer: 'Projet sans réponse',
+            scoreDropping: 'Score en baisse',
+            documentExpiring: 'Document expirant',
+            lateTask: 'Tâche en retard',
+            lowCompletion: 'Complétude faible',
+            documentMissing: 'Document manquant',
+            openNc: 'NC ouverte',
         },
-        documents: {
-            title: 'Documents',
-            subtitle: 'Documents attendus et dates de validité',
-            empty: 'Aucun document attendu ni fourni pour ce fournisseur',
-            mandatory: 'obligatoire',
-            download: 'Télécharger',
-            summary: '{satisfied}/{mandatory} obligatoires satisfaits · {total} documents',
-        },
-        products: {
-            title: 'Produits liés',
-            subtitle: 'Entités rattachées au fournisseur',
-            empty: 'Aucun produit rattaché',
-            emptyHint:
-                'Seuls les produits classés sous le fournisseur, ou rattachés à un de ses projets ou documents, sont trouvables : une entité liée par « Fournisseurs » et rangée ailleurs n’est pas indexée par Alfresco.',
-        },
-        subSuppliers: {
-            title: 'Sous-fournisseurs',
-            empty: 'Aucun sous-fournisseur déclaré',
-        },
-        projects: {
-            title: 'Projets en cours',
-            empty: 'Aucun projet ouvert',
-            manager: 'Pilote : {name}',
-            due: 'Échéance {date}',
-            late: 'En retard',
-            unanswered: 'Sans réponse depuis {days} j',
-        },
-        activity: {
-            title: 'Historique des échanges',
-            empty: 'Aucun échange enregistré',
-            message: 'Message',
-            activity: 'Activité',
-        },
-        process: {
-            title: 'Lancer un processus',
-            hint: 'Référencement, renouvellement, ouverture de NC… selon ce que l’instance autorise.',
-            none: 'Aucun processus n’est autorisé sur cette instance (PORTAL_PROCESS_TEMPLATES).',
-            launch: 'Lancer',
-            confirmTitle: 'Lancer « {process} » ?',
-            confirmMessage:
-                'Un projet beCPG va être créé pour ce fournisseur à partir du modèle autorisé. Un processus démarré ne peut pas être annulé depuis le portail.',
-            started: 'Processus démarré.',
-        },
-        identity: {
+        activity: 'Activité et réactivité',
+        activityHelp: 'Tâches confiées au fournisseur et délai de réponse moyen, par année, lus dans le module décisionnel.',
+        identity: 'Identité',
+        identityRows: {
             code: 'Code',
             erpCode: 'Code ERP',
             legalName: 'Raison sociale',
@@ -141,91 +101,70 @@ const LABELS = defineLabels('app/monitor/suppliers/[id]/page#LABELS', {
             subFamily: 'Sous-famille',
             sites: 'Sites',
             subsidiaries: 'Filiales',
-            buyer: 'Acheteur référent',
-            email: 'Contact',
-            lastActivity: 'Dernière activité',
             parent: 'Fournisseur parent',
-            none: '—',
+            subSuppliers: 'Sous-fournisseurs',
+            catalogs: 'Catalogues actifs',
         },
-        generatedAt: 'Données au {time}',
+        scorecard: 'Notation',
+        scorecardHelp: 'Moyenne pondérée des critères notés sur les derniers projets du fournisseur.',
+        allNc: 'Toutes ses NC',
+        exchanges: 'Échanges',
+        ncFile: 'nc-fournisseur',
+        projectsFile: 'projets-fournisseur',
+        none: '—',
     },
     en: {
-        unavailable: {
-            title: 'Data unavailable',
-            message: 'beCPG could not return this block: the empty list says nothing about this supplier.',
-        },
         back: 'Suppliers',
-        startCampaign: 'Start a project',
         notFound: 'Supplier not found',
-        notFoundHint:
-            'This supplier does not exist, or it is outside your perimeter: the portal never discloses a node your beCPG rights do not cover.',
-        kpi: {
-            approval: 'Approval status',
-            completion: 'Completeness',
-            documents: 'Mandatory documents',
+        notFoundHint: 'This supplier does not exist, or it is outside your perimeter.',
+        tiles: {
+            label: 'Supplier indicators',
             nc: 'Blocking NCs',
-            campaigns: 'Open projects',
+            ncHint: 'open',
+            projects: 'Open projects',
+            projectsHint: '{count} without answer',
+            documents: 'Mandatory documents',
+            documentsHint: '{expired} expired · {missing} missing',
+            documentsNone: 'none expected',
+            products: 'Products',
+            productsHint: 'linked',
+            delay: 'Response delay',
+            delayHint: '{period} mean',
+            delayNone: 'decision module',
+            completion: 'Completeness',
+            completionHint: '{count} active catalog(s)',
+            completionNone: 'no active catalog',
+            days: 'd',
         },
-        kpiHints: {
-            derived: 'Derived, never stored',
-            documents: '{expired} expired · {expiring} expiring · {missing} missing',
-            completion: '{count} active catalog(s)',
-            campaigns: '{late} late',
-            cached: 'status served from cache',
+        tabs: {
+            label: 'Supplier sheet',
+            overview: 'Overview',
+            nc: 'Non-conformities',
+            projects: 'Projects',
+            documents: 'Documents',
+            products: 'Products',
+            history: 'History',
         },
-        why: {
-            title: 'Why this status',
-            subtitle: 'The rows that decide the status',
-            empty: 'No anomaly: mandatory documents valid, no blocking NC, no blocking catalog.',
-            more: '… and {count} more',
-            entity: 'on {name}',
-            priority: 'priority {priority}',
-            catalog: 'Blocking catalog unsatisfied',
+        status: 'Approval status',
+        statusHelp: 'The status is derived on every view, never stored: the first rule met wins.',
+        risk: 'Risk score',
+        riskHelp: 'Each reason adds its weight; a further occurrence adds a decreasing bonus.',
+        riskFrom: 'from {from}',
+        reasonNames: {
+            documentExpired: 'Expired document',
+            blockingNc: 'Blocking NC',
+            campaignNoAnswer: 'Project without answer',
+            scoreDropping: 'Score dropping',
+            documentExpiring: 'Expiring document',
+            lateTask: 'Late task',
+            lowCompletion: 'Low completeness',
+            documentMissing: 'Missing document',
+            openNc: 'Open NC',
         },
-        documents: {
-            title: 'Documents',
-            subtitle: 'Expected documents and validity dates',
-            empty: 'No document expected or provided for this supplier',
-            mandatory: 'mandatory',
-            download: 'Download',
-            summary: '{satisfied}/{mandatory} mandatory satisfied · {total} documents',
-        },
-        products: {
-            title: 'Linked products',
-            subtitle: 'Entities attached to the supplier',
-            empty: 'No linked product',
-            emptyHint:
-                'Only products filed under the supplier, or attached to one of its projects or documents, can be found: an entity linked by "Suppliers" and filed elsewhere is not indexed by Alfresco.',
-        },
-        subSuppliers: {
-            title: 'Sub-suppliers',
-            empty: 'No sub-supplier declared',
-        },
-        projects: {
-            title: 'Open projects',
-            empty: 'No open project',
-            manager: 'Manager: {name}',
-            due: 'Due {date}',
-            late: 'Late',
-            unanswered: 'No answer for {days} days',
-        },
-        activity: {
-            title: 'Exchange history',
-            empty: 'No exchange recorded',
-            message: 'Message',
-            activity: 'Activity',
-        },
-        process: {
-            title: 'Start a process',
-            hint: 'Referencing, renewal, opening an NC… depending on what the instance allows.',
-            none: 'No process is allowed on this instance (PORTAL_PROCESS_TEMPLATES).',
-            launch: 'Start',
-            confirmTitle: 'Start "{process}"?',
-            confirmMessage:
-                'A beCPG project will be created for this supplier from the allow-listed template. A started process cannot be cancelled from the portal.',
-            started: 'Process started.',
-        },
-        identity: {
+        activity: 'Activity and responsiveness',
+        activityHelp: 'Tasks given to the supplier and mean response delay, per year, read from the decision module.',
+        identity: 'Identity',
+        identityRows: {
             code: 'Code',
             erpCode: 'ERP code',
             legalName: 'Legal name',
@@ -234,324 +173,323 @@ const LABELS = defineLabels('app/monitor/suppliers/[id]/page#LABELS', {
             subFamily: 'Sub-family',
             sites: 'Sites',
             subsidiaries: 'Subsidiaries',
-            buyer: 'Referring buyer',
-            email: 'Contact',
-            lastActivity: 'Last activity',
             parent: 'Parent supplier',
-            none: '—',
+            subSuppliers: 'Sub-suppliers',
+            catalogs: 'Active catalogs',
         },
-        generatedAt: 'Data as of {time}',
+        scorecard: 'Scorecard',
+        scorecardHelp: 'Weighted mean of the criteria scored on the supplier’s latest projects.',
+        allNc: 'All its NCs',
+        exchanges: 'Exchanges',
+        ncFile: 'supplier-ncs',
+        projectsFile: 'supplier-projects',
+        none: '—',
     },
 });
 
-/** Rows of one reason shown before folding the rest behind a counter. */
-const DETAIL_PREVIEW = 5;
-
-/** Reason code → the `details` key of the approval adapter. */
-const DETAIL_KEYS = Object.freeze([
-    'documentExpired',
-    'documentExpiring',
-    'documentMissing',
-    'blockingNc',
-    'openProject',
-]);
-
 function fill(template, vars) {
-    return String(template).replace(/\{(\w+)\}/g, (match, key) =>
-        vars[key] === undefined || vars[key] === null ? match : String(vars[key]));
+    return String(template).replace(/\{(\w+)\}/g, (match, key) => (vars[key] ?? match));
 }
 
-/**
- * The approval status spelled out, in the reader's language.
- *
- * `statusLabel` only carries something when the tenant relabelled the status;
- * otherwise the wording comes from the portal vocabulary, the very one
- * `StatusPill` renders, so the tile and the pill beside it never disagree.
- *
- * @param {{status: string, statusLabel: ?string}|null} approval
- * @param {(key: string) => string} t
- * @returns {string}
- */
-function approvalLabel(approval, t) {
-    if (!approval) {
-        return '—';
+/** A tab label with its count, the count also spoken. */
+function TabBadge({ count, tone = 'neutral' }) {
+    if (typeof count !== 'number') {
+        return null;
     }
-    const { messageKey } = resolveStatus(approval.status);
-    return approval.statusLabel || (messageKey ? t(messageKey) : approval.status);
-}
-
-/** Tone of the approval status, for the KPI tile. */
-function approvalTone(status) {
-    if (status === 'suspended') {
-        return 'danger';
-    }
-    if (status === 'toRenew') {
-        return 'warn';
-    }
-    if (status === 'inProgress') {
-        return 'info';
-    }
-    return 'ok';
-}
-
-/** A definition row of the identity card. */
-function Definition({ label, children }) {
     return (
-        <div className="min-w-0">
-            <dt className="text-[11px] uppercase tracking-wide text-[var(--becpg-dark-grey)]">{label}</dt>
-            <dd className="min-w-0 break-words text-sm">{children}</dd>
+        <span className={`ms-0.5 rounded-full px-1.5 text-[11px] leading-[18px] tabular-nums ${
+            tone === 'danger' && count > 0
+                ? 'bg-[var(--status-danger-bg)] text-[var(--status-danger)]'
+                : 'bg-[var(--becpg-grey)] text-[var(--becpg-ink)]'
+        }`}
+        >
+            {count}
+        </span>
+    );
+}
+
+function CardTitle({ title, help }) {
+    return (
+        <span className="flex items-center gap-1.5">
+            {title}
+            {help ? <Tooltip content={help} label={title} maxWidth={320} /> : null}
+        </span>
+    );
+}
+
+/** How the risk score is built, from the weights and thresholds the server used. */
+function RiskHelp({ risk, local, lang }) {
+    const weights = Object.entries(risk?.weights || {})
+        .filter(([code, weight]) => weight > 0 && local.reasonNames[code])
+        .sort(([, a], [, b]) => b - a);
+    const levels = (risk?.levels || []).filter((entry) => entry.from > 0 && RISK_LEVELS[entry.level]);
+    return (
+        <span className="flex flex-col gap-1.5">
+            <span>{local.riskHelp}</span>
+            <span className="grid grid-cols-[1fr_auto] gap-x-3">
+                {weights.map(([code, weight]) => (
+                    <span key={code} className="contents">
+                        <span>{local.reasonNames[code]}</span>
+                        <span className="text-end tabular-nums">{weight}</span>
+                    </span>
+                ))}
+            </span>
+            <span>
+                {levels.map((entry) => `${pickLabels(RISK_LEVELS[entry.level], lang)} ${fill(local.riskFrom, { from: entry.from })}`).join(' · ')}
+            </span>
+        </span>
+    );
+}
+
+function Tiles({ sheet, history, local, lang, onOpen }) {
+    const tiles = local.tiles;
+    const metrics = sheet.approval.metrics || {};
+    const summary = sheet.documents.summary;
+    const delay = latestDelay(history.data);
+    const catalogs = sheet.completion?.catalogs || [];
+    const unanswered = sheet.projects.filter((row) => row.unanswered).length;
+    const expired = metrics.documentsExpired || 0;
+    const missing = metrics.documentsMissing || 0;
+    const mandatory = summary?.mandatory || 0;
+    const blocking = sheet.nonConformities.length;
+
+    return (
+        <div role="group" aria-label={tiles.label} className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+            <StatCard index={0} label={tiles.nc} value={blocking} icon="report_problem" tone={blocking > 0 ? 'danger' : 'ok'} hint={tiles.ncHint} onClick={() => onOpen('nc')} />
+            <StatCard
+                index={1}
+                label={tiles.projects}
+                value={sheet.projects.length}
+                icon="campaign"
+                tone={unanswered > 0 ? 'warn' : 'info'}
+                hint={fill(tiles.projectsHint, { count: unanswered })}
+                onClick={() => onOpen('projects')}
+            />
+            <StatCard
+                index={2}
+                label={tiles.documents}
+                value={mandatory > 0 ? `${summary.mandatorySatisfied || 0}/${mandatory}` : 0}
+                icon="fact_check"
+                tone={expired > 0 ? 'danger' : missing > 0 ? 'warn' : 'ok'}
+                hint={mandatory > 0 ? fill(tiles.documentsHint, { expired, missing }) : tiles.documentsNone}
+                onClick={() => onOpen('documents')}
+            />
+            <StatCard index={3} label={tiles.products} value={sheet.products.length} icon="inventory_2" tone="info" hint={tiles.productsHint} onClick={() => onOpen('products')} />
+            <StatCard
+                index={4}
+                label={tiles.delay}
+                value={delay ? formatNumber(delay.value, lang, { maximumFractionDigits: 0 }) : '—'}
+                unit={delay ? tiles.days : undefined}
+                icon="schedule"
+                tone="neutral"
+                loading={history.loading}
+                hint={delay ? fill(tiles.delayHint, { period: delay.label }) : tiles.delayNone}
+                onClick={() => onOpen('history')}
+            />
+            <StatCard
+                index={5}
+                label={tiles.completion}
+                value={typeof sheet.completion?.score === 'number' ? sheet.completion.score : '—'}
+                unit={typeof sheet.completion?.score === 'number' ? '%' : undefined}
+                icon="donut_large"
+                tone="info"
+                hint={catalogs.length > 0 ? fill(tiles.completionHint, { count: catalogs.length }) : tiles.completionNone}
+                onClick={() => onOpen('overview')}
+            />
         </div>
     );
 }
 
-/**
- * *Pourquoi ce statut* — the derived status next to the rows that caused it.
- */
-function ApprovalReasons({ approval, local, lang }) {
-    const details = (approval && approval.details) || {};
-    const blockingCatalogs = Array.isArray(details.blockingCatalog) ? details.blockingCatalog : [];
-    const groups = DETAIL_KEYS
-        .map((code) => ({ code, rows: Array.isArray(details[code]) ? details[code] : [] }))
-        .filter((group) => group.rows.length > 0);
+function labelsOf(entries) {
+    return (entries || []).map((entry) => entry?.label || entry?.name).filter(Boolean).join(', ');
+}
 
-    if (groups.length === 0 && blockingCatalogs.length === 0) {
-        return <EmptyState compact variant="success" title={local.why.empty} />;
-    }
-
+function IdentityCard({ sheet, local }) {
+    const { supplier } = sheet;
+    const rows = local.identityRows;
+    const definitions = [
+        [rows.code, supplier.code],
+        [rows.erpCode, supplier.erpCode],
+        [rows.legalName, supplier.legalName !== supplier.name ? supplier.legalName : null],
+        [rows.state, supplier.state ? <StatusPill status={supplier.state} size="sm" /> : null],
+        [rows.family, supplier.family?.label],
+        [rows.subFamily, supplier.subFamily?.label],
+        [rows.sites, labelsOf(supplier.sites)],
+        [rows.subsidiaries, labelsOf(supplier.subsidiaries)],
+        [rows.parent, supplier.parent?.label],
+        [rows.subSuppliers, sheet.subSuppliers.length > 0 ? (
+            <span className="flex flex-col">
+                {sheet.subSuppliers.map((entry) => (
+                    <Link key={entry.nodeRef} href={`/monitor/suppliers/${encodeURIComponent(entry.nodeRef)}`} className="text-[var(--becpg-blue)] hover:underline">
+                        {entry.name}
+                    </Link>
+                ))}
+            </span>
+        ) : null],
+        [rows.catalogs, labelsOf(sheet.completion?.catalogs)],
+    ];
     return (
-        <ul className="flex flex-col gap-3">
-            {groups.map((group) => {
-                const described = describeReason({ code: group.code, count: group.rows.length }, lang);
-                return (
-                    <li key={group.code}>
-                        <span className={`pill pill-sm pill-no-dot pill-${described ? described.tone : 'neutral'}`}>
-                            {described ? <Icon name={described.icon} size={13} /> : null}
-                            <span>{described ? described.label : group.code}</span>
-                        </span>
-                        <ul className="mt-1.5 flex flex-col gap-1 ps-1">
-                            {group.rows.slice(0, DETAIL_PREVIEW).map((row) => (
-                                <li key={row.nodeRef} className="flex flex-wrap items-baseline gap-1.5 text-xs">
-                                    <span className="font-medium">{row.name}</span>
-                                    {row.entity ? (
-                                        <span className="text-[var(--becpg-dark-grey)]">
-                                            {fill(local.why.entity, { name: row.entity.name })}
-                                        </span>
-                                    ) : null}
-                                    {row.validTo ? (
-                                        <span className="text-[var(--becpg-dark-grey)]">
-                                            <DateText value={row.validTo} lang={lang} />
-                                        </span>
-                                    ) : null}
-                                    {row.priority !== undefined && row.priority !== null ? (
-                                        <span className="text-[var(--becpg-dark-grey)]">
-                                            {fill(local.why.priority, { priority: row.priority })}
-                                        </span>
-                                    ) : null}
-                                    {row.state ? (
-                                        <StatusPill status={row.state} size="sm" />
-                                    ) : null}
-                                </li>
-                            ))}
-                            {group.rows.length > DETAIL_PREVIEW ? (
-                                <li className="text-xs text-[var(--becpg-dark-grey)]">
-                                    {fill(local.why.more, { count: group.rows.length - DETAIL_PREVIEW })}
-                                </li>
-                            ) : null}
-                        </ul>
-                    </li>
-                );
-            })}
+        <Card title={local.identity} icon="badge" animate={false} className="col-span-12 xl:col-span-4">
+            <dl className="grid grid-cols-[minmax(7rem,9rem)_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-sm">
+                {definitions.map(([term, value]) => (
+                    <div key={term} className="contents">
+                        <dt className="text-[var(--becpg-muted)]">{term}</dt>
+                        <dd className={value ? 'min-w-0 break-words font-medium' : 'text-[var(--becpg-muted)]'}>{value || local.none}</dd>
+                    </div>
+                ))}
+            </dl>
+        </Card>
+    );
+}
 
-            {blockingCatalogs.length > 0 ? (
-                <li>
-                    <span className="pill pill-warn pill-sm pill-no-dot">
-                        <Icon name="rule" size={13} />
-                        <span>{local.why.catalog}</span>
-                    </span>
-                    <ul className="mt-1.5 flex flex-col gap-1 ps-1 text-xs">
-                        {blockingCatalogs.map((catalog, index) => (
-                            <li key={catalog.id || catalog.label || index}>
-                                {catalog.label || catalog.id}
-                                {typeof catalog.score === 'number' ? (
-                                    <span className="text-[var(--becpg-dark-grey)]"> — {catalog.score} %</span>
-                                ) : null}
-                            </li>
-                        ))}
-                    </ul>
-                </li>
+function ScorecardCard({ scorecard, local, lang }) {
+    if (!scorecard?.available) {
+        return null;
+    }
+    const scored = scorecard.criteria.filter((entry) => entry.score !== null);
+    return (
+        <Card
+            title={<CardTitle title={local.scorecard} help={local.scorecardHelp} />}
+            icon="grading"
+            animate={false}
+            className="col-span-12"
+            actions={typeof scorecard.score === 'number' ? (
+                <span className="text-2xl font-light tabular-nums">{formatNumber(scorecard.score, lang)}</span>
             ) : null}
-        </ul>
+        >
+            <ul className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 xl:grid-cols-3">
+                {scored.map((entry) => (
+                    <li key={entry.nodeRef} className="flex items-center gap-2 text-sm">
+                        <span className="min-w-0 flex-1 truncate" title={entry.criterion}>{entry.criterion}</span>
+                        <span className="tabular-nums font-medium">{formatNumber(entry.score, lang)}</span>
+                    </li>
+                ))}
+            </ul>
+        </Card>
     );
 }
 
-/**
- * The empty state of a sheet block — or, when the API says the block could not
- * be read (`blocks.<name>.available === false`), an error state with a retry, so
- * "nothing to show" is never mistaken for "this supplier has nothing".
- *
- * @param {Object} props
- * @param {{available: boolean}} [props.block] the block's availability
- * @param {string} props.title empty-state title
- * @param {string} [props.message] empty-state message
- * @param {Object} props.unavailable `{ title, message }` labels
- * @param {Function} props.onRetry reloads the sheet
- */
-function BlockEmpty({ block, title, message, unavailable, onRetry }) {
-    const { t } = useMessages();
-    if (block && block.available === false) {
-        return (
-            <EmptyState
-                compact
-                variant="error"
-                title={unavailable.title}
-                message={unavailable.message}
-                actionLabel={t('action.retry')}
-                onAction={onRetry}
-            />
-        );
-    }
-    return <EmptyState compact title={title} message={message} />;
-}
-
-/**
- * *Lancer un processus* — `POST /api/v1/process/start`, restricted to the
- * instance's allow-list. Starting a project cannot be undone from the portal, so
- * it goes through a confirmation that says exactly that.
- *
- * ## The list comes from the endpoint it posts to
- *
- * It used to come from `useMonitorActionCatalog()`, i.e. from
- * `GET /api/v1/monitor/actions` — which lists the **suspension** processes, and
- * those are deliberately pinned to `PORTAL_PROCESS_TEMPLATES` because beCPG
- * ships no marker for a suspension template (see that route's header). The
- * launcher started a *referencing* process, whose templates are **discovered**.
- *
- * Two lists, one of them consulted and the other used. Measured on
- * the deployed portal: `GET /api/v1/process/start` answered one discovered template
- * while the panel displayed "aucun processus n'est autorisé sur cette instance
- * (PORTAL_PROCESS_TEMPLATES)" — naming a variable that governs a different
- * action. Asking the endpoint that will serve the request is the only way the
- * two cannot drift.
- */
-function ProcessLauncher({ supplierRef, local, onDone }) {
-    const catalog = useApi('process/start');
-    const toast = useToast();
-    const [process, setProcess] = useState('');
-    const [confirming, setConfirming] = useState(false);
-    const processes = useMemo(
-        () => (catalog.data && Array.isArray(catalog.data.processes) ? catalog.data.processes : []),
-        [catalog.data],
-    );
-    const selected = process || (processes[0] && processes[0].id) || '';
-
-    const launch = useCallback(async () => {
-        try {
-            await api.post('process/start', { process: selected, entityNodeRef: supplierRef });
-            toast.success(local.process.started);
-            if (onDone) {
-                onDone();
-            }
-        }
-        catch (error) {
-            toast.error(error);
-        }
-    }, [selected, supplierRef, toast, local, onDone]);
-
-    if (catalog.loading) {
-        return <SkeletonText lines={2} />;
-    }
-    // A failed catalogue read is not « no process configured »: that would send
-    // the reader to fix a configuration that is fine.
-    if (catalog.error) {
-        return <ErrorState error={catalog.error} onRetry={catalog.refresh} compact />;
-    }
-    if (processes.length === 0) {
-        return <p className="text-xs text-[var(--becpg-dark-grey)]">{local.process.none}</p>;
-    }
-
+function Overview({ sheet, history, local, lang, onOpen }) {
     return (
-        <>
-            <p className="mb-2 text-xs text-[var(--becpg-dark-grey)]">{local.process.hint}</p>
-            <div className="flex flex-wrap items-center gap-2">
-                <Select
-                    aria-label={local.process.title}
-                    className="min-w-[12rem]"
-                    value={selected}
-                    onChange={(event) => setProcess(event.target.value)}
-                    // The discovered templates carry a real label — beCPG's own
-                    // project template name — where the pinned list only had ids.
-                    options={processes.map((entry) => ({
-                        value: entry.id,
-                        label: entry.label || entry.name || entry.id,
-                    }))}
+        <div className="grid grid-cols-12 gap-4">
+            <Card title={<CardTitle title={local.status} help={local.statusHelp} />} icon="rule" animate={false} className="col-span-12 xl:col-span-7">
+                <StatusLadder
+                    approval={sheet.approval}
+                    nonConformities={sheet.nonConformities}
+                    projects={sheet.projects}
+                    onOpenTab={onOpen}
                 />
-                <Button variant="primary" size="sm" icon="play_arrow" onClick={() => setConfirming(true)}>
-                    {local.process.launch}
-                </Button>
-            </div>
-            <ConfirmModal
-                open={confirming}
-                onClose={() => setConfirming(false)}
-                onConfirm={launch}
-                tone="danger"
-                title={fill(local.process.confirmTitle, { process: selected })}
-                message={local.process.confirmMessage}
-                confirmLabel={local.process.launch}
-            />
-        </>
+            </Card>
+            <Card title={<CardTitle title={local.risk} help={<RiskHelp risk={sheet.risk} local={local} lang={lang} />} />} icon="trending_up" animate={false} className="col-span-12 xl:col-span-5">
+                <RiskScore risk={sheet.risk} />
+            </Card>
+            <Card
+                title={<CardTitle title={local.activity} help={local.activityHelp} />}
+                icon="show_chart"
+                animate={false}
+                className="col-span-12 xl:col-span-8"
+                actions={<SourcePill />}
+            >
+                {history.loading ? <SkeletonCard lines={4} /> : <ActivityChart history={history.data} />}
+            </Card>
+            <IdentityCard sheet={sheet} local={local} />
+            <ScorecardCard scorecard={sheet.scorecard} local={local} lang={lang} />
+        </div>
     );
+}
+
+function SheetTabs({ sheet, history, local, lang, active, onOpen, onRefresh }) {
+    const ncExport = useListExport({ rows: sheet.nonConformities, filename: local.ncFile });
+    const projectExport = useListExport({ rows: sheet.projects, filename: local.projectsFile });
+    const activityBlock = sheet.blocks.activity?.available === false || sheet.blocks.comments?.available === false
+        ? { available: false }
+        : sheet.blocks.activity;
+
+    const tabs = [
+        { id: 'overview', label: local.tabs.overview, icon: 'dashboard', render: () => <Overview sheet={sheet} history={history} local={local} lang={lang} onOpen={onOpen} /> },
+        {
+            id: 'nc',
+            label: local.tabs.nc,
+            icon: 'report_problem',
+            badge: <TabBadge count={sheet.nonConformities.length} tone="danger" />,
+            render: () => (
+                <NonConformityList
+                    items={sheet.nonConformities}
+                    onExport={ncExport.onExport}
+                    exporting={ncExport.exporting}
+                    actions={(
+                        <Button variant="outline" size="sm" icon="open_in_new" href={`/monitor/quality?q=${encodeURIComponent(sheet.supplier.name)}&includeClosed=true`}>
+                            {local.allNc}
+                        </Button>
+                    )}
+                />
+            ),
+        },
+        {
+            id: 'projects',
+            label: local.tabs.projects,
+            icon: 'campaign',
+            badge: <TabBadge count={sheet.projects.length} />,
+            render: () => <CampaignList items={sheet.projects} onExport={projectExport.onExport} exporting={projectExport.exporting} />,
+        },
+        {
+            id: 'documents',
+            label: local.tabs.documents,
+            icon: 'fact_check',
+            badge: <TabBadge count={sheet.documents.items.length} />,
+            render: () => <DocumentTable items={sheet.documents.items} block={sheet.blocks.documents} onRetry={onRefresh} />,
+        },
+        {
+            id: 'products',
+            label: local.tabs.products,
+            icon: 'inventory_2',
+            badge: <TabBadge count={sheet.products.length} />,
+            render: () => <ProductTable items={sheet.products} block={sheet.blocks.products} onRetry={onRefresh} />,
+        },
+        {
+            id: 'history',
+            label: local.tabs.history,
+            icon: 'history',
+            render: () => (
+                <div className="grid grid-cols-12 gap-4">
+                    <Card title={<CardTitle title={local.activity} help={local.activityHelp} />} icon="show_chart" animate={false} className="col-span-12 xl:col-span-7" actions={<SourcePill />}>
+                        {history.loading ? <SkeletonCard lines={4} /> : <ActivityChart history={history.data} />}
+                    </Card>
+                    <Card title={local.exchanges} icon="forum" animate={false} className="col-span-12 xl:col-span-5">
+                        <ActivityTimeline items={sheet.activity} block={activityBlock} onRetry={onRefresh} />
+                    </Card>
+                </div>
+            ),
+        },
+    ];
+    return <CockpitTabs tabs={tabs} label={local.tabs.label} active={active} onSelect={onOpen} storageKey={null} />;
 }
 
 /**
  * @returns {JSX.Element}
  */
 export default function MonitorSupplierSheetPage() {
-    const { lang, t } = useMessages();
+    const { lang } = useMessages();
     const local = pickLabels(LABELS, lang);
-    const params = useParams();
-    // Decoded once here, encoded at each call site — see `routeParamId`.
-    const id = routeParamId(params.id);
-
+    const id = routeParamId(useParams().id);
     const sheet = useApi(id ? `monitor/suppliers/${encodeURIComponent(id)}` : null);
+    const history = useApi(id ? 'monitor/history' : null, { params: { series: 'taskTrend', supplier: id } });
+    const [tab, setTab] = useState('overview');
+    const [startingProject, setStartingProject] = useState(false);
     const data = sheet.data;
 
-    const supplier = (data && data.supplier) || null;
-    const [startingCampaign, setStartingCampaign] = useState(false);
-    const approval = (data && data.approval) || null;
-    const documents = (data && data.documents) || { items: [], summary: null };
-    const projects = (data && data.projects) || [];
-    const blocks = (data && data.blocks) || {};
-    // Activity merges two sources: an empty timeline is a fact only if both were read.
-    const activityBlock = blocks.activity?.available === false || blocks.comments?.available === false
-        ? { available: false }
-        : blocks.activity;
-    const identity = local.identity;
-
-    const target = useMemo(
-        () =>
-            supplier
-                ? [{
-                    nodeRef: supplier.nodeRef,
-                    name: supplier.name,
-                    code: supplier.code,
-                    risk: { reasons: (approval ? approval.reasons : []).map((code) => ({ code, count: 1 })) },
-                }]
-                : [],
-        [supplier, approval],
+    const back = (
+        <Link href="/monitor/suppliers" className="inline-flex items-center gap-1 text-[var(--becpg-blue-light)] hover:text-[var(--becpg-orange-deep)]">
+            <Icon name="chevron_left" size={14} />
+            {local.back}
+        </Link>
     );
 
     if (sheet.error) {
         return (
-            <AppShell space="monitor" title={local.back}>
+            <AppShell space="monitor" title={local.back} breadcrumb={back}>
                 {sheet.error.isNotFound ? (
-                    <EmptyState
-                        variant="error"
-                        icon="person_off"
-                        title={local.notFound}
-                        message={local.notFoundHint}
-                        actionLabel={local.back}
-                        actionHref="/monitor/suppliers"
-                    />
+                    <EmptyState variant="error" icon="person_off" title={local.notFound} message={local.notFoundHint} actionLabel={local.back} actionHref="/monitor/suppliers" />
                 ) : (
                     <ErrorState error={sheet.error} onRetry={sheet.refresh} />
                 )}
@@ -559,556 +497,32 @@ export default function MonitorSupplierSheetPage() {
         );
     }
 
+    const openTab = (next) => {
+        setTab(next);
+        document.getElementById('supplier-sheet-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
     return (
-        <AppShell ownHeading
-            fullWidth
-            space="monitor"
-            title={supplier ? supplier.name : local.back}
-            headerStatus={
-                approval ? (
-                    <StatusPill status={approval.status} label={approval.statusLabel} size="sm" />
-                ) : null
-            }
-            breadcrumb={
-                <Link
-                    href="/monitor/suppliers"
-                    className="inline-flex items-center gap-1 text-[var(--becpg-blue-light)] hover:text-[var(--becpg-orange)]"
-                >
-                    <Icon name="chevron_left" size={14} />
-                    {local.back}
-                </Link>
-            }
-            actions={
-                <div className="flex items-center gap-2">
-                    {supplier ? (
-                        <Button
-                            size="sm"
-                            icon="rocket_launch"
-                            onClick={() => setStartingCampaign(true)}
-                        >
-                            {local.startCampaign}
-                        </Button>
-                    ) : null}
-                </div>
-            }
-        >
-            {/* Le fournisseur est connu : la boîte ne demande plus que le
-                périmètre — tous ses produits, ou l'un d'eux. */}
-            <StartCampaignDialog
-                open={startingCampaign}
-                onClose={() => setStartingCampaign(false)}
-                supplier={supplier ? { nodeRef: supplier.nodeRef, name: supplier.name } : null}
-                onStarted={sheet.refresh}
-            />
+        <AppShell ownHeading fullWidth space="monitor" title={data?.supplier?.name || local.back} breadcrumb={back}>
             {!data ? (
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-4">
                     <SkeletonCard lines={3} />
-                    <StatGrid columns={4}>
-                        {Array.from({ length: 4 }, (_, index) => (
-                            <SkeletonCard key={index} lines={2} />
-                        ))}
-                    </StatGrid>
+                    <SkeletonCard lines={2} />
                     <SkeletonCard lines={6} />
                 </div>
             ) : (
                 <>
-                    <PageHeader
-                        title={
-                            <span className="flex flex-wrap items-baseline gap-2">
-                                <span>{supplier.name}</span>
-                                {supplier.code ? (
-                                    <span className="text-sm font-normal text-[var(--becpg-dark-grey)]">
-                                        {supplier.code}
-                                    </span>
-                                ) : null}
-                            </span>
-                        }
-                        meta={
-                            <span className="flex flex-wrap items-center gap-2">
-                                {supplier.legalName && supplier.legalName !== supplier.name
-                                    ? supplier.legalName
-                                    : null}
-                                {supplier.state ? <StatusPill status={supplier.state} size="sm" /> : null}
-                                <span className="text-[11px]">
-                                    {fill(local.generatedAt, {
-                                        time: formatDateTime(data.generatedAt, lang) || '—',
-                                    })}
-                                </span>
-                            </span>
-                        }
-                        actions={
-                            <MonitorActionButtons
-                                targets={target}
-                                allowed={data.actions}
-                                size="md"
-                                onDone={sheet.refresh}
-                            />
-                        }
+                    <SupplierBand sheet={data} onStartProject={() => setStartingProject(true)} onDone={sheet.refresh} />
+                    <Tiles sheet={data} history={history} local={local} lang={lang} onOpen={openTab} />
+                    <div id="supplier-sheet-tabs" className="scroll-mt-4">
+                        <SheetTabs sheet={data} history={history} local={local} lang={lang} active={tab} onOpen={setTab} onRefresh={sheet.refresh} />
+                    </div>
+                    <StartCampaignDialog
+                        open={startingProject}
+                        onClose={() => setStartingProject(false)}
+                        supplier={{ nodeRef: data.supplier.nodeRef, name: data.supplier.name }}
+                        onStarted={sheet.refresh}
                     />
-
-                    {/* ------------------------------------------------ KPI row */}
-                    <StatGrid columns={4} className="mb-4">
-                        <StatCard
-                            index={0}
-                            label={local.kpi.approval}
-                            value={approvalLabel(approval, t)}
-                            icon="verified_user"
-                            tone={approvalTone(approval && approval.status)}
-                            hint={
-                                approval && approval.cached
-                                    ? `${local.kpiHints.derived} · ${local.kpiHints.cached}`
-                                    : local.kpiHints.derived
-                            }
-                        />
-                        <StatCard
-                            index={1}
-                            label={local.kpi.completion}
-                            value={
-                                data.completion && typeof data.completion.score === 'number'
-                                    ? data.completion.score
-                                    : '—'
-                            }
-                            unit={
-                                data.completion && typeof data.completion.score === 'number' ? '%' : undefined
-                            }
-                            icon="donut_large"
-                            tone="info"
-                            hint={fill(local.kpiHints.completion, {
-                                count: ((data.completion && data.completion.catalogs) || []).length,
-                            })}
-                        >
-                            <GaugeBar
-                                value={data.completion ? data.completion.score : null}
-                                size="sm"
-                                showValue={false}
-                                ariaLabel={local.kpi.completion}
-                            />
-                        </StatCard>
-                        <StatCard
-                            index={2}
-                            label={local.kpi.documents}
-                            value={documents.summary ? documents.summary.mandatory || 0 : 0}
-                            icon="fact_check"
-                            tone={
-                                approval && approval.metrics && approval.metrics.documentsExpired > 0
-                                    ? 'danger'
-                                    : approval && approval.metrics && approval.metrics.documentsMissing > 0
-                                      ? 'warn'
-                                      : 'ok'
-                            }
-                            hint={fill(local.kpiHints.documents, {
-                                expired: (approval && approval.metrics && approval.metrics.documentsExpired) || 0,
-                                expiring:
-                                    (approval && approval.metrics && approval.metrics.documentsExpiring) || 0,
-                                missing: (approval && approval.metrics && approval.metrics.documentsMissing) || 0,
-                            })}
-                        />
-                        <StatCard
-                            index={3}
-                            label={local.kpi.nc}
-                            value={(approval && approval.metrics && approval.metrics.openNc) || 0}
-                            icon="report_problem"
-                            tone={
-                                approval && approval.metrics && approval.metrics.openNc > 0 ? 'danger' : 'ok'
-                            }
-                            href={`/monitor/quality?q=${encodeURIComponent(supplier.name)}`}
-                            hint={fill(local.kpiHints.campaigns, {
-                                late: projects.filter((project) => project.isLate).length,
-                            })}
-                        />
-                    </StatGrid>
-
-                    {/* --------------------------------- why + identity + start */}
-                    <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-[1.2fr_1fr]">
-                        <Card
-                            title={local.why.title}
-                            subtitle={local.why.subtitle}
-                            icon="troubleshoot"
-                            index={0}
-                        >
-                            <ApprovalReasons approval={approval} local={local} lang={lang} />
-                        </Card>
-
-                        <div className="flex flex-col gap-3 sm:gap-4">
-                            <Card title={supplier.name} icon="business" index={1}>
-                                <dl className="grid grid-cols-2 gap-3">
-                                    <Definition label={identity.code}>
-                                        {supplier.code || identity.none}
-                                    </Definition>
-                                    <Definition label={identity.erpCode}>
-                                        {supplier.erpCode || identity.none}
-                                    </Definition>
-                                    <Definition label={identity.family}>
-                                        {supplier.family
-                                            ? supplier.family.label || null
-                                            : identity.none}
-                                    </Definition>
-                                    <Definition label={identity.subFamily}>
-                                        {supplier.subFamily
-                                            ? supplier.subFamily.label || null
-                                            : identity.none}
-                                    </Definition>
-                                    <Definition label={identity.buyer}>
-                                        {supplier.buyer || identity.none}
-                                    </Definition>
-                                    <Definition label={identity.email}>
-                                        {supplier.email ? (
-                                            <a
-                                                href={`mailto:${supplier.email}`}
-                                                className="text-[var(--becpg-blue-light)] underline underline-offset-2"
-                                            >
-                                                {supplier.email}
-                                            </a>
-                                        ) : (
-                                            identity.none
-                                        )}
-                                    </Definition>
-                                    <Definition label={identity.sites}>
-                                        {(supplier.sites || []).map((site) => site.label).join(', ')
-                                            || identity.none}
-                                    </Definition>
-                                    <Definition label={identity.subsidiaries}>
-                                        {(supplier.subsidiaries || []).map((entry) => entry.label).join(', ')
-                                            || identity.none}
-                                    </Definition>
-                                    <Definition label={identity.parent}>
-                                        {supplier.parent
-                                            ? supplier.parent.label || supplier.parent.nodeRef
-                                            : identity.none}
-                                    </Definition>
-                                    <Definition label={identity.lastActivity}>
-                                        {supplier.lastActivity
-                                            ? formatDate(supplier.lastActivity, lang)
-                                            : identity.none}
-                                    </Definition>
-                                </dl>
-                            </Card>
-
-                            <Card title={local.process.title} icon="rocket_launch" index={2}>
-                                <ProcessLauncher
-                                    supplierRef={supplier.nodeRef}
-                                    local={local}
-                                    onDone={sheet.refresh}
-                                />
-                            </Card>
-                        </div>
-                    </div>
-
-                    {/* ----------------------------------------------- scorecard */}
-                    <SupplierScorecard
-                        className="mt-3 sm:mt-4"
-                        scorecard={data.scorecard}
-                        completion={data.completion}
-                        approval={approval}
-                        history={data.history}
-                        supplierRef={supplier.nodeRef}
-                    />
-
-                    {/* ----------------------------------------------- documents */}
-                    <Card
-                        className="mt-3 sm:mt-4"
-                        title={local.documents.title}
-                        subtitle={local.documents.subtitle}
-                        icon="folder_shared"
-                        padding="none"
-                        index={0}
-                        actions={
-                            documents.summary ? (
-                                <span className="text-xs text-[var(--becpg-dark-grey)]">
-                                    {fill(local.documents.summary, {
-                                        satisfied: documents.summary.mandatorySatisfied || 0,
-                                        mandatory: documents.summary.mandatory || 0,
-                                        total: documents.summary.total || 0,
-                                    })}
-                                </span>
-                            ) : null
-                        }
-                    >
-                        {documents.items.length === 0 ? (
-                            <div className="p-4">
-                                <BlockEmpty
-                                    block={blocks.documents}
-                                    title={local.documents.empty}
-                                    unavailable={local.unavailable}
-                                    onRetry={sheet.refresh}
-                                />
-                            </div>
-                        ) : (
-                            <ul className="border-t border-[var(--becpg-grey)]">
-                                {documents.items.map((document) => (
-                                    <li
-                                        key={document.nodeRef}
-                                        className="flex flex-wrap items-center gap-2 border-b border-[var(--becpg-grey)] px-3 py-2.5 last:border-0 sm:px-4"
-                                    >
-                                        <span className="min-w-0 flex-1">
-                                            <span className="flex flex-wrap items-center gap-2">
-                                                <span className="truncate text-sm font-medium">
-                                                    {document.type ? document.type.label : document.name}
-                                                </span>
-                                                {document.isMandatory ? (
-                                                    <span className="pill pill-neutral pill-sm pill-no-dot">
-                                                        {local.documents.mandatory}
-                                                    </span>
-                                                ) : null}
-                                            </span>
-                                            <span className="mt-0.5 flex flex-wrap items-center gap-2">
-                                                <ValidityRange
-                                                    from={document.validFrom}
-                                                    to={document.validTo}
-                                                />
-                                                {document.entity ? (
-                                                    <span className="text-xs text-[var(--becpg-dark-grey)]">
-                                                        {fill(local.why.entity, {
-                                                            name: document.entity.label || document.entity.name,
-                                                        })}
-                                                    </span>
-                                                ) : null}
-                                            </span>
-                                        </span>
-                                        <ExpiryPill
-                                            status={document.status}
-                                            validTo={document.validTo}
-                                            daysToExpiry={document.daysToExpiry}
-                                            size="sm"
-                                        />
-                                        {document.downloadUrl ? (
-                                            <a
-                                                href={apiUrl(document.downloadUrl)}
-                                                className="inline-flex items-center gap-1 text-xs text-[var(--becpg-blue-light)] underline underline-offset-2 hover:text-[var(--becpg-orange)]"
-                                            >
-                                                <Icon name="download" size={14} />
-                                                <span className="hidden sm:inline">
-                                                    {local.documents.download}
-                                                </span>
-                                            </a>
-                                        ) : null}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </Card>
-
-                    {/* ------------------------------- products / sub-suppliers */}
-                    <div className="mt-3 grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
-                        <Card
-                            title={local.products.title}
-                            subtitle={local.products.subtitle}
-                            icon="inventory_2"
-                            index={0}
-                        >
-                            {data.products.length === 0 ? (
-                                /* An empty block used to read as "this supplier
-                                   has no product", which is not what the query
-                                   can answer — see `productScope`. */
-                                <BlockEmpty
-                                    block={blocks.products}
-                                    title={local.products.empty}
-                                    message={((data.productScope || {}).unsupported || []).length > 0
-                                        ? local.products.emptyHint
-                                        : undefined}
-                                    unavailable={local.unavailable}
-                                    onRetry={sheet.refresh}
-                                />
-                            ) : (
-                                <ul className="flex flex-col gap-2">
-                                    {data.products.map((product) => (
-                                        <li
-                                            key={product.nodeRef}
-                                            className="flex flex-wrap items-center gap-2 border-b border-[var(--becpg-grey)] pb-2 last:border-0 last:pb-0"
-                                        >
-                                            {/* A listed product leads to its record: the row
-                                                carried the name, the code and the date without
-                                                ever being clickable, and the product had to be
-                                                found again through search to open it. */}
-                                            <Link
-                                                href={`/products/${encodeURIComponent(product.nodeRef)}`}
-                                                className="min-w-0 flex-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
-                                            >
-                                                <span className="block truncate text-sm text-[var(--becpg-blue)] underline-offset-2 hover:underline">
-                                                    {product.name}
-                                                </span>
-                                                <span className="text-xs text-[var(--becpg-dark-grey)]">
-                                                    {product.code || ''}
-                                                    {product.modified
-                                                        ? ` · ${formatDate(product.modified, lang)}`
-                                                        : ''}
-                                                </span>
-                                            </Link>
-                                            {product.state ? (
-                                                <StatusPill status={product.state} size="sm" />
-                                            ) : null}
-                                            {typeof product.completion === 'number' ? (
-                                                <span className="w-20">
-                                                    <GaugeBar
-                                                        value={product.completion}
-                                                        size="sm"
-                                                        ariaLabel={product.name}
-                                                    />
-                                                </span>
-                                            ) : null}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </Card>
-
-                        <Card title={local.subSuppliers.title} icon="account_tree" index={1}>
-                            {data.subSuppliers.length === 0 ? (
-                                <BlockEmpty
-                                    block={blocks.subSuppliers}
-                                    title={local.subSuppliers.empty}
-                                    unavailable={local.unavailable}
-                                    onRetry={sheet.refresh}
-                                />
-                            ) : (
-                                <ul className="flex flex-col gap-2">
-                                    {data.subSuppliers.map((entry) => (
-                                        <li key={entry.nodeRef} className="flex items-center gap-2">
-                                            <Link
-                                                href={`/monitor/suppliers/${encodeURIComponent(entry.nodeRef)}`}
-                                                className="min-w-0 flex-1 truncate text-sm hover:text-[var(--becpg-orange)]"
-                                            >
-                                                {entry.name}
-                                                {entry.code ? (
-                                                    <span className="text-xs text-[var(--becpg-dark-grey)]">
-                                                        {' '}
-                                                        {entry.code}
-                                                    </span>
-                                                ) : null}
-                                            </Link>
-                                            {entry.state ? <StatusPill status={entry.state} size="sm" /> : null}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </Card>
-                    </div>
-
-                    {/* -------------------------------- campaigns and activity */}
-                    <div className="mt-3 grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
-                        <Card title={local.projects.title} icon="campaign" index={0}>
-                            {projects.length === 0 ? (
-                                <BlockEmpty
-                                    block={blocks.projects}
-                                    title={local.projects.empty}
-                                    unavailable={local.unavailable}
-                                    onRetry={sheet.refresh}
-                                />
-                            ) : (
-                                <ul className="flex flex-col gap-3">
-                                    {projects.map((project) => (
-                                        <li key={project.nodeRef}>
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                {/* No page per campaign exists: the link leads
-                                                    to the list already filtered on this project,
-                                                    which is the closest thing to "opening the
-                                                    campaign" without inventing a route. */}
-                                                <Link
-                                                    href={`/monitor/campaigns?q=${encodeURIComponent(project.name || '')}`}
-                                                    className="min-w-0 flex-1 truncate text-sm font-medium text-[var(--becpg-blue)] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
-                                                >
-                                                    {project.name}
-                                                </Link>
-                                                {project.state ? (
-                                                    <StatusPill status={project.state} size="sm" />
-                                                ) : null}
-                                                {project.isLate ? (
-                                                    <span className="pill pill-danger pill-sm pill-no-dot">
-                                                        <Icon name="alarm" size={12} />
-                                                        {local.projects.late}
-                                                    </span>
-                                                ) : null}
-                                            </div>
-                                            <div className="mt-1">
-                                                <GaugeBar
-                                                    value={project.completion}
-                                                    size="sm"
-                                                    ariaLabel={project.name}
-                                                />
-                                            </div>
-                                            <p className="mt-0.5 text-xs text-[var(--becpg-dark-grey)]">
-                                                {project.manager
-                                                    ? fill(local.projects.manager, {
-                                                        name: project.manager.label
-                                                            || project.manager.username,
-                                                    })
-                                                    : null}
-                                                {project.dueDate
-                                                    ? ` · ${fill(local.projects.due, {
-                                                        date: formatDate(project.dueDate, lang),
-                                                    })}`
-                                                    : ''}
-                                                {project.unanswered
-                                                    ? ` · ${fill(local.projects.unanswered, {
-                                                        days: project.ageDays,
-                                                    })}`
-                                                    : ''}
-                                            </p>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </Card>
-
-                        {/* No subtitle: naming the source ("the same one Share
-                            reads") described the plumbing to a reader who only
-                            wants the exchanges. */}
-                        <Card title={local.activity.title} icon="history" index={1}>
-                            {data.activity.length === 0 ? (
-                                <BlockEmpty
-                                    block={activityBlock}
-                                    title={local.activity.empty}
-                                    unavailable={local.unavailable}
-                                    onRetry={sheet.refresh}
-                                />
-                            ) : (
-                                <ol className="flex flex-col gap-2.5">
-                                    {data.activity.map((entry, index) => (
-                                        <li
-                                            key={entry.nodeRef || `${entry.date}-${index}`}
-                                            className="flex gap-2"
-                                        >
-                                            <span
-                                                className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
-                                                    entry.kind === 'message'
-                                                        ? 'bg-[var(--status-info-bg)] text-[var(--status-info)]'
-                                                        : 'bg-[var(--becpg-grey)] text-[var(--becpg-blue)]'
-                                                }`}
-                                            >
-                                                <Icon
-                                                    name={entry.kind === 'message' ? 'forum' : 'bolt'}
-                                                    size={14}
-                                                />
-                                            </span>
-                                            <span className="min-w-0 flex-1">
-                                                <span className="flex flex-wrap items-baseline gap-1.5 text-xs">
-                                                    <span className="font-medium">
-                                                        {entry.type
-                                                            || (entry.kind === 'message'
-                                                                ? local.activity.message
-                                                                : local.activity.activity)}
-                                                    </span>
-                                                    {entry.user ? (
-                                                        <span className="text-[var(--becpg-dark-grey)]">
-                                                            {entry.user}
-                                                        </span>
-                                                    ) : null}
-                                                    <span className="text-[var(--becpg-dark-grey)] tabular-nums">
-                                                        <DateText value={entry.date} lang={lang} withTime />
-                                                    </span>
-                                                </span>
-                                                {entry.excerpt ? (
-                                                    <span className="mt-0.5 block break-words text-xs text-[var(--becpg-dark-grey)]">
-                                                        {entry.excerpt}
-                                                    </span>
-                                                ) : null}
-                                            </span>
-                                        </li>
-                                    ))}
-                                </ol>
-                            )}
-                        </Card>
-                    </div>
                 </>
             )}
         </AppShell>

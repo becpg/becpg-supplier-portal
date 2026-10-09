@@ -813,94 +813,76 @@ const LOCALE = {
         "truncatedShort": "Fönster: {scanned} avvikelser lästa"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
-        "unavailable": {
-            "title": "Data är inte tillgängliga",
-            "message": "beCPG kunde inte returnera det här blocket: den tomma listan säger ingenting om leverantören."
-        },
         "back": "Leverantörer",
-        "startCampaign": "Starta ett projekt",
         "notFound": "Leverantören hittades inte",
-        "notFoundHint": "Leverantören finns inte, eller ligger utanför ditt omfång: portalen visar aldrig en nod som dina behörigheter i beCPG inte omfattar.",
-        "kpi": {
-            "approval": "Godkännandestatus",
-            "completion": "Fullständighet",
-            "documents": "Obligatoriska dokument",
+        "notFoundHint": "Leverantören finns inte, eller ligger utanför ditt omfång.",
+        "tiles": {
+            "label": "Leverantörsindikatorer",
             "nc": "Blockerande NC",
-            "campaigns": "Öppna projekt"
+            "ncHint": "öppna",
+            "projects": "Öppna projekt",
+            "projectsHint": "{count} utan svar",
+            "documents": "Obligatoriska dokument",
+            "documentsHint": "{expired} utgångna · {missing} saknas",
+            "documentsNone": "inga förväntade",
+            "products": "Produkter",
+            "productsHint": "kopplade",
+            "delay": "Svarstid",
+            "delayHint": "medelvärde {period}",
+            "delayNone": "beslutsmodul",
+            "completion": "Fullständighet",
+            "completionHint": "{count} aktiva kataloger",
+            "completionNone": "ingen aktiv katalog",
+            "days": "d"
         },
-        "kpiHints": {
-            "derived": "Härledd, lagras aldrig",
-            "documents": "{expired} utgångna · {expiring} går snart ut · {missing} saknas",
-            "completion": "{count} aktiva kataloger",
-            "campaigns": "{late} försenade",
-            "cached": "status hämtad från cache"
+        "tabs": {
+            "label": "Leverantörsblad",
+            "overview": "Översikt",
+            "nc": "Avvikelser",
+            "projects": "Projekt",
+            "documents": "Dokument",
+            "products": "Produkter",
+            "history": "Historik"
         },
-        "why": {
-            "title": "Varför denna status",
-            "subtitle": "Raderna som avgör statusen",
-            "empty": "Inga avvikande förhållanden: obligatoriska dokument giltiga, ingen blockerande NC, ingen blockerande katalog.",
-            "more": "… och {count} till",
-            "entity": "för {name}",
-            "priority": "prioritet {priority}",
-            "catalog": "Blockerande katalog inte uppfylld"
+        "status": "Godkännandestatus",
+        "statusHelp": "Statusen beräknas vid varje visning och lagras aldrig: den första uppfyllda regeln gäller.",
+        "risk": "Riskpoäng",
+        "riskHelp": "Varje orsak lägger till sin vikt; varje ytterligare förekomst lägger till ett avtagande tillägg.",
+        "riskFrom": "från {from}",
+        "reasonNames": {
+            "documentExpired": "Utgånget dokument",
+            "blockingNc": "Blockerande NC",
+            "campaignNoAnswer": "Projekt utan svar",
+            "scoreDropping": "Sjunkande poäng",
+            "documentExpiring": "Dokument som snart går ut",
+            "lateTask": "Försenad uppgift",
+            "lowCompletion": "Låg fullständighet",
+            "documentMissing": "Saknat dokument",
+            "openNc": "Öppen NC"
         },
-        "documents": {
-            "title": "Dokument",
-            "subtitle": "Förväntade dokument och giltighetsdatum",
-            "empty": "Inga dokument förväntade eller inlämnade för den här leverantören",
-            "mandatory": "obligatoriskt",
-            "download": "Ladda ned",
-            "summary": "{satisfied}/{mandatory} obligatoriska uppfyllda · {total} dokument"
-        },
-        "products": {
-            "title": "Kopplade produkter",
-            "subtitle": "Entiteter kopplade till leverantören",
-            "empty": "Inga kopplade produkter",
-            "emptyHint": "Endast produkter som arkiverats under leverantören, eller kopplats till något av dess projekt eller dokument, kan hittas: en entitet kopplad via ”Leverantörer” och arkiverad någon annanstans indexeras inte av Alfresco."
-        },
-        "subSuppliers": {
-            "title": "Underleverantörer",
-            "empty": "Inga underleverantörer angivna"
-        },
-        "projects": {
-            "title": "Öppna projekt",
-            "empty": "Inga öppna projekt",
-            "manager": "Ansvarig: {name}",
-            "due": "Förfaller {date}",
-            "late": "Försenat",
-            "unanswered": "Inget svar på {days} dagar"
-        },
-        "activity": {
-            "title": "Historik över utbyten",
-            "empty": "Inga utbyten registrerade",
-            "message": "Meddelande",
-            "activity": "Aktivitet"
-        },
-        "process": {
-            "title": "Starta en process",
-            "hint": "Listning, förnyelse, öppning av en NC… beroende på vad instansen tillåter.",
-            "none": "Ingen process är tillåten på den här instansen (PORTAL_PROCESS_TEMPLATES).",
-            "launch": "Starta",
-            "confirmTitle": "Starta ”{process}”?",
-            "confirmMessage": "Ett beCPG-projekt skapas för den här leverantören utifrån den godkända mallen. En startad process kan inte avbrytas från portalen.",
-            "started": "Processen har startats."
-        },
-        "identity": {
+        "activity": "Aktivitet och svarsförmåga",
+        "activityHelp": "Uppgifter tilldelade leverantören och genomsnittlig svarstid per år, hämtade från beslutsmodulen.",
+        "identity": "Identitet",
+        "identityRows": {
             "code": "Kod",
             "erpCode": "ERP-kod",
             "legalName": "Juridiskt namn",
-            "state": "Status i beCPG",
+            "state": "beCPG-status",
             "family": "Familj",
             "subFamily": "Underfamilj",
             "sites": "Anläggningar",
             "subsidiaries": "Dotterbolag",
-            "buyer": "Ansvarig inköpare",
-            "email": "Kontakt",
-            "lastActivity": "Senaste aktivitet",
             "parent": "Överordnad leverantör",
-            "none": "—"
+            "subSuppliers": "Underleverantörer",
+            "catalogs": "Aktiva kataloger"
         },
-        "generatedAt": "Data per {time}"
+        "scorecard": "Bedömning",
+        "scorecardHelp": "Viktat medelvärde av de bedömda kriterierna i leverantörens senaste projekt.",
+        "allNc": "Alla dess NC",
+        "exchanges": "Kommunikation",
+        "ncFile": "leverantor-nc",
+        "projectsFile": "leverantor-projekt",
+        "none": "—"
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "Leverantörer",
@@ -933,8 +915,7 @@ const LOCALE = {
             "expiring": "dokument som snart går ut",
             "expired": "utgångna dokument",
             "nc": "öppna NC",
-            "lastActivity": "senaste aktivitet",
-            "buyer": "inköpare"
+            "lastActivity": "senaste aktivitet"
         },
         "truncatedShort": "Fönster: {scanned} leverantörer lästa"
     },
@@ -1616,12 +1597,9 @@ const LOCALE = {
         "subFamily": "Underfamilj",
         "site": "Anläggning",
         "subsidiary": "Dotterbolag",
-        "buyer": "Ansvarig inköpare",
         "market": "Marknad",
         "state": "Leverantörsstatus",
         "any": "Alla",
-        "anyBuyer": "Alla inköpare",
-        "buyerHint": "Användarnamn i beCPG (cm:owner)",
         "windowScoped": "begränsat till fönstret",
         "windowScopedHelp": "Alfresco indexerar inte associationer: filtret gäller de leverantörer som redan lästs, inte hela leverantörsbasen.",
         "unsupported": "inte konfigurerat",
@@ -1735,7 +1713,6 @@ const LOCALE = {
         "emptyHint": "Inga utgångna dokument, blockerande NC eller obesvarade projekt upptäcktes.",
         "riskScore": "Riskpoäng {score}",
         "level": "Risk: {level}",
-        "buyer": "Inköpare: {name}",
         "lastActivity": "Senaste aktivitet {date}",
         "completion": "Fullständighet {value} %",
         "openSheet": "Öppna bladet",
@@ -1851,7 +1828,6 @@ const LOCALE = {
             "openProjects": "Projekt",
             "family": "Familj",
             "sites": "Anläggningar",
-            "buyer": "Inköpare",
             "lastActivity": "Senaste aktivitet"
         },
         "metrics": {
@@ -1862,7 +1838,6 @@ const LOCALE = {
             "openProjects": "{count} öppna projekt"
         },
         "none": "—",
-        "noBuyer": "Ej tilldelad",
         "empty": "Inga leverantörer i det här omfånget",
         "emptyHint": "Vidga filtren, eller kontrollera ditt inköparomfång.",
         "emptyFiltered": "Ingen leverantör matchar dessa filter.",
@@ -1882,7 +1857,6 @@ const LOCALE = {
             "state": "Status i beCPG",
             "family": "Familj",
             "sites": "Anläggningar",
-            "buyer": "Ansvarig inköpare",
             "lastActivity": "Senaste aktivitet"
         },
         "openSheet": "Öppna bladet",
@@ -2077,6 +2051,78 @@ const LOCALE = {
         },
         "noFamily": "Utan familj",
         "noSubFamily": "Utan underfamilj"
+    },
+    "components/monitor/supplier/ActivityChart#LABELS": {
+        "tasks": "Uppgifter",
+        "delay": "Genomsnittlig svarstid (d)",
+        "days": "d",
+        "aria": "Uppgifter och genomsnittlig svarstid per år för den här leverantören"
+    },
+    "components/monitor/supplier/RiskScore#LABELS": {
+        "ring": "Riskpoäng {score} av 100, nivå {level}",
+        "none": "Ingen riskorsak"
+    },
+    "components/monitor/supplier/SheetLists#LABELS": {
+        "documents": {
+            "search": "Sök ett dokument",
+            "document": "Dokument",
+            "mandatory": "Obligatoriskt",
+            "validity": "Giltighet",
+            "status": "Status",
+            "entity": "Kopplat till",
+            "download": "Ladda ned",
+            "empty": "Inga dokument förväntade eller inlämnade",
+            "file": "leverantor-dokument",
+            "yes": "Ja",
+            "no": "Nej"
+        },
+        "products": {
+            "search": "Sök en produkt",
+            "product": "Produkt",
+            "code": "Kod",
+            "state": "Status",
+            "completion": "Fullständighet",
+            "modified": "Uppdaterad",
+            "empty": "Ingen kopplad produkt",
+            "file": "leverantor-produkter"
+        },
+        "activity": {
+            "empty": "Ingen kommunikation registrerad",
+            "message": "Meddelande",
+            "activity": "Aktivitet"
+        },
+        "unavailable": "beCPG kunde inte hämta den här listan: den säger ingenting om leverantören."
+    },
+    "components/monitor/supplier/StatusLadder#LABELS": {
+        "current": "Uppfylld regel",
+        "next": "Sedan",
+        "approvedWhen": "Godkänd när",
+        "approvedNow": "Alla villkor är uppfyllda",
+        "seeAll": "Visa alla {count}",
+        "days": "{count} d",
+        "on": "på {name}",
+        "conditions": {
+            "documentExpired": "Inget obligatoriskt dokument har gått ut",
+            "blockingNc": "Ingen blockerande NC",
+            "documentExpiring": "Inget dokument att förnya",
+            "openProject": "Inget öppet projekt",
+            "documentMissing": "Inget obligatoriskt dokument saknas",
+            "blockingCatalog": "Blockerande kataloger uppfyllda"
+        },
+        "met": "uppfyllt",
+        "unmet": "ej uppfyllt"
+    },
+    "components/monitor/supplier/SupplierBand#LABELS": {
+        "erp": "ERP {code}",
+        "risk": "Risk {level} · {score}",
+        "created": "Skapad",
+        "lastActivity": "Senaste aktivitet",
+        "startProject": "Starta ett projekt",
+        "openInBecpg": "Öppna i beCPG",
+        "since": "i {count} dagar",
+        "approved": "ingen regel för spärr, förnyelse eller väntan gäller.",
+        "actions": "Leverantörsåtgärder",
+        "verdict": "{status}:"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "Efterlevnad",
@@ -2588,7 +2634,6 @@ const LOCALE = {
         "openNc": "Öppna NC",
         "openProjects": "Öppna projekt",
         "family": "Familj",
-        "buyer": "Inköpare",
         "lastActivity": "Senaste aktivitet",
         "state": "Status",
         "compliance": "Efterlevnad (%)"

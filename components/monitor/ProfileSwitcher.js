@@ -83,7 +83,7 @@ export const MONITOR_PROFILES = Object.freeze([
         }),
         tiles: ['approved', 'suspended', 'toRenew', 'nc', 'campaigns', 'lateTasks', 'compliance', 'expiring30'],
         panels: ['park', 'expiry'],
-        columns: ['name', 'status', 'risk', 'openNc', 'openProjects', 'buyer', 'lastActivity', 'completion'],
+        columns: ['name', 'status', 'risk', 'openNc', 'openProjects', 'lastActivity', 'completion'],
         // Most severe approval status first: that is the buyer's blocking question.
         sort: { by: 'status', direction: 'desc' },
     }),

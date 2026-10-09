@@ -813,79 +813,57 @@ const LOCALE = {
         "truncatedShort": "窗口：已读取 {scanned} 条不合格"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
-        "unavailable": {
-            "title": "数据不可用",
-            "message": "beCPG 无法返回此区块：空列表并不说明该供应商的任何情况。"
-        },
         "back": "供应商",
-        "startCampaign": "发起项目",
         "notFound": "未找到供应商",
-        "notFoundHint": "此供应商不存在，或超出您的范围：门户绝不会披露您的 beCPG 权限未涵盖的节点。",
-        "kpi": {
-            "approval": "认证状态",
-            "completion": "完整度",
-            "documents": "必需文件",
+        "notFoundHint": "此供应商不存在，或超出您的范围。",
+        "tiles": {
+            "label": "供应商指标",
             "nc": "阻断性 NC",
-            "campaigns": "进行中的项目"
+            "ncHint": "未关闭",
+            "projects": "进行中的项目",
+            "projectsHint": "{count} 个未回复",
+            "documents": "必需文件",
+            "documentsHint": "已过期 {expired} · 缺失 {missing}",
+            "documentsNone": "无预期文件",
+            "products": "产品",
+            "productsHint": "已关联",
+            "delay": "响应时长",
+            "delayHint": "{period} 平均",
+            "delayNone": "决策模块",
+            "completion": "完整度",
+            "completionHint": "{count} 个有效目录",
+            "completionNone": "无有效目录",
+            "days": "天"
         },
-        "kpiHints": {
-            "derived": "推导得出，从不存储",
-            "documents": "{expired} 份已过期 · {expiring} 份即将过期 · {missing} 份缺失",
-            "completion": "{count} 个有效目录",
-            "campaigns": "{late} 项逾期",
-            "cached": "状态来自缓存"
+        "tabs": {
+            "label": "供应商档案",
+            "overview": "概览",
+            "nc": "不符合项",
+            "projects": "项目",
+            "documents": "文件",
+            "products": "产品",
+            "history": "历史记录"
         },
-        "why": {
-            "title": "为何是此状态",
-            "subtitle": "决定状态的各行",
-            "empty": "无异常：必需文件有效，无阻断性 NC，无阻断性目录。",
-            "more": "…… 以及另外 {count} 项",
-            "entity": "关于 {name}",
-            "priority": "优先级 {priority}",
-            "catalog": "阻断性目录未满足"
+        "status": "认证状态",
+        "statusHelp": "状态在每次显示时计算，从不存储：以第一条满足的规则为准。",
+        "risk": "风险评分",
+        "riskHelp": "每个原因计入其权重；每多出现一次，计入递减的附加分。",
+        "riskFrom": "自 {from} 起",
+        "reasonNames": {
+            "documentExpired": "文件已过期",
+            "blockingNc": "阻断性 NC",
+            "campaignNoAnswer": "项目未回复",
+            "scoreDropping": "评分下降",
+            "documentExpiring": "文件即将过期",
+            "lateTask": "逾期任务",
+            "lowCompletion": "完整度低",
+            "documentMissing": "文件缺失",
+            "openNc": "未关闭 NC"
         },
-        "documents": {
-            "title": "文件",
-            "subtitle": "所需文件及有效期",
-            "empty": "此供应商无所需或已提供的文件",
-            "mandatory": "必需",
-            "download": "下载",
-            "summary": "必需文件已满足 {satisfied}/{mandatory} · 共 {total} 份文件"
-        },
-        "products": {
-            "title": "关联产品",
-            "subtitle": "关联到该供应商的实体",
-            "empty": "无关联产品",
-            "emptyHint": "只能找到归档在该供应商下、或关联到其某个项目或文件的产品：通过“供应商”关联但归档在别处的实体不会被 Alfresco 索引。"
-        },
-        "subSuppliers": {
-            "title": "次级供应商",
-            "empty": "未申报次级供应商"
-        },
-        "projects": {
-            "title": "进行中的项目",
-            "empty": "无进行中的项目",
-            "manager": "负责人：{name}",
-            "due": "截止 {date}",
-            "late": "逾期",
-            "unanswered": "{days} 天无回复"
-        },
-        "activity": {
-            "title": "交流历史",
-            "empty": "无交流记录",
-            "message": "消息",
-            "activity": "活动"
-        },
-        "process": {
-            "title": "发起流程",
-            "hint": "准入、更新、开立 NC……取决于实例允许的操作。",
-            "none": "此实例不允许任何流程（PORTAL_PROCESS_TEMPLATES）。",
-            "launch": "发起",
-            "confirmTitle": "发起“{process}”？",
-            "confirmMessage": "将根据允许的模板为该供应商创建一个 beCPG 项目。已发起的流程无法在门户中取消。",
-            "started": "流程已发起。"
-        },
-        "identity": {
+        "activity": "活动与响应",
+        "activityHelp": "分配给供应商的任务及每年的平均响应时长，读取自决策模块。",
+        "identity": "基本信息",
+        "identityRows": {
             "code": "代码",
             "erpCode": "ERP 代码",
             "legalName": "法定名称",
@@ -894,13 +872,17 @@ const LOCALE = {
             "subFamily": "子类别",
             "sites": "工厂",
             "subsidiaries": "子公司",
-            "buyer": "负责采购员",
-            "email": "联系人",
-            "lastActivity": "最近活动",
             "parent": "上级供应商",
-            "none": "—"
+            "subSuppliers": "下级供应商",
+            "catalogs": "有效目录"
         },
-        "generatedAt": "数据截至 {time}"
+        "scorecard": "评分",
+        "scorecardHelp": "供应商最近项目中各评分标准的加权平均值。",
+        "allNc": "全部 NC",
+        "exchanges": "往来记录",
+        "ncFile": "supplier-ncs",
+        "projectsFile": "supplier-projects",
+        "none": "—"
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "供应商",
@@ -933,8 +915,7 @@ const LOCALE = {
             "expiring": "即将过期文件",
             "expired": "已过期文件",
             "nc": "未关闭 NC",
-            "lastActivity": "最近活动",
-            "buyer": "采购员"
+            "lastActivity": "最近活动"
         },
         "truncatedShort": "窗口：已读取 {scanned} 家供应商"
     },
@@ -1616,12 +1597,9 @@ const LOCALE = {
         "subFamily": "子类别",
         "site": "工厂",
         "subsidiary": "子公司",
-        "buyer": "负责采购员",
         "market": "市场",
         "state": "供应商状态",
         "any": "全部",
-        "anyBuyer": "所有采购员",
-        "buyerHint": "beCPG 用户名（cm:owner）",
         "windowScoped": "仅限窗口",
         "windowScopedHelp": "Alfresco 不索引关联：此筛选仅适用于已读取的供应商，而非整个供应商库。",
         "unsupported": "未配置",
@@ -1735,7 +1713,6 @@ const LOCALE = {
         "emptyHint": "未检测到已过期文件、阻断性 NC 或无回复的项目。",
         "riskScore": "风险评分 {score}",
         "level": "{level}风险",
-        "buyer": "采购员：{name}",
         "lastActivity": "最近活动于 {date}",
         "completion": "完整度 {value} %",
         "openSheet": "打开资料表",
@@ -1851,7 +1828,6 @@ const LOCALE = {
             "openProjects": "项目",
             "family": "类别",
             "sites": "工厂",
-            "buyer": "采购员",
             "lastActivity": "最近活动"
         },
         "metrics": {
@@ -1862,7 +1838,6 @@ const LOCALE = {
             "openProjects": "{count} 个进行中的项目"
         },
         "none": "—",
-        "noBuyer": "未分配",
         "empty": "此范围内无供应商",
         "emptyHint": "请放宽筛选条件，或检查您的采购员范围。",
         "emptyFiltered": "没有符合这些筛选条件的供应商。",
@@ -1882,7 +1857,6 @@ const LOCALE = {
             "state": "beCPG 状态",
             "family": "类别",
             "sites": "工厂",
-            "buyer": "负责采购员",
             "lastActivity": "最近活动"
         },
         "openSheet": "打开资料表",
@@ -2077,6 +2051,78 @@ const LOCALE = {
         },
         "noFamily": "无类别",
         "noSubFamily": "无子类别"
+    },
+    "components/monitor/supplier/ActivityChart#LABELS": {
+        "tasks": "任务",
+        "delay": "平均响应时长（天）",
+        "days": "天",
+        "aria": "该供应商每年的任务数和平均响应时长"
+    },
+    "components/monitor/supplier/RiskScore#LABELS": {
+        "ring": "风险评分 {score}/100，等级 {level}",
+        "none": "无风险原因"
+    },
+    "components/monitor/supplier/SheetLists#LABELS": {
+        "documents": {
+            "search": "搜索文件",
+            "document": "文件",
+            "mandatory": "必需",
+            "validity": "有效期",
+            "status": "状态",
+            "entity": "关联对象",
+            "download": "下载",
+            "empty": "无预期或已提供的文件",
+            "file": "supplier-documents",
+            "yes": "是",
+            "no": "否"
+        },
+        "products": {
+            "search": "搜索产品",
+            "product": "产品",
+            "code": "代码",
+            "state": "状态",
+            "completion": "完整度",
+            "modified": "更新时间",
+            "empty": "无关联产品",
+            "file": "supplier-products"
+        },
+        "activity": {
+            "empty": "无往来记录",
+            "message": "消息",
+            "activity": "活动"
+        },
+        "unavailable": "beCPG 无法返回此列表：它不代表该供应商的任何情况。"
+    },
+    "components/monitor/supplier/StatusLadder#LABELS": {
+        "current": "满足的规则",
+        "next": "其次",
+        "approvedWhen": "认证条件",
+        "approvedNow": "所有条件均已满足",
+        "seeAll": "查看全部 {count} 项",
+        "days": "{count} 天",
+        "on": "于 {name}",
+        "conditions": {
+            "documentExpired": "无过期的必需文件",
+            "blockingNc": "无阻断性 NC",
+            "documentExpiring": "无需续期的文件",
+            "openProject": "无进行中的项目",
+            "documentMissing": "无缺失的必需文件",
+            "blockingCatalog": "阻断性目录已满足"
+        },
+        "met": "已满足",
+        "unmet": "未满足"
+    },
+    "components/monitor/supplier/SupplierBand#LABELS": {
+        "erp": "ERP {code}",
+        "risk": "风险 {level} · {score}",
+        "created": "创建于",
+        "lastActivity": "最近活动",
+        "startProject": "启动项目",
+        "openInBecpg": "在 beCPG 中打开",
+        "since": "已持续 {count} 天",
+        "approved": "未触发任何暂停、续期或待定规则。",
+        "actions": "供应商操作",
+        "verdict": "{status}："
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "合规性",
@@ -2588,7 +2634,6 @@ const LOCALE = {
         "openNc": "未关闭 NC",
         "openProjects": "进行中的项目",
         "family": "类别",
-        "buyer": "采购员",
         "lastActivity": "最近活动",
         "state": "状态",
         "compliance": "合规性（%）"

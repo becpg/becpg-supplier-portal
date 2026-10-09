@@ -4,7 +4,7 @@
  * `/monitor/suppliers` — the supplier steering list (spec §4.6.2).
  *
  * Columns: statut d'agrément, score de risque, complétude, documents expirants,
- * NC ouvertes, dernière activité, acheteur référent. Multi-criteria filters,
+ * NC ouvertes, dernière activité. Multi-criteria filters,
  * side-by-side comparison of a selection, CSV export, and the three park actions
  * (*relancer, escalader, suspendre*) on that same selection.
  *
@@ -90,7 +90,7 @@ const LABELS = defineLabels('app/monitor/suppliers/page#LABELS', {
         export: 'Exporter (CSV)',
         exportCutTitle: 'Export incomplet : {scanned} lignes sur {total}',
         exportCutMessage:
-            'beCPG limite une liste à 250 lignes par requête, l’export porte donc sur la fenêtre lue et non sur tout le parc. Affinez les filtres (famille, acheteur, statut) et exportez par lot pour un fichier complet.',
+            'beCPG limite une liste à 250 lignes par requête, l’export porte donc sur la fenêtre lue et non sur tout le parc. Affinez les filtres (famille, statut) et exportez par lot pour un fichier complet.',
         exportCutConfirm: 'Exporter la fenêtre',
         generatedAt: 'Données au {time}',
         windowOf: '{from}–{to} sur {total} fournisseurs',
@@ -114,7 +114,6 @@ const LABELS = defineLabels('app/monitor/suppliers/page#LABELS', {
             expired: 'documents expirés',
             nc: 'NC ouvertes',
             lastActivity: 'dernière activité',
-            buyer: 'acheteur',
         },
     },
     en: {
@@ -129,7 +128,7 @@ const LABELS = defineLabels('app/monitor/suppliers/page#LABELS', {
         export: 'Export (CSV)',
         exportCutTitle: 'Incomplete export: {scanned} rows out of {total}',
         exportCutMessage:
-            'beCPG caps a listing at 250 rows per query, so the export covers the window read, not the whole park. Narrow the filters (family, buyer, status) and export in batches for a complete file.',
+            'beCPG caps a listing at 250 rows per query, so the export covers the window read, not the whole park. Narrow the filters (family, status) and export in batches for a complete file.',
         exportCutConfirm: 'Export the window',
         generatedAt: 'Data as of {time}',
         windowOf: '{from}–{to} of {total} suppliers',
@@ -153,7 +152,6 @@ const LABELS = defineLabels('app/monitor/suppliers/page#LABELS', {
             expired: 'expired documents',
             nc: 'open NCs',
             lastActivity: 'last activity',
-            buyer: 'buyer',
         },
     },
 });

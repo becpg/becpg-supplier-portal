@@ -56,7 +56,6 @@ export const MONITOR_FILTER_KEYS = Object.freeze([
     'subFamily',
     'site',
     'subsidiary',
-    'buyer',
     'market',
     'state',
 ]);
@@ -100,12 +99,9 @@ const LABELS = defineLabels('components/monitor/MonitorFilters#LABELS', {
         subFamily: 'Sous-famille',
         site: 'Site',
         subsidiary: 'Filiale',
-        buyer: 'Acheteur référent',
         market: 'Marché',
         state: 'État du fournisseur',
         any: 'Tous',
-        anyBuyer: 'Tous les acheteurs',
-        buyerHint: 'Identifiant beCPG (cm:owner)',
         windowScoped: 'fenêtre lue',
         windowScopedHelp:
             'Alfresco n’indexe pas les associations : ce filtre s’applique sur les fournisseurs déjà lus, pas sur le parc entier.',
@@ -130,12 +126,9 @@ const LABELS = defineLabels('components/monitor/MonitorFilters#LABELS', {
         subFamily: 'Sub-family',
         site: 'Site',
         subsidiary: 'Subsidiary',
-        buyer: 'Referring buyer',
         market: 'Market',
         state: 'Supplier state',
         any: 'All',
-        anyBuyer: 'All buyers',
-        buyerHint: 'beCPG username (cm:owner)',
         windowScoped: 'window-scoped',
         windowScopedHelp:
             'Alfresco does not index associations: this filter applies to the suppliers already read, not to the whole park.',
@@ -267,7 +260,7 @@ export function useDebouncedValue(value, delay = 350) {
  *
  * @param {Object} previous result of a former call (`{}` to start)
  * @param {Array<Object>} items supplier rows (`/monitor/suppliers` items)
- * @returns {Object} `{ family: [{value,label}], subFamily, site, subsidiary, buyer }`
+ * @returns {Object} `{ family: [{value,label}], subFamily, site, subsidiary }`
  */
 export function mergeFilterOptions(previous, items) {
     const known = {
@@ -275,7 +268,6 @@ export function mergeFilterOptions(previous, items) {
         subFamily: new Map(),
         site: new Map(),
         subsidiary: new Map(),
-        buyer: new Map(),
     };
     for (const key of Object.keys(known)) {
         for (const option of (previous && previous[key]) || []) {
@@ -291,7 +283,7 @@ export function mergeFilterOptions(previous, items) {
         const existing = known[key].get(value);
         // A later row may carry the label an earlier one did not resolve.
         if (!existing || (!existing.label && label)) {
-            // `value` is a readable string for most filters (site, buyer) and a
+            // `value` is a readable string for most filters (site) and a
             // **nodeRef** for the hierarchies — falling back to it there put
             // `workspace://SpacesStore/…` in the dropdown. An option with no
             // label is dropped rather than shown as an identifier: the server
@@ -318,7 +310,6 @@ export function mergeFilterOptions(previous, items) {
         for (const subsidiary of item.subsidiaries || []) {
             put('subsidiary', subsidiary.nodeRef, subsidiary.label);
         }
-        put('buyer', item.buyer, item.buyer);
     }
 
     const sorted = {};
@@ -380,7 +371,7 @@ export function MonitorFilters({
     const [open, setOpen] = useState(defaultOpen);
 
     const count = activeFilterCount(filters);
-    const panelCount = [...PANEL_FILTERS, 'buyer'].filter((key) => filters[key]).length;
+    const panelCount = PANEL_FILTERS.filter((key) => filters[key]).length;
     const assocFilters = useMemo(
         () => new Set((applied || []).filter((entry) => entry.mode === 'assoc').map((entry) => entry.name)),
         [applied],
@@ -528,7 +519,7 @@ export function MonitorFilters({
                     <span className="sr-only-text">
                         {fill(count > 1 ? local.activePlural : local.active, { count })}
                     </span>
-                    {[...PANEL_FILTERS, 'buyer'].filter((key) => filters[key]).map((key) => (
+                    {PANEL_FILTERS.filter((key) => filters[key]).map((key) => (
                         <FilterChip
                             key={key}
                             label={key === 'q' ? local.search.replace('…', '') : local[key]}
@@ -556,33 +547,6 @@ export function MonitorFilters({
                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                 {PANEL_FILTERS.map((key) => selectFor(key))}
 
-                                {/* The buyer is a beCPG username: a datalist gives
-                                    the ones we have seen without forbidding the
-                                    others, since the park window may not hold them. */}
-                                <div className="min-w-0">
-                                    <label
-                                        htmlFor="monitor-filter-buyer"
-                                        className="mb-1 block truncate text-xs font-medium text-[var(--becpg-dark-grey)]"
-                                    >
-                                        {local.buyer}
-                                    </label>
-                                    <input
-                                        id="monitor-filter-buyer"
-                                        list="monitor-filter-buyer-list"
-                                        value={filters.buyer || ''}
-                                        onChange={(event) => patch({ buyer: event.target.value })}
-                                        placeholder={local.anyBuyer}
-                                        className="w-full rounded-lg border border-[var(--becpg-grey)] bg-white px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
-                                    />
-                                    <datalist id="monitor-filter-buyer-list">
-                                        {(options.buyer || []).map((option) => (
-                                            <option key={option.value} value={option.value} />
-                                        ))}
-                                    </datalist>
-                                    <p className="mt-1 text-[11px] text-[var(--becpg-dark-grey)]">
-                                        {local.buyerHint}
-                                    </p>
-                                </div>
                             </div>
 
                             {unsupportedSet.size > 0 || assocFilters.size > 0 ? (

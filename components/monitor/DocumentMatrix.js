@@ -511,7 +511,7 @@ export function DocumentMatrix({
                                                     {supplier.name}
                                                 </Link>
                                                 <span className="block truncate text-[10px] text-[var(--becpg-dark-grey)]">
-                                                    {[supplier.code, supplier.buyer].filter(Boolean).join(' · ') || '—'}
+                                                    {supplier.code || '—'}
                                                 </span>
                                             </span>
                                         </span>

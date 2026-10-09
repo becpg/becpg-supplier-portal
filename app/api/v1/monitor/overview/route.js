@@ -30,12 +30,12 @@
  * 30 s per user and filter set. Every query actually run is echoed in `queries`
  * so a reviewer can replay it.
  *
- * Query: `family`, `subFamily`, `site`, `subsidiary`, `buyer`, `market`,
+ * Query: `family`, `subFamily`, `site`, `subsidiary`, `market`,
  * `state`, `q`, `refresh=true`.
  *
  * @example
  * fetch('/api/v1/monitor/overview');
- * fetch('/api/v1/monitor/overview?family=workspace://SpacesStore/…&buyer=jdoe');
+ * fetch('/api/v1/monitor/overview?family=workspace://SpacesStore/…');
  */
 
 import { NextResponse } from 'next/server';

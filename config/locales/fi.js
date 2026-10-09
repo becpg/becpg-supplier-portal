@@ -813,94 +813,76 @@ const LOCALE = {
         "truncatedShort": "Ikkuna: {scanned} poikkeamaa luettu"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
-        "unavailable": {
-            "title": "Tiedot eivät ole saatavilla",
-            "message": "beCPG ei pystynyt palauttamaan tätä osiota: tyhjä luettelo ei kerro tästä toimittajasta mitään."
-        },
         "back": "Toimittajat",
-        "startCampaign": "Käynnistä projekti",
         "notFound": "Toimittajaa ei löytynyt",
-        "notFoundHint": "Tätä toimittajaa ei ole olemassa tai se on rajauksenne ulkopuolella: portaali ei koskaan paljasta solmua, jota beCPG-oikeutenne eivät kata.",
-        "kpi": {
-            "approval": "Hyväksynnän tila",
-            "completion": "Täydellisyys",
-            "documents": "Pakolliset asiakirjat",
+        "notFoundHint": "Tätä toimittajaa ei ole olemassa tai se on rajauksenne ulkopuolella.",
+        "tiles": {
+            "label": "Toimittajan tunnusluvut",
             "nc": "Estävät NC:t",
-            "campaigns": "Avoimet projektit"
+            "ncHint": "avoinna",
+            "projects": "Avoimet projektit",
+            "projectsHint": "{count} vastaamatta",
+            "documents": "Pakolliset asiakirjat",
+            "documentsHint": "{expired} vanhentunut · {missing} puuttuu",
+            "documentsNone": "ei odotettuja",
+            "products": "Tuotteet",
+            "productsHint": "liitetty",
+            "delay": "Vastausaika",
+            "delayHint": "keskiarvo {period}",
+            "delayNone": "päätöksenteon moduuli",
+            "completion": "Täydellisyys",
+            "completionHint": "{count} aktiivista katalogia",
+            "completionNone": "ei aktiivista katalogia",
+            "days": "pv"
         },
-        "kpiHints": {
-            "derived": "Johdettu, ei koskaan tallennettu",
-            "documents": "Vanhentuneet: {expired} · vanhenemassa: {expiring} · puuttuvat: {missing}",
-            "completion": "Aktiivisia luetteloita: {count}",
-            "campaigns": "Myöhässä: {late}",
-            "cached": "tila haettu välimuistista"
+        "tabs": {
+            "label": "Toimittajakortti",
+            "overview": "Yleiskatsaus",
+            "nc": "Poikkeamat",
+            "projects": "Projektit",
+            "documents": "Asiakirjat",
+            "products": "Tuotteet",
+            "history": "Historia"
         },
-        "why": {
-            "title": "Miksi tämä tila",
-            "subtitle": "Tilan määräävät rivit",
-            "empty": "Ei poikkeamia: pakolliset asiakirjat voimassa, ei estäviä NC:itä, ei estäviä luetteloita.",
-            "more": "… ja {count} muuta",
-            "entity": "kohteessa {name}",
-            "priority": "prioriteetti {priority}",
-            "catalog": "Estävä luettelo ei täyty"
+        "status": "Hyväksyntätila",
+        "statusHelp": "Tila lasketaan jokaisella näyttökerralla eikä sitä tallenneta: ensimmäinen täyttyvä sääntö ratkaisee.",
+        "risk": "Riskipistemäärä",
+        "riskHelp": "Jokainen syy lisää oman painonsa; jokainen lisäesiintymä lisää pienenevän lisän.",
+        "riskFrom": "alkaen {from}",
+        "reasonNames": {
+            "documentExpired": "Vanhentunut asiakirja",
+            "blockingNc": "Estävä NC",
+            "campaignNoAnswer": "Vastaamaton projekti",
+            "scoreDropping": "Laskeva pistemäärä",
+            "documentExpiring": "Vanhenemassa oleva asiakirja",
+            "lateTask": "Myöhässä oleva tehtävä",
+            "lowCompletion": "Heikko täydellisyys",
+            "documentMissing": "Puuttuva asiakirja",
+            "openNc": "Avoin NC"
         },
-        "documents": {
-            "title": "Asiakirjat",
-            "subtitle": "Odotetut asiakirjat ja voimassaoloajat",
-            "empty": "Tältä toimittajalta ei odoteta eikä ole toimitettu asiakirjoja",
-            "mandatory": "pakollinen",
-            "download": "Lataa",
-            "summary": "Pakollisia täytetty {satisfied}/{mandatory} · asiakirjoja {total}"
-        },
-        "products": {
-            "title": "Liitetyt tuotteet",
-            "subtitle": "Toimittajaan liitetyt entiteetit",
-            "empty": "Ei liitettyjä tuotteita",
-            "emptyHint": "Vain toimittajan alle arkistoidut tai sen projekteihin tai asiakirjoihin liitetyt tuotteet löytyvät: entiteettiä, joka on liitetty kentällä ”Toimittajat” ja arkistoitu muualle, Alfresco ei indeksoi."
-        },
-        "subSuppliers": {
-            "title": "Alihankkijat",
-            "empty": "Alihankkijoita ei ole ilmoitettu"
-        },
-        "projects": {
-            "title": "Avoimet projektit",
-            "empty": "Ei avoimia projekteja",
-            "manager": "Vastuuhenkilö: {name}",
-            "due": "Määräaika: {date}",
-            "late": "Myöhässä",
-            "unanswered": "Ei vastausta (päiviä: {days})"
-        },
-        "activity": {
-            "title": "Viestinvaihdon historia",
-            "empty": "Ei kirjattua viestinvaihtoa",
-            "message": "Viesti",
-            "activity": "Toiminto"
-        },
-        "process": {
-            "title": "Käynnistä prosessi",
-            "hint": "Listaus, uusiminen, NC:n avaaminen… sen mukaan, mitä instanssi sallii.",
-            "none": "Tässä instanssissa ei ole sallittuja prosesseja (PORTAL_PROCESS_TEMPLATES).",
-            "launch": "Käynnistä",
-            "confirmTitle": "Käynnistetäänkö ”{process}”?",
-            "confirmMessage": "Tälle toimittajalle luodaan beCPG-projekti sallitusta mallista. Käynnistettyä prosessia ei voi peruuttaa portaalista.",
-            "started": "Prosessi käynnistetty."
-        },
-        "identity": {
+        "activity": "Aktiivisuus ja reagointikyky",
+        "activityHelp": "Toimittajalle annetut tehtävät ja keskimääräinen vastausaika vuosittain, luettu päätöksenteon moduulista.",
+        "identity": "Perustiedot",
+        "identityRows": {
             "code": "Koodi",
             "erpCode": "ERP-koodi",
             "legalName": "Virallinen nimi",
             "state": "beCPG-tila",
-            "family": "Ryhmä",
-            "subFamily": "Alaryhmä",
+            "family": "Perhe",
+            "subFamily": "Alaperhe",
             "sites": "Toimipaikat",
             "subsidiaries": "Tytäryhtiöt",
-            "buyer": "Vastuuostaja",
-            "email": "Yhteyshenkilö",
-            "lastActivity": "Viimeisin toiminto",
-            "parent": "Emotoimittaja",
-            "none": "—"
+            "parent": "Päätoimittaja",
+            "subSuppliers": "Alihankkijat",
+            "catalogs": "Aktiiviset katalogit"
         },
-        "generatedAt": "Tiedot ajankohdalta {time}"
+        "scorecard": "Arviointi",
+        "scorecardHelp": "Toimittajan viimeisimmissä projekteissa arvioitujen kriteerien painotettu keskiarvo.",
+        "allNc": "Kaikki sen NC:t",
+        "exchanges": "Viestintä",
+        "ncFile": "toimittaja-nc",
+        "projectsFile": "toimittaja-projektit",
+        "none": "—"
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "Toimittajat",
@@ -933,8 +915,7 @@ const LOCALE = {
             "expiring": "vanhenemassa olevat asiakirjat",
             "expired": "vanhentuneet asiakirjat",
             "nc": "avoimet NC:t",
-            "lastActivity": "viimeisin toiminto",
-            "buyer": "ostaja"
+            "lastActivity": "viimeisin toiminto"
         },
         "truncatedShort": "Ikkuna: {scanned} toimittajaa luettu"
     },
@@ -1616,12 +1597,9 @@ const LOCALE = {
         "subFamily": "Alaryhmä",
         "site": "Toimipaikka",
         "subsidiary": "Tytäryhtiö",
-        "buyer": "Vastuuostaja",
         "market": "Markkina",
         "state": "Toimittajan tila",
         "any": "Kaikki",
-        "anyBuyer": "Kaikki ostajat",
-        "buyerHint": "beCPG-käyttäjätunnus (cm:owner)",
         "windowScoped": "koskee luettua otosta",
         "windowScopedHelp": "Alfresco ei indeksoi assosiaatioita: tämä suodatin koskee jo luettuja toimittajia, ei koko toimittajakantaa.",
         "unsupported": "ei määritetty",
@@ -1735,7 +1713,6 @@ const LOCALE = {
         "emptyHint": "Vanhentuneita asiakirjoja, estäviä NC-poikkeamia tai vastaamattomia projekteja ei havaittu.",
         "riskScore": "Riskipisteet {score}",
         "level": "Riskitaso: {level}",
-        "buyer": "Ostaja: {name}",
         "lastActivity": "Viimeisin toiminta: {date}",
         "completion": "Valmiusaste {value} %",
         "openSheet": "Avaa kortti",
@@ -1851,7 +1828,6 @@ const LOCALE = {
             "openProjects": "Projektit",
             "family": "Ryhmä",
             "sites": "Toimipaikat",
-            "buyer": "Ostaja",
             "lastActivity": "Viimeisin toiminta"
         },
         "metrics": {
@@ -1862,7 +1838,6 @@ const LOCALE = {
             "openProjects": "Avoimia projekteja: {count}"
         },
         "none": "—",
-        "noBuyer": "Ei osoitettu",
         "empty": "Tässä rajauksessa ei ole toimittajia",
         "emptyHint": "Laajentakaa suodattimia tai tarkistakaa ostajarajauksenne.",
         "emptyFiltered": "Yksikään toimittaja ei vastaa näitä suodattimia.",
@@ -1882,7 +1857,6 @@ const LOCALE = {
             "state": "Tila beCPG:ssä",
             "family": "Ryhmä",
             "sites": "Toimipaikat",
-            "buyer": "Vastuuostaja",
             "lastActivity": "Viimeisin toiminta"
         },
         "openSheet": "Avaa kortti",
@@ -2077,6 +2051,78 @@ const LOCALE = {
         },
         "noFamily": "Ei perhettä",
         "noSubFamily": "Ei alaperhettä"
+    },
+    "components/monitor/supplier/ActivityChart#LABELS": {
+        "tasks": "Tehtävät",
+        "delay": "Keskimääräinen vastausaika (pv)",
+        "days": "pv",
+        "aria": "Tämän toimittajan tehtävät ja keskimääräinen vastausaika vuosittain"
+    },
+    "components/monitor/supplier/RiskScore#LABELS": {
+        "ring": "Riskipistemäärä {score}/100, taso {level}",
+        "none": "Ei riskin syitä"
+    },
+    "components/monitor/supplier/SheetLists#LABELS": {
+        "documents": {
+            "search": "Hae asiakirjaa",
+            "document": "Asiakirja",
+            "mandatory": "Pakollinen",
+            "validity": "Voimassaolo",
+            "status": "Tila",
+            "entity": "Liitetty kohteeseen",
+            "download": "Lataa",
+            "empty": "Ei odotettuja eikä toimitettuja asiakirjoja",
+            "file": "toimittaja-asiakirjat",
+            "yes": "Kyllä",
+            "no": "Ei"
+        },
+        "products": {
+            "search": "Hae tuotetta",
+            "product": "Tuote",
+            "code": "Koodi",
+            "state": "Tila",
+            "completion": "Täydellisyys",
+            "modified": "Päivitetty",
+            "empty": "Ei liitettyjä tuotteita",
+            "file": "toimittaja-tuotteet"
+        },
+        "activity": {
+            "empty": "Ei kirjattua viestintää",
+            "message": "Viesti",
+            "activity": "Toiminta"
+        },
+        "unavailable": "beCPG ei pystynyt palauttamaan tätä luetteloa: se ei kerro tästä toimittajasta mitään."
+    },
+    "components/monitor/supplier/StatusLadder#LABELS": {
+        "current": "Täyttynyt sääntö",
+        "next": "Sitten",
+        "approvedWhen": "Hyväksytty, kun",
+        "approvedNow": "Kaikki ehdot täyttyvät",
+        "seeAll": "Näytä kaikki {count}",
+        "days": "{count} pv",
+        "on": "kohteessa {name}",
+        "conditions": {
+            "documentExpired": "Ei vanhentuneita pakollisia asiakirjoja",
+            "blockingNc": "Ei estäviä NC:itä",
+            "documentExpiring": "Ei uusittavia asiakirjoja",
+            "openProject": "Ei avoimia projekteja",
+            "documentMissing": "Ei puuttuvia pakollisia asiakirjoja",
+            "blockingCatalog": "Estävät katalogit täytetty"
+        },
+        "met": "täyttyy",
+        "unmet": "ei täyty"
+    },
+    "components/monitor/supplier/SupplierBand#LABELS": {
+        "erp": "ERP {code}",
+        "risk": "Riski {level} · {score}",
+        "created": "Luotu",
+        "lastActivity": "Viimeisin toiminta",
+        "startProject": "Aloita projekti",
+        "openInBecpg": "Avaa beCPG:ssä",
+        "since": "{count} päivän ajan",
+        "approved": "mikään keskeytys-, uusimis- tai odotussääntö ei ole voimassa.",
+        "actions": "Toimittajan toiminnot",
+        "verdict": "{status}:"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "Vaatimustenmukaisuus",
@@ -2588,7 +2634,6 @@ const LOCALE = {
         "openNc": "Avoimet NC:t",
         "openProjects": "Avoimet projektit",
         "family": "Tuoteperhe",
-        "buyer": "Ostaja",
         "lastActivity": "Viimeisin toiminta",
         "state": "Tila",
         "compliance": "Vaatimustenmukaisuus (%)"
