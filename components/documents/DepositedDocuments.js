@@ -39,7 +39,7 @@
 import { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { DocumentViewer } from '@/components/documents/DocumentViewer';
-import { Icon } from '@/components/ui/Button';
+import { Icon, IconButton } from '@/components/ui/Button';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonCard } from '@/components/ui/Skeleton';
@@ -193,20 +193,22 @@ export function DepositedDocuments({
                             {/* Viewing comes first: it is what one wants nine times
                                 out of ten, and it spares a round trip through the
                                 file manager just to check a certificate. */}
-                            <button
-                                type="button"
-                                onClick={() => setViewing(item)}
-                                className="shrink-0 text-sm text-[var(--becpg-blue)] underline hover:text-[var(--becpg-orange)]"
-                            >
-                                {labels.consult}
-                            </button>
-                            <a
-                                href={item.downloadUrl}
-                                download
-                                className="shrink-0 text-sm text-[var(--becpg-dark-grey)] underline hover:text-[var(--becpg-orange)]"
-                            >
-                                {labels.download}
-                            </a>
+                            <span className="flex shrink-0 items-center">
+                                <IconButton
+                                    icon="visibility"
+                                    label={labels.consult}
+                                    variant="ghost"
+                                    onClick={() => setViewing(item)}
+                                />
+                                <IconButton
+                                    icon="download"
+                                    label={labels.download}
+                                    variant="ghost"
+                                    href={item.downloadUrl}
+                                    external
+                                    download
+                                />
+                            </span>
                         </li>
                     ))}
                 </ul>

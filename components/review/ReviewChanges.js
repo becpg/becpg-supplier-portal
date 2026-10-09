@@ -71,7 +71,12 @@ export function changesOfStep(diff, step) {
         return { kind: 'properties', properties, list: null, count: properties.length };
     }
     const name = parseListId(step.listId).name || step.listName;
-    const list = name ? (diff.lists || []).find((entry) => localName(entry.type) === name) || null : null;
+    // A list named twice on one sheet (`surveyList`, `surveyList@1`) is told
+    // apart by the name after `|` in its key; the local name is the fallback.
+    const lists = diff.lists || [];
+    const list = (step.listId ? lists.find((entry) => String(entry.type).split('|')[1] === step.listId) : null)
+        || (name ? lists.find((entry) => localName(entry.type) === name) : null)
+        || null;
     const count = list ? list.added.length + list.removed.length + list.changed.length : 0;
     return { kind: 'list', properties: [], list, count };
 }

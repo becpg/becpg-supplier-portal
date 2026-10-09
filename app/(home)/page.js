@@ -41,6 +41,7 @@ import { ProductList } from '@/components/dashboard/ProductList';
 import { DocumentList } from '@/components/dashboard/DocumentList';
 import { DiscussionList } from '@/components/dashboard/DiscussionList';
 import { NotificationList } from '@/components/dashboard/NotificationList';
+import { NonConformityCard } from '@/components/dashboard/NonConformityCard';
 import { nodeRefToPath } from '@/lib/becpg';
 import { buildDashboard, createBecpgClient, getMyGroups, resolveSpace, scopeTasks } from '@/lib/adapters/session';
 import { listMyTasks, mapWithConcurrency, nodeRefFromId } from '@/lib/adapters/tasks';
@@ -543,6 +544,7 @@ export default async function DashboardPage() {
                  * level instead of one running 500px past the other.
                  */}
                 <div className="lg:columns-2 lg:gap-4 xl:columns-3 [&>*]:mb-3 [&>*]:break-inside-avoid sm:[&>*]:mb-4 lg:[&>*:last-child]:mb-0">
+                    <NonConformityCard nonConformities={dashboard ? dashboard.nonConformities : null} index={0} />
                     <TaskList tasks={tasks} total={openTasks.length} index={0} />
                     {/* `totalItems` is null when beCPG could not count the products
                         (see `formatTotal`); the floor travels with it so the card can

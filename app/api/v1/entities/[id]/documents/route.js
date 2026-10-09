@@ -31,6 +31,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { withBasePath } from '@/lib/basePath';
 import { getLiveSession } from '@/lib/session';
 import { AuthError, toApiResponse } from '@/lib/errors';
 import { toNodeRef } from '@/lib/adapters/tasks';
@@ -79,9 +80,10 @@ export async function GET(request, context) {
                 //
                 // `api/node/` is on the proxy allow-list and the session cookie
                 // authenticates it, so the ticket still never reaches the browser.
-                downloadUrl: `/api/v1/becpg/api/node/content/workspace/SpacesStore/${
+                // Under the portal's base path, or the browser asks another application.
+                downloadUrl: withBasePath(`/api/v1/becpg/api/node/content/workspace/SpacesStore/${
                     encodeURIComponent(String(document.nodeRef).split('/').pop())
-                }/${encodeURIComponent(document.name || 'document')}`,
+                }/${encodeURIComponent(document.name || 'document')}`),
             }));
 
         const response = NextResponse.json({
