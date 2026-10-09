@@ -55,7 +55,6 @@ import { useDocumentRequirements } from '@/components/wizard/TechnicalSheetBanne
 import { SignatureFlow } from '@/components/signature/SignatureFlow';
 import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import { WorkflowTaskScreen } from '@/components/tasks/WorkflowTaskScreen';
-import { NcResponseScreen } from '@/components/tasks/NcResponseScreen';
 import { ReviewWorkspace } from '@/components/review/ReviewWorkspace';
 import { useSession } from '@/components/providers/SessionProvider';
 import { Button } from '@/components/ui/Button';
@@ -220,9 +219,7 @@ function TaskRouter() {
     /* ------------------------------------------------------- workflow step */
 
     if (data.type === 'workflow') {
-        return data.supplierView
-            ? <NcResponseScreen task={data} />
-            : <WorkflowTaskScreen task={data} onChanged={task.refresh} />;
+        return <WorkflowTaskScreen task={data} onChanged={task.refresh} />;
     }
 
     /* ----------------------------------------------------------- signature */
