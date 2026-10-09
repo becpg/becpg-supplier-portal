@@ -79,6 +79,7 @@ import { useRouter } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { AppShell } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
+import { DocumentUpload } from '@/components/documents/DocumentUpload';
 import { Card } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { useSession } from '@/components/providers/SessionProvider';
@@ -153,6 +154,9 @@ const LABELS = defineLabels('components/wizard/Wizard#LABELS', {
         unknownWizard: 'Assistant de saisie non configuré',
         unknownWizardHint: 'Cette tâche demande l’assistant « {wizard} », qui n’est pas déclaré sur cette instance. Signalez-le à votre administrateur beCPG.',
         backToTasks: 'Retour aux tâches',
+        uploadSheet: 'Déposer la fiche technique',
+        renewSheet: 'Nouvelle version de la fiche technique',
+        addDocument: 'Ajouter un document complémentaire',
         delegated: 'Vous saisissez au nom de {supplier}',
         due: 'À rendre le {date}',
         step: 'Étape',
@@ -191,6 +195,9 @@ const LABELS = defineLabels('components/wizard/Wizard#LABELS', {
         unknownWizard: 'Entry assistant not configured',
         unknownWizardHint: 'This task asks for the "{wizard}" assistant, which is not declared on this instance. Report it to your beCPG administrator.',
         backToTasks: 'Back to tasks',
+        uploadSheet: 'Upload the technical sheet',
+        renewSheet: 'New version of the technical sheet',
+        addDocument: 'Add a complementary document',
         delegated: 'You are filling in on behalf of {supplier}',
         due: 'Due on {date}',
         step: 'Step',
@@ -1505,10 +1512,43 @@ export function Wizard({
         onSuggestionApplied,
     ]);
 
+    /*
+     * When the AI has nothing to propose, what feeds it: the technical sheet,
+     * or any other document on the documents step.
+     */
+    const technicalSheet = documents.sheet;
+    const documentsStep = steps.find((step) => step.kind === 'documents');
+    const suggestionActions = wizardReadOnly ? null : (
+        <div className="flex flex-col items-start gap-1.5">
+            {technicalSheet ? (
+                <DocumentUpload
+                    documentRef={technicalSheet.uploadTarget?.documentRef}
+                    entityRef={technicalSheet.uploadTarget?.entityRef || entityNodeRef}
+                    variant="inline"
+                    compact
+                    action={technicalSheet.isProvided ? 'renew' : 'upload'}
+                    label={technicalSheet.isProvided ? labels.renewSheet : labels.uploadSheet}
+                    onUploaded={(result, info) => {
+                        documents.refresh();
+                        if (!info || info.last) {
+                            suggestionsCall.refresh();
+                        }
+                    }}
+                />
+            ) : null}
+            {documentsStep ? (
+                <Button variant="ghost" size="sm" icon="note_add" onClick={() => goTo(documentsStep.id)}>
+                    {labels.addDocument}
+                </Button>
+            ) : null}
+        </div>
+    );
+
     const helpPanel = (
         <HelpPanel
             entityId={entityId}
             suggestions={suggestionsPanel}
+            suggestionActions={suggestionActions}
             task={task}
         />
     );
@@ -1974,6 +2014,7 @@ export function Wizard({
                 <HelpPanel
                     entityId={entityId}
                     suggestions={suggestionsPanel}
+                    suggestionActions={suggestionActions}
                     task={task}
                     variant="sheet"
                 />

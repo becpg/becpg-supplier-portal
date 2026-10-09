@@ -51,6 +51,7 @@
 
 import { createElement, memo, useCallback, useRef, useState } from 'react';
 import { getControl } from '@/components/form/controls';
+import { GridCellContext } from '@/components/form/controls/GridCellContext';
 import { needsAnswer } from '@/components/form/validation';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { renderDataListCell } from '@/components/datalist/renderers';
@@ -306,7 +307,7 @@ export function DataListCell({ row, column, list, context, autoFocus = false, la
      */
     return (
         <span className="becpg-grid-field" data-invalid={missing ? 'true' : undefined}>
-            {element}
+            <GridCellContext.Provider value>{element}</GridCellContext.Provider>
             {missing ? (
                 <Icon
                     name="error"

@@ -184,7 +184,6 @@ export function DataListStep({
                     {consultation ? step.label || step.title : step.title || step.label}
                 </span>
             )}
-            description={consultation ? undefined : (step.title && step.label !== step.title ? step.label : undefined)}
             consultation={consultation}
             className={className}
         />

@@ -6,6 +6,10 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
+    "app/(home)/page#LOCAL": {
+        "description": "您的档案在客户处的进展，以及客户对您的期望。",
+        "generatedAt": "数据截至 {time}"
+    },
     "app/company/page#LABELS": {
         "title": "我的企业",
         "noSupplier": "无供应商档案",
@@ -1043,6 +1047,43 @@ const LOCALE = {
         "noPriority": "无优先级",
         "untitled": "未命名任务",
         "caption": "我的任务列表"
+    },
+    "components/dashboard/DashboardCharts#LOCAL": {
+        "schedule": "我的截止日期",
+        "scheduleAria": "按周显示的到期任务和即将过期的文件",
+        "tasks": "到期任务",
+        "documents": "即将过期的文件",
+        "overdue": "逾期",
+        "thisWeek": "本周",
+        "later": "以后",
+        "undated": "{count} 个任务无截止日期",
+        "catalogs": "按目录的完整度",
+        "catalogsAria": "每个目录中完整度最低产品的完整度评分",
+        "catalogsHint": "每个目录中完整度最低产品的评分。"
+    },
+    "components/dashboard/DashboardKpis#LOCAL": {
+        "approval": "认证状态",
+        "approvalUnknown": "不可用",
+        "validUntil": "有效期至 {date}",
+        "noValidity": "无已知期限",
+        "allGood": "无阻断事项",
+        "completion": "完整度",
+        "completionScope": "已评分产品 {scored} / {total}",
+        "completionNone": "无已评分产品",
+        "tasks": "未完成任务",
+        "late": "逾期",
+        "onTime": "按时",
+        "nextDue": "下一个截止日期：{date}",
+        "noTask": "目前无待办事项",
+        "documents": "待处理文件",
+        "documentsOf": "/ {total}",
+        "documentsUnavailable": "文件跟踪不可用",
+        "valid": "有效",
+        "expiring": "即将过期",
+        "refused": "已拒绝",
+        "expired": "已过期",
+        "missing": "缺失",
+        "more": "+{count}"
     },
     "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "向导",
     "components/dashboard/taskTypes#TASK_TYPE_META.signature": "签名",
@@ -2340,6 +2381,7 @@ const LOCALE = {
         "toRead": "待审阅",
         "legendChanged": "自基准以来的变更",
         "aiPoints": "AI 指出的要点",
+        "trailChanges": "{count} 处变更",
         "frozen": "已确认列表",
         "accept": "接受并继续",
         "acceptLast": "接受",
@@ -2643,6 +2685,9 @@ const LOCALE = {
         "unknownWizard": "录入向导未配置",
         "unknownWizardHint": "此任务需要向导“{wizard}”，但该向导未在此实例上声明。请告知您的 beCPG 管理员。",
         "backToTasks": "返回任务",
+        "uploadSheet": "上传技术资料表",
+        "renewSheet": "技术资料表的新版本",
+        "addDocument": "添加补充文件",
         "delegated": "您正在代表 {supplier} 填写",
         "due": "截止日期 {date}",
         "step": "步骤",
@@ -2714,6 +2759,8 @@ const LOCALE = {
         "specs": "规格书",
         "specsUnreadable": "此资料表关联了一份规格书，但您的账户无法打开。",
         "refusals": "以往的退回记录",
+        "refusedBy": "被 {by} 拒绝",
+        "refused": "已拒绝",
         "more": "另外 +{count} 项"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2784,6 +2831,7 @@ const LOCALE = {
         "dismissed": "已忽略",
         "notRevocable": "无法自动恢复先前的值：如有需要，请直接编辑该字段。",
         "empty": "无建议",
+        "emptyShort": "此步骤无可提供的建议。",
         "emptyHint": "此步骤无可提供的建议。技术资料表已在上方上传：提取功能会建议从中找到的值。",
         "emptyEntityLevel": "分析已运行，但仅根据资料表本身得出推断，没有任何文件作为依据：因此不向您提供。",
         "analysing": "正在分析",

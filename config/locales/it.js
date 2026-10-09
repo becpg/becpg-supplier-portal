@@ -6,6 +6,10 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
+    "app/(home)/page#LOCAL": {
+        "description": "A che punto è il vostro fascicolo presso il cliente e cosa si aspetta da voi.",
+        "generatedAt": "Dati delle {time}"
+    },
     "app/company/page#LABELS": {
         "title": "La mia azienda",
         "noSupplier": "Nessuna scheda fornitore",
@@ -1043,6 +1047,43 @@ const LOCALE = {
         "noPriority": "Nessuna priorità",
         "untitled": "Attività senza titolo",
         "caption": "Il mio elenco di attività"
+    },
+    "components/dashboard/DashboardCharts#LOCAL": {
+        "schedule": "Le mie scadenze",
+        "scheduleAria": "Attività in scadenza e documenti in scadenza, settimana per settimana",
+        "tasks": "Attività in scadenza",
+        "documents": "Documenti in scadenza",
+        "overdue": "In ritardo",
+        "thisWeek": "Questa settimana",
+        "later": "Più avanti",
+        "undated": "{count} attività senza scadenza",
+        "catalogs": "Completezza per catalogo",
+        "catalogsAria": "Punteggio di completezza del prodotto meno completo, per catalogo",
+        "catalogsHint": "Punteggio del prodotto meno completo di ciascun catalogo."
+    },
+    "components/dashboard/DashboardKpis#LOCAL": {
+        "approval": "Stato di qualifica",
+        "approvalUnknown": "Non disponibile",
+        "validUntil": "Valido fino al {date}",
+        "noValidity": "Nessuna scadenza nota",
+        "allGood": "Nulla è bloccante",
+        "completion": "Completezza",
+        "completionScope": "{scored} prodotto/i valutato/i su {total}",
+        "completionNone": "Nessun prodotto valutato",
+        "tasks": "Attività aperte",
+        "late": "In ritardo",
+        "onTime": "Nei tempi",
+        "nextDue": "Prossima scadenza il {date}",
+        "noTask": "Nulla da fare al momento",
+        "documents": "Documenti da gestire",
+        "documentsOf": "su {total}",
+        "documentsUnavailable": "Monitoraggio documentale non disponibile",
+        "valid": "Validi",
+        "expiring": "In scadenza",
+        "refused": "Rifiutati",
+        "expired": "Scaduti",
+        "missing": "Mancanti",
+        "more": "+{count}"
     },
     "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "Procedura guidata",
     "components/dashboard/taskTypes#TASK_TYPE_META.signature": "Firma",
@@ -2340,6 +2381,7 @@ const LOCALE = {
         "toRead": "da rivedere",
         "legendChanged": "modifiche dalla versione di riferimento",
         "aiPoints": "punti rilevati dall'IA",
+        "trailChanges": "{count} modifica/he",
         "frozen": "Elenco convalidato",
         "accept": "Accetta e prosegui",
         "acceptLast": "Accetta",
@@ -2643,6 +2685,9 @@ const LOCALE = {
         "unknownWizard": "Procedura guidata di inserimento non configurata",
         "unknownWizardHint": "Questa attività richiede la procedura guidata «{wizard}», che non è dichiarata su questa istanza. Segnalatelo al vostro amministratore beCPG.",
         "backToTasks": "Torna alle attività",
+        "uploadSheet": "Carica la scheda tecnica",
+        "renewSheet": "Nuova versione della scheda tecnica",
+        "addDocument": "Aggiungi un documento complementare",
         "delegated": "State compilando per conto di {supplier}",
         "due": "Scadenza il {date}",
         "step": "Fase",
@@ -2714,6 +2759,8 @@ const LOCALE = {
         "specs": "Capitolati",
         "specsUnreadable": "A questa scheda è collegato un capitolato, ma il vostro account non può aprirlo.",
         "refusals": "Rifiuti precedenti",
+        "refusedBy": "Rifiutato da {by}",
+        "refused": "Rifiutato",
         "more": "+ altri {count}"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2784,6 +2831,7 @@ const LOCALE = {
         "dismissed": "Scartato",
         "notRevocable": "Il valore precedente non può essere ripristinato automaticamente: modificate direttamente il campo se necessario.",
         "empty": "Nessun suggerimento",
+        "emptyShort": "Nulla da proporre per questo passaggio.",
         "emptyHint": "Nulla da proporre per questa fase. La scheda tecnica è caricata qui sopra: l'estrazione proporrà i valori che vi trova.",
         "emptyEntityLevel": "L'analisi è stata eseguita, ma ha prodotto solo deduzioni ricavate dalla scheda stessa, senza alcun documento a supporto: non vi vengono proposte.",
         "analysing": "Analisi in corso",

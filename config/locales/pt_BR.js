@@ -6,6 +6,10 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
+    "app/(home)/page#LOCAL": {
+        "description": "Em que ponto está seu dossiê com seu cliente e o que ele espera de você.",
+        "generatedAt": "Dados de {time}"
+    },
     "app/company/page#LABELS": {
         "title": "Minha empresa",
         "noSupplier": "Nenhum cadastro de fornecedor",
@@ -1043,6 +1047,43 @@ const LOCALE = {
         "noPriority": "Sem prioridade",
         "untitled": "Tarefa sem título",
         "caption": "Minha lista de tarefas"
+    },
+    "components/dashboard/DashboardCharts#LOCAL": {
+        "schedule": "Meus prazos",
+        "scheduleAria": "Tarefas a entregar e documentos a expirar, semana a semana",
+        "tasks": "Tarefas a entregar",
+        "documents": "Documentos a expirar",
+        "overdue": "Atrasadas",
+        "thisWeek": "Esta semana",
+        "later": "Mais tarde",
+        "undated": "{count} tarefa(s) sem prazo",
+        "catalogs": "Completude por catálogo",
+        "catalogsAria": "Pontuação de completude do produto menos completo, por catálogo",
+        "catalogsHint": "Pontuação do produto menos completo de cada catálogo."
+    },
+    "components/dashboard/DashboardKpis#LOCAL": {
+        "approval": "Status de homologação",
+        "approvalUnknown": "Indisponível",
+        "validUntil": "Válido até {date}",
+        "noValidity": "Nenhum prazo conhecido",
+        "allGood": "Nada está bloqueando",
+        "completion": "Completude",
+        "completionScope": "{scored} de {total} produto(s) avaliado(s)",
+        "completionNone": "Nenhum produto avaliado",
+        "tasks": "Tarefas abertas",
+        "late": "Atrasadas",
+        "onTime": "No prazo",
+        "nextDue": "Próximo prazo em {date}",
+        "noTask": "Nada a fazer no momento",
+        "documents": "Documentos a tratar",
+        "documentsOf": "de {total}",
+        "documentsUnavailable": "Acompanhamento de documentos indisponível",
+        "valid": "Válidos",
+        "expiring": "Expiram em breve",
+        "refused": "Recusados",
+        "expired": "Expirados",
+        "missing": "Ausentes",
+        "more": "+{count}"
     },
     "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "Assistente",
     "components/dashboard/taskTypes#TASK_TYPE_META.signature": "Assinatura",
@@ -2340,6 +2381,7 @@ const LOCALE = {
         "toRead": "a revisar",
         "legendChanged": "alterações desde a referência",
         "aiPoints": "pontos levantados pela IA",
+        "trailChanges": "{count} alteração(ões)",
         "frozen": "Lista validada",
         "accept": "Aceitar e continuar",
         "acceptLast": "Aceitar",
@@ -2643,6 +2685,9 @@ const LOCALE = {
         "unknownWizard": "Assistente de entrada não configurado",
         "unknownWizardHint": "Esta tarefa requer o assistente “{wizard}”, que não está declarado nesta instância. Informe o seu administrador do beCPG.",
         "backToTasks": "Voltar às tarefas",
+        "uploadSheet": "Enviar a ficha técnica",
+        "renewSheet": "Nova versão da ficha técnica",
+        "addDocument": "Adicionar um documento complementar",
         "delegated": "Você está preenchendo em nome de {supplier}",
         "due": "Vence em {date}",
         "step": "Etapa",
@@ -2714,6 +2759,8 @@ const LOCALE = {
         "specs": "Especificações",
         "specsUnreadable": "Uma especificação está vinculada a esta ficha, mas sua conta não pode abri-la.",
         "refusals": "Recusas anteriores",
+        "refusedBy": "Recusado por {by}",
+        "refused": "Recusado",
         "more": "+{count} outras"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2784,6 +2831,7 @@ const LOCALE = {
         "dismissed": "Descartado",
         "notRevocable": "O valor anterior não pode ser restaurado automaticamente: edite o campo diretamente, se necessário.",
         "empty": "Nenhuma sugestão",
+        "emptyShort": "Nada a propor para esta etapa.",
         "emptyHint": "Nada a propor para esta etapa. A ficha técnica foi enviada logo acima: a extração proporá os valores que encontrar nela.",
         "emptyEntityLevel": "A análise foi executada, mas produziu apenas deduções feitas a partir da própria ficha, sem nenhum documento que as sustente: elas não são oferecidas a você.",
         "analysing": "Análise em andamento",

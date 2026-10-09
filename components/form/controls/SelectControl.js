@@ -25,6 +25,8 @@
 import { Select } from '@/components/ui/Field';
 import { listOptions } from '@/components/form/validation';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
+import { CheckDropdown } from '@/components/form/controls/CheckDropdown';
+import { useInGridCell } from '@/components/form/controls/GridCellContext';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 const LABELS = defineLabels('components/form/controls/SelectControl#LABELS', {
@@ -97,6 +99,7 @@ export function SelectControl({
     ...rest
 }) {
     const labels = pickLabels(LABELS, lang);
+    const inGrid = useInGridCell();
     const selected = toArray(value);
     const options = optionsWithOrphans(field, selected, labels.offList);
 
@@ -132,6 +135,20 @@ export function SelectControl({
                 : selected.filter((current) => current !== entry);
             onChange(next);
         };
+        if (inGrid) {
+            return (
+                <CheckDropdown
+                    id={id}
+                    label={field.label}
+                    options={options}
+                    selected={selected}
+                    onToggle={toggle}
+                    placeholder={labels.placeholder}
+                    invalid={Boolean(error) || invalid}
+                    disabled={rest.disabled}
+                />
+            );
+        }
         return (
             /*
              * `becpg-checkgroup` is what lets `app/globals.css` give this group

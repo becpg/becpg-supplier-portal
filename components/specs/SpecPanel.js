@@ -20,6 +20,7 @@
  */
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { apiUrl } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
@@ -92,6 +93,33 @@ function contentHref(specification) {
 }
 
 /**
+ * One specification in the wizard's context panel: the whole row is the link.
+ * It downloads the file when the specification carries one, and otherwise
+ * opens its read-only sheet.
+ */
+function PanelSpecRow({ specification }) {
+    const href = contentHref(specification);
+    const title = specification.title || specification.name || '—';
+    const className = 'group flex items-center gap-2.5 rounded-lg border border-[var(--becpg-line)] bg-white px-2.5 py-2 transition-colors hover:border-[var(--becpg-blue-light)] hover:bg-[var(--becpg-blue-lighter)]/40';
+    const content = (
+        <>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--becpg-blue-lighter)] text-[var(--becpg-blue)]">
+                <Icon name="menu_book" size={18} />
+            </span>
+            <span className="min-w-0 flex-1 break-words text-sm font-medium leading-snug text-[var(--becpg-ink)]">{title}</span>
+            <Icon name={href ? 'download' : 'chevron_right'} size={18} className="shrink-0 text-[var(--becpg-blue-light)]" />
+        </>
+    );
+    if (href) {
+        return <li><a href={href} download className={className}>{content}</a></li>;
+    }
+    if (specification.uuid) {
+        return <li><Link href={`/products/${specification.uuid}`} className={className}>{content}</Link></li>;
+    }
+    return <li><div className={className}>{content}</div></li>;
+}
+
+/**
  * One specification.
  *
  * @param {Object} props
@@ -100,6 +128,13 @@ function contentHref(specification) {
  * @param {number} [props.index]
  */
 function SpecRow({ specification, variant, index = 0 }) {
+    if (variant === 'panel') {
+        return <PanelSpecRow specification={specification} />;
+    }
+    return <ListSpecRow specification={specification} variant={variant} index={index} />;
+}
+
+function ListSpecRow({ specification, variant, index }) {
     const { lang } = useMessages();
     const labels = labelsFor(lang);
     const reduceMotion = useReducedMotion();
@@ -337,7 +372,7 @@ export function SpecPanel({
         body = (
             <ul
                 className={`m-0 flex list-none flex-col p-0 ${
-                    panel ? '' : 'overflow-hidden rounded-2xl border border-[var(--becpg-line)] bg-white shadow-[var(--becpg-shadow-raised)]'
+                    panel ? 'gap-2' : 'overflow-hidden rounded-2xl border border-[var(--becpg-line)] bg-white shadow-[var(--becpg-shadow-raised)]'
                 }`}
             >
                 {list.map((specification, index) => (

@@ -179,7 +179,7 @@ function TasksKpi({ actions, local, lang }) {
     return (
         <Kpi href={late > 0 ? '/tasks?late=1' : '/tasks'} icon="assignment_turned_in" label={local.tasks} value={open}>
             {open > 0 ? <SplitBar parts={parts} /> : null}
-            {open > 0 ? <Legend items={parts} /> : null}
+            {open > 0 ? <Legend items={parts.filter((part) => part.value > 0)} /> : null}
             <Hint>{open === 0 ? local.noTask : nextDue ? fill(local.nextDue, { date: nextDue }) : null}</Hint>
         </Kpi>
     );

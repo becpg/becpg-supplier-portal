@@ -6,8 +6,7 @@
  *
  * ```
  *  ┌ approval ┬ completeness ┬ open tasks ┬ documents to deal with ┐
- *  ├──────── my due dates (weeks) ────────┬ completeness/catalogue ┤
- *  └ non-conformities · tasks · products · documents · discussions ┘
+ *  └ [To do] lists to act on  |  [Follow-up] due dates, catalogues ┘
  * ```
  *
  * The notifications are not repeated here: the bell of the top bar holds them.
@@ -26,10 +25,10 @@
 
 import { redirect } from 'next/navigation';
 import { AppShell, PageHeader } from '@/components/shell/AppShell';
-import { SectionHeader } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { DashboardKpis } from '@/components/dashboard/DashboardKpis';
 import { CatalogChart, ScheduleChart } from '@/components/dashboard/DashboardCharts';
+import { DashboardTabs } from '@/components/dashboard/DashboardTabs';
 import { TaskList } from '@/components/dashboard/TaskList';
 import { ProductList } from '@/components/dashboard/ProductList';
 import { DocumentList } from '@/components/dashboard/DocumentList';
@@ -69,19 +68,17 @@ export const dynamic = 'force-dynamic';
 const PREVIEW = { tasks: 6, products: 4, documents: 4, discussions: 3 };
 
 /**
- * The page heading and the zone heading. They belong to this one screen, hence
+ * The page heading. It belongs to this one screen, hence
  * here rather than in the chrome vocabulary of `config/messages.js`.
  */
 const LOCAL = defineLabels('app/(home)/page#LOCAL', {
     fr: {
         description: 'Où en est votre dossier chez votre client, et ce qu’il attend de vous.',
         generatedAt: 'Données au {time}',
-        detail: 'À traiter',
     },
     en: {
         description: 'Where your file stands with your customer, and what they expect from you.',
         generatedAt: 'Data as of {time}',
-        detail: 'To do',
     },
 });
 
@@ -525,35 +522,41 @@ export default async function DashboardPage() {
                 documents={documentCounters ? documentFigures : null}
             />
 
-            <div className="mt-3 grid grid-cols-1 gap-3 sm:mt-4 sm:gap-4 xl:grid-cols-3">
-                <ScheduleChart schedule={schedule} className="xl:col-span-2" />
-                <CatalogChart catalogs={dashboard ? dashboard.completion.catalogs : []} />
+            <div className="mt-5 sm:mt-6">
+                <DashboardTabs
+                    todoCount={openTasks.length + (dashboard?.nonConformities?.length || 0)}
+                    todo={
+                        /*
+                         * A multi-column flow, not a grid: the browser balances the
+                         * columns by height, so the zone ends level whatever the mix
+                         * of tasks, documents and threads. `break-inside-avoid` keeps
+                         * a card whole and the DOM order, hence the tab order, is
+                         * unchanged.
+                         */
+                        <div className="lg:columns-2 lg:gap-4 xl:columns-3 [&>*]:mb-3 [&>*]:break-inside-avoid sm:[&>*]:mb-4 lg:[&>*:last-child]:mb-0">
+                            <NonConformityCard nonConformities={dashboard ? dashboard.nonConformities : null} index={0} />
+                            <TaskList tasks={tasks} total={openTasks.length} index={0} />
+                            {/* `totalItems` is null when beCPG could not count the products
+                                (see `formatTotal`); the floor travels with it so the card can
+                                say "100+" instead of silently showing the preview size. */}
+                            <ProductList
+                                products={products}
+                                total={entityResult.pagination.totalItems}
+                                totalAtLeast={entityResult.pagination.totalAtLeast}
+                                index={1}
+                            />
+                            <DocumentList documents={documents} total={documentTotal} index={2} />
+                            <DiscussionList threads={threads} index={3} />
+                        </div>
+                    }
+                    followUp={
+                        <div className="grid grid-cols-1 items-start gap-3 sm:gap-4 xl:grid-cols-3">
+                            <ScheduleChart schedule={schedule} className="xl:col-span-2" />
+                            <CatalogChart catalogs={dashboard ? dashboard.completion.catalogs : []} />
+                        </div>
+                    }
+                />
             </div>
-
-            <section className="mt-6 sm:mt-8" aria-label={local.detail}>
-                <SectionHeader title={local.detail} />
-                {/*
-                 * A multi-column flow, not a grid: the browser balances the
-                 * columns by height, so the zone ends level whatever the mix of
-                 * tasks, documents and threads. `break-inside-avoid` keeps a card
-                 * whole and the DOM order, hence the tab order, is unchanged.
-                 */}
-                <div className="lg:columns-2 lg:gap-4 xl:columns-3 [&>*]:mb-3 [&>*]:break-inside-avoid sm:[&>*]:mb-4 lg:[&>*:last-child]:mb-0">
-                    <NonConformityCard nonConformities={dashboard ? dashboard.nonConformities : null} index={0} />
-                    <TaskList tasks={tasks} total={openTasks.length} index={0} />
-                    {/* `totalItems` is null when beCPG could not count the products
-                        (see `formatTotal`); the floor travels with it so the card can
-                        say "100+" instead of silently showing the preview size. */}
-                    <ProductList
-                        products={products}
-                        total={entityResult.pagination.totalItems}
-                        totalAtLeast={entityResult.pagination.totalAtLeast}
-                        index={1}
-                    />
-                    <DocumentList documents={documents} total={documentTotal} index={2} />
-                    <DiscussionList threads={threads} index={3} />
-                </div>
-            </section>
         </AppShell>
     );
 }

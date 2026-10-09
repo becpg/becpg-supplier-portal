@@ -6,6 +6,10 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
+    "app/(home)/page#LOCAL": {
+        "description": "Wo Ihre Akte bei Ihrem Kunden steht und was er von Ihnen erwartet.",
+        "generatedAt": "Daten von {time}"
+    },
     "app/company/page#LABELS": {
         "title": "Mein Unternehmen",
         "noSupplier": "Kein Lieferantendatensatz",
@@ -1043,6 +1047,43 @@ const LOCALE = {
         "noPriority": "Keine Priorität",
         "untitled": "Aufgabe ohne Titel",
         "caption": "Meine Aufgabenliste"
+    },
+    "components/dashboard/DashboardCharts#LOCAL": {
+        "schedule": "Meine Fälligkeiten",
+        "scheduleAria": "Fällige Aufgaben und ablaufende Dokumente, Woche für Woche",
+        "tasks": "Fällige Aufgaben",
+        "documents": "Ablaufende Dokumente",
+        "overdue": "Überfällig",
+        "thisWeek": "Diese Woche",
+        "later": "Später",
+        "undated": "{count} Aufgabe(n) ohne Fälligkeit",
+        "catalogs": "Vollständigkeit nach Katalog",
+        "catalogsAria": "Vollständigkeitsscore des am wenigsten vollständigen Produkts, pro Katalog",
+        "catalogsHint": "Score des am wenigsten vollständigen Produkts jedes Katalogs."
+    },
+    "components/dashboard/DashboardKpis#LOCAL": {
+        "approval": "Freigabestatus",
+        "approvalUnknown": "Nicht verfügbar",
+        "validUntil": "Gültig bis {date}",
+        "noValidity": "Keine bekannte Frist",
+        "allGood": "Nichts blockiert",
+        "completion": "Vollständigkeit",
+        "completionScope": "{scored} von {total} Produkt(en) bewertet",
+        "completionNone": "Kein Produkt bewertet",
+        "tasks": "Offene Aufgaben",
+        "late": "Überfällig",
+        "onTime": "Im Zeitplan",
+        "nextDue": "Nächste Fälligkeit am {date}",
+        "noTask": "Derzeit nichts zu tun",
+        "documents": "Zu bearbeitende Dokumente",
+        "documentsOf": "von {total}",
+        "documentsUnavailable": "Dokumentenverfolgung nicht verfügbar",
+        "valid": "Gültig",
+        "expiring": "Laufen bald ab",
+        "refused": "Abgelehnt",
+        "expired": "Abgelaufen",
+        "missing": "Fehlend",
+        "more": "+{count}"
     },
     "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "Assistent",
     "components/dashboard/taskTypes#TASK_TYPE_META.signature": "Signatur",
@@ -2340,6 +2381,7 @@ const LOCALE = {
         "toRead": "zu prüfen",
         "legendChanged": "Änderungen seit der Referenz",
         "aiPoints": "von der KI erkannte Punkte",
+        "trailChanges": "{count} Änderung(en)",
         "frozen": "Validierte Liste",
         "accept": "Akzeptieren und weiter",
         "acceptLast": "Akzeptieren",
@@ -2643,6 +2685,9 @@ const LOCALE = {
         "unknownWizard": "Erfassungsassistent nicht konfiguriert",
         "unknownWizardHint": "Diese Aufgabe erfordert den Assistenten „{wizard}“, der auf dieser Instanz nicht deklariert ist. Melden Sie dies Ihrem beCPG-Administrator.",
         "backToTasks": "Zurück zu den Aufgaben",
+        "uploadSheet": "Technisches Datenblatt hochladen",
+        "renewSheet": "Neue Version des technischen Datenblatts",
+        "addDocument": "Ergänzendes Dokument hinzufügen",
         "delegated": "Sie füllen im Namen von {supplier} aus",
         "due": "Fällig am {date}",
         "step": "Schritt",
@@ -2714,6 +2759,8 @@ const LOCALE = {
         "specs": "Spezifikationen",
         "specsUnreadable": "Diesem Datenblatt ist eine Spezifikation zugeordnet, aber Ihr Konto kann sie nicht öffnen.",
         "refusals": "Frühere Ablehnungen",
+        "refusedBy": "Abgelehnt von {by}",
+        "refused": "Abgelehnt",
         "more": "+{count} weitere"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2784,6 +2831,7 @@ const LOCALE = {
         "dismissed": "Verworfen",
         "notRevocable": "Der vorherige Wert kann nicht automatisch wiederhergestellt werden: Bearbeiten Sie das Feld bei Bedarf direkt.",
         "empty": "Kein Vorschlag",
+        "emptyShort": "Für diesen Schritt gibt es nichts vorzuschlagen.",
         "emptyHint": "Für diesen Schritt gibt es nichts vorzuschlagen. Das technische Datenblatt ist direkt darüber hochgeladen: Die Extraktion schlägt die dort gefundenen Werte vor.",
         "emptyEntityLevel": "Die Analyse wurde ausgeführt, hat aber nur Ableitungen aus dem Datenblatt selbst ergeben, ohne stützendes Dokument: Sie werden Ihnen nicht angeboten.",
         "analysing": "Analyse läuft",

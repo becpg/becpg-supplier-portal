@@ -346,6 +346,8 @@ export function AiValidationBadge({ state, hints, date, withHints = false, class
  * @param {{editable: boolean, required: boolean, from: string|null, to: string|null}} [props.validity]
  *   the row's validity verdict; the date boxes are rendered only when `editable`
  * @param {boolean} [props.autoFocus] focus the trigger on mount (row expanded by the user)
+ * @param {string} [props.label] inline variant: the trigger's wording, instead of « Déposer »
+ * @param {boolean} [props.compact] inline variant: no line of accepted formats beside the trigger
  */
 export function DocumentUpload({
     documentRef,
@@ -364,6 +366,8 @@ export function DocumentUpload({
     aiValidation,
     validity = null,
     autoFocus = false,
+    label,
+    compact = false,
     className = '',
 }) {
     const { lang } = useMessages();
@@ -769,11 +773,13 @@ export function DocumentUpload({
                         loading={busy}
                         onClick={() => inputRef.current && inputRef.current.click()}
                     >
-                        {action === 'renew' ? labels.renew : labels.deposit}
+                        {label || (action === 'renew' ? labels.renew : labels.deposit)}
                     </Button>
-                    <span className="hidden text-xs text-[var(--becpg-dark-grey)] sm:inline">
-                        {dragging ? labels.drop : fill(labels.accepted, { accept, max: `${maxSizeMb} Mo` })}
-                    </span>
+                    {compact ? null : (
+                        <span className="hidden text-xs text-[var(--becpg-dark-grey)] sm:inline">
+                            {dragging ? labels.drop : fill(labels.accepted, { accept, max: `${maxSizeMb} Mo` })}
+                        </span>
+                    )}
                     {onCancel ? (
                         <Button variant="subtle" size="sm" onClick={onCancel}>
                             {labels.cancel}

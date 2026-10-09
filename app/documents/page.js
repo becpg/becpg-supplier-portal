@@ -23,7 +23,7 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { AppShell } from '@/components/shell/AppShell';
-import { Button, Icon } from '@/components/ui/Button';
+import { Button, Icon, IconButton } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
 import { GaugeBar } from '@/components/ui/Gauge';
@@ -36,6 +36,7 @@ import { RequirementChecklist } from '@/components/documents/RequirementChecklis
 import { DocumentUpload, AiValidationBadge } from '@/components/documents/DocumentUpload';
 import { ExpiryPill } from '@/components/documents/ExpiryPill';
 import { SignedDocumentList } from '@/components/documents/SignedDocumentList';
+import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import { download, useApi } from '@/lib/client';
 import { useSession } from '@/components/providers/SessionProvider';
 import { useMessages } from '@/lib/messages';
@@ -80,6 +81,7 @@ const LABELS = defineLabels('app/documents/page#LABELS', {
             actions: '',
         },
         download: 'Télécharger',
+        view: 'Consulter',
         noFile: 'Pas encore fourni',
         blockingBanner:
             '{count} document(s) obligatoire(s) bloquent votre agrément. Ils sont en haut de la liste.',
@@ -130,6 +132,7 @@ const LABELS = defineLabels('app/documents/page#LABELS', {
             actions: '',
         },
         download: 'Download',
+        view: 'View',
         noFile: 'Not provided yet',
         blockingBanner:
             '{count} mandatory document(s) are holding your approval back. They are at the top of the list.',
@@ -196,6 +199,7 @@ export default function DocumentsPage() {
     const [filter, setFilter] = useState('open');
     const [query, setQuery] = useState('');
     const [depositOpen, setDepositOpen] = useState(false);
+    const [viewing, setViewing] = useState(null);
     const [depositEntity, setDepositEntity] = useState('');
     const depositRef = useRef(null);
 
@@ -355,20 +359,29 @@ export default function DocumentsPage() {
                 id: 'actions',
                 header: labels.columns.actions,
                 enableSorting: false,
-                meta: { align: 'right', label: labels.download, width: '7rem' },
+                meta: { align: 'right', label: labels.columns.actions, width: '6rem' },
                 cell: ({ row }) =>
                     row.original.downloadUrl ? (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            icon="download"
-                            onClick={(event) => {
-                                event.stopPropagation();
-                                download(`documents/${row.original.id}/content`);
-                            }}
-                        >
-                            {labels.download}
-                        </Button>
+                        <span className="inline-flex items-center">
+                            <IconButton
+                                icon="visibility"
+                                label={labels.view}
+                                variant="ghost"
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    setViewing(row.original);
+                                }}
+                            />
+                            <IconButton
+                                icon="download"
+                                label={labels.download}
+                                variant="ghost"
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    download(`documents/${row.original.id}/content`);
+                                }}
+                            />
+                        </span>
                     ) : null,
             },
         ],
@@ -627,6 +640,7 @@ export default function DocumentsPage() {
                     </div>
                 </div>
             </Modal>
+            <DocumentViewer document={viewing} onClose={() => setViewing(null)} />
         </AppShell>
     );
 }

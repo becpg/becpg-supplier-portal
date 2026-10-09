@@ -24,6 +24,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api } from '@/lib/client';
@@ -46,6 +47,7 @@ const LOCAL = defineLabels('components/dashboard/DocumentList#LOCAL', {
         upload: 'Déposer une nouvelle version',
         uploadFirst: 'Déposer le document',
         download: 'Télécharger',
+        view: 'Consulter',
         uploading: 'Envoi…',
         uploaded: 'Document déposé. Il passe en validation chez votre client.',
     },
@@ -63,6 +65,7 @@ const LOCAL = defineLabels('components/dashboard/DocumentList#LOCAL', {
         upload: 'Upload a new version',
         uploadFirst: 'Upload the document',
         download: 'Download',
+        view: 'View',
         uploading: 'Uploading…',
         uploaded: 'Document uploaded. It is now pending your customer’s validation.',
     },
@@ -122,6 +125,7 @@ export function DocumentList({ documents = [], total, index = 0, className = '' 
     const inputRef = useRef(null);
     const targetRef = useRef(null);
     const [busy, setBusy] = useState({ id: null, percent: 0 });
+    const [viewing, setViewing] = useState(null);
 
     const count = typeof total === 'number' ? total : documents.length;
 
@@ -267,6 +271,17 @@ export function DocumentList({ documents = [], total, index = 0, className = '' 
 
                                 <div className="flex shrink-0 items-center">
                                     {document.downloadUrl ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => setViewing(document)}
+                                            aria-label={local.view}
+                                            title={local.view}
+                                            className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--becpg-dark-grey-deep)] transition-colors hover:bg-[var(--becpg-grey)] hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                                        >
+                                            <Icon name="visibility" size={18} />
+                                        </button>
+                                    ) : null}
+                                    {document.downloadUrl ? (
                                         <a
                                             href={document.downloadUrl}
                                             download
@@ -293,6 +308,7 @@ export function DocumentList({ documents = [], total, index = 0, className = '' 
                     })}
                 </ul>
             )}
+            <DocumentViewer document={viewing} onClose={() => setViewing(null)} />
         </Card>
     );
 }

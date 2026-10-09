@@ -6,6 +6,10 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
+    "app/(home)/page#LOCAL": {
+        "description": "Missä vaiheessa kansionne on asiakkaallanne ja mitä asiakas odottaa teiltä.",
+        "generatedAt": "Tiedot ajalta {time}"
+    },
     "app/company/page#LABELS": {
         "title": "Yritykseni",
         "noSupplier": "Ei toimittajatietuetta",
@@ -1043,6 +1047,43 @@ const LOCALE = {
         "noPriority": "Ei prioriteettia",
         "untitled": "Nimetön tehtävä",
         "caption": "Tehtäväluetteloni"
+    },
+    "components/dashboard/DashboardCharts#LOCAL": {
+        "schedule": "Määräaikani",
+        "scheduleAria": "Erääntyvät tehtävät ja vanhenevat asiakirjat viikoittain",
+        "tasks": "Erääntyvät tehtävät",
+        "documents": "Vanhenevat asiakirjat",
+        "overdue": "Myöhässä",
+        "thisWeek": "Tällä viikolla",
+        "later": "Myöhemmin",
+        "undated": "{count} tehtävää ilman määräpäivää",
+        "catalogs": "Täydellisyys katalogeittain",
+        "catalogsAria": "Vähiten täydellisen tuotteen täydellisyyspisteet katalogeittain",
+        "catalogsHint": "Kunkin katalogin vähiten täydellisen tuotteen pisteet."
+    },
+    "components/dashboard/DashboardKpis#LOCAL": {
+        "approval": "Hyväksynnän tila",
+        "approvalUnknown": "Ei saatavilla",
+        "validUntil": "Voimassa asti: {date}",
+        "noValidity": "Ei tiedossa olevaa määräaikaa",
+        "allGood": "Ei estäviä tekijöitä",
+        "completion": "Täydellisyys",
+        "completionScope": "Pisteytetty {scored}/{total} tuotetta",
+        "completionNone": "Ei pisteytettyjä tuotteita",
+        "tasks": "Avoimet tehtävät",
+        "late": "Myöhässä",
+        "onTime": "Aikataulussa",
+        "nextDue": "Seuraava määräpäivä {date}",
+        "noTask": "Ei tehtävää tällä hetkellä",
+        "documents": "Käsiteltävät asiakirjat",
+        "documentsOf": "/ {total}",
+        "documentsUnavailable": "Asiakirjaseuranta ei ole saatavilla",
+        "valid": "Voimassa",
+        "expiring": "Vanhenee pian",
+        "refused": "Hylätty",
+        "expired": "Vanhentunut",
+        "missing": "Puuttuu",
+        "more": "+{count}"
     },
     "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "Ohjattu toiminto",
     "components/dashboard/taskTypes#TASK_TYPE_META.signature": "Allekirjoitus",
@@ -2340,6 +2381,7 @@ const LOCALE = {
         "toRead": "tarkistettavana",
         "legendChanged": "muutokset viitteen jälkeen",
         "aiPoints": "tekoälyn havaitsemat kohdat",
+        "trailChanges": "{count} muutosta",
         "frozen": "Hyväksytty luettelo",
         "accept": "Hyväksy ja jatka",
         "acceptLast": "Hyväksy",
@@ -2643,6 +2685,9 @@ const LOCALE = {
         "unknownWizard": "Syötön ohjattua toimintoa ei ole määritetty",
         "unknownWizardHint": "Tämä tehtävä edellyttää ohjattua toimintoa \"{wizard}\", jota ei ole määritetty tässä instanssissa. Ilmoittakaa asiasta beCPG-järjestelmänvalvojallenne.",
         "backToTasks": "Takaisin tehtäviin",
+        "uploadSheet": "Lataa tekninen tuotekortti",
+        "renewSheet": "Teknisen tuotekortin uusi versio",
+        "addDocument": "Lisää täydentävä asiakirja",
         "delegated": "Täytätte tietoja toimittajan puolesta: {supplier}",
         "due": "Määräaika: {date}",
         "step": "Vaihe",
@@ -2714,6 +2759,8 @@ const LOCALE = {
         "specs": "Vaatimusmäärittelyt",
         "specsUnreadable": "Tähän tuotekorttiin on liitetty vaatimusmäärittely, mutta tililläsi ei ole oikeutta avata sitä.",
         "refusals": "Aiemmat hylkäykset",
+        "refusedBy": "Hylännyt: {by}",
+        "refused": "Hylätty",
         "more": "+{count} lisää"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2784,6 +2831,7 @@ const LOCALE = {
         "dismissed": "Ohitettu",
         "notRevocable": "Aiempaa arvoa ei voi palauttaa automaattisesti: muokatkaa kenttää tarvittaessa suoraan.",
         "empty": "Ei ehdotuksia",
+        "emptyShort": "Tähän vaiheeseen ei ole ehdotettavaa.",
         "emptyHint": "Tähän vaiheeseen ei ole ehdotettavaa. Tekninen tuotekortti ladataan heti yläpuolella: poiminta ehdottaa siitä löytämiään arvoja.",
         "emptyEntityLevel": "Analyysi suoritettiin, mutta se tuotti vain itse tuotekortista tehtyjä päätelmiä ilman niitä tukevaa asiakirjaa: niitä ei ehdoteta teille.",
         "analysing": "Analyysi käynnissä",

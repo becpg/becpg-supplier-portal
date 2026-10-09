@@ -6,6 +6,10 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
+    "app/(home)/page#LOCAL": {
+        "description": "أين وصل ملفكم لدى عميلكم، وما الذي ينتظره منكم.",
+        "generatedAt": "البيانات حتى {time}"
+    },
     "app/company/page#LABELS": {
         "title": "شركتي",
         "noSupplier": "لا يوجد سجل مورّد",
@@ -1043,6 +1047,43 @@ const LOCALE = {
         "noPriority": "بلا أولوية",
         "untitled": "مهمة بلا عنوان",
         "caption": "قائمة مهامي"
+    },
+    "components/dashboard/DashboardCharts#LOCAL": {
+        "schedule": "مواعيدي",
+        "scheduleAria": "المهام المستحقة والمستندات التي تنتهي صلاحيتها، أسبوعًا بأسبوع",
+        "tasks": "المهام المستحقة",
+        "documents": "المستندات التي تنتهي صلاحيتها",
+        "overdue": "متأخرة",
+        "thisWeek": "هذا الأسبوع",
+        "later": "لاحقًا",
+        "undated": "{count} مهمة (مهام) بدون تاريخ استحقاق",
+        "catalogs": "الاكتمال حسب الكتالوج",
+        "catalogsAria": "درجة اكتمال المنتج الأقل اكتمالًا، لكل كتالوج",
+        "catalogsHint": "درجة المنتج الأقل اكتمالًا في كل كتالوج."
+    },
+    "components/dashboard/DashboardKpis#LOCAL": {
+        "approval": "حالة الاعتماد",
+        "approvalUnknown": "غير متاح",
+        "validUntil": "صالح حتى {date}",
+        "noValidity": "لا يوجد موعد نهائي معروف",
+        "allGood": "لا شيء معيق",
+        "completion": "الاكتمال",
+        "completionScope": "تم تقييم {scored} من أصل {total} منتج(ات)",
+        "completionNone": "لا يوجد منتج مُقيَّم",
+        "tasks": "المهام المفتوحة",
+        "late": "متأخرة",
+        "onTime": "في الموعد",
+        "nextDue": "الاستحقاق التالي في {date}",
+        "noTask": "لا شيء للقيام به حاليًا",
+        "documents": "المستندات المطلوب معالجتها",
+        "documentsOf": "من {total}",
+        "documentsUnavailable": "تتبع المستندات غير متاح",
+        "valid": "صالحة",
+        "expiring": "تنتهي قريبًا",
+        "refused": "مرفوضة",
+        "expired": "منتهية الصلاحية",
+        "missing": "ناقصة",
+        "more": "+{count}"
     },
     "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "المعالج",
     "components/dashboard/taskTypes#TASK_TYPE_META.signature": "التوقيع",
@@ -2340,6 +2381,7 @@ const LOCALE = {
         "toRead": "بانتظار المراجعة",
         "legendChanged": "التغييرات منذ المرجع",
         "aiPoints": "نقاط رصدها الذكاء الاصطناعي",
+        "trailChanges": "{count} تغيير(ات)",
         "frozen": "قائمة معتمدة",
         "accept": "القبول والمتابعة",
         "acceptLast": "قبول",
@@ -2643,6 +2685,9 @@ const LOCALE = {
         "unknownWizard": "معالج الإدخال غير مهيّأ",
         "unknownWizardHint": "تتطلب هذه المهمة المعالج «{wizard}»، وهو غير مُعرَّف على هذا المثيل. أبلغوا مسؤول beCPG لديكم بذلك.",
         "backToTasks": "العودة إلى المهام",
+        "uploadSheet": "رفع البطاقة الفنية",
+        "renewSheet": "إصدار جديد من البطاقة الفنية",
+        "addDocument": "إضافة مستند تكميلي",
         "delegated": "أنتم تُدخلون البيانات نيابةً عن {supplier}",
         "due": "الاستحقاق في {date}",
         "step": "الخطوة",
@@ -2714,6 +2759,8 @@ const LOCALE = {
         "specs": "المواصفات",
         "specsUnreadable": "توجد مواصفة مرفقة بهذه البطاقة، لكن حسابكم لا يستطيع فتحها.",
         "refusals": "الرفوض السابقة",
+        "refusedBy": "رفضه {by}",
+        "refused": "مرفوض",
         "more": "+{count} أخرى"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2784,6 +2831,7 @@ const LOCALE = {
         "dismissed": "مستبعَدة",
         "notRevocable": "لا يمكن استعادة القيمة السابقة تلقائيًا: عدّلوا الحقل مباشرةً إن لزم.",
         "empty": "لا توجد اقتراحات",
+        "emptyShort": "لا يوجد ما يُقترح لهذه الخطوة.",
         "emptyHint": "لا شيء للاقتراح في هذه الخطوة. البطاقة الفنية مرفوعة أعلاه مباشرة: سيقترح الاستخراج القيم التي يجدها فيها.",
         "emptyEntityLevel": "جرى التحليل بالفعل، لكنه لم ينتج سوى استنتاجات من البطاقة نفسها، دون مستند يدعمها: لذا لا تُعرض عليكم.",
         "analysing": "التحليل قيد التنفيذ",

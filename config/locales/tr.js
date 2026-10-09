@@ -6,6 +6,10 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
+    "app/(home)/page#LOCAL": {
+        "description": "Dosyanızın müşterinizdeki durumu ve sizden beklenenler.",
+        "generatedAt": "Veri zamanı: {time}"
+    },
     "app/company/page#LABELS": {
         "title": "Şirketim",
         "noSupplier": "Tedarikçi kaydı yok",
@@ -1043,6 +1047,43 @@ const LOCALE = {
         "noPriority": "Öncelik yok",
         "untitled": "Başlıksız görev",
         "caption": "Görev listem"
+    },
+    "components/dashboard/DashboardCharts#LOCAL": {
+        "schedule": "Son tarihlerim",
+        "scheduleAria": "Hafta hafta teslim edilecek görevler ve süresi dolan belgeler",
+        "tasks": "Teslim edilecek görevler",
+        "documents": "Süresi dolan belgeler",
+        "overdue": "Gecikmiş",
+        "thisWeek": "Bu hafta",
+        "later": "Daha sonra",
+        "undated": "Son tarihi olmayan {count} görev",
+        "catalogs": "Kataloğa göre doluluk",
+        "catalogsAria": "Katalog başına en az dolu ürünün doluluk puanı",
+        "catalogsHint": "Her katalogdaki en az dolu ürünün puanı."
+    },
+    "components/dashboard/DashboardKpis#LOCAL": {
+        "approval": "Onay durumu",
+        "approvalUnknown": "Kullanılamıyor",
+        "validUntil": "{date} tarihine kadar geçerli",
+        "noValidity": "Bilinen son tarih yok",
+        "allGood": "Engelleyen bir şey yok",
+        "completion": "Doluluk",
+        "completionScope": "{total} üründen {scored} tanesi puanlandı",
+        "completionNone": "Puanlanan ürün yok",
+        "tasks": "Açık görevler",
+        "late": "Gecikmiş",
+        "onTime": "Zamanında",
+        "nextDue": "Sonraki son tarih: {date}",
+        "noTask": "Şu anda yapılacak bir şey yok",
+        "documents": "Ele alınacak belgeler",
+        "documentsOf": "{total} belgeden",
+        "documentsUnavailable": "Belge takibi kullanılamıyor",
+        "valid": "Geçerli",
+        "expiring": "Yakında sona eriyor",
+        "refused": "Reddedildi",
+        "expired": "Süresi doldu",
+        "missing": "Eksik",
+        "more": "+{count}"
     },
     "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "Asistan",
     "components/dashboard/taskTypes#TASK_TYPE_META.signature": "İmza",
@@ -2340,6 +2381,7 @@ const LOCALE = {
         "toRead": "incelenecek",
         "legendChanged": "referanstan bu yana değişiklikler",
         "aiPoints": "AI tarafından tespit edilen noktalar",
+        "trailChanges": "{count} değişiklik",
         "frozen": "Doğrulanmış liste",
         "accept": "Kabul et ve devam et",
         "acceptLast": "Kabul et",
@@ -2643,6 +2685,9 @@ const LOCALE = {
         "unknownWizard": "Veri giriş asistanı yapılandırılmamış",
         "unknownWizardHint": "Bu görev, bu örnekte tanımlı olmayan \"{wizard}\" asistanını gerektiriyor. Bunu beCPG yöneticinize bildirin.",
         "backToTasks": "Görevlere dön",
+        "uploadSheet": "Teknik föyü yükle",
+        "renewSheet": "Teknik föyün yeni sürümü",
+        "addDocument": "Tamamlayıcı belge ekle",
         "delegated": "{supplier} adına veri giriyorsunuz",
         "due": "Son tarih: {date}",
         "step": "Adım",
@@ -2714,6 +2759,8 @@ const LOCALE = {
         "specs": "Spesifikasyonlar",
         "specsUnreadable": "Bu karta bir spesifikasyon bağlı ancak hesabınız onu açamıyor.",
         "refusals": "Önceki retler",
+        "refusedBy": "{by} tarafından reddedildi",
+        "refused": "Reddedildi",
         "more": "+{count} tane daha"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2784,6 +2831,7 @@ const LOCALE = {
         "dismissed": "Yok sayıldı",
         "notRevocable": "Önceki değer otomatik olarak geri yüklenemez: gerekirse alanı doğrudan düzenleyin.",
         "empty": "Öneri yok",
+        "emptyShort": "Bu adım için önerilecek bir şey yok.",
         "emptyHint": "Bu adım için önerilecek bir şey yok. Teknik föy hemen yukarıda yüklü: çıkarma, orada bulduğu değerleri önerecek.",
         "emptyEntityLevel": "Analiz çalıştı ancak yalnızca kartın kendisinden yapılan, hiçbir belgeyle desteklenmeyen çıkarımlar üretti: bunlar size sunulmuyor.",
         "analysing": "Analiz devam ediyor",

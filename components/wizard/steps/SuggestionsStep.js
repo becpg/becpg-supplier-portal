@@ -68,6 +68,7 @@ const LABELS = defineLabels('components/wizard/steps/SuggestionsStep#LABELS', {
         notRevocable:
             'La valeur précédente ne peut pas être rétablie automatiquement : modifiez le champ directement si besoin.',
         empty: 'Aucune suggestion',
+        emptyShort: 'Rien à proposer pour cette étape.',
         /*
          * No more « à l'étape précédente »: the technical sheet is no longer a
          * step, and suggestions are now scoped to the open step — "nothing
@@ -118,6 +119,7 @@ const LABELS = defineLabels('components/wizard/steps/SuggestionsStep#LABELS', {
         notRevocable:
             'The previous value cannot be restored automatically: edit the field directly if needed.',
         empty: 'No suggestion',
+        emptyShort: 'Nothing to propose for this step.',
         /* See the note on the French key. */
         emptyHint:
             'Nothing to propose for this step. The technical sheet is uploaded just above: '
@@ -435,6 +437,8 @@ function SuggestionCard({
  * @param {boolean} [props.readOnly]
  * @param {Function} [props.onApplied] `(suggestion) => void` — the wizard refreshes the steps
  * @param {Function} [props.labelForField] `(name) => string` — the dictionary label when known
+ * @param {React.ReactNode} [props.emptyActions] panel variant: what the supplier can do
+ *        when there is nothing to propose, shown instead of an explanation
  * @param {string} [props.className]
  */
 export function SuggestionsStep({
@@ -451,6 +455,7 @@ export function SuggestionsStep({
     readOnly = false,
     onApplied,
     labelForField,
+    emptyActions = null,
     variant = 'step',
     className = '',
 }) {
@@ -758,6 +763,14 @@ export function SuggestionsStep({
                             </p>
                         ) : null}
                     </div>
+                </div>
+            ) : suggestions.length === 0 && inPanel ? (
+                <div className="flex flex-col gap-2">
+                    <p className="flex items-center gap-1.5 text-sm text-[var(--becpg-dark-grey)]">
+                        <Icon name="auto_awesome" size={16} className="shrink-0 text-[var(--becpg-blue-light)]" />
+                        {labels.emptyShort}
+                    </p>
+                    {emptyActions}
                 </div>
             ) : suggestions.length === 0 ? (
                 <EmptyState

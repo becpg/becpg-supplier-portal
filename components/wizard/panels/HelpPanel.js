@@ -29,6 +29,8 @@ const LABELS = defineLabels('components/wizard/panels/HelpPanel#LABELS', {
         specs: 'Cahiers des charges',
         specsUnreadable: 'Un cahier des charges est rattaché à cette fiche, mais votre compte n’y a pas accès.',
         refusals: 'Refus précédents',
+        refusedBy: 'Refusé par {by}',
+        refused: 'Refusé',
         more: '+{count} autre(s)',
     },
     en: {
@@ -37,6 +39,8 @@ const LABELS = defineLabels('components/wizard/panels/HelpPanel#LABELS', {
         specs: 'Specifications',
         specsUnreadable: 'A specification is attached to this sheet, but your account cannot open it.',
         refusals: 'Previous rejections',
+        refusedBy: 'Rejected by {by}',
+        refused: 'Rejected',
         more: '+{count} more',
     },
 });
@@ -59,7 +63,9 @@ function Refusals({ refusals, labels, lang }) {
                         <Icon name="undo" size={16} className="mt-0.5 shrink-0 text-[var(--becpg-orange)]" />
                         <div className="min-w-0 flex-1">
                             <p className="flex flex-wrap items-baseline gap-x-1.5 text-[11px] text-[var(--becpg-dark-grey)]">
-                                {entry.by ? <span className="font-medium text-[var(--becpg-blue)]">{entry.by}</span> : null}
+                                <span className="font-medium text-[var(--becpg-orange-deep)]">
+                                    {entry.by ? fill(labels.refusedBy, { by: entry.by }) : labels.refused}
+                                </span>
                                 {entry.date ? <DateText value={entry.date} lang={lang} /> : null}
                             </p>
                             {/* A refusal entered without a comment carries no reason; none is invented. */}
@@ -107,6 +113,7 @@ function Specifications({ specs, labels }) {
  * @param {string} props.entityId entity nodeRef (or uuid) - the API accepts both
  * @param {Object} [props.suggestions] what the wizard knows of the AI suggestions -
  *        see `suggestionsPanel` in `Wizard.js`. Absent = no block rendered.
+ * @param {React.ReactNode} [props.suggestionActions] shown when the AI has nothing to propose
  * @param {Object} [props.task] the task the wizard was opened from; carries
  *        `refusals`, read from the project's `pjt:tlRefusedTaskRef`
  * @param {'panel'|'sheet'} [props.variant='panel']
@@ -115,6 +122,7 @@ function Specifications({ specs, labels }) {
 export function HelpPanel({
     entityId,
     suggestions = null,
+    suggestionActions = null,
     task = null,
     variant = 'panel',
     className = '',
@@ -144,6 +152,7 @@ export function HelpPanel({
                         readOnly={suggestions.readOnly}
                         onApplied={suggestions.onApplied}
                         labelForField={suggestions.labelForField}
+                        emptyActions={suggestionActions}
                     />
                 </section>
             ) : null}

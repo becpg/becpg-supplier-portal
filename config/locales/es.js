@@ -6,6 +6,10 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
+    "app/(home)/page#LOCAL": {
+        "description": "En qué punto está su expediente con su cliente y qué espera de usted.",
+        "generatedAt": "Datos a las {time}"
+    },
     "app/company/page#LABELS": {
         "title": "Mi empresa",
         "noSupplier": "Sin ficha de proveedor",
@@ -1043,6 +1047,43 @@ const LOCALE = {
         "noPriority": "Sin prioridad",
         "untitled": "Tarea sin título",
         "caption": "Mi lista de tareas"
+    },
+    "components/dashboard/DashboardCharts#LOCAL": {
+        "schedule": "Mis vencimientos",
+        "scheduleAria": "Tareas por entregar y documentos que caducan, semana a semana",
+        "tasks": "Tareas por entregar",
+        "documents": "Documentos que caducan",
+        "overdue": "Con retraso",
+        "thisWeek": "Esta semana",
+        "later": "Más adelante",
+        "undated": "{count} tarea(s) sin fecha límite",
+        "catalogs": "Cumplimentación por catálogo",
+        "catalogsAria": "Puntuación de cumplimentación del producto menos completo, por catálogo",
+        "catalogsHint": "Puntuación del producto menos completo de cada catálogo."
+    },
+    "components/dashboard/DashboardKpis#LOCAL": {
+        "approval": "Estado de homologación",
+        "approvalUnknown": "No disponible",
+        "validUntil": "Válido hasta el {date}",
+        "noValidity": "Ningún vencimiento conocido",
+        "allGood": "Nada bloquea",
+        "completion": "Cumplimentación",
+        "completionScope": "{scored} de {total} producto(s) puntuado(s)",
+        "completionNone": "Ningún producto puntuado",
+        "tasks": "Tareas abiertas",
+        "late": "Con retraso",
+        "onTime": "A tiempo",
+        "nextDue": "Próximo vencimiento el {date}",
+        "noTask": "Nada que hacer por ahora",
+        "documents": "Documentos por tratar",
+        "documentsOf": "de {total}",
+        "documentsUnavailable": "Seguimiento documental no disponible",
+        "valid": "Válidos",
+        "expiring": "Caducan pronto",
+        "refused": "Rechazados",
+        "expired": "Caducados",
+        "missing": "Faltan",
+        "more": "+{count}"
     },
     "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "Asistente",
     "components/dashboard/taskTypes#TASK_TYPE_META.signature": "Firma",
@@ -2340,6 +2381,7 @@ const LOCALE = {
         "toRead": "por revisar",
         "legendChanged": "cambios desde la referencia",
         "aiPoints": "puntos detectados por la IA",
+        "trailChanges": "{count} cambio(s)",
         "frozen": "Lista validada",
         "accept": "Aceptar y continuar",
         "acceptLast": "Aceptar",
@@ -2643,6 +2685,9 @@ const LOCALE = {
         "unknownWizard": "Asistente de entrada no configurado",
         "unknownWizardHint": "Esta tarea requiere el asistente «{wizard}», que no está declarado en esta instancia. Comuníqueselo a su administrador de beCPG.",
         "backToTasks": "Volver a las tareas",
+        "uploadSheet": "Subir la ficha técnica",
+        "renewSheet": "Nueva versión de la ficha técnica",
+        "addDocument": "Añadir un documento complementario",
         "delegated": "Está introduciendo datos en nombre de {supplier}",
         "due": "Vence el {date}",
         "step": "Paso",
@@ -2714,6 +2759,8 @@ const LOCALE = {
         "specs": "Especificaciones",
         "specsUnreadable": "Hay una especificación asociada a esta ficha, pero su cuenta no puede abrirla.",
         "refusals": "Rechazos anteriores",
+        "refusedBy": "Rechazado por {by}",
+        "refused": "Rechazado",
         "more": "+{count} más"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2784,6 +2831,7 @@ const LOCALE = {
         "dismissed": "Descartado",
         "notRevocable": "El valor anterior no se puede restaurar automáticamente: modifique el campo directamente si es necesario.",
         "empty": "Ninguna sugerencia",
+        "emptyShort": "Nada que proponer para esta etapa.",
         "emptyHint": "Nada que proponer para este paso. La ficha técnica se sube justo arriba: la extracción propondrá los valores que encuentre en ella.",
         "emptyEntityLevel": "El análisis se ha ejecutado, pero solo ha producido deducciones a partir de la propia ficha, sin ningún documento que las respalde: no se le proponen.",
         "analysing": "Análisis en curso",

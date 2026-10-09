@@ -6,6 +6,10 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
+    "app/(home)/page#LOCAL": {
+        "description": "お客様のもとでの貴社ファイルの状況と、お客様が貴社に求めていること。",
+        "generatedAt": "{time} 時点のデータ"
+    },
     "app/company/page#LABELS": {
         "title": "自社情報",
         "noSupplier": "サプライヤー情報がありません",
@@ -1043,6 +1047,43 @@ const LOCALE = {
         "noPriority": "優先度なし",
         "untitled": "無題のタスク",
         "caption": "タスク一覧"
+    },
+    "components/dashboard/DashboardCharts#LOCAL": {
+        "schedule": "期限一覧",
+        "scheduleAria": "週ごとの期限付きタスクと期限切れ間近の文書",
+        "tasks": "期限付きタスク",
+        "documents": "期限切れ間近の文書",
+        "overdue": "期限超過",
+        "thisWeek": "今週",
+        "later": "それ以降",
+        "undated": "期限のないタスク {count} 件",
+        "catalogs": "カタログ別の完成度",
+        "catalogsAria": "カタログごとの、最も完成度の低い製品の完成度スコア",
+        "catalogsHint": "各カタログで最も完成度の低い製品のスコア。"
+    },
+    "components/dashboard/DashboardKpis#LOCAL": {
+        "approval": "承認ステータス",
+        "approvalUnknown": "利用不可",
+        "validUntil": "{date} まで有効",
+        "noValidity": "期限は不明です",
+        "allGood": "ブロック要因はありません",
+        "completion": "完成度",
+        "completionScope": "{total} 件中 {scored} 件の製品を評価済み",
+        "completionNone": "評価済みの製品はありません",
+        "tasks": "未完了のタスク",
+        "late": "期限超過",
+        "onTime": "期限内",
+        "nextDue": "次の期限：{date}",
+        "noTask": "現在、対応が必要な事項はありません",
+        "documents": "要対応の文書",
+        "documentsOf": "/ {total} 件",
+        "documentsUnavailable": "文書追跡は利用できません",
+        "valid": "有効",
+        "expiring": "まもなく期限切れ",
+        "refused": "差し戻し",
+        "expired": "期限切れ",
+        "missing": "未提出",
+        "more": "+{count}"
     },
     "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "ウィザード",
     "components/dashboard/taskTypes#TASK_TYPE_META.signature": "署名",
@@ -2340,6 +2381,7 @@ const LOCALE = {
         "toRead": "レビュー待ち",
         "legendChanged": "基準以降の変更",
         "aiPoints": "AI が指摘した点",
+        "trailChanges": "変更 {count} 件",
         "frozen": "承認済みリスト",
         "accept": "承諾して次へ",
         "acceptLast": "承諾",
@@ -2643,6 +2685,9 @@ const LOCALE = {
         "unknownWizard": "入力アシスタントが設定されていません",
         "unknownWizardHint": "このタスクにはアシスタント「{wizard}」が必要ですが、このインスタンスでは宣言されていません。beCPG 管理者にお知らせください。",
         "backToTasks": "タスクに戻る",
+        "uploadSheet": "技術資料をアップロード",
+        "renewSheet": "技術資料の新しいバージョン",
+        "addDocument": "補足文書を追加",
         "delegated": "{supplier} の代理で入力しています",
         "due": "期限：{date}",
         "step": "ステップ",
@@ -2714,6 +2759,8 @@ const LOCALE = {
         "specs": "仕様書",
         "specsUnreadable": "このシートには仕様書が添付されていますが、お使いのアカウントでは開けません。",
         "refusals": "過去の差し戻し",
+        "refusedBy": "{by} により差し戻し",
+        "refused": "差し戻し",
         "more": "ほか {count} 件"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2784,6 +2831,7 @@ const LOCALE = {
         "dismissed": "却下済み",
         "notRevocable": "以前の値を自動的に復元することはできません。必要に応じて項目を直接編集してください。",
         "empty": "提案はありません",
+        "emptyShort": "このステップで提案できるものはありません。",
         "emptyHint": "このステップで提案する内容はありません。技術資料はすぐ上にアップロードされています。抽出機能はそこで見つかった値を提案します。",
         "emptyEntityLevel": "解析は実行されましたが、シート自体から推定した内容のみで、裏付けとなる文書がないため、提案は表示されません。",
         "analysing": "解析中",

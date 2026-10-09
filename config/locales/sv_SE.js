@@ -6,6 +6,10 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
+    "app/(home)/page#LOCAL": {
+        "description": "Var din akt står hos kunden och vad kunden förväntar sig av dig.",
+        "generatedAt": "Data från {time}"
+    },
     "app/company/page#LABELS": {
         "title": "Mitt företag",
         "noSupplier": "Ingen leverantörspost",
@@ -1043,6 +1047,43 @@ const LOCALE = {
         "noPriority": "Ingen prioritet",
         "untitled": "Uppgift utan titel",
         "caption": "Min uppgiftslista"
+    },
+    "components/dashboard/DashboardCharts#LOCAL": {
+        "schedule": "Mina förfallodatum",
+        "scheduleAria": "Uppgifter som förfaller och dokument som går ut, vecka för vecka",
+        "tasks": "Uppgifter som förfaller",
+        "documents": "Dokument som går ut",
+        "overdue": "Försenade",
+        "thisWeek": "Den här veckan",
+        "later": "Senare",
+        "undated": "{count} uppgift(er) utan förfallodatum",
+        "catalogs": "Fullständighet per katalog",
+        "catalogsAria": "Fullständighetspoäng för den minst fullständiga produkten, per katalog",
+        "catalogsHint": "Poäng för den minst fullständiga produkten i varje katalog."
+    },
+    "components/dashboard/DashboardKpis#LOCAL": {
+        "approval": "Godkännandestatus",
+        "approvalUnknown": "Inte tillgänglig",
+        "validUntil": "Giltig till {date}",
+        "noValidity": "Ingen känd tidsfrist",
+        "allGood": "Inget blockerar",
+        "completion": "Fullständighet",
+        "completionScope": "{scored} av {total} produkt(er) poängsatta",
+        "completionNone": "Ingen produkt poängsatt",
+        "tasks": "Öppna uppgifter",
+        "late": "Försenade",
+        "onTime": "I tid",
+        "nextDue": "Nästa förfallodatum {date}",
+        "noTask": "Inget att göra just nu",
+        "documents": "Dokument att hantera",
+        "documentsOf": "av {total}",
+        "documentsUnavailable": "Dokumentuppföljning är inte tillgänglig",
+        "valid": "Giltiga",
+        "expiring": "Går snart ut",
+        "refused": "Avvisade",
+        "expired": "Utgångna",
+        "missing": "Saknas",
+        "more": "+{count}"
     },
     "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "Guide",
     "components/dashboard/taskTypes#TASK_TYPE_META.signature": "Signatur",
@@ -2340,6 +2381,7 @@ const LOCALE = {
         "toRead": "att granska",
         "legendChanged": "ändringar sedan referensen",
         "aiPoints": "punkter som AI har hittat",
+        "trailChanges": "{count} ändring(ar)",
         "frozen": "Validerad lista",
         "accept": "Godkänn och fortsätt",
         "acceptLast": "Godkänn",
@@ -2643,6 +2685,9 @@ const LOCALE = {
         "unknownWizard": "Inmatningsguiden är inte konfigurerad",
         "unknownWizardHint": "Uppgiften kräver guiden ”{wizard}”, som inte är deklarerad på den här instansen. Rapportera det till din beCPG-administratör.",
         "backToTasks": "Tillbaka till uppgifterna",
+        "uploadSheet": "Ladda upp det tekniska databladet",
+        "renewSheet": "Ny version av det tekniska databladet",
+        "addDocument": "Lägg till ett kompletterande dokument",
         "delegated": "Du fyller i på uppdrag av {supplier}",
         "due": "Förfaller {date}",
         "step": "Steg",
@@ -2714,6 +2759,8 @@ const LOCALE = {
         "specs": "Specifikationer",
         "specsUnreadable": "En specifikation är kopplad till det här bladet, men ditt konto kan inte öppna den.",
         "refusals": "Tidigare avvisningar",
+        "refusedBy": "Avvisat av {by}",
+        "refused": "Avvisat",
         "more": "+{count} till"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2784,6 +2831,7 @@ const LOCALE = {
         "dismissed": "Avfärdat",
         "notRevocable": "Det tidigare värdet kan inte återställas automatiskt: redigera fältet direkt vid behov.",
         "empty": "Inga förslag",
+        "emptyShort": "Inget att föreslå för det här steget.",
         "emptyHint": "Inget att föreslå för det här steget. Det tekniska databladet laddas upp precis ovanför: extraheringen föreslår de värden den hittar där.",
         "emptyEntityLevel": "Analysen kördes, men den gav endast slutsatser dragna från själva bladet, utan stöd i något dokument: de erbjuds inte till dig.",
         "analysing": "Analys pågår",
