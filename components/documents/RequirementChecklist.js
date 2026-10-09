@@ -175,30 +175,21 @@ function RequirementRow({
           ? labels.upload
           : labels.replace;
 
-    const rail = requirement.blocking
-        ? 'var(--status-danger)'
-        : requirement.satisfied
-          ? 'var(--status-ok)'
-          : 'var(--status-warn)';
-
     return (
         <motion.li
             ref={rowRef}
             initial={reduceMotion ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.22, delay: Math.min(index, 10) * 0.03 }}
-            className="relative overflow-hidden rounded-xl border border-[var(--becpg-grey)] bg-white"
+            className="border-b border-[var(--becpg-line)] last:border-b-0"
         >
-            <span
-                className="absolute inset-y-0 start-0 w-1"
-                style={{ background: rail }}
-                aria-hidden="true"
-            />
-
-            <div className={`ps-3 ${compact ? 'p-2.5' : 'p-3'}`}>
+            {/* A line of the group's list, not a card of its own: one status
+                icon carries the tone, the pills say it in words, and the action
+                sits at the end of the line with the other ones. */}
+            <div className={compact ? 'py-2' : 'py-2.5'}>
                 <div className="flex items-start gap-2.5">
                     <span
-                        className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
                             requirement.satisfied
                                 ? 'bg-[var(--status-ok-bg)] text-[var(--status-ok)]'
                                 : requirement.blocking
@@ -214,7 +205,7 @@ function RequirementRow({
                                       ? 'priority_high'
                                       : 'radio_button_unchecked'
                             }
-                            size={16}
+                            size={14}
                         />
                     </span>
 
@@ -232,9 +223,7 @@ function RequirementRow({
                                 already written beside it in words and in icons.
                                 The tone emphasises, it never carries the meaning. */}
                             {requirement.isMandatory ? (
-                                <span className={`pill pill-no-dot pill-sm ${
-                                    requirement.blocking ? 'pill-danger' : 'pill-neutral'}`}
-                                >
+                                <span className="pill pill-no-dot pill-sm pill-neutral">
                                     <Icon name="push_pin" size={12} />
                                     <span>{labels.mandatory}</span>
                                 </span>
@@ -266,6 +255,19 @@ function RequirementRow({
                     </div>
 
                     <div className="flex shrink-0 items-center gap-1">
+                        {/* The way to fix a requirement never needs a click to be
+                            found: it is the first action of the line. */}
+                        {!open && canAct && !readOnly ? (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                icon={requirement.action === 'renew' ? 'autorenew' : 'upload_file'}
+                                label={actionLabel}
+                                onClick={() => setOpen(true)}
+                            >
+                                <span className="hidden sm:inline">{actionLabel}</span>
+                            </Button>
+                        ) : null}
                         {/*
                             READING THE FILE HAPPENS HERE.
 
@@ -308,22 +310,6 @@ function RequirementRow({
                     noticeDays={noticeDays}
                     className="mt-2"
                 />
-
-                {/* The compact call to action stays visible: a requirement whose
-                    file is missing must never need a click to reveal the way to
-                    fix it. */}
-                {!open && canAct && !readOnly ? (
-                    <div className="mt-2">
-                        <Button
-                            variant={requirement.blocking ? 'accent' : 'outline'}
-                            size="sm"
-                            icon={requirement.action === 'renew' ? 'autorenew' : 'upload_file'}
-                            onClick={() => setOpen(true)}
-                        >
-                            {actionLabel}
-                        </Button>
-                    </div>
-                ) : null}
 
                 <AnimatePresence initial={false}>
                     {open ? (
@@ -490,7 +476,7 @@ function RequirementGroup({
             ) : null}
 
             {open ? (
-                <ul className="flex list-none flex-col gap-2 p-0">
+                <ul className="m-0 flex list-none flex-col p-0">
                     {items.map((requirement, position) => (
                         <RequirementRow
                             key={requirement.nodeRef || requirement.id || position}
