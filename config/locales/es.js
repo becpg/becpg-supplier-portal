@@ -1062,6 +1062,7 @@ const LOCALE = {
     "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "Firma",
     "components/dashboard/ActionsCard#TASK_TYPE_META.document": "Documento",
     "components/dashboard/ActionsCard#TASK_TYPE_META.review": "Revisión",
+    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "Workflow",
     "components/dashboard/ApprovalCard#REASONS": {
         "documentExpired": "Documento obligatorio caducado",
         "documentExpiring": "Documento a punto de caducar",
@@ -1531,6 +1532,14 @@ const LOCALE = {
         "validation.minLength": "Introduzca al menos {min} carácter(es).",
         "validation.maxLength": "Introduzca como máximo {max} carácter(es)."
     },
+    "components/monitor/AiDrafts#LABELS": {
+        "draft": "Personalizar por proveedor con la IA",
+        "drafting": "Redactando los mensajes…",
+        "unavailable": "El asistente de IA no está disponible en esta instancia.",
+        "common": "Volver a un mensaje común",
+        "none": "La IA no ha propuesto ningún mensaje.",
+        "help": "Un mensaje por proveedor, en su idioma, a partir de lo que tiene retrasado o pendiente. Revíselo y modifíquelo antes de enviarlo."
+    },
     "components/monitor/BulkActionBar#LABELS": {
         "selected": "{count} proveedor seleccionado",
         "selectedPlural": "{count} proveedores seleccionados",
@@ -1943,7 +1952,6 @@ const LOCALE = {
         "unassigned": "Sin asignar",
         "due": "Vence",
         "open": "Abrir",
-        "openInBecpg": "Abrir en beCPG",
         "history": "Historial ({count})",
         "hideHistory": "Ocultar el historial",
         "doneBy": "por {who}"
@@ -2315,6 +2323,30 @@ const LOCALE = {
         "none": "Ninguna versión anterior",
         "by": "por {author}"
     },
+    "components/review/AiPrecheck#LABELS": {
+        "title": "Prevalidación con IA",
+        "running": "Leyendo la ficha…",
+        "verdicts": {
+            "blocking": "Por corregir antes de la validación",
+            "toCheck": "Puntos por verificar",
+            "clear": "Ningún punto bloqueante"
+        },
+        "severities": {
+            "error": "Error",
+            "warning": "Por verificar",
+            "ok": "Conforme"
+        },
+        "addToFeedback": "Añadir a la respuesta",
+        "added": "Añadido",
+        "open": "Ver la sección",
+        "proposed": "Respuesta propuesta al proveedor",
+        "reformulate": "Reformular",
+        "translate": "Traducir",
+        "useMessage": "Usar este mensaje",
+        "help": "La IA lee la ficha antes que usted: coherencia de los valores, balance de masas, alérgenos, documentos obligatorios. No decide nada: cada punto debe verificarse, y es usted quien lo añade a la respuesta.",
+        "failed": "La prevalidación no ha finalizado.",
+        "retry": "Reintentar"
+    },
     "components/review/ReviewChanges#LABELS": {
         "title": "{count} cambio(s) desde la referencia",
         "none": "Ningún cambio desde la referencia",
@@ -2347,6 +2379,7 @@ const LOCALE = {
         "legendAccepted": "aceptada",
         "legendReturned": "corrección solicitada",
         "legendChanged": "cambios desde la referencia",
+        "aiPoints": "puntos detectados por la IA",
         "frozen": "Lista validada",
         "accept": "Aceptar y continuar",
         "acceptLast": "Aceptar",
@@ -2530,6 +2563,25 @@ const LOCALE = {
         "answer": "Respuesta",
         "blank": "Esta pregunta obligatoria sigue sin responder."
     },
+    "components/tasks/NcAssist#LABELS": {
+        "title": "Ayuda de IA",
+        "help": "Propuestas de la IA a partir de la no conformidad, el producto, el proveedor y las no conformidades anteriores. No se guarda nada mientras no responda a la tarea.",
+        "answers": "Respuestas propuestas",
+        "apply": "Usar",
+        "applied": "Usado",
+        "applyAll": "Usar todo",
+        "causes": "Causas raíz probables",
+        "actions": "Acciones correctivas sugeridas",
+        "addToComment": "Añadir al comentario",
+        "similar": "No conformidades similares",
+        "likelihood": {
+            "high": "probable",
+            "medium": "posible",
+            "low": "poco probable"
+        },
+        "yes": "Sí",
+        "no": "No"
+    },
     "components/tasks/TaskActions#LABELS": {
         "complete": "Terminar la tarea",
         "refuse": "Rechazar",
@@ -2542,6 +2594,26 @@ const LOCALE = {
         "cancel": "Cancelar",
         "completed": "Tarea terminada.",
         "refused": "Tarea rechazada."
+    },
+    "components/tasks/WorkflowTaskScreen#LABELS": {
+        "back": "Mis tareas",
+        "assignee": "Asignada a",
+        "pooled": "Por asumir",
+        "due": "Vence",
+        "startedBy": "Iniciado por",
+        "concerns": "Afecta a",
+        "answer": "Su respuesta",
+        "claim": "Asumir la tarea",
+        "release": "Devolver al pool",
+        "claimed": "La tarea es suya",
+        "released": "La tarea ha vuelto al pool",
+        "save": "Guardar",
+        "saved": "Respuesta guardada",
+        "done": "Tarea terminada",
+        "completed": "Tarea terminada, el workflow continúa",
+        "claimFirst": "Asuma la tarea para responderla.",
+        "closed": "Esta tarea está terminada.",
+        "discussion": "Conversación"
     },
     "components/ui/DataTable#LOCAL_LABELS": {
         "selectAll": "Seleccionar todo",
@@ -2567,6 +2639,12 @@ const LOCALE = {
         "error": "No se ha podido guardar",
         "retry": "Reintentar",
         "unsaved": "Sus cambios no se han perdido: se volverán a enviar."
+    },
+    "components/wizard/SuggestionSources#LABELS": {
+        "source": "Fuente",
+        "conflict": "Los documentos no dan el mismo valor",
+        "choose": "Aplicar esta opción",
+        "version": "v{version}"
     },
     "components/wizard/TechnicalSheetBanner#LABELS": {
         "title": "Ficha técnica",

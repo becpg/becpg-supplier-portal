@@ -1062,6 +1062,7 @@ const LOCALE = {
     "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "署名",
     "components/dashboard/ActionsCard#TASK_TYPE_META.document": "文書",
     "components/dashboard/ActionsCard#TASK_TYPE_META.review": "レビュー",
+    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "ワークフロー",
     "components/dashboard/ApprovalCard#REASONS": {
         "documentExpired": "必須文書の期限切れ",
         "documentExpiring": "文書の期限が間近",
@@ -1531,6 +1532,14 @@ const LOCALE = {
         "validation.minLength": "{min} 文字以上入力してください。",
         "validation.maxLength": "{max} 文字以内で入力してください。"
     },
+    "components/monitor/AiDrafts#LABELS": {
+        "draft": "AI でサプライヤーごとにパーソナライズ",
+        "drafting": "メッセージを作成中…",
+        "unavailable": "このインスタンスでは AI アシスタントを利用できません。",
+        "common": "共通メッセージに戻す",
+        "none": "AI はメッセージを提案しませんでした。",
+        "help": "サプライヤーごとに 1 通、その言語で、遅延や不足している内容をもとに作成します。送信前に確認・編集してください。"
+    },
     "components/monitor/BulkActionBar#LABELS": {
         "selected": "{count} 社のサプライヤーを選択中",
         "selectedPlural": "{count} 社のサプライヤーを選択中",
@@ -1943,7 +1952,6 @@ const LOCALE = {
         "unassigned": "未割り当て",
         "due": "期限",
         "open": "開く",
-        "openInBecpg": "beCPG で開く",
         "history": "履歴（{count}）",
         "hideHistory": "履歴を非表示",
         "doneBy": "担当：{who}"
@@ -2315,6 +2323,30 @@ const LOCALE = {
         "none": "以前のバージョンはありません",
         "by": "作成者：{author}"
     },
+    "components/review/AiPrecheck#LABELS": {
+        "title": "AI 事前検証",
+        "running": "シートを読み込み中…",
+        "verdicts": {
+            "blocking": "承認前に修正が必要",
+            "toCheck": "確認が必要な点",
+            "clear": "ブロッキングな点はありません"
+        },
+        "severities": {
+            "error": "エラー",
+            "warning": "要確認",
+            "ok": "適合"
+        },
+        "addToFeedback": "フィードバックに追加",
+        "added": "追加済み",
+        "open": "セクションを開く",
+        "proposed": "サプライヤーへのフィードバック案",
+        "reformulate": "言い換える",
+        "translate": "翻訳",
+        "useMessage": "このメッセージを使用",
+        "help": "AI がお客様より先にシートを確認します：値の整合性、物質収支、アレルゲン、必須文書。AI は何も決定しません。各点は確認事項であり、フィードバックに追加するのはお客様です。",
+        "failed": "事前検証が完了しませんでした。",
+        "retry": "再試行"
+    },
     "components/review/ReviewChanges#LABELS": {
         "title": "基準以降の変更 {count} 件",
         "none": "基準以降の変更はありません",
@@ -2347,6 +2379,7 @@ const LOCALE = {
         "legendAccepted": "承諾済み",
         "legendReturned": "修正依頼済み",
         "legendChanged": "基準以降の変更",
+        "aiPoints": "AI が指摘した点",
         "frozen": "承認済みリスト",
         "accept": "承諾して次へ",
         "acceptLast": "承諾",
@@ -2530,6 +2563,25 @@ const LOCALE = {
         "answer": "回答",
         "blank": "この必須の質問はまだ回答されていません。"
     },
+    "components/tasks/NcAssist#LABELS": {
+        "title": "AI ヘルプ",
+        "help": "不適合、製品、サプライヤー、過去の不適合をもとにした AI の提案です。タスクに回答するまで何も保存されません。",
+        "answers": "回答案",
+        "apply": "採用",
+        "applied": "採用済み",
+        "applyAll": "すべて採用",
+        "causes": "考えられる根本原因",
+        "actions": "推奨される是正処置",
+        "addToComment": "コメントに追加",
+        "similar": "類似の不適合",
+        "likelihood": {
+            "high": "可能性高",
+            "medium": "可能性あり",
+            "low": "可能性低"
+        },
+        "yes": "はい",
+        "no": "いいえ"
+    },
     "components/tasks/TaskActions#LABELS": {
         "complete": "タスクを完了",
         "refuse": "差し戻し",
@@ -2542,6 +2594,26 @@ const LOCALE = {
         "cancel": "キャンセル",
         "completed": "タスクを完了しました。",
         "refused": "タスクを差し戻しました。"
+    },
+    "components/tasks/WorkflowTaskScreen#LABELS": {
+        "back": "タスク",
+        "assignee": "担当者",
+        "pooled": "引き受け待ち",
+        "due": "期限",
+        "startedBy": "開始者",
+        "concerns": "対象",
+        "answer": "回答",
+        "claim": "タスクを引き受ける",
+        "release": "プールに戻す",
+        "claimed": "タスクを引き受けました",
+        "released": "タスクをプールに戻しました",
+        "save": "保存",
+        "saved": "回答を保存しました",
+        "done": "タスク完了",
+        "completed": "タスク完了、ワークフローは次へ進みます",
+        "claimFirst": "回答するにはタスクを引き受けてください。",
+        "closed": "このタスクは完了しています。",
+        "discussion": "ディスカッション"
     },
     "components/ui/DataTable#LOCAL_LABELS": {
         "selectAll": "すべて選択",
@@ -2567,6 +2639,12 @@ const LOCALE = {
         "error": "保存できませんでした",
         "retry": "再試行",
         "unsaved": "変更内容は失われていません。再送信されます。"
+    },
+    "components/wizard/SuggestionSources#LABELS": {
+        "source": "ソース",
+        "conflict": "文書間で値が一致しません",
+        "choose": "この選択を適用",
+        "version": "v{version}"
     },
     "components/wizard/TechnicalSheetBanner#LABELS": {
         "title": "技術資料",

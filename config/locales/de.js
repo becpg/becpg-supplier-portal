@@ -1062,6 +1062,7 @@ const LOCALE = {
     "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "Signatur",
     "components/dashboard/ActionsCard#TASK_TYPE_META.document": "Dokument",
     "components/dashboard/ActionsCard#TASK_TYPE_META.review": "Prüfung",
+    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "Workflow",
     "components/dashboard/ApprovalCard#REASONS": {
         "documentExpired": "Pflichtdokument abgelaufen",
         "documentExpiring": "Dokument läuft bald ab",
@@ -1531,6 +1532,14 @@ const LOCALE = {
         "validation.minLength": "Geben Sie mindestens {min} Zeichen ein.",
         "validation.maxLength": "Geben Sie höchstens {max} Zeichen ein."
     },
+    "components/monitor/AiDrafts#LABELS": {
+        "draft": "Mit der KI pro Lieferant personalisieren",
+        "drafting": "Nachrichten werden verfasst…",
+        "unavailable": "Der KI-Assistent ist auf dieser Instanz nicht verfügbar.",
+        "common": "Zurück zu einer gemeinsamen Nachricht",
+        "none": "Die KI hat keine Nachricht vorgeschlagen.",
+        "help": "Eine Nachricht pro Lieferant, in seiner Sprache, auf Grundlage dessen, was bei ihm überfällig ist oder fehlt. Vor dem Senden lesen und bearbeiten."
+    },
     "components/monitor/BulkActionBar#LABELS": {
         "selected": "{count} Lieferant ausgewählt",
         "selectedPlural": "{count} Lieferanten ausgewählt",
@@ -1943,7 +1952,6 @@ const LOCALE = {
         "unassigned": "Nicht zugewiesen",
         "due": "Fällig",
         "open": "Öffnen",
-        "openInBecpg": "In beCPG öffnen",
         "history": "Verlauf ({count})",
         "hideHistory": "Verlauf ausblenden",
         "doneBy": "von {who}"
@@ -2315,6 +2323,30 @@ const LOCALE = {
         "none": "Keine frühere Version",
         "by": "von {author}"
     },
+    "components/review/AiPrecheck#LABELS": {
+        "title": "KI-Vorprüfung",
+        "running": "Datenblatt wird gelesen…",
+        "verdicts": {
+            "blocking": "Vor der Validierung zu korrigieren",
+            "toCheck": "Zu prüfende Punkte",
+            "clear": "Kein blockierender Punkt"
+        },
+        "severities": {
+            "error": "Fehler",
+            "warning": "Zu prüfen",
+            "ok": "Konform"
+        },
+        "addToFeedback": "Zur Rückmeldung hinzufügen",
+        "added": "Hinzugefügt",
+        "open": "Abschnitt öffnen",
+        "proposed": "Vorgeschlagene Rückmeldung an den Lieferanten",
+        "reformulate": "Umformulieren",
+        "translate": "Übersetzen",
+        "useMessage": "Diese Nachricht verwenden",
+        "help": "Die KI liest das Datenblatt vor Ihnen: Kohärenz der Werte, Massenbilanz, Allergene, Pflichtdokumente. Sie entscheidet nichts: Jeder Punkt ist zu prüfen, und Sie fügen ihn der Rückmeldung hinzu.",
+        "failed": "Die Vorprüfung wurde nicht abgeschlossen.",
+        "retry": "Erneut versuchen"
+    },
     "components/review/ReviewChanges#LABELS": {
         "title": "{count} Änderung(en) seit der Referenz",
         "none": "Keine Änderung seit der Referenz",
@@ -2347,6 +2379,7 @@ const LOCALE = {
         "legendAccepted": "akzeptiert",
         "legendReturned": "Korrektur angefordert",
         "legendChanged": "Änderungen seit der Referenz",
+        "aiPoints": "von der KI erkannte Punkte",
         "frozen": "Validierte Liste",
         "accept": "Akzeptieren und weiter",
         "acceptLast": "Akzeptieren",
@@ -2530,6 +2563,25 @@ const LOCALE = {
         "answer": "Antwort",
         "blank": "Diese Pflichtfrage ist noch unbeantwortet."
     },
+    "components/tasks/NcAssist#LABELS": {
+        "title": "KI-Hilfe",
+        "help": "Vorschläge der KI auf Grundlage der Abweichung, des Produkts, des Lieferanten und früherer Abweichungen. Nichts wird gespeichert, solange Sie die Aufgabe nicht beantworten.",
+        "answers": "Vorgeschlagene Antworten",
+        "apply": "Übernehmen",
+        "applied": "Übernommen",
+        "applyAll": "Alle übernehmen",
+        "causes": "Wahrscheinliche Grundursachen",
+        "actions": "Vorgeschlagene Korrekturmaßnahmen",
+        "addToComment": "Zum Kommentar hinzufügen",
+        "similar": "Ähnliche Abweichungen",
+        "likelihood": {
+            "high": "wahrscheinlich",
+            "medium": "möglich",
+            "low": "unwahrscheinlich"
+        },
+        "yes": "Ja",
+        "no": "Nein"
+    },
     "components/tasks/TaskActions#LABELS": {
         "complete": "Aufgabe abschließen",
         "refuse": "Ablehnen",
@@ -2542,6 +2594,26 @@ const LOCALE = {
         "cancel": "Abbrechen",
         "completed": "Aufgabe abgeschlossen.",
         "refused": "Aufgabe abgelehnt."
+    },
+    "components/tasks/WorkflowTaskScreen#LABELS": {
+        "back": "Meine Aufgaben",
+        "assignee": "Zugewiesen an",
+        "pooled": "Zu übernehmen",
+        "due": "Fällig",
+        "startedBy": "Gestartet von",
+        "concerns": "Betrifft",
+        "answer": "Ihre Antwort",
+        "claim": "Aufgabe übernehmen",
+        "release": "An den Pool zurückgeben",
+        "claimed": "Die Aufgabe gehört Ihnen",
+        "released": "Die Aufgabe ist zurück im Pool",
+        "save": "Speichern",
+        "saved": "Antwort gespeichert",
+        "done": "Aufgabe erledigt",
+        "completed": "Aufgabe erledigt, der Workflow geht weiter",
+        "claimFirst": "Übernehmen Sie die Aufgabe, um sie zu beantworten.",
+        "closed": "Diese Aufgabe ist erledigt.",
+        "discussion": "Diskussion"
     },
     "components/ui/DataTable#LOCAL_LABELS": {
         "selectAll": "Alle auswählen",
@@ -2567,6 +2639,12 @@ const LOCALE = {
         "error": "Speichern nicht möglich",
         "retry": "Erneut versuchen",
         "unsaved": "Ihre Änderungen gehen nicht verloren: Sie werden erneut gesendet."
+    },
+    "components/wizard/SuggestionSources#LABELS": {
+        "source": "Quelle",
+        "conflict": "Die Dokumente liefern nicht denselben Wert",
+        "choose": "Diese Auswahl anwenden",
+        "version": "v{version}"
     },
     "components/wizard/TechnicalSheetBanner#LABELS": {
         "title": "Technisches Datenblatt",

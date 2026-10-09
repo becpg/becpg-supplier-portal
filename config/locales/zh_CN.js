@@ -1062,6 +1062,7 @@ const LOCALE = {
     "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "签名",
     "components/dashboard/ActionsCard#TASK_TYPE_META.document": "文件",
     "components/dashboard/ActionsCard#TASK_TYPE_META.review": "审阅",
+    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "工作流",
     "components/dashboard/ApprovalCard#REASONS": {
         "documentExpired": "必需文件已过期",
         "documentExpiring": "文件即将过期",
@@ -1531,6 +1532,14 @@ const LOCALE = {
         "validation.minLength": "请至少输入 {min} 个字符。",
         "validation.maxLength": "最多输入 {max} 个字符。"
     },
+    "components/monitor/AiDrafts#LABELS": {
+        "draft": "使用 AI 按供应商个性化",
+        "drafting": "正在起草消息…",
+        "unavailable": "此实例上无法使用 AI 助手。",
+        "common": "返回统一消息",
+        "none": "AI 未提出任何消息。",
+        "help": "每个供应商一条消息，使用其语言，依据其逾期或缺失的内容生成。发送前请审阅并编辑。"
+    },
     "components/monitor/BulkActionBar#LABELS": {
         "selected": "已选择 {count} 个供应商",
         "selectedPlural": "已选择 {count} 个供应商",
@@ -1943,7 +1952,6 @@ const LOCALE = {
         "unassigned": "未分配",
         "due": "截止",
         "open": "打开",
-        "openInBecpg": "在 beCPG 中打开",
         "history": "历史记录（{count}）",
         "hideHistory": "隐藏历史记录",
         "doneBy": "执行人：{who}"
@@ -2315,6 +2323,30 @@ const LOCALE = {
         "none": "无早期版本",
         "by": "作者：{author}"
     },
+    "components/review/AiPrecheck#LABELS": {
+        "title": "AI 预验证",
+        "running": "正在读取资料表…",
+        "verdicts": {
+            "blocking": "确认前需更正",
+            "toCheck": "待核对要点",
+            "clear": "无阻断性要点"
+        },
+        "severities": {
+            "error": "错误",
+            "warning": "待核对",
+            "ok": "合规"
+        },
+        "addToFeedback": "添加到反馈",
+        "added": "已添加",
+        "open": "打开该部分",
+        "proposed": "建议给供应商的反馈",
+        "reformulate": "改写",
+        "translate": "翻译",
+        "useMessage": "使用此消息",
+        "help": "AI 会先于您审阅资料表：数值一致性、物料平衡、过敏原、必需文件。AI 不做任何决定：每个要点都需核对，由您决定是否添加到反馈。",
+        "failed": "预验证未完成。",
+        "retry": "重试"
+    },
     "components/review/ReviewChanges#LABELS": {
         "title": "自基准以来 {count} 处变更",
         "none": "自基准以来无变更",
@@ -2347,6 +2379,7 @@ const LOCALE = {
         "legendAccepted": "已接受",
         "legendReturned": "已要求更正",
         "legendChanged": "自基准以来的变更",
+        "aiPoints": "AI 指出的要点",
         "frozen": "已确认列表",
         "accept": "接受并继续",
         "acceptLast": "接受",
@@ -2530,6 +2563,25 @@ const LOCALE = {
         "answer": "答案",
         "blank": "此必答问题仍未作答。"
     },
+    "components/tasks/NcAssist#LABELS": {
+        "title": "AI 辅助",
+        "help": "AI 根据不合格项、产品、供应商及以往不合格项提出的建议。在您回复任务之前，不会保存任何内容。",
+        "answers": "建议的回复",
+        "apply": "采用",
+        "applied": "已采用",
+        "applyAll": "全部采用",
+        "causes": "可能的根本原因",
+        "actions": "建议的纠正措施",
+        "addToComment": "添加到评论",
+        "similar": "类似的不合格项",
+        "likelihood": {
+            "high": "很可能",
+            "medium": "可能",
+            "low": "不太可能"
+        },
+        "yes": "是",
+        "no": "否"
+    },
     "components/tasks/TaskActions#LABELS": {
         "complete": "完成任务",
         "refuse": "拒绝",
@@ -2542,6 +2594,26 @@ const LOCALE = {
         "cancel": "取消",
         "completed": "任务已完成。",
         "refused": "任务已拒绝。"
+    },
+    "components/tasks/WorkflowTaskScreen#LABELS": {
+        "back": "我的任务",
+        "assignee": "分配给",
+        "pooled": "待认领",
+        "due": "截止",
+        "startedBy": "发起人",
+        "concerns": "涉及",
+        "answer": "您的回复",
+        "claim": "认领任务",
+        "release": "释放回任务池",
+        "claimed": "任务已归您处理",
+        "released": "任务已释放回任务池",
+        "save": "保存",
+        "saved": "回复已保存",
+        "done": "任务已完成",
+        "completed": "任务已完成，工作流继续进行",
+        "claimFirst": "请先认领任务再回复。",
+        "closed": "此任务已完成。",
+        "discussion": "讨论"
     },
     "components/ui/DataTable#LOCAL_LABELS": {
         "selectAll": "全选",
@@ -2567,6 +2639,12 @@ const LOCALE = {
         "error": "无法保存",
         "retry": "重试",
         "unsaved": "您的更改不会丢失：系统将重新发送。"
+    },
+    "components/wizard/SuggestionSources#LABELS": {
+        "source": "来源",
+        "conflict": "文件给出的值不一致",
+        "choose": "应用此选择",
+        "version": "v{version}"
     },
     "components/wizard/TechnicalSheetBanner#LABELS": {
         "title": "技术资料表",

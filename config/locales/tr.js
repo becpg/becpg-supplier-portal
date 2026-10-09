@@ -1062,6 +1062,7 @@ const LOCALE = {
     "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "İmza",
     "components/dashboard/ActionsCard#TASK_TYPE_META.document": "Belge",
     "components/dashboard/ActionsCard#TASK_TYPE_META.review": "İnceleme",
+    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "İş akışı",
     "components/dashboard/ApprovalCard#REASONS": {
         "documentExpired": "Zorunlu belgenin süresi doldu",
         "documentExpiring": "Belgenin süresi dolmak üzere",
@@ -1531,6 +1532,14 @@ const LOCALE = {
         "validation.minLength": "En az {min} karakter girin.",
         "validation.maxLength": "En fazla {max} karakter girin."
     },
+    "components/monitor/AiDrafts#LABELS": {
+        "draft": "AI ile tedarikçi bazında kişiselleştir",
+        "drafting": "Mesajlar yazılıyor…",
+        "unavailable": "AI asistanı bu örnekte kullanılamıyor.",
+        "common": "Ortak bir mesaja dön",
+        "none": "AI hiçbir mesaj önermedi.",
+        "help": "Her tedarikçiye kendi dilinde, gecikmiş veya eksik olanlara göre bir mesaj. Göndermeden önce okuyun ve düzenleyin."
+    },
     "components/monitor/BulkActionBar#LABELS": {
         "selected": "{count} tedarikçi seçildi",
         "selectedPlural": "{count} tedarikçi seçildi",
@@ -1943,7 +1952,6 @@ const LOCALE = {
         "unassigned": "Atanmamış",
         "due": "Son tarih",
         "open": "Aç",
-        "openInBecpg": "beCPG'de aç",
         "history": "Geçmiş ({count})",
         "hideHistory": "Geçmişi gizle",
         "doneBy": "yapan: {who}"
@@ -2315,6 +2323,30 @@ const LOCALE = {
         "none": "Önceki sürüm yok",
         "by": "yazan: {author}"
     },
+    "components/review/AiPrecheck#LABELS": {
+        "title": "AI ön doğrulaması",
+        "running": "Kart okunuyor…",
+        "verdicts": {
+            "blocking": "Doğrulamadan önce düzeltilecek",
+            "toCheck": "Kontrol edilecek noktalar",
+            "clear": "Engelleyici nokta yok"
+        },
+        "severities": {
+            "error": "Hata",
+            "warning": "Kontrol edilecek",
+            "ok": "Uygun"
+        },
+        "addToFeedback": "Geri bildirime ekle",
+        "added": "Eklendi",
+        "open": "Bölümü aç",
+        "proposed": "Tedarikçiye önerilen geri bildirim",
+        "reformulate": "Yeniden ifade et",
+        "translate": "Çevir",
+        "useMessage": "Bu mesajı kullan",
+        "help": "AI kartı sizden önce okur: değerlerin tutarlılığı, kütle dengesi, alerjenler, zorunlu belgeler. Hiçbir karar vermez: her nokta kontrol edilmelidir ve geri bildirime ekleyen sizsiniz.",
+        "failed": "Ön doğrulama tamamlanmadı.",
+        "retry": "Yeniden dene"
+    },
     "components/review/ReviewChanges#LABELS": {
         "title": "Referanstan bu yana {count} değişiklik",
         "none": "Referanstan bu yana değişiklik yok",
@@ -2347,6 +2379,7 @@ const LOCALE = {
         "legendAccepted": "kabul edildi",
         "legendReturned": "düzeltme istendi",
         "legendChanged": "referanstan bu yana değişiklikler",
+        "aiPoints": "AI tarafından tespit edilen noktalar",
         "frozen": "Doğrulanmış liste",
         "accept": "Kabul et ve devam et",
         "acceptLast": "Kabul et",
@@ -2530,6 +2563,25 @@ const LOCALE = {
         "answer": "Yanıt",
         "blank": "Bu zorunlu soru hâlâ boş."
     },
+    "components/tasks/NcAssist#LABELS": {
+        "title": "AI yardımı",
+        "help": "Uygunsuzluk, ürün, tedarikçi ve geçmiş uygunsuzluklara dayalı AI önerileri. Göreve yanıt verene kadar hiçbir şey kaydedilmez.",
+        "answers": "Önerilen yanıtlar",
+        "apply": "Kullan",
+        "applied": "Kullanıldı",
+        "applyAll": "Tümünü kullan",
+        "causes": "Olası kök nedenler",
+        "actions": "Önerilen düzeltici faaliyetler",
+        "addToComment": "Yoruma ekle",
+        "similar": "Benzer uygunsuzluklar",
+        "likelihood": {
+            "high": "olası",
+            "medium": "mümkün",
+            "low": "düşük olasılık"
+        },
+        "yes": "Evet",
+        "no": "Hayır"
+    },
     "components/tasks/TaskActions#LABELS": {
         "complete": "Görevi tamamla",
         "refuse": "Reddet",
@@ -2542,6 +2594,26 @@ const LOCALE = {
         "cancel": "İptal",
         "completed": "Görev tamamlandı.",
         "refused": "Görev reddedildi."
+    },
+    "components/tasks/WorkflowTaskScreen#LABELS": {
+        "back": "Görevlerim",
+        "assignee": "Atanan",
+        "pooled": "Üstlenilecek",
+        "due": "Son tarih",
+        "startedBy": "Başlatan",
+        "concerns": "İlgili",
+        "answer": "Yanıtınız",
+        "claim": "Görevi üstlen",
+        "release": "Havuza geri bırak",
+        "claimed": "Görev artık sizde",
+        "released": "Görev havuza geri bırakıldı",
+        "save": "Kaydet",
+        "saved": "Yanıt kaydedildi",
+        "done": "Görev tamamlandı",
+        "completed": "Görev tamamlandı, iş akışı devam ediyor",
+        "claimFirst": "Yanıtlamak için görevi üstlenin.",
+        "closed": "Bu görev tamamlandı.",
+        "discussion": "Tartışma"
     },
     "components/ui/DataTable#LOCAL_LABELS": {
         "selectAll": "Tümünü seç",
@@ -2567,6 +2639,12 @@ const LOCALE = {
         "error": "Kaydedilemedi",
         "retry": "Yeniden dene",
         "unsaved": "Değişiklikleriniz kaybolmadı: yeniden gönderilecekler."
+    },
+    "components/wizard/SuggestionSources#LABELS": {
+        "source": "Kaynak",
+        "conflict": "Belgeler aynı değeri vermiyor",
+        "choose": "Bu seçimi uygula",
+        "version": "v{version}"
     },
     "components/wizard/TechnicalSheetBanner#LABELS": {
         "title": "Teknik föy",

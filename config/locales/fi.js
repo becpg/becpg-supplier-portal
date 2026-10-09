@@ -1062,6 +1062,7 @@ const LOCALE = {
     "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "Allekirjoitus",
     "components/dashboard/ActionsCard#TASK_TYPE_META.document": "Asiakirja",
     "components/dashboard/ActionsCard#TASK_TYPE_META.review": "Tarkistus",
+    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "Työnkulku",
     "components/dashboard/ApprovalCard#REASONS": {
         "documentExpired": "Pakollinen asiakirja vanhentunut",
         "documentExpiring": "Asiakirja vanhenemassa",
@@ -1531,6 +1532,14 @@ const LOCALE = {
         "validation.minLength": "Merkkejä vähintään: {min}.",
         "validation.maxLength": "Merkkejä enintään: {max}."
     },
+    "components/monitor/AiDrafts#LABELS": {
+        "draft": "Mukauta toimittajakohtaisesti tekoälyllä",
+        "drafting": "Laaditaan viestejä…",
+        "unavailable": "Tekoälyavustaja ei ole käytettävissä tässä instanssissa.",
+        "common": "Palaa yhteiseen viestiin",
+        "none": "Tekoäly ei ehdottanut yhtään viestiä.",
+        "help": "Yksi viesti toimittajaa kohden, toimittajan kielellä, sen perusteella, mikä toimittajalta on myöhässä tai puuttuu. Lukekaa ja muokatkaa ennen lähettämistä."
+    },
     "components/monitor/BulkActionBar#LABELS": {
         "selected": "Valittu toimittaja: {count}",
         "selectedPlural": "Valittuja toimittajia: {count}",
@@ -1943,7 +1952,6 @@ const LOCALE = {
         "unassigned": "Ei osoitettu",
         "due": "Määräpäivä",
         "open": "Avaa",
-        "openInBecpg": "Avaa beCPG:ssä",
         "history": "Historia ({count})",
         "hideHistory": "Piilota historia",
         "doneBy": "tekijä {who}"
@@ -2315,6 +2323,30 @@ const LOCALE = {
         "none": "Ei aiempia versioita",
         "by": "tekijä {author}"
     },
+    "components/review/AiPrecheck#LABELS": {
+        "title": "Tekoälyn esitarkistus",
+        "running": "Luetaan tuotekorttia…",
+        "verdicts": {
+            "blocking": "Korjattava ennen hyväksyntää",
+            "toCheck": "Tarkistettavat kohdat",
+            "clear": "Ei estäviä kohtia"
+        },
+        "severities": {
+            "error": "Virhe",
+            "warning": "Tarkistettava",
+            "ok": "Vaatimustenmukainen"
+        },
+        "addToFeedback": "Lisää palautteeseen",
+        "added": "Lisätty",
+        "open": "Avaa osio",
+        "proposed": "Ehdotettu palaute toimittajalle",
+        "reformulate": "Muotoile uudelleen",
+        "translate": "Käännä",
+        "useMessage": "Käytä tätä viestiä",
+        "help": "Tekoäly lukee tuotekortin ennen teitä: arvojen johdonmukaisuus, massatase, allergeenit, pakolliset asiakirjat. Se ei päätä mitään: jokainen kohta on tarkistettava, ja te lisäätte sen palautteeseen.",
+        "failed": "Esitarkistus ei valmistunut.",
+        "retry": "Yritä uudelleen"
+    },
     "components/review/ReviewChanges#LABELS": {
         "title": "{count} muutosta viitteen jälkeen",
         "none": "Ei muutoksia viitteen jälkeen",
@@ -2347,6 +2379,7 @@ const LOCALE = {
         "legendAccepted": "hyväksytty",
         "legendReturned": "korjausta pyydetty",
         "legendChanged": "muutokset viitteen jälkeen",
+        "aiPoints": "tekoälyn havaitsemat kohdat",
         "frozen": "Hyväksytty luettelo",
         "accept": "Hyväksy ja jatka",
         "acceptLast": "Hyväksy",
@@ -2530,6 +2563,25 @@ const LOCALE = {
         "answer": "Vastaus",
         "blank": "Tähän pakolliseen kysymykseen ei ole vielä vastattu."
     },
+    "components/tasks/NcAssist#LABELS": {
+        "title": "Tekoälyapu",
+        "help": "Tekoälyn ehdotuksia poikkeaman, tuotteen, toimittajan ja aiempien poikkeamien perusteella. Mitään ei tallenneta ennen kuin vastaatte tehtävään.",
+        "answers": "Ehdotetut vastaukset",
+        "apply": "Käytä",
+        "applied": "Käytetty",
+        "applyAll": "Käytä kaikki",
+        "causes": "Todennäköiset juurisyyt",
+        "actions": "Ehdotetut korjaavat toimenpiteet",
+        "addToComment": "Lisää kommenttiin",
+        "similar": "Samankaltaiset poikkeamat",
+        "likelihood": {
+            "high": "todennäköinen",
+            "medium": "mahdollinen",
+            "low": "epätodennäköinen"
+        },
+        "yes": "Kyllä",
+        "no": "Ei"
+    },
     "components/tasks/TaskActions#LABELS": {
         "complete": "Suorita tehtävä",
         "refuse": "Hylkää",
@@ -2542,6 +2594,26 @@ const LOCALE = {
         "cancel": "Peruuta",
         "completed": "Tehtävä suoritettu.",
         "refused": "Tehtävä hylätty."
+    },
+    "components/tasks/WorkflowTaskScreen#LABELS": {
+        "back": "Omat tehtävät",
+        "assignee": "Osoitettu",
+        "pooled": "Otettavissa",
+        "due": "Määräpäivä",
+        "startedBy": "Käynnistäjä",
+        "concerns": "Koskee",
+        "answer": "Vastauksenne",
+        "claim": "Ota tehtävä",
+        "release": "Palauta pooliin",
+        "claimed": "Tehtävä on teidän",
+        "released": "Tehtävä on palautettu pooliin",
+        "save": "Tallenna",
+        "saved": "Vastaus tallennettu",
+        "done": "Tehtävä valmis",
+        "completed": "Tehtävä valmis, työnkulku jatkuu",
+        "claimFirst": "Ottakaa tehtävä vastataksenne siihen.",
+        "closed": "Tämä tehtävä on valmis.",
+        "discussion": "Keskustelu"
     },
     "components/ui/DataTable#LOCAL_LABELS": {
         "selectAll": "Valitse kaikki",
@@ -2567,6 +2639,12 @@ const LOCALE = {
         "error": "Tallennus epäonnistui",
         "retry": "Yritä uudelleen",
         "unsaved": "Muutoksenne eivät ole kadonneet: ne lähetetään uudelleen."
+    },
+    "components/wizard/SuggestionSources#LABELS": {
+        "source": "Lähde",
+        "conflict": "Asiakirjat eivät anna samaa arvoa",
+        "choose": "Käytä tätä valintaa",
+        "version": "v{version}"
     },
     "components/wizard/TechnicalSheetBanner#LABELS": {
         "title": "Tekninen tuotekortti",

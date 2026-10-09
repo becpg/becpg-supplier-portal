@@ -1062,6 +1062,7 @@ const LOCALE = {
     "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "Firma",
     "components/dashboard/ActionsCard#TASK_TYPE_META.document": "Documento",
     "components/dashboard/ActionsCard#TASK_TYPE_META.review": "Revisione",
+    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "Workflow",
     "components/dashboard/ApprovalCard#REASONS": {
         "documentExpired": "Documento obbligatorio scaduto",
         "documentExpiring": "Documento in scadenza",
@@ -1531,6 +1532,14 @@ const LOCALE = {
         "validation.minLength": "Inserite almeno {min} carattere/i.",
         "validation.maxLength": "Inserite al massimo {max} carattere/i."
     },
+    "components/monitor/AiDrafts#LABELS": {
+        "draft": "Personalizza per fornitore con l'IA",
+        "drafting": "Redazione dei messaggi…",
+        "unavailable": "L'assistente IA non è disponibile su questa istanza.",
+        "common": "Torna a un messaggio comune",
+        "none": "L'IA non ha proposto alcun messaggio.",
+        "help": "Un messaggio per fornitore, nella sua lingua, a partire da ciò che è in ritardo o mancante presso di lui. Rileggete e modificate prima dell'invio."
+    },
     "components/monitor/BulkActionBar#LABELS": {
         "selected": "{count} fornitore selezionato",
         "selectedPlural": "{count} fornitori selezionati",
@@ -1943,7 +1952,6 @@ const LOCALE = {
         "unassigned": "Non assegnata",
         "due": "Scadenza",
         "open": "Apri",
-        "openInBecpg": "Apri in beCPG",
         "history": "Cronologia ({count})",
         "hideHistory": "Nascondi la cronologia",
         "doneBy": "da {who}"
@@ -2315,6 +2323,30 @@ const LOCALE = {
         "none": "Nessuna versione precedente",
         "by": "di {author}"
     },
+    "components/review/AiPrecheck#LABELS": {
+        "title": "Prevalidazione IA",
+        "running": "Lettura della scheda…",
+        "verdicts": {
+            "blocking": "Da correggere prima della convalida",
+            "toCheck": "Punti da verificare",
+            "clear": "Nessun punto bloccante"
+        },
+        "severities": {
+            "error": "Errore",
+            "warning": "Da verificare",
+            "ok": "Conforme"
+        },
+        "addToFeedback": "Aggiungi al riscontro",
+        "added": "Aggiunto",
+        "open": "Apri la sezione",
+        "proposed": "Riscontro proposto al fornitore",
+        "reformulate": "Riformula",
+        "translate": "Traduci",
+        "useMessage": "Usa questo messaggio",
+        "help": "L'IA legge la scheda prima di voi: coerenza dei valori, bilancio di massa, allergeni, documenti obbligatori. Non decide nulla: ogni punto va verificato, e siete voi ad aggiungerlo al riscontro.",
+        "failed": "La prevalidazione non è stata completata.",
+        "retry": "Riprova"
+    },
     "components/review/ReviewChanges#LABELS": {
         "title": "{count} modifica/he dalla versione di riferimento",
         "none": "Nessuna modifica dalla versione di riferimento",
@@ -2347,6 +2379,7 @@ const LOCALE = {
         "legendAccepted": "accettata",
         "legendReturned": "correzione richiesta",
         "legendChanged": "modifiche dalla versione di riferimento",
+        "aiPoints": "punti rilevati dall'IA",
         "frozen": "Elenco convalidato",
         "accept": "Accetta e prosegui",
         "acceptLast": "Accetta",
@@ -2530,6 +2563,25 @@ const LOCALE = {
         "answer": "Risposta",
         "blank": "Questa domanda obbligatoria non ha ancora una risposta."
     },
+    "components/tasks/NcAssist#LABELS": {
+        "title": "Aiuto IA",
+        "help": "Proposte dell'IA basate sulla non conformità, sul prodotto, sul fornitore e sulle non conformità passate. Nulla viene salvato finché non rispondete all'attività.",
+        "answers": "Risposte proposte",
+        "apply": "Usa",
+        "applied": "Usato",
+        "applyAll": "Usa tutto",
+        "causes": "Cause radice probabili",
+        "actions": "Azioni correttive suggerite",
+        "addToComment": "Aggiungi al commento",
+        "similar": "Non conformità simili",
+        "likelihood": {
+            "high": "probabile",
+            "medium": "possibile",
+            "low": "poco probabile"
+        },
+        "yes": "Sì",
+        "no": "No"
+    },
     "components/tasks/TaskActions#LABELS": {
         "complete": "Completa l'attività",
         "refuse": "Rifiuta",
@@ -2542,6 +2594,26 @@ const LOCALE = {
         "cancel": "Annulla",
         "completed": "Attività completata.",
         "refused": "Attività rifiutata."
+    },
+    "components/tasks/WorkflowTaskScreen#LABELS": {
+        "back": "Le mie attività",
+        "assignee": "Assegnata a",
+        "pooled": "Da prendere in carico",
+        "due": "Scadenza",
+        "startedBy": "Avviato da",
+        "concerns": "Riguarda",
+        "answer": "La vostra risposta",
+        "claim": "Prendi in carico l'attività",
+        "release": "Rimetti nel pool",
+        "claimed": "L'attività è vostra",
+        "released": "L'attività è tornata nel pool",
+        "save": "Salva",
+        "saved": "Risposta salvata",
+        "done": "Attività completata",
+        "completed": "Attività completata, il workflow prosegue",
+        "claimFirst": "Prendete in carico l'attività per rispondere.",
+        "closed": "Questa attività è completata.",
+        "discussion": "Discussione"
     },
     "components/ui/DataTable#LOCAL_LABELS": {
         "selectAll": "Seleziona tutto",
@@ -2567,6 +2639,12 @@ const LOCALE = {
         "error": "Salvataggio non riuscito",
         "retry": "Riprova",
         "unsaved": "Le vostre modifiche non sono perse: verranno inviate di nuovo."
+    },
+    "components/wizard/SuggestionSources#LABELS": {
+        "source": "Fonte",
+        "conflict": "I documenti non riportano lo stesso valore",
+        "choose": "Applica questa scelta",
+        "version": "v{version}"
     },
     "components/wizard/TechnicalSheetBanner#LABELS": {
         "title": "Scheda tecnica",

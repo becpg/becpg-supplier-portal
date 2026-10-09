@@ -1062,6 +1062,7 @@ const LOCALE = {
     "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "Signatur",
     "components/dashboard/ActionsCard#TASK_TYPE_META.document": "Dokument",
     "components/dashboard/ActionsCard#TASK_TYPE_META.review": "Granskning",
+    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "Arbetsflöde",
     "components/dashboard/ApprovalCard#REASONS": {
         "documentExpired": "Obligatoriskt dokument har gått ut",
         "documentExpiring": "Dokument går snart ut",
@@ -1531,6 +1532,14 @@ const LOCALE = {
         "validation.minLength": "Ange minst {min} tecken.",
         "validation.maxLength": "Ange högst {max} tecken."
     },
+    "components/monitor/AiDrafts#LABELS": {
+        "draft": "Anpassa per leverantör med AI",
+        "drafting": "Skriver meddelandena…",
+        "unavailable": "AI-assistenten är inte tillgänglig på den här instansen.",
+        "common": "Tillbaka till ett gemensamt meddelande",
+        "none": "AI föreslog inget meddelande.",
+        "help": "Ett meddelande per leverantör, på leverantörens språk, utifrån vad som är försenat eller saknas hos den. Läs och redigera innan du skickar."
+    },
     "components/monitor/BulkActionBar#LABELS": {
         "selected": "{count} leverantör vald",
         "selectedPlural": "{count} leverantörer valda",
@@ -1943,7 +1952,6 @@ const LOCALE = {
         "unassigned": "Ej tilldelad",
         "due": "Förfaller",
         "open": "Öppna",
-        "openInBecpg": "Öppna i beCPG",
         "history": "Historik ({count})",
         "hideHistory": "Dölj historiken",
         "doneBy": "av {who}"
@@ -2315,6 +2323,30 @@ const LOCALE = {
         "none": "Ingen tidigare version",
         "by": "av {author}"
     },
+    "components/review/AiPrecheck#LABELS": {
+        "title": "AI-förhandsgranskning",
+        "running": "Läser bladet…",
+        "verdicts": {
+            "blocking": "Att rätta före validering",
+            "toCheck": "Punkter att kontrollera",
+            "clear": "Ingen blockerande punkt"
+        },
+        "severities": {
+            "error": "Fel",
+            "warning": "Att kontrollera",
+            "ok": "Uppfyller kraven"
+        },
+        "addToFeedback": "Lägg till i återkopplingen",
+        "added": "Tillagt",
+        "open": "Öppna avsnittet",
+        "proposed": "Föreslagen återkoppling till leverantören",
+        "reformulate": "Formulera om",
+        "translate": "Översätt",
+        "useMessage": "Använd det här meddelandet",
+        "help": "AI läser bladet före dig: värdenas konsekvens, massbalans, allergener, obligatoriska dokument. Den beslutar ingenting: varje punkt ska kontrolleras, och det är du som lägger till den i återkopplingen.",
+        "failed": "Förhandsgranskningen slutfördes inte.",
+        "retry": "Försök igen"
+    },
     "components/review/ReviewChanges#LABELS": {
         "title": "{count} ändring(ar) sedan referensen",
         "none": "Inga ändringar sedan referensen",
@@ -2347,6 +2379,7 @@ const LOCALE = {
         "legendAccepted": "godkänt",
         "legendReturned": "korrigering begärd",
         "legendChanged": "ändringar sedan referensen",
+        "aiPoints": "punkter som AI har hittat",
         "frozen": "Validerad lista",
         "accept": "Godkänn och fortsätt",
         "acceptLast": "Godkänn",
@@ -2530,6 +2563,25 @@ const LOCALE = {
         "answer": "Svar",
         "blank": "Den här obligatoriska frågan är fortfarande obesvarad."
     },
+    "components/tasks/NcAssist#LABELS": {
+        "title": "AI-hjälp",
+        "help": "Förslag från AI utifrån avvikelsen, produkten, leverantören och tidigare avvikelser. Inget sparas förrän du besvarar uppgiften.",
+        "answers": "Föreslagna svar",
+        "apply": "Använd",
+        "applied": "Använt",
+        "applyAll": "Använd alla",
+        "causes": "Troliga grundorsaker",
+        "actions": "Föreslagna korrigerande åtgärder",
+        "addToComment": "Lägg till i kommentaren",
+        "similar": "Liknande avvikelser",
+        "likelihood": {
+            "high": "trolig",
+            "medium": "möjlig",
+            "low": "osannolik"
+        },
+        "yes": "Ja",
+        "no": "Nej"
+    },
     "components/tasks/TaskActions#LABELS": {
         "complete": "Slutför uppgiften",
         "refuse": "Avvisa",
@@ -2542,6 +2594,26 @@ const LOCALE = {
         "cancel": "Avbryt",
         "completed": "Uppgiften är slutförd.",
         "refused": "Uppgiften har avvisats."
+    },
+    "components/tasks/WorkflowTaskScreen#LABELS": {
+        "back": "Mina uppgifter",
+        "assignee": "Tilldelad",
+        "pooled": "Att ta",
+        "due": "Förfaller",
+        "startedBy": "Startad av",
+        "concerns": "Gäller",
+        "answer": "Ditt svar",
+        "claim": "Ta uppgiften",
+        "release": "Lämna tillbaka till poolen",
+        "claimed": "Uppgiften är din",
+        "released": "Uppgiften är tillbaka i poolen",
+        "save": "Spara",
+        "saved": "Svaret har sparats",
+        "done": "Uppgiften är klar",
+        "completed": "Uppgiften är klar, arbetsflödet fortsätter",
+        "claimFirst": "Ta uppgiften för att besvara den.",
+        "closed": "Uppgiften är klar.",
+        "discussion": "Diskussion"
     },
     "components/ui/DataTable#LOCAL_LABELS": {
         "selectAll": "Välj alla",
@@ -2567,6 +2639,12 @@ const LOCALE = {
         "error": "Kunde inte spara",
         "retry": "Försök igen",
         "unsaved": "Dina ändringar har inte gått förlorade: de skickas igen."
+    },
+    "components/wizard/SuggestionSources#LABELS": {
+        "source": "Källa",
+        "conflict": "Dokumenten anger inte samma värde",
+        "choose": "Tillämpa det här valet",
+        "version": "v{version}"
     },
     "components/wizard/TechnicalSheetBanner#LABELS": {
         "title": "Tekniskt datablad",

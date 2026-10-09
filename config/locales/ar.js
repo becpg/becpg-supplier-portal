@@ -1062,6 +1062,7 @@ const LOCALE = {
     "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "التوقيع",
     "components/dashboard/ActionsCard#TASK_TYPE_META.document": "المستند",
     "components/dashboard/ActionsCard#TASK_TYPE_META.review": "المراجعة",
+    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "سير العمل",
     "components/dashboard/ApprovalCard#REASONS": {
         "documentExpired": "مستند إلزامي منتهي الصلاحية",
         "documentExpiring": "مستند يقترب من انتهاء صلاحيته",
@@ -1531,6 +1532,14 @@ const LOCALE = {
         "validation.minLength": "أدخلوا {min} حرف(أحرف) على الأقل.",
         "validation.maxLength": "أدخلوا {max} حرف(أحرف) على الأكثر."
     },
+    "components/monitor/AiDrafts#LABELS": {
+        "draft": "التخصيص لكل مورّد باستخدام الذكاء الاصطناعي",
+        "drafting": "جارٍ صياغة الرسائل…",
+        "unavailable": "مساعد الذكاء الاصطناعي غير متاح على هذا المثيل.",
+        "common": "العودة إلى رسالة مشتركة",
+        "none": "لم يقترح الذكاء الاصطناعي أي رسالة.",
+        "help": "رسالة لكل مورّد، بلغته، بناءً على ما هو متأخر أو ناقص لديه. راجعوها وعدّلوها قبل الإرسال."
+    },
     "components/monitor/BulkActionBar#LABELS": {
         "selected": "تم تحديد {count} مورّد",
         "selectedPlural": "تم تحديد {count} موردين",
@@ -1943,7 +1952,6 @@ const LOCALE = {
         "unassigned": "غير مسندة",
         "due": "الاستحقاق",
         "open": "فتح",
-        "openInBecpg": "فتح في beCPG",
         "history": "السجل ({count})",
         "hideHistory": "إخفاء السجل",
         "doneBy": "بواسطة {who}"
@@ -2315,6 +2323,30 @@ const LOCALE = {
         "none": "لا يوجد إصدار سابق",
         "by": "بواسطة {author}"
     },
+    "components/review/AiPrecheck#LABELS": {
+        "title": "التحقق المسبق بالذكاء الاصطناعي",
+        "running": "جارٍ قراءة البطاقة…",
+        "verdicts": {
+            "blocking": "يجب تصحيحه قبل الاعتماد",
+            "toCheck": "نقاط للتحقق",
+            "clear": "لا توجد نقطة معيقة"
+        },
+        "severities": {
+            "error": "خطأ",
+            "warning": "للتحقق",
+            "ok": "مطابق"
+        },
+        "addToFeedback": "إضافة إلى الملاحظات",
+        "added": "تمت الإضافة",
+        "open": "فتح القسم",
+        "proposed": "ملاحظات مقترحة إلى المورّد",
+        "reformulate": "إعادة الصياغة",
+        "translate": "ترجمة",
+        "useMessage": "استخدام هذه الرسالة",
+        "help": "يقرأ الذكاء الاصطناعي البطاقة قبلكم: اتساق القيم، وموازنة الكتلة، ومسببات الحساسية، والمستندات الإلزامية. وهو لا يقرّر شيئًا: كل نقطة تحتاج إلى تحقق، وأنتم من يضيفها إلى الملاحظات.",
+        "failed": "لم يكتمل التحقق المسبق.",
+        "retry": "إعادة المحاولة"
+    },
     "components/review/ReviewChanges#LABELS": {
         "title": "{count} تغيير(ات) منذ المرجع",
         "none": "لا تغيير منذ المرجع",
@@ -2347,6 +2379,7 @@ const LOCALE = {
         "legendAccepted": "مقبول",
         "legendReturned": "طُلب تصحيح",
         "legendChanged": "التغييرات منذ المرجع",
+        "aiPoints": "نقاط رصدها الذكاء الاصطناعي",
         "frozen": "قائمة معتمدة",
         "accept": "القبول والمتابعة",
         "acceptLast": "قبول",
@@ -2530,6 +2563,25 @@ const LOCALE = {
         "answer": "الإجابة",
         "blank": "هذا السؤال الإلزامي لا يزال فارغًا."
     },
+    "components/tasks/NcAssist#LABELS": {
+        "title": "مساعدة الذكاء الاصطناعي",
+        "help": "مقترحات الذكاء الاصطناعي بناءً على حالة عدم المطابقة والمنتج والمورّد وحالات عدم المطابقة السابقة. لا يُحفظ شيء ما لم تردّوا على المهمة.",
+        "answers": "إجابات مقترحة",
+        "apply": "استخدام",
+        "applied": "تم الاستخدام",
+        "applyAll": "استخدام الكل",
+        "causes": "الأسباب الجذرية المحتملة",
+        "actions": "الإجراءات التصحيحية المقترحة",
+        "addToComment": "إضافة إلى التعليق",
+        "similar": "حالات عدم مطابقة مشابهة",
+        "likelihood": {
+            "high": "مرجّح",
+            "medium": "ممكن",
+            "low": "غير مرجّح"
+        },
+        "yes": "نعم",
+        "no": "لا"
+    },
     "components/tasks/TaskActions#LABELS": {
         "complete": "إكمال المهمة",
         "refuse": "رفض",
@@ -2542,6 +2594,26 @@ const LOCALE = {
         "cancel": "إلغاء",
         "completed": "اكتملت المهمة.",
         "refused": "رُفضت المهمة."
+    },
+    "components/tasks/WorkflowTaskScreen#LABELS": {
+        "back": "مهامي",
+        "assignee": "مسندة إلى",
+        "pooled": "بانتظار التولي",
+        "due": "الاستحقاق",
+        "startedBy": "بدأها",
+        "concerns": "يتعلق بـ",
+        "answer": "إجابتكم",
+        "claim": "تولّي المهمة",
+        "release": "الإعادة إلى المجموعة",
+        "claimed": "المهمة لكم الآن",
+        "released": "أُعيدت المهمة إلى المجموعة",
+        "save": "حفظ",
+        "saved": "تم حفظ الإجابة",
+        "done": "اكتملت المهمة",
+        "completed": "اكتملت المهمة، ويتابع سير العمل",
+        "claimFirst": "تولّوا المهمة للرد عليها.",
+        "closed": "هذه المهمة مكتملة.",
+        "discussion": "المناقشة"
     },
     "components/ui/DataTable#LOCAL_LABELS": {
         "selectAll": "تحديد الكل",
@@ -2567,6 +2639,12 @@ const LOCALE = {
         "error": "تعذّر الحفظ",
         "retry": "إعادة المحاولة",
         "unsaved": "لم تضِع تعديلاتكم: ستُرسل مجددًا."
+    },
+    "components/wizard/SuggestionSources#LABELS": {
+        "source": "المصدر",
+        "conflict": "لا تعطي المستندات القيمة نفسها",
+        "choose": "تطبيق هذا الاختيار",
+        "version": "v{version}"
     },
     "components/wizard/TechnicalSheetBanner#LABELS": {
         "title": "البطاقة الفنية",
