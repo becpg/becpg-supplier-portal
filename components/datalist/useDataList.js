@@ -85,6 +85,7 @@ import {
     restoreRowFields,
 } from '@/components/datalist/rowCommits';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { isCharacteristicColumn, isNestedColumn } from '@/components/datalist/columnKinds';
 
 /**
  * The grid's own vocabulary.
@@ -352,16 +353,7 @@ const SAVED_TTL = 2600;
 /** Debounce of the post-write silent refresh, so a burst of edits triggers one. */
 const REFRESH_DEBOUNCE = 700;
 
-/** Column types that are not a scalar cell but a nested structure. */
-export const NESTED_TYPES = ['dataList', 'entity'];
-
-/**
- * @param {Object} column
- * @returns {boolean} true for a sub-datalist / linked-entity column
- */
-export function isNestedColumn(column) {
-    return NESTED_TYPES.includes(column?.type) || Array.isArray(column?.columns);
-}
+export { NESTED_TYPES, isCharacteristicColumn, isNestedColumn } from '@/components/datalist/columnKinds';
 
 /**
  * `itemType` of the synthetic summary row beCPG appends to a list.
@@ -908,6 +900,12 @@ export function useDataList(options = {}) {
     const isCellEditable = useCallback(
         (row, column) => {
             if (!canEditRow(row) || isNestedColumn(column)) {
+                return false;
+            }
+            // The characteristic a row describes is chosen once, on a new row;
+            // after that the grid reads it, and the row form (the pencil) is
+            // where it can still be changed.
+            if (isCharacteristicColumn(column) && !row.draft) {
                 return false;
             }
             if (column.protectedField) {

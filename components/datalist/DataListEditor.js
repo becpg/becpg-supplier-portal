@@ -345,6 +345,8 @@ export function DataListEditor({
         }
     }, [list, pasteReport]);
 
+    // The phone cards keep their arrows; the table reorders from the selection
+    // bar, so its rows carry no column of arrows that are rarely used.
     const showOrder = list.canReorder;
     const rows = list.rows;
     /*
@@ -593,8 +595,8 @@ export function DataListEditor({
     // Memoised like `rowContext`: the rows are memoised components.
     const hasNested = nestedColumns.length > 0;
     const sticky = useMemo(
-        () => stickyOffsets({ selectable, showOrder, hasNested }),
-        [selectable, showOrder, hasNested],
+        () => stickyOffsets({ selectable, hasNested }),
+        [selectable, hasNested],
     );
 
     if (list.error && rows.length === 0) {
@@ -854,15 +856,6 @@ export function DataListEditor({
                                             />
                                         </th>
                                     ) : null}
-                                    {showOrder ? (
-                                        <th
-                                            scope="col"
-                                            style={{ width: '3.5rem', insetInlineStart: sticky.order }}
-                                            data-sticky="start"
-                                        >
-                                            <span className="sr-only-text">{label('order')}</span>
-                                        </th>
-                                    ) : null}
                                     {nestedColumns.length > 0 ? (
                                         <th
                                             scope="col"
@@ -947,7 +940,6 @@ export function DataListEditor({
                                         onEditRow={setEditingRow}
                                         onAddRow={list.canCreate ? handleAdd : undefined}
                                         onDuplicate={list.canCreate ? handleDuplicate : undefined}
-                                        showOrder={showOrder}
                                         selectable={selectable}
                                         selected={selection.has(row.key)}
                                         onToggleSelect={toggleRow}
@@ -984,7 +976,6 @@ export function DataListEditor({
                                             nestedColumns={nestedColumns}
                                             list={list}
                                             context={rowContext}
-                                            showOrder={showOrder}
                                             selectable={selectable}
                                             sticky={sticky}
                                         />
