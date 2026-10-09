@@ -46,7 +46,7 @@ import { useMessages } from '@/lib/messages';
 import { Button, Icon, Spinner } from '@/components/ui/Button';
 import { useToast } from '@/components/providers/ToastProvider';
 import { ValidityFields, toInputDate } from '@/components/documents/DocumentValidity';
-import { RichText } from '@/components/ui/RichText';
+import { AiReviewReport } from '@/components/documents/AiReviewReport';
 import { formatDateTime, plainText } from '@/lib/format';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
@@ -301,12 +301,11 @@ export function AiValidationBadge({ state, hints, date, withHints = false, class
     }
 
     return (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col items-start gap-2">
             {badge}
-            <RichText
-                value={hints}
-                className="flex flex-col gap-1 break-words text-xs leading-relaxed text-[var(--becpg-dark-grey)]"
-            />
+            <div className="w-full">
+                <AiReviewReport hints={hints} />
+            </div>
             {date ? (
                 <p className="text-[0.6875rem] text-[var(--becpg-dark-grey)]">
                     {fill(labels.aiOn, { date: formatDateTime(date, lang) })}
