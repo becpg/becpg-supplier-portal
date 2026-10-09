@@ -36,7 +36,7 @@
  */
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { writeScopeCookie } from '@/lib/scope';
 import { UNAUTHORIZED_EVENT, api, tenantPrefix } from '@/lib/client';
 import { withBasePath } from '@/lib/basePath';
@@ -349,9 +349,13 @@ export function SessionProvider({ initialIdentity = null, children }) {
      * the one already sleeping in the local storage of a browser that never had
      * this cookie.
      */
+    // A server-rendered page (the dashboard) read the previous scope: render it again.
+    const router = useRouter();
     useEffect(() => {
-        writeScopeCookie(sub, { ref: chosenRef, all: scopeAll });
-    }, [sub, chosenRef, scopeAll]);
+        if (writeScopeCookie(sub, { ref: chosenRef, all: scopeAll })) {
+            router.refresh();
+        }
+    }, [sub, chosenRef, scopeAll, router]);
 
     /**
      * The record being worked on. Falls back to the first one, so a single-record
