@@ -6,10 +6,6 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
-    "app/(home)/page#LOCAL": {
-        "state": "Dosyam",
-        "detail": "Yapılacaklar"
-    },
     "app/company/page#LABELS": {
         "title": "Şirketim",
         "noSupplier": "Tedarikçi kaydı yok",
@@ -1048,22 +1044,12 @@ const LOCALE = {
         "untitled": "Başlıksız görev",
         "caption": "Görev listem"
     },
-    "components/dashboard/ActionsCard#LOCAL": {
-        "title": "Gerekli eylemler",
-        "open": "açık görev",
-        "late": "{count} gecikmiş",
-        "onTime": "Gecikmiş görev yok",
-        "nextDue": "Sonraki son tarih: {date}",
-        "noDue": "Planlanmış son tarih yok",
-        "none": "Şu anda yapılacak bir şey yok",
-        "all": "Tüm görevlerimi gör"
-    },
-    "components/dashboard/ActionsCard#TASK_TYPE_META.wizard": "Asistan",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "İmza",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.document": "Belge",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.review": "İnceleme",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "İş akışı",
-    "components/dashboard/ApprovalCard#REASONS": {
+    "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "Asistan",
+    "components/dashboard/taskTypes#TASK_TYPE_META.signature": "İmza",
+    "components/dashboard/taskTypes#TASK_TYPE_META.document": "Belge",
+    "components/dashboard/taskTypes#TASK_TYPE_META.review": "İnceleme",
+    "components/dashboard/taskTypes#TASK_TYPE_META.workflow": "İş akışı",
+    "components/dashboard/DashboardKpis#REASONS": {
         "documentExpired": "Zorunlu belgenin süresi doldu",
         "documentExpiring": "Belgenin süresi dolmak üzere",
         "documentMissing": "Beklenen belge sağlanmadı",
@@ -1071,23 +1057,6 @@ const LOCALE = {
         "catalogIncomplete": "Eksik kayıt",
         "openProject": "Açık listeleme projesi",
         "openNonConformity": "Açık uygunsuzluk"
-    },
-    "components/dashboard/ApprovalCard#LOCAL": {
-        "title": "Onay durumu",
-        "validUntil": "{date} tarihine kadar geçerli",
-        "noValidity": "Bilinen son tarih yok",
-        "why": "Neden?",
-        "unknown": "Durum kullanılamıyor",
-        "unknownHint": "Durum hesaplanamadı. Lütfen daha sonra yeniden deneyin.",
-        "allGood": "Engelleyen bir şey yok"
-    },
-    "components/dashboard/CompletionCard#LOCAL": {
-        "title": "Doluluk",
-        "scope": "{total} üründen {scored} tanesi puanlandı",
-        "noScore": "Henüz puanlanmış katalog yok",
-        "noScoreHint": "Doluluk, bir ürün formüle edildiği anda görünür.",
-        "seeProducts": "Ürünlerimi gör",
-        "worst": "En az dolu kataloglar"
     },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "Tartışmalarım",
@@ -1116,19 +1085,6 @@ const LOCALE = {
         "download": "İndir",
         "uploading": "Yükleniyor…",
         "uploaded": "Belge yüklendi. Şimdi müşterinizin doğrulamasını bekliyor."
-    },
-    "components/dashboard/DocumentsCard#LOCAL": {
-        "title": "Belgeler",
-        "valid": "Geçerli",
-        "expiring": "Süresi doluyor < {days} g",
-        "expired": "Süresi doldu",
-        "missing": "Eksik",
-        "refused": "Reddedildi",
-        "total": "{count} izlenen belge",
-        "none": "İzlenen belge yok",
-        "unavailable": "Bu ortamda belge takibi kullanılamıyor.",
-        "all": "Belgelerimi gör",
-        "toHandle": "ele alınacak"
     },
     "components/dashboard/NonConformityCard#LOCAL": {
         "title": "Açık uygunsuzluklar",

@@ -6,10 +6,6 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
-    "app/(home)/page#LOCAL": {
-        "state": "我的档案",
-        "detail": "待处理"
-    },
     "app/company/page#LABELS": {
         "title": "我的企业",
         "noSupplier": "无供应商档案",
@@ -1048,22 +1044,12 @@ const LOCALE = {
         "untitled": "未命名任务",
         "caption": "我的任务列表"
     },
-    "components/dashboard/ActionsCard#LOCAL": {
-        "title": "待办事项",
-        "open": "项未完成任务",
-        "late": "{count} 项逾期",
-        "onTime": "无逾期",
-        "nextDue": "下一个截止日期：{date}",
-        "noDue": "无计划截止日期",
-        "none": "目前无待办事项",
-        "all": "查看我的全部任务"
-    },
-    "components/dashboard/ActionsCard#TASK_TYPE_META.wizard": "向导",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "签名",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.document": "文件",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.review": "审阅",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "工作流",
-    "components/dashboard/ApprovalCard#REASONS": {
+    "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "向导",
+    "components/dashboard/taskTypes#TASK_TYPE_META.signature": "签名",
+    "components/dashboard/taskTypes#TASK_TYPE_META.document": "文件",
+    "components/dashboard/taskTypes#TASK_TYPE_META.review": "审阅",
+    "components/dashboard/taskTypes#TASK_TYPE_META.workflow": "工作流",
+    "components/dashboard/DashboardKpis#REASONS": {
         "documentExpired": "必需文件已过期",
         "documentExpiring": "文件即将过期",
         "documentMissing": "所需文件未提供",
@@ -1071,23 +1057,6 @@ const LOCALE = {
         "catalogIncomplete": "档案不完整",
         "openProject": "进行中的准入项目",
         "openNonConformity": "未关闭的不合格项"
-    },
-    "components/dashboard/ApprovalCard#LOCAL": {
-        "title": "认证状态",
-        "validUntil": "有效期至 {date}",
-        "noValidity": "无已知期限",
-        "why": "原因？",
-        "unknown": "状态不可用",
-        "unknownHint": "无法计算状态。请稍后重试。",
-        "allGood": "无阻断事项"
-    },
-    "components/dashboard/CompletionCard#LOCAL": {
-        "title": "完整度",
-        "scope": "已评分产品 {scored} / {total}",
-        "noScore": "尚无已评分的目录",
-        "noScoreHint": "产品配方计算完成后即会显示完整度。",
-        "seeProducts": "查看我的产品",
-        "worst": "完整度最低的目录"
     },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "我的讨论",
@@ -1116,19 +1085,6 @@ const LOCALE = {
         "download": "下载",
         "uploading": "正在上传…",
         "uploaded": "文件已上传，正在等待客户确认。"
-    },
-    "components/dashboard/DocumentsCard#LOCAL": {
-        "title": "文件",
-        "valid": "有效",
-        "expiring": "{days} 天内过期",
-        "expired": "已过期",
-        "missing": "缺失",
-        "refused": "已拒绝",
-        "total": "跟踪中的文件 {count} 份",
-        "none": "无跟踪中的文件",
-        "unavailable": "此实例不提供文件跟踪功能。",
-        "all": "查看我的文件",
-        "toHandle": "待处理"
     },
     "components/dashboard/NonConformityCard#LOCAL": {
         "title": "未关闭的不合格项",

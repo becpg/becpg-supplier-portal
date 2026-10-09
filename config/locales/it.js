@@ -6,10 +6,6 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
-    "app/(home)/page#LOCAL": {
-        "state": "Il mio fascicolo",
-        "detail": "Da fare"
-    },
     "app/company/page#LABELS": {
         "title": "La mia azienda",
         "noSupplier": "Nessuna scheda fornitore",
@@ -1048,22 +1044,12 @@ const LOCALE = {
         "untitled": "Attività senza titolo",
         "caption": "Il mio elenco di attività"
     },
-    "components/dashboard/ActionsCard#LOCAL": {
-        "title": "Azioni richieste",
-        "open": "attività aperta/e",
-        "late": "{count} in ritardo",
-        "onTime": "Nessuna in ritardo",
-        "nextDue": "Prossima scadenza: {date}",
-        "noDue": "Nessuna scadenza prevista",
-        "none": "Nulla da fare al momento",
-        "all": "Vedi tutte le mie attività"
-    },
-    "components/dashboard/ActionsCard#TASK_TYPE_META.wizard": "Procedura guidata",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "Firma",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.document": "Documento",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.review": "Revisione",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "Workflow",
-    "components/dashboard/ApprovalCard#REASONS": {
+    "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "Procedura guidata",
+    "components/dashboard/taskTypes#TASK_TYPE_META.signature": "Firma",
+    "components/dashboard/taskTypes#TASK_TYPE_META.document": "Documento",
+    "components/dashboard/taskTypes#TASK_TYPE_META.review": "Revisione",
+    "components/dashboard/taskTypes#TASK_TYPE_META.workflow": "Workflow",
+    "components/dashboard/DashboardKpis#REASONS": {
         "documentExpired": "Documento obbligatorio scaduto",
         "documentExpiring": "Documento in scadenza",
         "documentMissing": "Documento atteso non fornito",
@@ -1071,23 +1057,6 @@ const LOCALE = {
         "catalogIncomplete": "Scheda incompleta",
         "openProject": "Progetto di referenziamento aperto",
         "openNonConformity": "Non conformità aperta"
-    },
-    "components/dashboard/ApprovalCard#LOCAL": {
-        "title": "Stato di qualifica",
-        "validUntil": "Valido fino al {date}",
-        "noValidity": "Nessuna scadenza nota",
-        "why": "Perché?",
-        "unknown": "Stato non disponibile",
-        "unknownHint": "Non è stato possibile calcolare lo stato. Riprovate più tardi.",
-        "allGood": "Nulla è bloccante"
-    },
-    "components/dashboard/CompletionCard#LOCAL": {
-        "title": "Completezza",
-        "scope": "{scored} prodotto/i valutato/i su {total}",
-        "noScore": "Nessun catalogo ancora valutato",
-        "noScoreHint": "La completezza compare non appena un prodotto è stato formulato.",
-        "seeProducts": "Vedi i miei prodotti",
-        "worst": "Cataloghi meno completi"
     },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "Le mie discussioni",
@@ -1116,19 +1085,6 @@ const LOCALE = {
         "download": "Scarica",
         "uploading": "Caricamento in corso…",
         "uploaded": "Documento caricato. È ora in attesa della convalida del vostro cliente."
-    },
-    "components/dashboard/DocumentsCard#LOCAL": {
-        "title": "Documenti",
-        "valid": "Validi",
-        "expiring": "In scadenza < {days} g",
-        "expired": "Scaduti",
-        "missing": "Mancanti",
-        "refused": "Rifiutati",
-        "total": "{count} documento/i monitorato/i",
-        "none": "Nessun documento monitorato",
-        "unavailable": "Il monitoraggio dei documenti non è disponibile su questa istanza.",
-        "all": "Vedi i miei documenti",
-        "toHandle": "da gestire"
     },
     "components/dashboard/NonConformityCard#LOCAL": {
         "title": "Non conformità aperte",

@@ -25,7 +25,7 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Icon } from '@/components/ui/Button';
 import { DueBadge } from '@/components/dashboard/TaskList';
-import { TASK_TYPE_META, taskTypeLabel } from '@/components/dashboard/ActionsCard';
+import { TASK_TYPE_META, taskTypeLabel } from '@/components/dashboard/taskTypes';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';

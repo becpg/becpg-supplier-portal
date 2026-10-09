@@ -31,7 +31,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Select } from '@/components/ui/Field';
 import { SkeletonTable } from '@/components/ui/Skeleton';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
-import { TASK_TYPE_META, taskTypeLabel } from '@/components/dashboard/ActionsCard';
+import { TASK_TYPE_META, taskTypeLabel } from '@/components/dashboard/taskTypes';
 import { DueBadge, PriorityPill } from '@/components/dashboard/TaskList';
 import { daysUntil, formatDate } from '@/lib/format';
 import { useSession } from '@/components/providers/SessionProvider';

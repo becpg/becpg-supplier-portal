@@ -1,20 +1,16 @@
 /**
  * `/` — the supplier dashboard, "Mon tableau de bord" (spec §4.3).
  *
- * The V1 dashboard (`external-dashboard` preset: Mes tâches, Mes discussions,
- * Mes produits) is kept structurally and given the compliance dimension it
- * never had:
+ * The same grammar as the monitoring cockpit, so the two spaces read alike: a
+ * row of KPI tiles, two charts, then the lists to act on.
  *
  * ```
- *  ┌───────────── état de mon dossier ─────────────────────────────┐
- *  │ agrément │ complétude │ actions requises │ documents          │  animated
- *  └───────────────────────────────────────────────────────────────┘
- *  ┌───────────────────────────┬───────────────────────────────────┐
- *  │ Mes tâches                │ Mes documents                     │
- *  │ Mes produits              │ Mes notifications                 │
- *  │                           │ Mes discussions                   │
- *  └───────────────────────────┴───────────────────────────────────┘
+ *  ┌ approval ┬ completeness ┬ open tasks ┬ documents to deal with ┐
+ *  ├──────── my due dates (weeks) ────────┬ completeness/catalogue ┤
+ *  └ non-conformities · tasks · products · documents · discussions ┘
  * ```
+ *
+ * The notifications are not repeated here: the bell of the top bar holds them.
  *
  * **This is a server component**: it talks to the adapters directly, not to its
  * own HTTP API. Going through `fetch('/api/v1/dashboard')` from here would mean
@@ -29,18 +25,15 @@
  */
 
 import { redirect } from 'next/navigation';
-import { AppShell } from '@/components/shell/AppShell';
+import { AppShell, PageHeader } from '@/components/shell/AppShell';
 import { SectionHeader } from '@/components/ui/Card';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { ApprovalCard } from '@/components/dashboard/ApprovalCard';
-import { CompletionCard } from '@/components/dashboard/CompletionCard';
-import { ActionsCard } from '@/components/dashboard/ActionsCard';
-import { DocumentsCard } from '@/components/dashboard/DocumentsCard';
+import { DashboardKpis } from '@/components/dashboard/DashboardKpis';
+import { CatalogChart, ScheduleChart } from '@/components/dashboard/DashboardCharts';
 import { TaskList } from '@/components/dashboard/TaskList';
 import { ProductList } from '@/components/dashboard/ProductList';
 import { DocumentList } from '@/components/dashboard/DocumentList';
 import { DiscussionList } from '@/components/dashboard/DiscussionList';
-import { NotificationList } from '@/components/dashboard/NotificationList';
 import { NonConformityCard } from '@/components/dashboard/NonConformityCard';
 import { nodeRefToPath } from '@/lib/becpg';
 import { buildDashboard, createBecpgClient, getMyGroups, resolveSpace, scopeTasks } from '@/lib/adapters/session';
@@ -53,12 +46,14 @@ import {
     sessionSupplierScope,
 } from '@/lib/adapters/entities';
 import { listDocuments } from '@/lib/adapters/documents';
+import { buildSchedule } from '@/lib/schedule';
 import { getLiveSession } from '@/lib/session';
 import { SCOPE_COOKIE, parseScopeCookie } from '@/lib/scope';
 import { t as translate } from '@/config/messages';
 import { cookies } from 'next/headers';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 import { resolveLang } from '@/lib/lang';
+import { formatDateTime } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,22 +66,21 @@ export const dynamic = 'force-dynamic';
  * no column layout could balance them. Four rows is a preview; the rest is one
  * click away behind "tout voir".
  */
-const PREVIEW = { tasks: 6, products: 4, documents: 4, notifications: 4, discussions: 3 };
+const PREVIEW = { tasks: 6, products: 4, documents: 4, discussions: 3 };
 
 /**
- * The two zone headings.
- *
- * They live here, not in `config/messages.js`: that file is the *chrome*
- * vocabulary with a stated ~60-key budget, and these two sentences belong to one
- * screen. Same convention as every dashboard card's own `LOCAL`.
+ * The page heading and the zone heading. They belong to this one screen, hence
+ * here rather than in the chrome vocabulary of `config/messages.js`.
  */
 const LOCAL = defineLabels('app/(home)/page#LOCAL', {
     fr: {
-        state: 'Mon dossier',
+        description: 'Où en est votre dossier chez votre client, et ce qu’il attend de vous.',
+        generatedAt: 'Données au {time}',
         detail: 'À traiter',
     },
     en: {
-        state: 'My file',
+        description: 'Where your file stands with your customer, and what they expect from you.',
+        generatedAt: 'Data as of {time}',
         detail: 'To do',
     },
 });
@@ -498,50 +492,51 @@ export default async function DashboardPage() {
     };
 
     const local = pickLabels(LOCAL, lang);
+    // The expiry dates feed the schedule here; the browser only needs the counters.
+    const { expiries = [], ...documentFigures } = documentCounters || {};
+    const schedule = buildSchedule({ tasks: openTasks, expiries, now: new Date() });
 
     return (
         <AppShell
+            ownHeading
+            fullWidth
             title={t('nav.dashboard')}
             badges={badges}
             headerStatus={
                 approval ? <StatusPill status={approval.status} size="sm" /> : null
             }
         >
-            {/* ---------------------------------------- état de mon dossier */}
-            <section aria-label={local.state}>
-                <SectionHeader title={local.state} />
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
-                    <ApprovalCard
-                        approval={approval}
-                        supplier={supplier}
-                        validUntil={nextExpiry}
-                        index={0}
-                    />
-                    <CompletionCard completion={dashboard ? dashboard.completion : null} index={1} />
-                    <ActionsCard actions={dashboard ? dashboard.actions : null} index={2} />
-                    <DocumentsCard documents={documentCounters} index={3} />
-                </div>
-            </section>
+            <PageHeader
+                title={t('nav.dashboard')}
+                description={local.description}
+                actions={dashboard ? (
+                    <span className="text-[11px] text-[var(--becpg-dark-grey)]">
+                        {local.generatedAt.replace('{time}', formatDateTime(dashboard.generatedAt, lang))}
+                    </span>
+                ) : null}
+            />
 
-            {/* ----------------------------------------------- centre zone */}
+            <DashboardKpis
+                approval={approval}
+                supplier={supplier}
+                validUntil={nextExpiry}
+                completion={dashboard ? dashboard.completion : null}
+                actions={dashboard ? dashboard.actions : null}
+                documents={documentCounters ? documentFigures : null}
+            />
+
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:mt-4 sm:gap-4 xl:grid-cols-3">
+                <ScheduleChart schedule={schedule} className="xl:col-span-2" />
+                <CatalogChart catalogs={dashboard ? dashboard.completion.catalogs : []} />
+            </div>
+
             <section className="mt-6 sm:mt-8" aria-label={local.detail}>
                 <SectionHeader title={local.detail} />
                 {/*
-                 * A **multi-column flow**, not a two-column grid.
-                 *
-                 * With a grid, each column is an independent stack, so the column
-                 * that happens to hold the long lists runs hundreds of pixels past
-                 * the other one and the page ends on a half-empty white area — and
-                 * which column that is depends entirely on the supplier's data
-                 * (one open task and five documents, or the reverse). `columns-2`
-                 * lets the browser balance the two flows by height, so the zone
-                 * ends level whatever the mix is. `break-inside-avoid` keeps a card
-                 * whole; the DOM order — and so the tab order — is unchanged.
-                 *
-                 * Three columns above `xl`: the content column is ~1180px there, so
-                 * a third column is ~380px — wider than the state cards above it —
-                 * and the finer granularity is what actually lets the flows end
-                 * level instead of one running 500px past the other.
+                 * A multi-column flow, not a grid: the browser balances the
+                 * columns by height, so the zone ends level whatever the mix of
+                 * tasks, documents and threads. `break-inside-avoid` keeps a card
+                 * whole and the DOM order, hence the tab order, is unchanged.
                  */}
                 <div className="lg:columns-2 lg:gap-4 xl:columns-3 [&>*]:mb-3 [&>*]:break-inside-avoid sm:[&>*]:mb-4 lg:[&>*:last-child]:mb-0">
                     <NonConformityCard nonConformities={dashboard ? dashboard.nonConformities : null} index={0} />
@@ -556,8 +551,7 @@ export default async function DashboardPage() {
                         index={1}
                     />
                     <DocumentList documents={documents} total={documentTotal} index={2} />
-                    <NotificationList limit={PREVIEW.notifications} index={3} />
-                    <DiscussionList threads={threads} index={4} />
+                    <DiscussionList threads={threads} index={3} />
                 </div>
             </section>
         </AppShell>

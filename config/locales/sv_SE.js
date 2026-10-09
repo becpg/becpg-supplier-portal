@@ -6,10 +6,6 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
-    "app/(home)/page#LOCAL": {
-        "state": "Min akt",
-        "detail": "Att göra"
-    },
     "app/company/page#LABELS": {
         "title": "Mitt företag",
         "noSupplier": "Ingen leverantörspost",
@@ -1048,22 +1044,12 @@ const LOCALE = {
         "untitled": "Uppgift utan titel",
         "caption": "Min uppgiftslista"
     },
-    "components/dashboard/ActionsCard#LOCAL": {
-        "title": "Åtgärder som krävs",
-        "open": "öppna uppgift(er)",
-        "late": "{count} försenade",
-        "onTime": "Inga försenade",
-        "nextDue": "Nästa förfallodatum: {date}",
-        "noDue": "Inget planerat förfallodatum",
-        "none": "Inget att göra just nu",
-        "all": "Visa alla mina uppgifter"
-    },
-    "components/dashboard/ActionsCard#TASK_TYPE_META.wizard": "Guide",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "Signatur",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.document": "Dokument",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.review": "Granskning",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "Arbetsflöde",
-    "components/dashboard/ApprovalCard#REASONS": {
+    "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "Guide",
+    "components/dashboard/taskTypes#TASK_TYPE_META.signature": "Signatur",
+    "components/dashboard/taskTypes#TASK_TYPE_META.document": "Dokument",
+    "components/dashboard/taskTypes#TASK_TYPE_META.review": "Granskning",
+    "components/dashboard/taskTypes#TASK_TYPE_META.workflow": "Arbetsflöde",
+    "components/dashboard/DashboardKpis#REASONS": {
         "documentExpired": "Obligatoriskt dokument har gått ut",
         "documentExpiring": "Dokument går snart ut",
         "documentMissing": "Förväntat dokument har inte lämnats in",
@@ -1071,23 +1057,6 @@ const LOCALE = {
         "catalogIncomplete": "Ofullständigt blad",
         "openProject": "Öppet listningsprojekt",
         "openNonConformity": "Öppen avvikelse"
-    },
-    "components/dashboard/ApprovalCard#LOCAL": {
-        "title": "Godkännandestatus",
-        "validUntil": "Giltig till {date}",
-        "noValidity": "Ingen känd tidsfrist",
-        "why": "Varför?",
-        "unknown": "Status är inte tillgänglig",
-        "unknownHint": "Statusen kunde inte beräknas. Försök igen senare.",
-        "allGood": "Inget blockerar"
-    },
-    "components/dashboard/CompletionCard#LOCAL": {
-        "title": "Fullständighet",
-        "scope": "{scored} av {total} produkt(er) poängsatta",
-        "noScore": "Ingen katalog poängsatt ännu",
-        "noScoreHint": "Fullständigheten visas så snart en produkt har formulerats.",
-        "seeProducts": "Visa mina produkter",
-        "worst": "Minst fullständiga kataloger"
     },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "Mina diskussioner",
@@ -1116,19 +1085,6 @@ const LOCALE = {
         "download": "Ladda ned",
         "uploading": "Laddar upp…",
         "uploaded": "Dokumentet har laddats upp. Det väntar nu på kundens validering."
-    },
-    "components/dashboard/DocumentsCard#LOCAL": {
-        "title": "Dokument",
-        "valid": "Giltiga",
-        "expiring": "Går ut < {days} d",
-        "expired": "Utgångna",
-        "missing": "Saknas",
-        "refused": "Avvisade",
-        "total": "{count} bevakade dokument",
-        "none": "Inga bevakade dokument",
-        "unavailable": "Dokumentbevakning är inte tillgänglig på den här instansen.",
-        "all": "Visa mina dokument",
-        "toHandle": "att hantera"
     },
     "components/dashboard/NonConformityCard#LOCAL": {
         "title": "Öppna avvikelser",

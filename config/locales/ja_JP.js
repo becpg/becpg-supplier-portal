@@ -6,10 +6,6 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
-    "app/(home)/page#LOCAL": {
-        "state": "マイファイル",
-        "detail": "対応が必要"
-    },
     "app/company/page#LABELS": {
         "title": "自社情報",
         "noSupplier": "サプライヤー情報がありません",
@@ -1048,22 +1044,12 @@ const LOCALE = {
         "untitled": "無題のタスク",
         "caption": "タスク一覧"
     },
-    "components/dashboard/ActionsCard#LOCAL": {
-        "title": "必要なアクション",
-        "open": "件の未完了タスク",
-        "late": "{count} 件が期限超過",
-        "onTime": "期限超過なし",
-        "nextDue": "次の期限：{date}",
-        "noDue": "予定された期限はありません",
-        "none": "現在、対応が必要な事項はありません",
-        "all": "すべてのタスクを表示"
-    },
-    "components/dashboard/ActionsCard#TASK_TYPE_META.wizard": "ウィザード",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "署名",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.document": "文書",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.review": "レビュー",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "ワークフロー",
-    "components/dashboard/ApprovalCard#REASONS": {
+    "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "ウィザード",
+    "components/dashboard/taskTypes#TASK_TYPE_META.signature": "署名",
+    "components/dashboard/taskTypes#TASK_TYPE_META.document": "文書",
+    "components/dashboard/taskTypes#TASK_TYPE_META.review": "レビュー",
+    "components/dashboard/taskTypes#TASK_TYPE_META.workflow": "ワークフロー",
+    "components/dashboard/DashboardKpis#REASONS": {
         "documentExpired": "必須文書の期限切れ",
         "documentExpiring": "文書の期限が間近",
         "documentMissing": "求められている文書が未提出",
@@ -1071,23 +1057,6 @@ const LOCALE = {
         "catalogIncomplete": "登録情報が不完全",
         "openProject": "進行中の取引登録プロジェクト",
         "openNonConformity": "未解決の不適合"
-    },
-    "components/dashboard/ApprovalCard#LOCAL": {
-        "title": "承認ステータス",
-        "validUntil": "{date} まで有効",
-        "noValidity": "期限は不明です",
-        "why": "理由",
-        "unknown": "ステータスを取得できません",
-        "unknownHint": "ステータスを算出できませんでした。しばらくしてから再試行してください。",
-        "allGood": "ブロック要因はありません"
-    },
-    "components/dashboard/CompletionCard#LOCAL": {
-        "title": "完成度",
-        "scope": "{total} 件中 {scored} 件の製品を評価済み",
-        "noScore": "評価済みのカタログはまだありません",
-        "noScoreHint": "製品が配合計算されると、完成度が表示されます。",
-        "seeProducts": "製品を表示",
-        "worst": "完成度の低いカタログ"
     },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "ディスカッション",
@@ -1116,19 +1085,6 @@ const LOCALE = {
         "download": "ダウンロード",
         "uploading": "アップロード中…",
         "uploaded": "文書をアップロードしました。現在、お客様の承認待ちです。"
-    },
-    "components/dashboard/DocumentsCard#LOCAL": {
-        "title": "文書",
-        "valid": "有効",
-        "expiring": "{days} 日以内に期限切れ",
-        "expired": "期限切れ",
-        "missing": "未提出",
-        "refused": "差し戻し",
-        "total": "追跡中の文書 {count} 件",
-        "none": "追跡中の文書はありません",
-        "unavailable": "このインスタンスでは文書の追跡を利用できません。",
-        "all": "文書を表示",
-        "toHandle": "件が要対応"
     },
     "components/dashboard/NonConformityCard#LOCAL": {
         "title": "未解決の不適合",

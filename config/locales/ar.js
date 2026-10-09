@@ -6,10 +6,6 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
-    "app/(home)/page#LOCAL": {
-        "state": "ملفي",
-        "detail": "للمعالجة"
-    },
     "app/company/page#LABELS": {
         "title": "شركتي",
         "noSupplier": "لا يوجد سجل مورّد",
@@ -1048,22 +1044,12 @@ const LOCALE = {
         "untitled": "مهمة بلا عنوان",
         "caption": "قائمة مهامي"
     },
-    "components/dashboard/ActionsCard#LOCAL": {
-        "title": "الإجراءات المطلوبة",
-        "open": "مهمة(مهام) مفتوحة",
-        "late": "{count} متأخرة",
-        "onTime": "لا شيء متأخر",
-        "nextDue": "تاريخ الاستحقاق التالي: {date}",
-        "noDue": "لا يوجد تاريخ استحقاق مخطط",
-        "none": "لا شيء للقيام به حاليًا",
-        "all": "عرض جميع مهامي"
-    },
-    "components/dashboard/ActionsCard#TASK_TYPE_META.wizard": "المعالج",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "التوقيع",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.document": "المستند",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.review": "المراجعة",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "سير العمل",
-    "components/dashboard/ApprovalCard#REASONS": {
+    "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "المعالج",
+    "components/dashboard/taskTypes#TASK_TYPE_META.signature": "التوقيع",
+    "components/dashboard/taskTypes#TASK_TYPE_META.document": "المستند",
+    "components/dashboard/taskTypes#TASK_TYPE_META.review": "المراجعة",
+    "components/dashboard/taskTypes#TASK_TYPE_META.workflow": "سير العمل",
+    "components/dashboard/DashboardKpis#REASONS": {
         "documentExpired": "مستند إلزامي منتهي الصلاحية",
         "documentExpiring": "مستند يقترب من انتهاء صلاحيته",
         "documentMissing": "مستند متوقع لم يُقدَّم",
@@ -1071,23 +1057,6 @@ const LOCALE = {
         "catalogIncomplete": "سجل غير مكتمل",
         "openProject": "مشروع إدراج مفتوح",
         "openNonConformity": "حالة عدم مطابقة مفتوحة"
-    },
-    "components/dashboard/ApprovalCard#LOCAL": {
-        "title": "حالة الاعتماد",
-        "validUntil": "صالح حتى {date}",
-        "noValidity": "لا يوجد موعد نهائي معروف",
-        "why": "لماذا؟",
-        "unknown": "الحالة غير متاحة",
-        "unknownHint": "تعذّر حساب الحالة. يُرجى المحاولة لاحقًا.",
-        "allGood": "لا شيء معيق"
-    },
-    "components/dashboard/CompletionCard#LOCAL": {
-        "title": "الاكتمال",
-        "scope": "تم تقييم {scored} من أصل {total} منتج(ات)",
-        "noScore": "لم يُقيَّم أي كتالوج بعد",
-        "noScoreHint": "يظهر الاكتمال بمجرد صياغة منتج.",
-        "seeProducts": "عرض منتجاتي",
-        "worst": "الكتالوجات الأقل اكتمالًا"
     },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "مناقشاتي",
@@ -1116,19 +1085,6 @@ const LOCALE = {
         "download": "تنزيل",
         "uploading": "جارٍ الرفع…",
         "uploaded": "تم رفع المستند. وهو الآن بانتظار اعتماد عميلكم."
-    },
-    "components/dashboard/DocumentsCard#LOCAL": {
-        "title": "المستندات",
-        "valid": "صالحة",
-        "expiring": "تنتهي خلال أقل من {days} يوم",
-        "expired": "منتهية الصلاحية",
-        "missing": "ناقصة",
-        "refused": "مرفوضة",
-        "total": "{count} مستند(ات) قيد المتابعة",
-        "none": "لا يوجد مستند قيد المتابعة",
-        "unavailable": "متابعة المستندات غير متاحة على هذا النظام.",
-        "all": "عرض مستنداتي",
-        "toHandle": "للمعالجة"
     },
     "components/dashboard/NonConformityCard#LOCAL": {
         "title": "حالات عدم المطابقة المفتوحة",

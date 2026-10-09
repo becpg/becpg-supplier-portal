@@ -6,10 +6,6 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
-    "app/(home)/page#LOCAL": {
-        "state": "Meu dossiê",
-        "detail": "A fazer"
-    },
     "app/company/page#LABELS": {
         "title": "Minha empresa",
         "noSupplier": "Nenhum cadastro de fornecedor",
@@ -1048,22 +1044,12 @@ const LOCALE = {
         "untitled": "Tarefa sem título",
         "caption": "Minha lista de tarefas"
     },
-    "components/dashboard/ActionsCard#LOCAL": {
-        "title": "Ações necessárias",
-        "open": "tarefa(s) aberta(s)",
-        "late": "{count} atrasada(s)",
-        "onTime": "Nenhuma atrasada",
-        "nextDue": "Próximo vencimento: {date}",
-        "noDue": "Nenhum vencimento previsto",
-        "none": "Nada a fazer no momento",
-        "all": "Ver todas as minhas tarefas"
-    },
-    "components/dashboard/ActionsCard#TASK_TYPE_META.wizard": "Assistente",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "Assinatura",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.document": "Documento",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.review": "Revisão",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "Workflow",
-    "components/dashboard/ApprovalCard#REASONS": {
+    "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "Assistente",
+    "components/dashboard/taskTypes#TASK_TYPE_META.signature": "Assinatura",
+    "components/dashboard/taskTypes#TASK_TYPE_META.document": "Documento",
+    "components/dashboard/taskTypes#TASK_TYPE_META.review": "Revisão",
+    "components/dashboard/taskTypes#TASK_TYPE_META.workflow": "Workflow",
+    "components/dashboard/DashboardKpis#REASONS": {
         "documentExpired": "Documento obrigatório expirado",
         "documentExpiring": "Documento próximo da expiração",
         "documentMissing": "Documento esperado não fornecido",
@@ -1071,23 +1057,6 @@ const LOCALE = {
         "catalogIncomplete": "Ficha incompleta",
         "openProject": "Projeto de referenciamento aberto",
         "openNonConformity": "Não conformidade aberta"
-    },
-    "components/dashboard/ApprovalCard#LOCAL": {
-        "title": "Status de homologação",
-        "validUntil": "Válido até {date}",
-        "noValidity": "Nenhum prazo conhecido",
-        "why": "Por quê?",
-        "unknown": "Status indisponível",
-        "unknownHint": "Não foi possível calcular o status. Tente novamente mais tarde.",
-        "allGood": "Nada está bloqueando"
-    },
-    "components/dashboard/CompletionCard#LOCAL": {
-        "title": "Completude",
-        "scope": "{scored} de {total} produto(s) avaliado(s)",
-        "noScore": "Nenhum catálogo avaliado ainda",
-        "noScoreHint": "A completude aparece assim que um produto é formulado.",
-        "seeProducts": "Ver meus produtos",
-        "worst": "Catálogos menos completos"
     },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "Minhas discussões",
@@ -1116,19 +1085,6 @@ const LOCALE = {
         "download": "Baixar",
         "uploading": "Enviando…",
         "uploaded": "Documento enviado. Ele agora aguarda a validação do seu cliente."
-    },
-    "components/dashboard/DocumentsCard#LOCAL": {
-        "title": "Documentos",
-        "valid": "Válidos",
-        "expiring": "Expiram em < {days} d",
-        "expired": "Expirados",
-        "missing": "Ausentes",
-        "refused": "Recusados",
-        "total": "{count} documento(s) acompanhado(s)",
-        "none": "Nenhum documento acompanhado",
-        "unavailable": "O acompanhamento de documentos não está disponível nesta instância.",
-        "all": "Ver meus documentos",
-        "toHandle": "a tratar"
     },
     "components/dashboard/NonConformityCard#LOCAL": {
         "title": "Não conformidades abertas",

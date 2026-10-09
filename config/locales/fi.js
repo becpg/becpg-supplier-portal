@@ -6,10 +6,6 @@
  * English. Edit translations here, and the source labels in their components.
  */
 const LOCALE = {
-    "app/(home)/page#LOCAL": {
-        "state": "Oma kansio",
-        "detail": "Tehtävät"
-    },
     "app/company/page#LABELS": {
         "title": "Yritykseni",
         "noSupplier": "Ei toimittajatietuetta",
@@ -1048,22 +1044,12 @@ const LOCALE = {
         "untitled": "Nimetön tehtävä",
         "caption": "Tehtäväluetteloni"
     },
-    "components/dashboard/ActionsCard#LOCAL": {
-        "title": "Vaaditut toimenpiteet",
-        "open": "avointa tehtävää",
-        "late": "Myöhässä: {count}",
-        "onTime": "Ei myöhässä olevia",
-        "nextDue": "Seuraava määräaika: {date}",
-        "noDue": "Ei suunniteltua määräaikaa",
-        "none": "Ei tehtävää tällä hetkellä",
-        "all": "Näytä kaikki tehtäväni"
-    },
-    "components/dashboard/ActionsCard#TASK_TYPE_META.wizard": "Ohjattu toiminto",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.signature": "Allekirjoitus",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.document": "Asiakirja",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.review": "Tarkistus",
-    "components/dashboard/ActionsCard#TASK_TYPE_META.workflow": "Työnkulku",
-    "components/dashboard/ApprovalCard#REASONS": {
+    "components/dashboard/taskTypes#TASK_TYPE_META.wizard": "Ohjattu toiminto",
+    "components/dashboard/taskTypes#TASK_TYPE_META.signature": "Allekirjoitus",
+    "components/dashboard/taskTypes#TASK_TYPE_META.document": "Asiakirja",
+    "components/dashboard/taskTypes#TASK_TYPE_META.review": "Tarkistus",
+    "components/dashboard/taskTypes#TASK_TYPE_META.workflow": "Työnkulku",
+    "components/dashboard/DashboardKpis#REASONS": {
         "documentExpired": "Pakollinen asiakirja vanhentunut",
         "documentExpiring": "Asiakirja vanhenemassa",
         "documentMissing": "Odotettua asiakirjaa ei ole toimitettu",
@@ -1071,23 +1057,6 @@ const LOCALE = {
         "catalogIncomplete": "Puutteelliset tiedot",
         "openProject": "Avoin listausprojekti",
         "openNonConformity": "Avoin poikkeama"
-    },
-    "components/dashboard/ApprovalCard#LOCAL": {
-        "title": "Hyväksynnän tila",
-        "validUntil": "Voimassa asti: {date}",
-        "noValidity": "Ei tiedossa olevaa määräaikaa",
-        "why": "Miksi?",
-        "unknown": "Tila ei ole saatavilla",
-        "unknownHint": "Tilaa ei voitu laskea. Yritä myöhemmin uudelleen.",
-        "allGood": "Ei estäviä tekijöitä"
-    },
-    "components/dashboard/CompletionCard#LOCAL": {
-        "title": "Täydellisyys",
-        "scope": "Pisteytetty {scored}/{total} tuotetta",
-        "noScore": "Yhtään luetteloa ei ole vielä pisteytetty",
-        "noScoreHint": "Täydellisyys näkyy heti, kun tuote on formuloitu.",
-        "seeProducts": "Näytä omat tuotteet",
-        "worst": "Vähiten täydelliset luettelot"
     },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "Omat keskustelut",
@@ -1116,19 +1085,6 @@ const LOCALE = {
         "download": "Lataa",
         "uploading": "Ladataan…",
         "uploaded": "Asiakirja ladattu. Se odottaa nyt asiakkaan hyväksyntää."
-    },
-    "components/dashboard/DocumentsCard#LOCAL": {
-        "title": "Asiakirjat",
-        "valid": "Voimassa",
-        "expiring": "Vanhenee < {days} pv",
-        "expired": "Vanhentunut",
-        "missing": "Puuttuu",
-        "refused": "Hylätty",
-        "total": "Seurattuja asiakirjoja: {count}",
-        "none": "Ei seurattuja asiakirjoja",
-        "unavailable": "Asiakirjojen seuranta ei ole käytettävissä tässä instanssissa.",
-        "all": "Näytä omat asiakirjat",
-        "toHandle": "käsiteltävänä"
     },
     "components/dashboard/NonConformityCard#LOCAL": {
         "title": "Avoimet poikkeamat",

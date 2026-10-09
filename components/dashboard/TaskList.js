@@ -19,7 +19,7 @@ import { Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useMessages } from '@/lib/messages';
-import { TASK_TYPE_META, taskTypeLabel } from '@/components/dashboard/ActionsCard';
+import { TASK_TYPE_META, taskTypeLabel } from '@/components/dashboard/taskTypes';
 import { formatDate, daysUntil } from '@/lib/format';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
