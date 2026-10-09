@@ -208,7 +208,7 @@ export function ReviewChanges({ changes, loading = false, onFlag = null, fieldLa
         ];
 
     return (
-        <div className="rounded-xl border border-[var(--status-info-border)] bg-[var(--status-info-bg)]/40">
+        <div className="overflow-hidden rounded-xl border border-[var(--status-info-border)] bg-[var(--status-info-bg)]/40">
             <button
                 type="button"
                 onClick={() => setOpen((value) => !value)}
