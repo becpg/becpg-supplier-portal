@@ -74,6 +74,20 @@ const eslintConfig = [
             'no-undef': 'error',
         },
     },
+    {
+        /*
+         * The same net over the application code: a helper deleted while one of
+         * its call sites stayed behind builds clean and only fails when that
+         * screen renders, as a blank page with a digest.
+         */
+        files: ['app/**/*.js', 'components/**/*.js', 'lib/**/*.js', 'config/**/*.js', 'proxy.js'],
+        languageOptions: {
+            globals: { ...globals.node, ...globals.browser },
+        },
+        rules: {
+            'no-undef': 'error',
+        },
+    },
 ];
 
 export default eslintConfig;

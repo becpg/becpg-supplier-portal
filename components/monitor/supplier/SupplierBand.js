@@ -38,6 +38,10 @@ const LABELS = defineLabels('components/monitor/supplier/SupplierBand#LABELS', {
     },
 });
 
+function fill(template, vars) {
+    return String(template).replace(/\{(\w+)\}/g, (match, key) => (vars[key] ?? match));
+}
+
 function Facts({ supplier, local, lang }) {
     const facts = [
         supplier.email ? (

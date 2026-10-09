@@ -123,7 +123,6 @@ export function BulkActionBar({
 }) {
     const { lang } = useMessages();
     const labels = pickLabels(LABELS, lang);
-    const toast = useToast();
     const reduceMotion = useReducedMotion();
 
     const [pending, setPending] = useState(null); // action id being confirmed
