@@ -80,7 +80,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { AppShell } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { ErrorState } from '@/components/ui/EmptyState';
+import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Modal';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/ui/StatusPill';
@@ -149,6 +149,9 @@ const LABELS = defineLabels('components/wizard/Wizard#LABELS', {
         finishGapCatalogPlain: '{step} à compléter',
         notFound: 'Fiche introuvable',
         notFoundHint: 'Cette fiche n’existe pas ou ne fait pas partie de votre périmètre.',
+        unknownWizard: 'Assistant de saisie non configuré',
+        unknownWizardHint: 'Cette tâche demande l’assistant « {wizard} », qui n’est pas déclaré sur cette instance. Signalez-le à votre administrateur beCPG.',
+        backToTasks: 'Retour aux tâches',
         delegated: 'Vous saisissez au nom de {supplier}',
         due: 'À rendre le {date}',
         step: 'Étape',
@@ -184,6 +187,9 @@ const LABELS = defineLabels('components/wizard/Wizard#LABELS', {
         finishGapCatalogPlain: '{step} to complete',
         notFound: 'Sheet not found',
         notFoundHint: 'This sheet does not exist, or is not part of your scope.',
+        unknownWizard: 'Entry assistant not configured',
+        unknownWizardHint: 'This task asks for the "{wizard}" assistant, which is not declared on this instance. Report it to your beCPG administrator.',
+        backToTasks: 'Back to tasks',
         delegated: 'You are filling in on behalf of {supplier}',
         due: 'Due on {date}',
         step: 'Step',
@@ -1490,11 +1496,14 @@ export function Wizard({
      * Assembled here because the wizard is what holds the call, and memoised so
      * the panel is not redrawn on every keystroke in a field.
      */
+    // The state is still null while the first read is in flight, or when it failed.
+    const wizardEntity = wizardState ? wizardState.entity : null;
+    const wizardReadOnly = Boolean(wizardState && wizardState.readOnly);
     const suggestionsPanel = useMemo(() => ({
         entityId: entityNodeRef,
-        // `wizardState.entity` and not `entity`: the latter is declared further
+        // `wizardEntity` and not `entity`: the latter is declared further
         // down, after the panels that consume it.
-        entityType: (wizardState.entity || {}).type,
+        entityType: (wizardEntity || {}).type,
         items: suggestions,
         summary: suggestionsCall.data ? suggestionsCall.data.summary : null,
         entityLevelDropped: suggestionsCall.data ? suggestionsCall.data.entityLevelDropped || 0 : 0,
@@ -1505,13 +1514,13 @@ export function Wizard({
         refreshing: suggestionsCall.refreshing,
         error: suggestionsCall.error,
         refresh: suggestionsCall.refresh,
-        readOnly: Boolean(wizardState.readOnly),
+        readOnly: wizardReadOnly,
         labelForField,
         onApplied: onSuggestionApplied,
     }), [
-        entityNodeRef, wizardState.entity, suggestions, suggestionsCall.data, suggestionsCall.loading,
+        entityNodeRef, wizardEntity, suggestions, suggestionsCall.data, suggestionsCall.loading,
         suggestionsCall.refreshing, suggestionsCall.error, suggestionsCall.refresh,
-        wizardState.readOnly, labelForField,
+        wizardReadOnly, labelForField,
         onSuggestionApplied,
     ]);
 
@@ -1539,6 +1548,22 @@ export function Wizard({
     ) : null;
 
     /* ------------------------------------------------------------- rendering */
+
+    const unknownWizard = state.error?.isNotFound ? state.error.details?.wizardId : null;
+    if (unknownWizard) {
+        return (
+            <AppShell title={labels.unknownWizard}>
+                <EmptyState
+                    variant="error"
+                    icon="dynamic_form"
+                    title={labels.unknownWizard}
+                    message={labels.unknownWizardHint.replace('{wizard}', unknownWizard)}
+                    actionLabel={labels.backToTasks}
+                    actionHref={backHref}
+                />
+            </AppShell>
+        );
+    }
 
     if (state.error) {
         return (

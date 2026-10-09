@@ -1936,6 +1936,18 @@ const LOCALE = {
         "close": "关闭",
         "noReason": "无风险原因"
     },
+    "components/monitor/WorkflowTasks#LABELS": {
+        "title": "进行中的任务",
+        "none": "无进行中的任务",
+        "pooled": "待认领",
+        "unassigned": "未分配",
+        "due": "截止",
+        "open": "打开",
+        "openInBecpg": "在 beCPG 中打开",
+        "history": "历史记录（{count}）",
+        "hideHistory": "隐藏历史记录",
+        "doneBy": "执行人：{who}"
+    },
     "components/monitor/cockpit/AssistantTab#LABELS": {
         "priorities": "本周优先事项",
         "prioritiesHelp": "按规则对风险最高的供应商计算：存在阻断性不合格的严重风险需升级；文件过期、至少五份文件缺失或项目未答复需催办。",
@@ -2590,6 +2602,9 @@ const LOCALE = {
         "finishGapCatalogPlain": "{step} 待完成",
         "notFound": "未找到资料表",
         "notFoundHint": "此资料表不存在，或不在您的范围内。",
+        "unknownWizard": "录入向导未配置",
+        "unknownWizardHint": "此任务需要向导“{wizard}”，但该向导未在此实例上声明。请告知您的 beCPG 管理员。",
+        "backToTasks": "返回任务",
         "delegated": "您正在代表 {supplier} 填写",
         "due": "截止日期 {date}",
         "step": "步骤",

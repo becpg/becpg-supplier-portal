@@ -1936,6 +1936,18 @@ const LOCALE = {
         "close": "Chiudi",
         "noReason": "Nessun motivo di rischio"
     },
+    "components/monitor/WorkflowTasks#LABELS": {
+        "title": "Attività in corso",
+        "none": "Nessuna attività in corso",
+        "pooled": "Da prendere in carico",
+        "unassigned": "Non assegnata",
+        "due": "Scadenza",
+        "open": "Apri",
+        "openInBecpg": "Apri in beCPG",
+        "history": "Cronologia ({count})",
+        "hideHistory": "Nascondi la cronologia",
+        "doneBy": "da {who}"
+    },
     "components/monitor/cockpit/AssistantTab#LABELS": {
         "priorities": "Priorità della settimana",
         "prioritiesHelp": "Calcolate con regole sui fornitori più a rischio: rischio critico con NC bloccante, da escalare; documento scaduto, almeno cinque documenti mancanti o progetto senza risposta, da sollecitare.",
@@ -2590,6 +2602,9 @@ const LOCALE = {
         "finishGapCatalogPlain": "{step} da completare",
         "notFound": "Scheda non trovata",
         "notFoundHint": "Questa scheda non esiste, oppure non rientra nel vostro perimetro.",
+        "unknownWizard": "Procedura guidata di inserimento non configurata",
+        "unknownWizardHint": "Questa attività richiede la procedura guidata «{wizard}», che non è dichiarata su questa istanza. Segnalatelo al vostro amministratore beCPG.",
+        "backToTasks": "Torna alle attività",
         "delegated": "State compilando per conto di {supplier}",
         "due": "Scadenza il {date}",
         "step": "Fase",

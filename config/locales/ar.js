@@ -1936,6 +1936,18 @@ const LOCALE = {
         "close": "إغلاق",
         "noReason": "لا يوجد سبب للمخاطر"
     },
+    "components/monitor/WorkflowTasks#LABELS": {
+        "title": "المهام الجارية",
+        "none": "لا توجد مهام جارية",
+        "pooled": "بانتظار التولي",
+        "unassigned": "غير مسندة",
+        "due": "الاستحقاق",
+        "open": "فتح",
+        "openInBecpg": "فتح في beCPG",
+        "history": "السجل ({count})",
+        "hideHistory": "إخفاء السجل",
+        "doneBy": "بواسطة {who}"
+    },
     "components/monitor/cockpit/AssistantTab#LABELS": {
         "priorities": "أولويات الأسبوع",
         "prioritiesHelp": "تُحسب بقواعد على الموردين الأعلى خطرًا: خطر حرج مع عدم مطابقة معطِّلة، للتصعيد؛ مستند منتهي الصلاحية أو خمسة مستندات ناقصة على الأقل أو مشروع بلا رد، للتذكير.",
@@ -2590,6 +2602,9 @@ const LOCALE = {
         "finishGapCatalogPlain": "{step} للاستكمال",
         "notFound": "البطاقة غير موجودة",
         "notFoundHint": "هذه البطاقة غير موجودة، أو لا تدخل ضمن نطاقكم.",
+        "unknownWizard": "معالج الإدخال غير مهيّأ",
+        "unknownWizardHint": "تتطلب هذه المهمة المعالج «{wizard}»، وهو غير مُعرَّف على هذا المثيل. أبلغوا مسؤول beCPG لديكم بذلك.",
+        "backToTasks": "العودة إلى المهام",
         "delegated": "أنتم تُدخلون البيانات نيابةً عن {supplier}",
         "due": "الاستحقاق في {date}",
         "step": "الخطوة",

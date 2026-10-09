@@ -28,6 +28,7 @@ import { useListExport } from '@/components/ui/useListExport';
 import { CampaignList } from '@/components/monitor/CampaignList';
 import { NonConformityList } from '@/components/monitor/NonConformityList';
 import { StartCampaignDialog } from '@/components/monitor/StartCampaignDialog';
+import { WorkflowTasks } from '@/components/monitor/WorkflowTasks';
 import { StartNcDialog } from '@/components/monitor/StartNcDialog';
 import { CockpitTabs } from '@/components/monitor/cockpit/CockpitTabs';
 import { SourcePill } from '@/components/monitor/cockpit/parts';
@@ -525,6 +526,7 @@ export default function MonitorSupplierSheetPage() {
                 <>
                     <SupplierBand sheet={data} onStartProject={() => setStartingProject(true)} onDone={sheet.refresh} />
                     <Tiles sheet={data} history={history} local={local} lang={lang} onOpen={openTab} />
+                    <WorkflowTasks entityId={data.supplier.nodeRef} hideWhenIdle className="mb-4" />
                     <div id="supplier-sheet-tabs" className="scroll-mt-4">
                         <SheetTabs sheet={data} history={history} local={local} lang={lang} active={tab} onOpen={setTab} onRefresh={sheet.refresh} onStartNc={() => setStartingNc(true)} />
                     </div>

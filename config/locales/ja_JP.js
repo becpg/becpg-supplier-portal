@@ -1936,6 +1936,18 @@ const LOCALE = {
         "close": "閉じる",
         "noReason": "リスク要因なし"
     },
+    "components/monitor/WorkflowTasks#LABELS": {
+        "title": "進行中のタスク",
+        "none": "進行中のタスクはありません",
+        "pooled": "引き受け待ち",
+        "unassigned": "未割り当て",
+        "due": "期限",
+        "open": "開く",
+        "openInBecpg": "beCPG で開く",
+        "history": "履歴（{count}）",
+        "hideHistory": "履歴を非表示",
+        "doneBy": "担当：{who}"
+    },
     "components/monitor/cockpit/AssistantTab#LABELS": {
         "priorities": "今週の優先事項",
         "prioritiesHelp": "リスクの高いサプライヤーにルールを適用して算出：ブロッキング不適合を伴う重大リスクはエスカレーション、期限切れ文書・5 件以上の不足文書・未回答プロジェクトはリマインド。",
@@ -2590,6 +2602,9 @@ const LOCALE = {
         "finishGapCatalogPlain": "{step} を完了してください",
         "notFound": "シートが見つかりません",
         "notFoundHint": "このシートは存在しないか、貴社の範囲外です。",
+        "unknownWizard": "入力アシスタントが設定されていません",
+        "unknownWizardHint": "このタスクにはアシスタント「{wizard}」が必要ですが、このインスタンスでは宣言されていません。beCPG 管理者にお知らせください。",
+        "backToTasks": "タスクに戻る",
         "delegated": "{supplier} の代理で入力しています",
         "due": "期限：{date}",
         "step": "ステップ",

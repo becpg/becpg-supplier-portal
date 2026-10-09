@@ -1936,6 +1936,18 @@ const LOCALE = {
         "close": "Schließen",
         "noReason": "Kein Risikogrund"
     },
+    "components/monitor/WorkflowTasks#LABELS": {
+        "title": "Laufende Aufgaben",
+        "none": "Keine laufende Aufgabe",
+        "pooled": "Zu übernehmen",
+        "unassigned": "Nicht zugewiesen",
+        "due": "Fällig",
+        "open": "Öffnen",
+        "openInBecpg": "In beCPG öffnen",
+        "history": "Verlauf ({count})",
+        "hideHistory": "Verlauf ausblenden",
+        "doneBy": "von {who}"
+    },
     "components/monitor/cockpit/AssistantTab#LABELS": {
         "priorities": "Prioritäten der Woche",
         "prioritiesHelp": "Regelbasiert für die Lieferanten mit dem höchsten Risiko berechnet: kritisches Risiko mit blockierender Abweichung, zu eskalieren; abgelaufenes Dokument, mindestens fünf fehlende Dokumente oder Projekt ohne Antwort, nachzufassen.",
@@ -2590,6 +2602,9 @@ const LOCALE = {
         "finishGapCatalogPlain": "{step} zu vervollständigen",
         "notFound": "Datenblatt nicht gefunden",
         "notFoundHint": "Dieses Datenblatt existiert nicht oder gehört nicht zu Ihrem Bereich.",
+        "unknownWizard": "Erfassungsassistent nicht konfiguriert",
+        "unknownWizardHint": "Diese Aufgabe erfordert den Assistenten „{wizard}“, der auf dieser Instanz nicht deklariert ist. Melden Sie dies Ihrem beCPG-Administrator.",
+        "backToTasks": "Zurück zu den Aufgaben",
         "delegated": "Sie füllen im Namen von {supplier} aus",
         "due": "Fällig am {date}",
         "step": "Schritt",

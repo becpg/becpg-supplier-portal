@@ -1936,6 +1936,18 @@ const LOCALE = {
         "close": "Fechar",
         "noReason": "Nenhum motivo de risco"
     },
+    "components/monitor/WorkflowTasks#LABELS": {
+        "title": "Tarefas em andamento",
+        "none": "Nenhuma tarefa em andamento",
+        "pooled": "A assumir",
+        "unassigned": "Não atribuída",
+        "due": "Prazo",
+        "open": "Abrir",
+        "openInBecpg": "Abrir no beCPG",
+        "history": "Histórico ({count})",
+        "hideHistory": "Ocultar o histórico",
+        "doneBy": "por {who}"
+    },
     "components/monitor/cockpit/AssistantTab#LABELS": {
         "priorities": "Prioridades da semana",
         "prioritiesHelp": "Calculadas por regras sobre os fornecedores de maior risco: risco crítico com NC bloqueante, a escalar; documento vencido, ao menos cinco documentos faltantes ou projeto sem resposta, a cobrar.",
@@ -2590,6 +2602,9 @@ const LOCALE = {
         "finishGapCatalogPlain": "{step} a completar",
         "notFound": "Ficha não encontrada",
         "notFoundHint": "Esta ficha não existe ou não faz parte do seu escopo.",
+        "unknownWizard": "Assistente de entrada não configurado",
+        "unknownWizardHint": "Esta tarefa requer o assistente “{wizard}”, que não está declarado nesta instância. Informe o seu administrador do beCPG.",
+        "backToTasks": "Voltar às tarefas",
         "delegated": "Você está preenchendo em nome de {supplier}",
         "due": "Vence em {date}",
         "step": "Etapa",

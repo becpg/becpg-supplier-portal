@@ -1936,6 +1936,18 @@ const LOCALE = {
         "close": "Stäng",
         "noReason": "Ingen riskorsak"
     },
+    "components/monitor/WorkflowTasks#LABELS": {
+        "title": "Pågående uppgifter",
+        "none": "Inga pågående uppgifter",
+        "pooled": "Att ta",
+        "unassigned": "Ej tilldelad",
+        "due": "Förfaller",
+        "open": "Öppna",
+        "openInBecpg": "Öppna i beCPG",
+        "history": "Historik ({count})",
+        "hideHistory": "Dölj historiken",
+        "doneBy": "av {who}"
+    },
     "components/monitor/cockpit/AssistantTab#LABELS": {
         "priorities": "Veckans prioriteringar",
         "prioritiesHelp": "Beräknas med regler på leverantörerna med högst risk: kritisk risk med blockerande avvikelse, eskaleras; utgånget dokument, minst fem saknade dokument eller projekt utan svar, påminns.",
@@ -2590,6 +2602,9 @@ const LOCALE = {
         "finishGapCatalogPlain": "{step} att komplettera",
         "notFound": "Bladet hittades inte",
         "notFoundHint": "Bladet finns inte, eller ingår inte i ditt omfång.",
+        "unknownWizard": "Inmatningsguiden är inte konfigurerad",
+        "unknownWizardHint": "Uppgiften kräver guiden ”{wizard}”, som inte är deklarerad på den här instansen. Rapportera det till din beCPG-administratör.",
+        "backToTasks": "Tillbaka till uppgifterna",
         "delegated": "Du fyller i på uppdrag av {supplier}",
         "due": "Förfaller {date}",
         "step": "Steg",

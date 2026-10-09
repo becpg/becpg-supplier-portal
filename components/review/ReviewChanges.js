@@ -50,9 +50,9 @@ function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, key) => (vars[key] ?? match));
 }
 
-/** The local name of a list type: `bcpg:nutList` and `nutList` both give `nutList`. */
+/** The local name of a list type: `bcpg:nutList`, `nutList` and `bcpg:nutList|nutList@1` give `nutList`. */
 function localName(type) {
-    return String(type || '').split(':').pop();
+    return String(type || '').split('|')[0].split(':').pop();
 }
 
 /**

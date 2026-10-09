@@ -1936,6 +1936,18 @@ const LOCALE = {
         "close": "Kapat",
         "noReason": "Risk nedeni yok"
     },
+    "components/monitor/WorkflowTasks#LABELS": {
+        "title": "Devam eden görevler",
+        "none": "Devam eden görev yok",
+        "pooled": "Üstlenilecek",
+        "unassigned": "Atanmamış",
+        "due": "Son tarih",
+        "open": "Aç",
+        "openInBecpg": "beCPG'de aç",
+        "history": "Geçmiş ({count})",
+        "hideHistory": "Geçmişi gizle",
+        "doneBy": "yapan: {who}"
+    },
     "components/monitor/cockpit/AssistantTab#LABELS": {
         "priorities": "Haftanın öncelikleri",
         "prioritiesHelp": "En riskli tedarikçiler üzerinde kurallarla hesaplanır: engelleyici uygunsuzluklu kritik risk, üst kademeye iletilecek; süresi dolmuş doküman, en az beş eksik doküman veya yanıtsız proje, hatırlatılacak.",
@@ -2590,6 +2602,9 @@ const LOCALE = {
         "finishGapCatalogPlain": "{step} tamamlanacak",
         "notFound": "Kart bulunamadı",
         "notFoundHint": "Bu kart mevcut değil veya kapsamınızda değil.",
+        "unknownWizard": "Veri giriş asistanı yapılandırılmamış",
+        "unknownWizardHint": "Bu görev, bu örnekte tanımlı olmayan \"{wizard}\" asistanını gerektiriyor. Bunu beCPG yöneticinize bildirin.",
+        "backToTasks": "Görevlere dön",
         "delegated": "{supplier} adına veri giriyorsunuz",
         "due": "Son tarih: {date}",
         "step": "Adım",

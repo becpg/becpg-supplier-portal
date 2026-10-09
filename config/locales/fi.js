@@ -1936,6 +1936,18 @@ const LOCALE = {
         "close": "Sulje",
         "noReason": "Ei riskisyytä"
     },
+    "components/monitor/WorkflowTasks#LABELS": {
+        "title": "Käynnissä olevat tehtävät",
+        "none": "Ei käynnissä olevia tehtäviä",
+        "pooled": "Otettavissa",
+        "unassigned": "Ei osoitettu",
+        "due": "Määräpäivä",
+        "open": "Avaa",
+        "openInBecpg": "Avaa beCPG:ssä",
+        "history": "Historia ({count})",
+        "hideHistory": "Piilota historia",
+        "doneBy": "tekijä {who}"
+    },
     "components/monitor/cockpit/AssistantTab#LABELS": {
         "priorities": "Viikon prioriteetit",
         "prioritiesHelp": "Laskettu säännöillä riskialtteimmille toimittajille: kriittinen riski ja estävä poikkeama, eskaloitava; vanhentunut dokumentti, vähintään viisi puuttuvaa dokumenttia tai vastaamaton projekti, muistutettava.",
@@ -2590,6 +2602,9 @@ const LOCALE = {
         "finishGapCatalogPlain": "{step}: täydennettävä",
         "notFound": "Korttia ei löytynyt",
         "notFoundHint": "Tätä korttia ei ole olemassa tai se ei kuulu laajuuteenne.",
+        "unknownWizard": "Syötön ohjattua toimintoa ei ole määritetty",
+        "unknownWizardHint": "Tämä tehtävä edellyttää ohjattua toimintoa \"{wizard}\", jota ei ole määritetty tässä instanssissa. Ilmoittakaa asiasta beCPG-järjestelmänvalvojallenne.",
+        "backToTasks": "Takaisin tehtäviin",
         "delegated": "Täytätte tietoja toimittajan puolesta: {supplier}",
         "due": "Määräaika: {date}",
         "step": "Vaihe",

@@ -6,7 +6,7 @@
  * The same reading as a product sheet: an identity band, then the sections beCPG
  * defines for a `qa:nc` — its properties form as Share renders it, its documents —
  * and its discussion beside them. Nothing is written from here: an NC is treated
- * in beCPG, through its workflow (rule R2).
+ * through its workflow (rule R2), whose open tasks the sheet lists and opens.
  */
 
 import { Suspense } from 'react';
@@ -22,6 +22,7 @@ import { DateText } from '@/components/ui/DateText';
 import { ProductSections } from '@/components/products/ProductSections';
 import { NcStatePill, ncPriorityLabel, ncTypeLabel } from '@/components/monitor/NonConformityList';
 import { CommentsPanel } from '@/components/wizard/panels/CommentsPanel';
+import { WorkflowTasks } from '@/components/monitor/WorkflowTasks';
 import { routeParamId, useApi } from '@/lib/client';
 import { formatNumber, nodeLabel } from '@/lib/format';
 import { useMediaQuery } from '@/lib/useMediaQuery';
@@ -179,6 +180,7 @@ function NcScreen() {
             aside={wide && nc ? <CommentsPanel entityNodeRef={nc.nodeRef} title={labels.discussion} /> : null}
         >
             {nc ? <NcHeader nc={nc} labels={labels} lang={lang} /> : <SkeletonCard lines={3} className="mb-4" />}
+            {nc ? <WorkflowTasks entityId={nc.nodeRef} className="mb-4" /> : null}
             <ProductSections
                 entity={nc}
                 entityId={id}

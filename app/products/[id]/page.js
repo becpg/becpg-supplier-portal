@@ -41,6 +41,7 @@ import { ProductTaskBanner } from '@/components/products/ProductTaskBanner';
 import { UpdateRequestDialog } from '@/components/products/UpdateRequestDialog';
 import { VersionPicker } from '@/components/products/VersionPicker';
 import { StartCampaignDialog } from '@/components/monitor/StartCampaignDialog';
+import { WorkflowTasks } from '@/components/monitor/WorkflowTasks';
 import { formatDateTime } from '@/lib/format';
 import { routeParamId, useApi } from '@/lib/client';
 import { useSession } from '@/components/providers/SessionProvider';
@@ -267,11 +268,16 @@ function ProductScreen() {
             {/* The write path, on a read-only screen. Right under the identity
                 band because it is the first thing a supplier has to act on when
                 a task is running — above the sections, which are consultation. */}
-            <ProductTaskBanner
-                entityId={id}
-                entityNodeRef={product ? product.nodeRef : null}
-                className="mb-4"
-            />
+            {monitor ? (
+                // Everyone's tasks on the product, not only the reader's.
+                product ? <WorkflowTasks entityId={product.nodeRef} hideWhenIdle className="mb-4" /> : null
+            ) : (
+                <ProductTaskBanner
+                    entityId={id}
+                    entityNodeRef={product ? product.nodeRef : null}
+                    className="mb-4"
+                />
+            )}
 
             {/* An entity carrying a reference this account may not follow makes
                 `becpg/remote/entity` answer 200 with an empty body; `getEntityJson`
