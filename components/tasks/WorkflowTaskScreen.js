@@ -205,9 +205,9 @@ export function WorkflowTaskScreen({ task, onChanged }) {
     const save = () => run('save', () => api.post(`tasks/${encodeURIComponent(task.id)}/workflow`, { values: changed }), labels.saved);
 
     const finish = async (transition) => {
-        const found = validateForm(task.definition, values);
+        const { valid, errors: found } = validateForm(task.definition, values);
         setErrors(found);
-        if (Object.keys(found).length > 0) {
+        if (!valid) {
             return;
         }
         const done = await run(transition.id, () => api.post(`tasks/${encodeURIComponent(task.id)}/workflow`, { values: changed, transition: transition.id }), labels.completed);
