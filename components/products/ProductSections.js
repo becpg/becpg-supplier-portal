@@ -52,7 +52,7 @@
  * scoped to that tab, and the other tabs keep working.
  */
 
-import { readMlText } from '@/lib/mltext';
+import { readMlText, snapshotValue } from '@/lib/mltext';
 import { useMemo, useState } from 'react';
 import { Card, SectionHeader } from '@/components/ui/Card';
 import { Field } from '@/components/ui/Field';
@@ -565,7 +565,7 @@ function FormPanel({ entityId, attributes, step, params, lang, labels, snapshotA
                 ...definition,
                 fields: definition.fields.map((field) => ({
                     ...field,
-                    value: snapshotAttributes[field.name] ?? null,
+                    value: snapshotValue(snapshotAttributes, field.name, lang),
                     displayValue: null,
                 })),
             }
@@ -781,7 +781,7 @@ function SnapshotListPanel({ entityId, step, params, labels, lang, lists }) {
                             <tr key={row.id || index} className="border-b border-[var(--becpg-line)] last:border-0">
                                 {columns.map((column) => (
                                     <td key={column.name} className="px-3 py-2 align-top">
-                                        {readableValue({ value: row.attributes[column.name], displayValue: null, dataType: column.dataType }, lang) ?? '—'}
+                                        {readableValue({ value: snapshotValue(row.attributes, column.name, lang), displayValue: null, dataType: column.dataType }, lang) ?? '—'}
                                     </td>
                                 ))}
                             </tr>
