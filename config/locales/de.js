@@ -701,6 +701,7 @@ const LOCALE = {
             "refused": "Abgelehnt",
             "toValidate": "In Prüfung"
         },
+        "truncatedShort": "Fenster: {scanned} Lieferanten gelesen",
         "truncated": "Lieferantenbestand größer als das Suchfenster ({scanned} von {total} Lieferanten): Schränken Sie die Filter ein, um eine vollständige Matrix zu erhalten.",
         "scopeEmpty": "Kein Lieferant entspricht diesem Bereich. Es wurde keine Dokumentenabfrage ausgeführt: Die Zähler oben sind konstruktionsbedingt null, keine Messwerte.",
         "cellsScope": "Zellen · über die {total} Lieferanten des Bestands",
@@ -842,6 +843,7 @@ const LOCALE = {
             "projects": "Projekte",
             "documents": "Dokumente",
             "products": "Produkte",
+            "subSuppliers": "Unterlieferanten",
             "history": "Verlauf"
         },
         "status": "Freigabestatus",
@@ -873,7 +875,6 @@ const LOCALE = {
             "sites": "Standorte",
             "subsidiaries": "Tochtergesellschaften",
             "parent": "Übergeordneter Lieferant",
-            "subSuppliers": "Unterlieferanten",
             "catalogs": "Aktive Kataloge"
         },
         "scorecard": "Bewertung",
@@ -1726,8 +1727,10 @@ const LOCALE = {
             "escalateTitle": "{target} eskalieren",
             "suspendTitle": "{target} sperren",
             "messageLabel": "Nachricht",
-            "messageHelp": "Wird im Diskussionsverlauf des Lieferanten veröffentlicht — demselben, den das Portal und Share anzeigen. Der Lieferant erhält sie über seine Alfresco-Abonnements.",
-            "escalateHelp": "Wird intern im offenen Projekt des Lieferanten veröffentlicht, nie in dem Verlauf, den der Lieferant liest, unter Nennung des Zuständigen. Ohne offenes Projekt wird nichts veröffentlicht.",
+            "messageHelp": "Wird im Diskussionsverlauf des Lieferanten veröffentlicht, den er im Portal und in beCPG liest.",
+            "escalateHelp": "Wird intern im offenen Projekt des Lieferanten veröffentlicht, nie in dem Verlauf, den er liest.",
+            "messageLang": "Sprache der Nachricht",
+            "supplierLang": "Sprache des Lieferanten",
             "messageRequired": "Eine Nachricht ist erforderlich.",
             "suspendWarning": "Der Freigabestatus wird laufend abgeleitet, nie gespeichert: Diese Aktion schreibt nicht „gesperrt“. Sie startet den Sperrprozess des Kunden. Sobald beCPG die blockierende NC enthält, ändert sich der Status von selbst.",
             "suspendIrreversible": "Ein gestarteter Prozess kann im Portal nicht abgebrochen werden. Prüfen Sie die Auswahl.",
@@ -1750,10 +1753,11 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Projekt starten",
-        "subtitle": "Ein Listungsprojekt pro Produkt, wie „An Lieferanten senden“ in beCPG.",
+        "subtitle": "Ein Listungsprojekt pro Datensatz, wie „An Lieferanten senden“ in beCPG.",
         "supplier": "Lieferant",
         "supplierPlaceholder": "Lieferanten auswählen…",
         "scope": "Umfang",
+        "scopeSupplier": "Der Lieferantendatensatz selbst",
         "scopeAll": "Alle Produkte dieses Lieferanten",
         "scopeOne": "Ein Produkt",
         "entity": "Produkt",
@@ -2060,7 +2064,10 @@ const LOCALE = {
     },
     "components/monitor/supplier/RiskScore#LABELS": {
         "ring": "Risikoscore {score} von 100, Stufe {level}",
-        "none": "Kein Risikogrund"
+        "none": "Kein Risikogrund",
+        "scale": "Stufenskala",
+        "contributions": "Woraus sich der Score ergibt",
+        "points": "+{points}"
     },
     "components/monitor/supplier/SheetLists#LABELS": {
         "documents": {
@@ -2086,6 +2093,13 @@ const LOCALE = {
             "empty": "Kein verknüpftes Produkt",
             "file": "lieferanten-produkte"
         },
+        "subSuppliers": {
+            "search": "Unterlieferanten suchen",
+            "supplier": "Unterlieferant",
+            "code": "Code",
+            "state": "beCPG-Status",
+            "file": "unterlieferanten"
+        },
         "activity": {
             "empty": "Kein Austausch erfasst",
             "message": "Nachricht",
@@ -2110,7 +2124,8 @@ const LOCALE = {
             "blockingCatalog": "Blockierende Kataloge erfüllt"
         },
         "met": "erfüllt",
-        "unmet": "nicht erfüllt"
+        "unmet": "nicht erfüllt",
+        "progress": "{met} von {total} Bedingung(en) erfüllt"
     },
     "components/monitor/supplier/SupplierBand#LABELS": {
         "erp": "ERP {code}",
@@ -2122,6 +2137,8 @@ const LOCALE = {
         "since": "seit {count} Tagen",
         "approved": "keine Sperr-, Erneuerungs- oder Warteregel greift.",
         "actions": "Lieferantenaktionen",
+        "parent": "Gehört zu",
+        "group": "{count} Unterlieferant(en)",
         "verdict": "{status}:"
     },
     "components/products/CatalogPanel#LABELS": {
@@ -2191,8 +2208,6 @@ const LOCALE = {
         "noDataHint": "Dieser Abschnitt enthält keine Zeile für dieses Produkt.",
         "configTitle": "Konfiguration nicht verfügbar",
         "configHint": "Die Konfiguration dieses Abschnitts konnte nicht geladen werden. Die anderen Registerkarten bleiben verfügbar.",
-        "documentsHint": "Was Ihr Kunde zu diesem Produkt erwartet, und bis wann.",
-        "readOnly": "Nur Ansicht: Die Dateneingabe erfolgt über die Ihnen zugewiesene Aufgabe.",
         "yes": "Ja",
         "no": "Nein"
     },

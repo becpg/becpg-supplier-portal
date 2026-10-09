@@ -701,6 +701,7 @@ const LOCALE = {
             "refused": "Reddedildi",
             "toValidate": "İnceleniyor"
         },
+        "truncatedShort": "Pencere: {scanned} tedarikçi okundu",
         "truncated": "Portföy tarama penceresinden büyük ({scanned} / {total} tedarikçi): eksiksiz bir matris için filtreleri daraltın.",
         "scopeEmpty": "Bu kapsama uyan tedarikçi yok. Hiçbir belge sorgusu çalıştırılmadı: yukarıdaki sayaçlar ölçüm değil, tanım gereği sıfırdır.",
         "cellsScope": "hücre · portföydeki {total} tedarikçi üzerinden",
@@ -842,6 +843,7 @@ const LOCALE = {
             "projects": "Projeler",
             "documents": "Belgeler",
             "products": "Ürünler",
+            "subSuppliers": "Alt tedarikçiler",
             "history": "Geçmiş"
         },
         "status": "Onay durumu",
@@ -873,7 +875,6 @@ const LOCALE = {
             "sites": "Tesisler",
             "subsidiaries": "Bağlı şirketler",
             "parent": "Ana tedarikçi",
-            "subSuppliers": "Alt tedarikçiler",
             "catalogs": "Aktif kataloglar"
         },
         "scorecard": "Değerlendirme",
@@ -1726,8 +1727,10 @@ const LOCALE = {
             "escalateTitle": "{target} üst kademeye ilet",
             "suspendTitle": "{target} askıya al",
             "messageLabel": "Mesaj",
-            "messageHelp": "Tedarikçi tartışma dizisine gönderilir — portalın ve Share'in gösterdiği aynı dizi. Tedarikçi bunu Alfresco abonelikleri aracılığıyla alır.",
-            "escalateHelp": "Tedarikçinin açık projesine, sorumlu kişinin adı belirtilerek dahili olarak gönderilir; asla tedarikçinin okuduğu diziye değil. Açık proje yoksa hiçbir şey gönderilmez.",
+            "messageHelp": "Tedarikçinin portalda ve beCPG'de okuduğu tartışma dizisine gönderilir.",
+            "escalateHelp": "Tedarikçinin açık projesine dahili olarak gönderilir; asla tedarikçinin okuduğu diziye değil.",
+            "messageLang": "Mesaj dili",
+            "supplierLang": "tedarikçi dili",
             "messageRequired": "Mesaj zorunludur.",
             "suspendWarning": "Onay durumu anlık olarak türetilir, asla saklanmaz: bu eylem \"askıya alındı\" yazmaz. Müşterinin askıya alma sürecini başlatır. beCPG engelleyici NC'yi kaydettiğinde durum kendiliğinden değişir.",
             "suspendIrreversible": "Başlatılan bir süreç portaldan iptal edilemez. Seçimi kontrol edin.",
@@ -1750,10 +1753,11 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Proje başlat",
-        "subtitle": "beCPG'deki \"Tedarikçiye gönder\" işlevinde olduğu gibi, ürün başına bir listeleme projesi.",
+        "subtitle": "beCPG'deki \"Tedarikçiye gönder\" işlevinde olduğu gibi, kayıt başına bir listeleme projesi.",
         "supplier": "Tedarikçi",
         "supplierPlaceholder": "Bir tedarikçi seçin…",
         "scope": "Kapsam",
+        "scopeSupplier": "Tedarikçi kaydının kendisi",
         "scopeAll": "Bu tedarikçinin tüm ürünleri",
         "scopeOne": "Tek bir ürün",
         "entity": "Ürün",
@@ -2060,7 +2064,10 @@ const LOCALE = {
     },
     "components/monitor/supplier/RiskScore#LABELS": {
         "ring": "Risk puanı 100 üzerinden {score}, seviye {level}",
-        "none": "Risk nedeni yok"
+        "none": "Risk nedeni yok",
+        "scale": "Seviye ölçeği",
+        "contributions": "Puanı oluşturanlar",
+        "points": "+{points}"
     },
     "components/monitor/supplier/SheetLists#LABELS": {
         "documents": {
@@ -2086,6 +2093,13 @@ const LOCALE = {
             "empty": "Bağlı ürün yok",
             "file": "tedarikci-urunler"
         },
+        "subSuppliers": {
+            "search": "Alt tedarikçi ara",
+            "supplier": "Alt tedarikçi",
+            "code": "Kod",
+            "state": "beCPG durumu",
+            "file": "alt-tedarikciler"
+        },
         "activity": {
             "empty": "Kayıtlı yazışma yok",
             "message": "Mesaj",
@@ -2110,7 +2124,8 @@ const LOCALE = {
             "blockingCatalog": "Engelleyici kataloglar karşılandı"
         },
         "met": "karşılandı",
-        "unmet": "karşılanmadı"
+        "unmet": "karşılanmadı",
+        "progress": "{total} koşuldan {met} tanesi karşılandı"
     },
     "components/monitor/supplier/SupplierBand#LABELS": {
         "erp": "ERP {code}",
@@ -2122,6 +2137,8 @@ const LOCALE = {
         "since": "{count} gündür",
         "approved": "askıya alma, yenileme veya bekleme kuralı uygulanmıyor.",
         "actions": "Tedarikçi işlemleri",
+        "parent": "Bağlı olduğu:",
+        "group": "{count} alt tedarikçi",
         "verdict": "{status}:"
     },
     "components/products/CatalogPanel#LABELS": {
@@ -2191,8 +2208,6 @@ const LOCALE = {
         "noDataHint": "Bu bölümde bu ürün için satır yok.",
         "configTitle": "Yapılandırma kullanılamıyor",
         "configHint": "Bu bölümün yapılandırması yüklenemedi. Diğer sekmeler kullanılabilir durumda.",
-        "documentsHint": "Müşterinizin bu ürün için beklediği belgeler ve son tarihleri.",
-        "readOnly": "Yalnızca görüntüleme: veri girişi size atanan görevden yapılır.",
         "yes": "Evet",
         "no": "Hayır"
     },

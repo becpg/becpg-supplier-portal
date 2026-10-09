@@ -34,7 +34,7 @@ import { SupplierBand } from '@/components/monitor/supplier/SupplierBand';
 import { StatusLadder } from '@/components/monitor/supplier/StatusLadder';
 import { RiskScore } from '@/components/monitor/supplier/RiskScore';
 import { ActivityChart, latestDelay } from '@/components/monitor/supplier/ActivityChart';
-import { ActivityTimeline, DocumentTable, ProductTable } from '@/components/monitor/supplier/SheetLists';
+import { ActivityTimeline, DocumentTable, ProductTable, SubSupplierTable } from '@/components/monitor/supplier/SheetLists';
 import { routeParamId, useApi } from '@/lib/client';
 import { formatNumber } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
@@ -71,6 +71,7 @@ const LABELS = defineLabels('app/monitor/suppliers/[id]/page#LABELS', {
             projects: 'Projets',
             documents: 'Documents',
             products: 'Produits',
+            subSuppliers: 'Sous-fournisseurs',
             history: 'Historique',
         },
         status: 'Statut d’agrément',
@@ -102,7 +103,6 @@ const LABELS = defineLabels('app/monitor/suppliers/[id]/page#LABELS', {
             sites: 'Sites',
             subsidiaries: 'Filiales',
             parent: 'Fournisseur parent',
-            subSuppliers: 'Sous-fournisseurs',
             catalogs: 'Catalogues actifs',
         },
         scorecard: 'Notation',
@@ -143,6 +143,7 @@ const LABELS = defineLabels('app/monitor/suppliers/[id]/page#LABELS', {
             projects: 'Projects',
             documents: 'Documents',
             products: 'Products',
+            subSuppliers: 'Sub-suppliers',
             history: 'History',
         },
         status: 'Approval status',
@@ -174,7 +175,6 @@ const LABELS = defineLabels('app/monitor/suppliers/[id]/page#LABELS', {
             sites: 'Sites',
             subsidiaries: 'Subsidiaries',
             parent: 'Parent supplier',
-            subSuppliers: 'Sub-suppliers',
             catalogs: 'Active catalogs',
         },
         scorecard: 'Scorecard',
@@ -316,15 +316,10 @@ function IdentityCard({ sheet, local }) {
         [rows.subFamily, supplier.subFamily?.label],
         [rows.sites, labelsOf(supplier.sites)],
         [rows.subsidiaries, labelsOf(supplier.subsidiaries)],
-        [rows.parent, supplier.parent?.label],
-        [rows.subSuppliers, sheet.subSuppliers.length > 0 ? (
-            <span className="flex flex-col">
-                {sheet.subSuppliers.map((entry) => (
-                    <Link key={entry.nodeRef} href={`/monitor/suppliers/${encodeURIComponent(entry.nodeRef)}`} className="text-[var(--becpg-blue)] hover:underline">
-                        {entry.name}
-                    </Link>
-                ))}
-            </span>
+        [rows.parent, supplier.parent ? (
+            <Link href={`/monitor/suppliers/${encodeURIComponent(supplier.parent.nodeRef)}`} className="text-[var(--becpg-blue)] hover:underline">
+                {supplier.parent.label || supplier.parent.nodeRef}
+            </Link>
         ) : null],
         [rows.catalogs, labelsOf(sheet.completion?.catalogs)],
     ];
@@ -371,7 +366,7 @@ function ScorecardCard({ scorecard, local, lang }) {
 
 function Overview({ sheet, history, local, lang, onOpen }) {
     return (
-        <div className="grid grid-cols-12 items-start gap-4">
+        <div className="grid grid-cols-12 gap-4">
             <Card title={<CardTitle title={local.status} help={local.statusHelp} />} icon="rule" animate={false} className="col-span-12 xl:col-span-7">
                 <StatusLadder
                     approval={sheet.approval}
@@ -446,6 +441,15 @@ function SheetTabs({ sheet, history, local, lang, active, onOpen, onRefresh }) {
             badge: <TabBadge count={sheet.products.length} />,
             render: () => <ProductTable items={sheet.products} block={sheet.blocks.products} onRetry={onRefresh} />,
         },
+        // A group reads differently from one of its sites: its sub-suppliers get
+        // a tab of their own, which a supplier without any does not show.
+        ...(sheet.subSuppliers.length > 0 ? [{
+            id: 'subSuppliers',
+            label: local.tabs.subSuppliers,
+            icon: 'account_tree',
+            badge: <TabBadge count={sheet.subSuppliers.length} />,
+            render: () => <SubSupplierTable items={sheet.subSuppliers} />,
+        }] : []),
         {
             id: 'history',
             label: local.tabs.history,

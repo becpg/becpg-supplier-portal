@@ -42,6 +42,7 @@ import {
     selectionTypes,
 } from '@/components/monitor/DocumentMatrix';
 import { BulkActionBar } from '@/components/monitor/BulkActionBar';
+import { WindowNotice } from '@/components/monitor/WindowNotice';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 const LABELS = defineLabels('app/monitor/documents/page#LABELS', {
@@ -69,6 +70,7 @@ const LABELS = defineLabels('app/monitor/documents/page#LABELS', {
             refused: 'Refusés',
             toValidate: 'En validation',
         },
+        truncatedShort: 'Fenêtre : {scanned} fournisseurs lus',
         truncated:
             'Parc plus large que la fenêtre d’analyse ({scanned} fournisseurs sur {total}) : affinez les filtres pour une matrice complète.',
         scopeEmpty:
@@ -114,6 +116,7 @@ const LABELS = defineLabels('app/monitor/documents/page#LABELS', {
             refused: 'Rejected',
             toValidate: 'Being reviewed',
         },
+        truncatedShort: 'Window: {scanned} suppliers read',
         truncated:
             'Park larger than the scan window ({scanned} suppliers out of {total}): narrow the filters for a complete matrix.',
         scopeEmpty:
@@ -274,7 +277,28 @@ export default function MonitorDocumentsPage() {
             space="monitor"
             title={labels.title}
         >
-            <PageHeader title={labels.title} description={labels.subtitle} />
+            <PageHeader
+                title={labels.title}
+                description={status !== 'all' ? (
+                    <span className="flex flex-col gap-1">
+                        <span>{labels.subtitle}</span>
+                        <span>
+                            {fill(labels.statusScope, {
+                                status: labels.statuses[status] || status,
+                                kept: keptRows,
+                                shown: shownRows.length,
+                                total: total.text,
+                            })}
+                        </span>
+                    </span>
+                ) : labels.subtitle}
+                actions={pagination.truncated ? (
+                    <WindowNotice
+                        label={fill(labels.truncatedShort, { scanned: pagination.scanned })}
+                        detail={fill(labels.truncated, { scanned: pagination.scanned, total: parkTotal.label })}
+                    />
+                ) : null}
+            />
 
             {/* ------------------------------------------------------ KPI row */}
             <StatGrid columns={4} className="mb-4">
@@ -397,33 +421,6 @@ export default function MonitorDocumentsPage() {
                 </Card>
             ) : null}
 
-            {status !== 'all' ? (
-                <p className="mb-3 flex items-start gap-2 text-xs text-[var(--becpg-dark-grey)]">
-                    <Icon name="info" size={14} className="mt-0.5 shrink-0" />
-                    <span>
-                        {fill(labels.statusScope, {
-                            status: labels.statuses[status] || status,
-                            kept: keptRows,
-                            shown: shownRows.length,
-                            total: total.text,
-                        })}
-                    </span>
-                </p>
-            ) : null}
-
-            {pagination.truncated ? (
-                <Card variant="accent" padding="sm" className="mb-3">
-                    <p className="flex items-start gap-2 text-xs">
-                        <Icon name="warning" size={16} className="mt-0.5 text-[var(--becpg-orange)]" />
-                        <span>
-                            {fill(labels.truncated, {
-                                scanned: pagination.scanned,
-                                total: parkTotal.label,
-                            })}
-                        </span>
-                    </p>
-                </Card>
-            ) : null}
 
             {filters.unsupported && filters.unsupported.length > 0 ? (
                 <p className="mb-3 text-xs text-[var(--becpg-dark-grey)]">

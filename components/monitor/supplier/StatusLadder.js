@@ -10,6 +10,7 @@
 
 import { Button, Icon } from '@/components/ui/Button';
 import { StatusPill } from '@/components/ui/StatusPill';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { DateText } from '@/components/ui/DateText';
 import { describeReason } from '@/components/monitor/RiskList';
 import { useMessages } from '@/lib/messages';
@@ -47,6 +48,7 @@ const LABELS = defineLabels('components/monitor/supplier/StatusLadder#LABELS', {
         },
         met: 'remplie',
         unmet: 'non remplie',
+        progress: '{met} condition(s) remplie(s) sur {total}',
     },
     en: {
         current: 'Rule met',
@@ -66,6 +68,7 @@ const LABELS = defineLabels('components/monitor/supplier/StatusLadder#LABELS', {
         },
         met: 'met',
         unmet: 'not met',
+        progress: '{met} of {total} condition(s) met',
     },
 });
 
@@ -148,6 +151,24 @@ function ReasonRows({ code, rows, local, lang, onOpenTab }) {
     );
 }
 
+/** What it takes to be approved, each condition marked met or not, in words. */
+function ConditionList({ conditions, reasons, local }) {
+    return (
+        <ul className="flex flex-col gap-1">
+            {conditions.map((code) => {
+                const met = !reasons.has(code);
+                return (
+                    <li key={code} className="flex items-center gap-1.5">
+                        <Icon name={met ? 'check' : 'close'} size={14} />
+                        <span>{local.conditions[code] || code}</span>
+                        <span className="opacity-80">{`(${met ? local.met : local.unmet})`}</span>
+                    </li>
+                );
+            })}
+        </ul>
+    );
+}
+
 function Step({ status, badge, last = false, children }) {
     const tone = STEP_TONES[status] || 'info';
     return (
@@ -216,28 +237,20 @@ export function StatusLadder({ approval, nonConformities = [], projects = [], on
                 status={APPROVED_STATUS}
                 last
                 badge={(
-                    <span className="text-sm font-medium text-[var(--becpg-ink)]">
-                        {held.length === 0 ? local.approvedNow : local.approvedWhen}
-                    </span>
+                    <Tooltip content={<ConditionList conditions={conditions} reasons={reasons} local={local} />} maxWidth={320}>
+                        <span className="text-sm font-medium text-[var(--becpg-ink)]">
+                            {held.length === 0 ? local.approvedNow : local.approvedWhen}
+                        </span>
+                        <Icon name="help_outline" size={16} className="text-[var(--becpg-blue-light)]" />
+                    </Tooltip>
                 )}
             >
-                <ul className="mt-2 flex flex-wrap gap-1.5">
-                    {conditions.map((code) => {
-                        const met = !reasons.has(code);
-                        return (
-                            <li key={code}>
-                                <span
-                                    className={`pill pill-sm pill-no-dot ${met ? 'pill-ok' : 'pill-neutral'}`}
-                                    title={met ? local.met : local.unmet}
-                                >
-                                    <Icon name={met ? 'check' : 'close'} size={13} />
-                                    <span>{local.conditions[code] || code}</span>
-                                    <span className="sr-only-text">{` (${met ? local.met : local.unmet})`}</span>
-                                </span>
-                            </li>
-                        );
+                <p className="mt-1 text-xs text-[var(--becpg-muted)]">
+                    {fill(local.progress, {
+                        met: conditions.filter((code) => !reasons.has(code)).length,
+                        total: conditions.length,
                     })}
-                </ul>
+                </p>
             </Step>
         </ol>
     );

@@ -217,7 +217,7 @@ export function Modal({
                         </div>
 
                         {footer ? (
-                            <footer className="safe-bottom border-t border-[var(--becpg-blue-lighter)] bg-[rgba(228,236,238,0.4)] px-4 py-3 sm:px-6">
+                            <footer className="border-t border-[var(--becpg-blue-lighter)] bg-[rgba(228,236,238,0.4)] px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6">
                                 {footer}
                             </footer>
                         ) : null}

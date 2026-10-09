@@ -335,6 +335,17 @@ function MonitorSuppliersScreen() {
         >
             <PageHeader
                 title={local.title}
+                description={(
+                    <span className="flex flex-col gap-1">
+                        <span>
+                            {fill(local.sortedBy, { sort: local.sortNames[sort.by] || sort.by })}
+                            {pagination.sortScope === 'window' ? ` · ${local.sortScope}` : ''}
+                        </span>
+                        {pagination.scanned && data ? (
+                            <span>{fill(local.countsScope, { scanned: pagination.scanned })}</span>
+                        ) : null}
+                    </span>
+                )}
                 actions={pagination.truncated ? (
                     <WindowNotice
                         label={fill(local.truncatedShort, { scanned: pagination.scanned })}
@@ -405,15 +416,6 @@ function MonitorSuppliersScreen() {
                     <span className="tabular-nums">
                         {fill(local.windowOf, { from, to, total: total.text })}
                     </span>
-                    <span>
-                        {fill(local.sortedBy, {
-                            sort: local.sortNames[sort.by] || sort.by,
-                        })}
-                        {pagination.sortScope === 'window' ? ` · ${local.sortScope}` : ''}
-                    </span>
-                    {pagination.scanned && data ? (
-                        <span>{fill(local.countsScope, { scanned: pagination.scanned })}</span>
-                    ) : null}
                 </div>
                 <div className="flex items-center gap-2">
                     <Button

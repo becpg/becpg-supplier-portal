@@ -701,6 +701,7 @@ const LOCALE = {
             "refused": "Avvisat",
             "toValidate": "Granskas"
         },
+        "truncatedShort": "Fönster: {scanned} leverantörer lästa",
         "truncated": "Leverantörsbasen är större än genomsökningsfönstret ({scanned} leverantörer av {total}): begränsa filtren för en fullständig matris.",
         "scopeEmpty": "Ingen leverantör matchar det här omfånget. Ingen dokumentfråga kördes: räknarna ovan är noll per definition, inte mätvärden.",
         "cellsScope": "celler · över de {total} leverantörerna i leverantörsbasen",
@@ -842,6 +843,7 @@ const LOCALE = {
             "projects": "Projekt",
             "documents": "Dokument",
             "products": "Produkter",
+            "subSuppliers": "Underleverantörer",
             "history": "Historik"
         },
         "status": "Godkännandestatus",
@@ -873,7 +875,6 @@ const LOCALE = {
             "sites": "Anläggningar",
             "subsidiaries": "Dotterbolag",
             "parent": "Överordnad leverantör",
-            "subSuppliers": "Underleverantörer",
             "catalogs": "Aktiva kataloger"
         },
         "scorecard": "Bedömning",
@@ -1726,8 +1727,10 @@ const LOCALE = {
             "escalateTitle": "Eskalera {target}",
             "suspendTitle": "Stäng av {target}",
             "messageLabel": "Meddelande",
-            "messageHelp": "Publiceras i leverantörens diskussionstråd — samma som portalen och Share visar. Leverantören tar emot det via sina prenumerationer i Alfresco.",
-            "escalateHelp": "Publiceras internt i leverantörens öppna projekt, aldrig i tråden som leverantören läser, och nämner den ansvarige. Utan ett öppet projekt publiceras inget.",
+            "messageHelp": "Publiceras i leverantörens diskussionstråd, som leverantören läser i portalen och i beCPG.",
+            "escalateHelp": "Publiceras internt i leverantörens öppna projekt, aldrig i tråden som leverantören läser.",
+            "messageLang": "Meddelandets språk",
+            "supplierLang": "leverantörens språk",
             "messageRequired": "Ett meddelande krävs.",
             "suspendWarning": "Godkännandestatusen härleds löpande och lagras aldrig: den här åtgärden skriver inte ”avstängd”. Den startar kundens avstängningsprocess. När beCPG har den blockerande avvikelsen ändras statusen av sig själv.",
             "suspendIrreversible": "En startad process kan inte avbrytas från portalen. Kontrollera urvalet.",
@@ -1750,10 +1753,11 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Starta ett projekt",
-        "subtitle": "Ett listningsprojekt per produkt, som ”Skicka till leverantör” gör i beCPG.",
+        "subtitle": "Ett listningsprojekt per post, som ”Skicka till leverantör” gör i beCPG.",
         "supplier": "Leverantör",
         "supplierPlaceholder": "Välj en leverantör…",
         "scope": "Omfång",
+        "scopeSupplier": "Själva leverantörsposten",
         "scopeAll": "Alla produkter från den här leverantören",
         "scopeOne": "En produkt",
         "entity": "Produkt",
@@ -2060,7 +2064,10 @@ const LOCALE = {
     },
     "components/monitor/supplier/RiskScore#LABELS": {
         "ring": "Riskpoäng {score} av 100, nivå {level}",
-        "none": "Ingen riskorsak"
+        "none": "Ingen riskorsak",
+        "scale": "Nivåskala",
+        "contributions": "Vad poängen består av",
+        "points": "+{points}"
     },
     "components/monitor/supplier/SheetLists#LABELS": {
         "documents": {
@@ -2086,6 +2093,13 @@ const LOCALE = {
             "empty": "Ingen kopplad produkt",
             "file": "leverantor-produkter"
         },
+        "subSuppliers": {
+            "search": "Sök en underleverantör",
+            "supplier": "Underleverantör",
+            "code": "Kod",
+            "state": "beCPG-status",
+            "file": "underleverantorer"
+        },
         "activity": {
             "empty": "Ingen kommunikation registrerad",
             "message": "Meddelande",
@@ -2110,7 +2124,8 @@ const LOCALE = {
             "blockingCatalog": "Blockerande kataloger uppfyllda"
         },
         "met": "uppfyllt",
-        "unmet": "ej uppfyllt"
+        "unmet": "ej uppfyllt",
+        "progress": "{met} av {total} villkor uppfyllda"
     },
     "components/monitor/supplier/SupplierBand#LABELS": {
         "erp": "ERP {code}",
@@ -2122,6 +2137,8 @@ const LOCALE = {
         "since": "i {count} dagar",
         "approved": "ingen regel för spärr, förnyelse eller väntan gäller.",
         "actions": "Leverantörsåtgärder",
+        "parent": "Del av",
+        "group": "{count} underleverantör(er)",
         "verdict": "{status}:"
     },
     "components/products/CatalogPanel#LABELS": {
@@ -2191,8 +2208,6 @@ const LOCALE = {
         "noDataHint": "Avsnittet innehåller inga rader för den här produkten.",
         "configTitle": "Konfigurationen är inte tillgänglig",
         "configHint": "Avsnittets konfiguration kunde inte läsas in. De andra flikarna är fortfarande tillgängliga.",
-        "documentsHint": "Vad kunden förväntar sig för den här produkten, och när.",
-        "readOnly": "Endast visning: inmatning sker från den uppgift som tilldelats dig.",
         "yes": "Ja",
         "no": "Nej"
     },

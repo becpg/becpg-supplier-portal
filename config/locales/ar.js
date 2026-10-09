@@ -701,6 +701,7 @@ const LOCALE = {
             "refused": "مرفوض",
             "toValidate": "قيد المراجعة"
         },
+        "truncatedShort": "النافذة: تمت قراءة {scanned} مورد",
         "truncated": "قاعدة الموردين أكبر من نافذة الفحص ({scanned} مورّد من أصل {total}): ضيّقوا الفلاتر للحصول على مصفوفة كاملة.",
         "scopeEmpty": "لا يوجد مورّد يطابق هذا النطاق. لم يُنفَّذ أي استعلام عن المستندات: العدادات أعلاه أصفار بحكم البناء، لا قياسات.",
         "cellsScope": "خلايا · على مستوى الموردين الـ {total} في القاعدة",
@@ -842,6 +843,7 @@ const LOCALE = {
             "projects": "المشاريع",
             "documents": "المستندات",
             "products": "المنتجات",
+            "subSuppliers": "الموردون الفرعيون",
             "history": "السجل"
         },
         "status": "حالة الاعتماد",
@@ -873,7 +875,6 @@ const LOCALE = {
             "sites": "المواقع",
             "subsidiaries": "الشركات التابعة",
             "parent": "المورد الرئيسي",
-            "subSuppliers": "الموردون الفرعيون",
             "catalogs": "الكتالوجات النشطة"
         },
         "scorecard": "التقييم",
@@ -1726,8 +1727,10 @@ const LOCALE = {
             "escalateTitle": "تصعيد {target}",
             "suspendTitle": "تعليق {target}",
             "messageLabel": "الرسالة",
-            "messageHelp": "تُنشر في سلسلة مناقشة المورّد — وهي ذاتها التي تعرضها البوابة وShare. يتلقاها المورّد عبر اشتراكاته في Alfresco.",
-            "escalateHelp": "تُنشر داخليًا على المشروع المفتوح للمورّد، ولا تُنشر أبدًا في السلسلة التي يقرؤها المورّد، مع ذكر المسؤول المرجعي. وفي غياب مشروع مفتوح، لا يُنشر شيء.",
+            "messageHelp": "تُنشر في سلسلة مناقشة المورّد، التي يقرؤها في البوابة وفي beCPG.",
+            "escalateHelp": "تُنشر داخليًا على المشروع المفتوح للمورّد، ولا تُنشر أبدًا في السلسلة التي يقرؤها.",
+            "messageLang": "لغة الرسالة",
+            "supplierLang": "لغة المورّد",
             "messageRequired": "الرسالة مطلوبة.",
             "suspendWarning": "حالة الاعتماد تُستنتَج آنيًا ولا تُخزَّن أبدًا: هذا الإجراء لا يكتب «معلّق». بل يبدأ إجراء التعليق لدى العميل. وبمجرد أن يسجّل beCPG حالة NC المعيقة، تتغير الحالة من تلقاء نفسها.",
             "suspendIrreversible": "لا يمكن إلغاء إجراء بدأ من البوابة. تحقّقوا من التحديد.",
@@ -1750,10 +1753,11 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "بدء مشروع",
-        "subtitle": "مشروع إدراج واحد لكل منتج، كما يفعل «الإرسال إلى المورّد» في beCPG.",
+        "subtitle": "مشروع إدراج واحد لكل سجل، كما يفعل «الإرسال إلى المورّد» في beCPG.",
         "supplier": "المورّد",
         "supplierPlaceholder": "اختيار مورّد…",
         "scope": "النطاق",
+        "scopeSupplier": "سجل المورّد نفسه",
         "scopeAll": "جميع منتجات هذا المورّد",
         "scopeOne": "منتج واحد",
         "entity": "المنتج",
@@ -2060,7 +2064,10 @@ const LOCALE = {
     },
     "components/monitor/supplier/RiskScore#LABELS": {
         "ring": "درجة المخاطر {score} من 100، المستوى {level}",
-        "none": "لا يوجد سبب للمخاطر"
+        "none": "لا يوجد سبب للمخاطر",
+        "scale": "سلّم المستويات",
+        "contributions": "مكوّنات الدرجة",
+        "points": "+{points}"
     },
     "components/monitor/supplier/SheetLists#LABELS": {
         "documents": {
@@ -2086,6 +2093,13 @@ const LOCALE = {
             "empty": "لا توجد منتجات مرتبطة",
             "file": "supplier-products"
         },
+        "subSuppliers": {
+            "search": "البحث عن مورّد فرعي",
+            "supplier": "المورّد الفرعي",
+            "code": "الرمز",
+            "state": "حالة beCPG",
+            "file": "sub-suppliers"
+        },
         "activity": {
             "empty": "لا توجد مراسلات مسجلة",
             "message": "الرسالة",
@@ -2110,7 +2124,8 @@ const LOCALE = {
             "blockingCatalog": "الكتالوجات المانعة مستوفاة"
         },
         "met": "متحقق",
-        "unmet": "غير متحقق"
+        "unmet": "غير متحقق",
+        "progress": "{met} من {total} شرط/شروط متحققة"
     },
     "components/monitor/supplier/SupplierBand#LABELS": {
         "erp": "ERP {code}",
@@ -2122,6 +2137,8 @@ const LOCALE = {
         "since": "منذ {count} يومًا",
         "approved": "لا تنطبق أي قاعدة تعليق أو تجديد أو انتظار.",
         "actions": "إجراءات المورد",
+        "parent": "تابع لـ",
+        "group": "{count} مورّد(ين) فرعي(ين)",
         "verdict": "{status}:"
     },
     "components/products/CatalogPanel#LABELS": {
@@ -2191,8 +2208,6 @@ const LOCALE = {
         "noDataHint": "لا يحتوي هذا القسم على أي صف لهذا المنتج.",
         "configTitle": "الإعداد غير متاح",
         "configHint": "تعذّر تحميل إعداد هذا القسم. تبقى التبويبات الأخرى متاحة.",
-        "documentsHint": "ما يتوقعه عميلكم بخصوص هذا المنتج، وفي أي موعد.",
-        "readOnly": "عرض فقط: يتم إدخال البيانات من المهمة المسندة إليكم.",
         "yes": "نعم",
         "no": "لا"
     },

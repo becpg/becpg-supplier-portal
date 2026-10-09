@@ -46,6 +46,13 @@ const LABELS = defineLabels('components/monitor/supplier/SheetLists#LABELS', {
             empty: 'Aucun produit rattaché',
             file: 'produits-fournisseur',
         },
+        subSuppliers: {
+            search: 'Rechercher un sous-fournisseur',
+            supplier: 'Sous-fournisseur',
+            code: 'Code',
+            state: 'État beCPG',
+            file: 'sous-fournisseurs',
+        },
         activity: {
             empty: 'Aucun échange enregistré',
             message: 'Message',
@@ -76,6 +83,13 @@ const LABELS = defineLabels('components/monitor/supplier/SheetLists#LABELS', {
             modified: 'Updated',
             empty: 'No linked product',
             file: 'supplier-products',
+        },
+        subSuppliers: {
+            search: 'Search a sub-supplier',
+            supplier: 'Sub-supplier',
+            code: 'Code',
+            state: 'beCPG state',
+            file: 'sub-suppliers',
         },
         activity: {
             empty: 'No exchange recorded',
@@ -249,6 +263,59 @@ export function ProductTable({ items, block, onRetry }) {
             exporting={exporter.exporting}
             emptyState={<SheetEmpty block={block} title={labels.empty} onRetry={onRetry} local={local} />}
             caption={labels.product}
+        />
+    );
+}
+
+/**
+ * The sub-suppliers of a group, each opening its own sheet.
+ *
+ * @param {Object} props
+ * @param {Object[]} props.items `subSuppliers` of the sheet
+ */
+export function SubSupplierTable({ items }) {
+    const { lang } = useMessages();
+    const labels = pickLabels(LABELS, lang).subSuppliers;
+    const exporter = useListExport({ rows: items, filename: labels.file });
+
+    const columns = useMemo(() => [
+        {
+            id: 'supplier',
+            accessorFn: (row) => row.name || '',
+            header: labels.supplier,
+            meta: { primary: true, label: labels.supplier },
+            cell: ({ row }) => (
+                <Link
+                    href={`/monitor/suppliers/${encodeURIComponent(row.original.nodeRef)}`}
+                    className="font-medium text-[var(--becpg-blue)] hover:underline"
+                >
+                    {row.original.name}
+                </Link>
+            ),
+        },
+        {
+            id: 'code',
+            accessorFn: (row) => row.code || '',
+            header: labels.code,
+            meta: { secondary: true, label: labels.code, width: '8rem' },
+        },
+        {
+            id: 'state',
+            accessorFn: (row) => row.state || '',
+            header: labels.state,
+            meta: { badge: true, label: labels.state, width: '9rem' },
+            cell: ({ row }) => (row.original.state ? <StatusPill status={row.original.state} size="sm" /> : '—'),
+        },
+    ], [labels]);
+
+    return (
+        <DataTable
+            columns={columns}
+            data={items}
+            searchPlaceholder={labels.search}
+            onExport={exporter.onExport}
+            exporting={exporter.exporting}
+            caption={labels.supplier}
         />
     );
 }

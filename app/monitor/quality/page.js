@@ -306,7 +306,12 @@ export default function MonitorQualityPage() {
         >
             <PageHeader
                 title={labels.title}
-                description={labels.subtitle}
+                description={summary.exact === false ? (
+                    <span className="flex flex-col gap-1">
+                        <span>{labels.subtitle}</span>
+                        <span>{labels.inexact}</span>
+                    </span>
+                ) : labels.subtitle}
                 actions={pagination.truncated ? (
                     <WindowNotice
                         label={fill(labels.truncatedShort, { scanned: pagination.scanned || 0 })}
@@ -408,9 +413,6 @@ export default function MonitorQualityPage() {
             ) : null}
 
 
-            {summary.exact === false ? (
-                <p className="mb-3 text-xs text-[var(--becpg-dark-grey)]">{labels.inexact}</p>
-            ) : null}
 
             {filters.unsupported && filters.unsupported.length > 0 ? (
                 <p className="mb-3 text-xs text-[var(--becpg-dark-grey)]">

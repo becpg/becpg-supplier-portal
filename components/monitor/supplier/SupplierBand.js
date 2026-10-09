@@ -5,6 +5,7 @@
  * the actions on it, then one sentence saying why the status is what it is.
  */
 
+import Link from 'next/link';
 import { Button, Icon } from '@/components/ui/Button';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { RISK_LEVELS, describeReason, MonitorActionButtons } from '@/components/monitor/RiskList';
@@ -24,6 +25,8 @@ const LABELS = defineLabels('components/monitor/supplier/SupplierBand#LABELS', {
         since: 'depuis {count} jours',
         approved: 'aucune règle de suspension, de renouvellement ou d’attente ne s’applique.',
         actions: 'Actions sur le fournisseur',
+        parent: 'Rattaché à',
+        group: '{count} sous-fournisseur(s)',
         verdict: '{status} :',
     },
     en: {
@@ -36,6 +39,8 @@ const LABELS = defineLabels('components/monitor/supplier/SupplierBand#LABELS', {
         since: 'for {count} days',
         approved: 'no suspension, renewal or pending rule applies.',
         actions: 'Supplier actions',
+        parent: 'Part of',
+        group: '{count} sub-supplier(s)',
         verdict: '{status}:',
     },
 });
@@ -109,6 +114,7 @@ export function SupplierBand({ sheet, onStartProject, onDone }) {
         nodeRef: supplier.nodeRef,
         name: supplier.name,
         code: supplier.code,
+        lang: supplier.lang,
         risk: { reasons: (risk?.reasons || []).map(({ code, count }) => ({ code, count })) },
     }];
 
@@ -131,6 +137,21 @@ export function SupplierBand({ sheet, onStartProject, onDone }) {
                         <span>{fill(local.risk, { level: pickLabels(level, lang), score: risk?.score ?? 0 })}</span>
                     </span>
                     {supplier.state ? <StatusPill status={supplier.state} size="sm" /> : null}
+                    {supplier.parent ? (
+                        <Link
+                            href={`/monitor/suppliers/${encodeURIComponent(supplier.parent.nodeRef)}`}
+                            className="pill pill-sm pill-no-dot pill-neutral hover:underline"
+                        >
+                            <Icon name="subdirectory_arrow_right" size={13} />
+                            <span>{local.parent} {supplier.parent.label || supplier.parent.nodeRef}</span>
+                        </Link>
+                    ) : null}
+                    {sheet.subSuppliers?.length > 0 ? (
+                        <span className="pill pill-sm pill-no-dot pill-neutral">
+                            <Icon name="account_tree" size={13} />
+                            <span>{fill(local.group, { count: sheet.subSuppliers.length })}</span>
+                        </span>
+                    ) : null}
                     {[supplier.family, supplier.subFamily].filter((entry) => entry?.label).map((entry) => (
                         <span key={entry.nodeRef || entry.label} className="pill pill-sm pill-no-dot pill-info">{entry.label}</span>
                     ))}

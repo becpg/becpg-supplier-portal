@@ -18,10 +18,11 @@
  * this dialog invents nothing: it chooses *what* to send and shows *what came
  * back*.
  *
- * ## The three scopes, which are the three questions a quality manager asks
+ * ## The scopes, which are the questions a quality manager asks
  *
  * | Scope | What is sent |
  * |---|---|
+ * | the supplier record | the supplier itself |
  * | the supplier's whole park | every entity filed under that supplier |
  * | one entity | that entity |
  * | (from a supplier's own screen) | the supplier is fixed, only the scope is asked |
@@ -44,10 +45,11 @@ import { defineLabels, pickLabels } from '@/lib/i18n';
 const LABELS = defineLabels('components/monitor/StartCampaignDialog#LABELS', {
     fr: {
         title: 'Démarrer un projet',
-        subtitle: 'Un projet de référencement par produit, comme « Envoyer au fournisseur » dans beCPG.',
+        subtitle: 'Un projet de référencement par fiche, comme « Envoyer au fournisseur » dans beCPG.',
         supplier: 'Fournisseur',
         supplierPlaceholder: 'Choisir un fournisseur…',
         scope: 'Périmètre',
+        scopeSupplier: 'La fiche fournisseur elle-même',
         scopeAll: 'Tous les produits de ce fournisseur',
         scopeOne: 'Un produit en particulier',
         entity: 'Produit',
@@ -73,10 +75,11 @@ const LABELS = defineLabels('components/monitor/StartCampaignDialog#LABELS', {
     },
     en: {
         title: 'Start a project',
-        subtitle: 'One referencing project per product, as "Send to supplier" does in beCPG.',
+        subtitle: 'One referencing project per record, as "Send to supplier" does in beCPG.',
         supplier: 'Supplier',
         supplierPlaceholder: 'Pick a supplier…',
         scope: 'Scope',
+        scopeSupplier: 'The supplier record itself',
         scopeAll: 'Every product of this supplier',
         scopeOne: 'One product',
         entity: 'Product',
@@ -221,7 +224,7 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
     const toast = useToast();
 
     const [supplierRef, setSupplierRef] = useState(supplier ? supplier.nodeRef : '');
-    const [scope, setScope] = useState('all');
+    const [scope, setScope] = useState(SCOPE_SUPPLIER);
     const [entityRef, setEntityRef] = useState('');
     const [process, setProcess] = useState('');
     const [starting, setStarting] = useState(false);
@@ -240,7 +243,7 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
     if (session && openedFor !== session) {
         setOpenedFor(session);
         setSupplierRef(supplier ? supplier.nodeRef : '');
-        setScope('all');
+        setScope(SCOPE_SUPPLIER);
         setEntityRef('');
         setFailures([]);
     }
@@ -259,7 +262,7 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
     const processOptions = useMemo(
         () => ((processes.data && processes.data.processes) || []).map((entry) => ({
             value: entry.id || entry.nodeRef,
-            label: entry.name || entry.id || entry.nodeRef,
+            label: entry.label || entry.name || entry.id || entry.nodeRef,
         })),
         [processes.data],
     );
@@ -273,9 +276,7 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
         ? fill(labels.atLeast, { count: listing.totalAtLeast })
         : listing.totalItems);
 
-    const targets = scope === 'one'
-        ? (entityRef ? [entityRef] : [])
-        : entityItems.map((entity) => entity.nodeRef);
+    const targets = scopeTargets({ scope, supplierRef, entityRef, entityItems });
 
     const canStart = Boolean(supplierRef) && targets.length > 0 && Boolean(selectedProcess) && !starting;
 
@@ -360,7 +361,7 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
 
                 <Field label={labels.scope} required>
                     <div className="flex flex-col gap-1.5">
-                        {[['all', labels.scopeAll], ['one', labels.scopeOne]].map(([value, text]) => (
+                        {[[SCOPE_SUPPLIER, labels.scopeSupplier], ['all', labels.scopeAll], ['one', labels.scopeOne]].map(([value, text]) => (
                             <label key={value} className="flex items-center gap-2 text-sm">
                                 <input
                                     type="radio"
@@ -406,10 +407,10 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
                         <Spinner size={13} />
                     </p>
                 ) : null}
-                {supplierRef && !entities.loading && !entities.error && entityItems.length === 0 ? (
+                {scope !== SCOPE_SUPPLIER && supplierRef && !entities.loading && !entities.error && entityItems.length === 0 ? (
                     <p className="text-xs text-[var(--status-warn)]">{labels.noEntity}</p>
                 ) : null}
-                {supplierRef ? (
+                {scope !== SCOPE_SUPPLIER && supplierRef ? (
                     <ListingNotice
                         listing={entities}
                         labels={labels}
@@ -452,6 +453,25 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
 }
 
 const NO_PARAMS = Object.freeze({});
+
+/** The scope that sends the supplier record itself, as Share does from a supplier. */
+const SCOPE_SUPPLIER = 'supplier';
+
+/**
+ * The records a scope sends: the supplier, every product of the supplier, or one.
+ *
+ * @param {{scope: string, supplierRef: string, entityRef: string, entityItems: Object[]}} params
+ * @returns {string[]}
+ */
+function scopeTargets({ scope, supplierRef, entityRef, entityItems }) {
+    if (scope === SCOPE_SUPPLIER) {
+        return supplierRef ? [supplierRef] : [];
+    }
+    if (scope === 'one') {
+        return entityRef ? [entityRef] : [];
+    }
+    return entityItems.map((entity) => entity.nodeRef);
+}
 
 /**
  * What a listing could not deliver: its failure, with a retry, or the warning

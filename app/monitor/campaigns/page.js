@@ -290,7 +290,12 @@ export default function MonitorCampaignsPage() {
                 it must quote the engine's own figure. */}
             <PageHeader
                 title={labels.title}
-                description={labels.subtitle}
+                description={summary.parkScoped && !scopeEmpty ? (
+                    <span className="flex flex-col gap-1">
+                        <span>{labels.subtitle}</span>
+                        <span>{fill(labels.parkScoped, { count: (data && data.scope && data.scope.suppliers) || 0 })}</span>
+                    </span>
+                ) : labels.subtitle}
                 actions={
                     <div className="flex items-center gap-2">
                         {pagination.truncated ? (
@@ -400,14 +405,6 @@ export default function MonitorCampaignsPage() {
             ) : null}
 
 
-            {/* The counters follow the perimeter — said out loud, so "248" on an
-                unfiltered screen and "10" on a filtered one are not read as the
-                same question answered twice. */}
-            {summary.parkScoped && !scopeEmpty ? (
-                <p className="mb-3 text-xs text-[var(--becpg-dark-grey)]">
-                    {fill(labels.parkScoped, { count: (data && data.scope && data.scope.suppliers) || 0 })}
-                </p>
-            ) : null}
 
             {filters.unsupported && filters.unsupported.length > 0 ? (
                 <p className="mb-3 text-xs text-[var(--becpg-dark-grey)]">

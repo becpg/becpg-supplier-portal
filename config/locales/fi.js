@@ -701,6 +701,7 @@ const LOCALE = {
             "refused": "Hylätty",
             "toValidate": "Tarkistettavana"
         },
+        "truncatedShort": "Ikkuna: {scanned} toimittajaa luettu",
         "truncated": "Toimittajajoukko on hakuikkunaa suurempi ({scanned}/{total} toimittajaa): rajaa suodattimia saadaksesi täydellisen matriisin.",
         "scopeEmpty": "Yksikään toimittaja ei vastaa tätä rajausta. Asiakirjahakua ei suoritettu: yllä olevat laskurit ovat nollia rakenteellisesti, eivät mittaustuloksia.",
         "cellsScope": "solua · toimittajajoukon kaikista toimittajista (yhteensä {total})",
@@ -842,6 +843,7 @@ const LOCALE = {
             "projects": "Projektit",
             "documents": "Asiakirjat",
             "products": "Tuotteet",
+            "subSuppliers": "Alitoimittajat",
             "history": "Historia"
         },
         "status": "Hyväksyntätila",
@@ -873,7 +875,6 @@ const LOCALE = {
             "sites": "Toimipaikat",
             "subsidiaries": "Tytäryhtiöt",
             "parent": "Päätoimittaja",
-            "subSuppliers": "Alihankkijat",
             "catalogs": "Aktiiviset katalogit"
         },
         "scorecard": "Arviointi",
@@ -1726,8 +1727,10 @@ const LOCALE = {
             "escalateTitle": "Eskaloi: {target}",
             "suspendTitle": "Keskeytä: {target}",
             "messageLabel": "Viesti",
-            "messageHelp": "Julkaistaan toimittajan keskusteluketjuun — samaan, jonka portaali ja Share näyttävät. Toimittaja saa sen Alfresco-tilaustensa kautta.",
-            "escalateHelp": "Julkaistaan sisäisesti toimittajan avoimeen projektiin, ei koskaan toimittajan lukemaan ketjuun, ja vastuuhenkilö mainitaan. Jos avointa projektia ei ole, mitään ei julkaista.",
+            "messageHelp": "Julkaistaan toimittajan keskusteluketjuun, jota toimittaja lukee portaalissa ja beCPG:ssä.",
+            "escalateHelp": "Julkaistaan sisäisesti toimittajan avoimeen projektiin, ei koskaan toimittajan lukemaan ketjuun.",
+            "messageLang": "Viestin kieli",
+            "supplierLang": "toimittajan kieli",
             "messageRequired": "Viesti on pakollinen.",
             "suspendWarning": "Hyväksynnän tila johdetaan lennossa eikä sitä koskaan tallenneta: tämä toimenpide ei kirjoita tilaa \"keskeytetty\". Se käynnistää asiakkaan keskeytysprosessin. Kun beCPG:ssä on estävä NC, tila vaihtuu itsestään.",
             "suspendIrreversible": "Käynnistettyä prosessia ei voi peruuttaa portaalista. Tarkista valinta.",
@@ -1750,10 +1753,11 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Käynnistä projekti",
-        "subtitle": "Yksi listausprojekti tuotetta kohden, kuten beCPG:n toiminto \"Lähetä toimittajalle\".",
+        "subtitle": "Yksi listausprojekti tietuetta kohden, kuten beCPG:n toiminto \"Lähetä toimittajalle\".",
         "supplier": "Toimittaja",
         "supplierPlaceholder": "Valitse toimittaja…",
         "scope": "Laajuus",
+        "scopeSupplier": "Itse toimittajatietue",
         "scopeAll": "Kaikki tämän toimittajan tuotteet",
         "scopeOne": "Yksi tuote",
         "entity": "Tuote",
@@ -2060,7 +2064,10 @@ const LOCALE = {
     },
     "components/monitor/supplier/RiskScore#LABELS": {
         "ring": "Riskipistemäärä {score}/100, taso {level}",
-        "none": "Ei riskin syitä"
+        "none": "Ei riskin syitä",
+        "scale": "Tasoasteikko",
+        "contributions": "Mistä pistemäärä muodostuu",
+        "points": "+{points}"
     },
     "components/monitor/supplier/SheetLists#LABELS": {
         "documents": {
@@ -2086,6 +2093,13 @@ const LOCALE = {
             "empty": "Ei liitettyjä tuotteita",
             "file": "toimittaja-tuotteet"
         },
+        "subSuppliers": {
+            "search": "Hae alitoimittajaa",
+            "supplier": "Alitoimittaja",
+            "code": "Koodi",
+            "state": "beCPG-tila",
+            "file": "alitoimittajat"
+        },
         "activity": {
             "empty": "Ei kirjattua viestintää",
             "message": "Viesti",
@@ -2110,7 +2124,8 @@ const LOCALE = {
             "blockingCatalog": "Estävät katalogit täytetty"
         },
         "met": "täyttyy",
-        "unmet": "ei täyty"
+        "unmet": "ei täyty",
+        "progress": "{met}/{total} ehtoa täyttyy"
     },
     "components/monitor/supplier/SupplierBand#LABELS": {
         "erp": "ERP {code}",
@@ -2122,6 +2137,8 @@ const LOCALE = {
         "since": "{count} päivän ajan",
         "approved": "mikään keskeytys-, uusimis- tai odotussääntö ei ole voimassa.",
         "actions": "Toimittajan toiminnot",
+        "parent": "Kuuluu:",
+        "group": "{count} alitoimittaja(a)",
         "verdict": "{status}:"
     },
     "components/products/CatalogPanel#LABELS": {
@@ -2191,8 +2208,6 @@ const LOCALE = {
         "noDataHint": "Tässä osiossa ei ole rivejä tälle tuotteelle.",
         "configTitle": "Määritykset eivät ole saatavilla",
         "configHint": "Tämän osion määrityksiä ei voitu ladata. Muut välilehdet ovat edelleen käytettävissä.",
-        "documentsHint": "Mitä asiakkaanne odottaa tältä tuotteelta ja mihin mennessä.",
-        "readOnly": "Vain katselu: tiedot syötetään teille osoitetusta tehtävästä.",
         "yes": "Kyllä",
         "no": "Ei"
     },

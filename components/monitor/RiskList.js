@@ -53,6 +53,7 @@ import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { LANG_NAMES, SUPPORTED_LANGS } from '@/config/messages';
 
 /**
  * Reason vocabulary. The codes come from the API (`config.riskWeights` and the
@@ -157,10 +158,10 @@ const LABELS = defineLabels('components/monitor/RiskList#LABELS', {
             escalateTitle: 'Escalader {target}',
             suspendTitle: 'Suspendre {target}',
             messageLabel: 'Message',
-            messageHelp:
-                'Publié sur le fil de discussion du fournisseur — le même que celui du portail et de Share. Le fournisseur le reçoit par ses abonnements Alfresco.',
-            escalateHelp:
-                'Publié en interne sur le projet ouvert du fournisseur, jamais sur le fil qu’il lit, avec le référent nommé dans le message. Sans projet ouvert, rien n’est publié.',
+            messageHelp: 'Publié sur le fil de discussion du fournisseur, qu’il lit dans le portail et dans beCPG.',
+            escalateHelp: 'Publié en interne sur le projet ouvert du fournisseur, jamais sur le fil qu’il lit.',
+            messageLang: 'Langue du message',
+            supplierLang: 'langue du fournisseur',
             messageRequired: 'Le message est obligatoire.',
             suspendWarning:
                 'Le statut d’agrément est calculé à la volée, jamais stocké : cette action n’écrit pas « suspendu ». Elle démarre le processus de suspension configuré chez le client. Une fois la NC bloquante enregistrée par beCPG, le statut bascule de lui-même.',
@@ -203,10 +204,10 @@ const LABELS = defineLabels('components/monitor/RiskList#LABELS', {
             escalateTitle: 'Escalate {target}',
             suspendTitle: 'Suspend {target}',
             messageLabel: 'Message',
-            messageHelp:
-                'Posted on the supplier discussion thread — the same one the portal and Share show. The supplier receives it through their Alfresco subscriptions.',
-            escalateHelp:
-                'Posted internally on the supplier\'s open project, never on the thread the supplier reads, naming the referent. Without an open project, nothing is posted.',
+            messageHelp: 'Posted on the supplier discussion thread, which they read in the portal and in beCPG.',
+            escalateHelp: 'Posted internally on the supplier\'s open project, never on the thread they read.',
+            messageLang: 'Message language',
+            supplierLang: 'supplier language',
             messageRequired: 'A message is required.',
             suspendWarning:
                 'The approval status is derived on the fly, never stored: this action does not write "suspended". It starts the customer\'s suspension process. Once beCPG holds the blocking NC, the status flips on its own.',
@@ -296,25 +297,33 @@ export function MonitorActionDialog({ action, targets = [], processes = [], onCl
     const { lang, t } = useMessages();
     const local = (pickLabels(LABELS, lang)).dialog;
     const results = (pickLabels(LABELS, lang)).result;
-    const defaults = (pickLabels(LABELS, lang)).defaults;
     const toast = useToast();
 
-    const suggested = useMemo(() => {
+    // A reminder is read by the supplier: it is written in the supplier's own
+    // language when every target shares one, in the reader's otherwise.
+    const supplierLang = useMemo(() => {
+        const langs = new Set(targets.map((target) => target.lang).filter(Boolean));
+        return langs.size === 1 ? [...langs][0] : null;
+    }, [targets]);
+    const [messageLang, setMessageLang] = useState(lang);
+
+    const suggestFor = useCallback((writtenIn) => {
         if (!action || action === 'suspend') {
             return '';
         }
+        const templates = (pickLabels(LABELS, writtenIn)).defaults;
         const codes = new Set();
         for (const target of targets) {
             for (const reason of ((target.risk && target.risk.reasons) || [])) {
-                const described = describeReason(reason, lang);
+                const described = describeReason(reason, writtenIn);
                 if (described) {
                     codes.add(described.label);
                 }
             }
         }
-        const reasons = codes.size > 0 ? [...codes].slice(0, 4).join(', ') : defaults.genericReasons;
-        return interpolate(defaults[action] || '', { reasons });
-    }, [action, targets, lang, defaults]);
+        const reasons = codes.size > 0 ? [...codes].slice(0, 4).join(', ') : templates.genericReasons;
+        return interpolate(templates[action] || '', { reasons });
+    }, [action, targets]);
 
     const [message, setMessage] = useState('');
     const [process, setProcess] = useState('');
@@ -324,8 +333,11 @@ export function MonitorActionDialog({ action, targets = [], processes = [], onCl
     // while the dialog is closed: re-seed on open rather than in an effect.
     const [seed, setSeed] = useState(null);
     if (action && seed !== action + targets.length) {
+        // An escalation is internal: it stays in the reader's language.
+        const writtenIn = action === 'remind' ? supplierLang || lang : lang;
         setSeed(action + targets.length);
-        setMessage(suggested);
+        setMessageLang(writtenIn);
+        setMessage(suggestFor(writtenIn));
         setProcess(processes[0] || '');
         setError(null);
     }
@@ -443,19 +455,38 @@ export function MonitorActionDialog({ action, targets = [], processes = [], onCl
                         ) : null}
                     </>
                 ) : (
-                    <Field
-                        label={local.messageLabel}
-                        required
-                        error={error || undefined}
-                        description={action === 'escalate' ? local.escalateHelp : local.messageHelp}
-                    >
-                        <Textarea
-                            rows={6}
-                            value={message}
-                            onChange={(event) => setMessage(event.target.value)}
-                            invalid={Boolean(error)}
-                        />
-                    </Field>
+                    <>
+                        {action === 'remind' ? (
+                            <Field label={local.messageLang}>
+                                <Select
+                                    value={messageLang}
+                                    onChange={(event) => {
+                                        setMessageLang(event.target.value);
+                                        setMessage(suggestFor(event.target.value));
+                                    }}
+                                    options={SUPPORTED_LANGS.map((code) => ({
+                                        value: code,
+                                        label: code === supplierLang
+                                            ? `${LANG_NAMES[code]} (${local.supplierLang})`
+                                            : LANG_NAMES[code],
+                                    }))}
+                                />
+                            </Field>
+                        ) : null}
+                        <Field
+                            label={local.messageLabel}
+                            required
+                            error={error || undefined}
+                            help={action === 'escalate' ? local.escalateHelp : local.messageHelp}
+                        >
+                            <Textarea
+                                rows={6}
+                                value={message}
+                                onChange={(event) => setMessage(event.target.value)}
+                                invalid={Boolean(error)}
+                            />
+                        </Field>
+                    </>
                 )}
             </div>
         </Modal>

@@ -359,7 +359,15 @@ export default function MonitorProductsPage() {
 
     return (
         <AppShell ownHeading fullWidth space="monitor" title={labels.title}>
-            <PageHeader title={labels.title} description={labels.subtitle} />
+            <PageHeader
+                title={labels.title}
+                description={(
+                    <span className="flex flex-col gap-1">
+                        <span>{labels.subtitle}</span>
+                        <span>{labels.sortScope}</span>
+                    </span>
+                )}
+            />
 
             <StatGrid columns={4} className="mb-4">
                 {TILES.map((tile, index) => {
@@ -435,10 +443,7 @@ export default function MonitorProductsPage() {
             />
 
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--becpg-dark-grey)]">
-                <p className="flex items-start gap-1.5">
-                    <Icon name="sort" size={14} className="mt-px shrink-0" />
-                    {labels.sortScope}
-                </p>
+                <span />
                 <div className="flex items-center gap-2">
                     <span className="tabular-nums">
                         {fill(labels.pageOf, { from, to, total: total.text })}

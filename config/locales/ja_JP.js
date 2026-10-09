@@ -701,6 +701,7 @@ const LOCALE = {
             "refused": "差し戻し",
             "toValidate": "審査中"
         },
+        "truncatedShort": "範囲：{scanned} 社のサプライヤーを読み込み",
         "truncated": "サプライヤーベースが走査範囲を超えています（{total} 社中 {scanned} 社）。完全なマトリクスを得るにはフィルターを絞り込んでください。",
         "scopeEmpty": "この範囲に該当するサプライヤーはいません。文書の照会は実行されていないため、上記のカウンターは測定値ではなく、構造上ゼロになっています。",
         "cellsScope": "セル · サプライヤーベース全体の {total} 社が対象",
@@ -842,6 +843,7 @@ const LOCALE = {
             "projects": "プロジェクト",
             "documents": "文書",
             "products": "製品",
+            "subSuppliers": "下位サプライヤー",
             "history": "履歴"
         },
         "status": "承認ステータス",
@@ -873,7 +875,6 @@ const LOCALE = {
             "sites": "拠点",
             "subsidiaries": "子会社",
             "parent": "親サプライヤー",
-            "subSuppliers": "下位サプライヤー",
             "catalogs": "有効なカタログ"
         },
         "scorecard": "評価",
@@ -1726,8 +1727,10 @@ const LOCALE = {
             "escalateTitle": "{target} をエスカレーション",
             "suspendTitle": "{target} を停止",
             "messageLabel": "メッセージ",
-            "messageHelp": "サプライヤーのディスカッションスレッド（ポータルと Share で表示されるものと同じ）に投稿されます。サプライヤーは Alfresco の購読設定を通じて受け取ります。",
-            "escalateHelp": "サプライヤーの進行中のプロジェクトに、担当者を指名して社内向けに投稿されます。サプライヤーが閲覧するスレッドには投稿されません。進行中のプロジェクトがない場合は、何も投稿されません。",
+            "messageHelp": "サプライヤーのディスカッションスレッドに投稿されます。サプライヤーはポータルと beCPG で閲覧します。",
+            "escalateHelp": "サプライヤーの進行中のプロジェクトに社内向けに投稿されます。サプライヤーが閲覧するスレッドには投稿されません。",
+            "messageLang": "メッセージの言語",
+            "supplierLang": "サプライヤーの言語",
             "messageRequired": "メッセージは必須です。",
             "suspendWarning": "承認ステータスはその都度算出され、保存されません。この操作で「停止中」が書き込まれるわけではなく、お客様の停止プロセスが開始されます。beCPG にブロッキングの NC が登録されると、ステータスは自動的に切り替わります。",
             "suspendIrreversible": "開始したプロセスはポータルから取り消せません。選択内容を確認してください。",
@@ -1750,10 +1753,11 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "プロジェクトを開始",
-        "subtitle": "beCPG の「サプライヤーに送信」と同様に、製品ごとに 1 つの取引登録プロジェクトを作成します。",
+        "subtitle": "beCPG の「サプライヤーに送信」と同様に、レコードごとに 1 つの取引登録プロジェクトを作成します。",
         "supplier": "サプライヤー",
         "supplierPlaceholder": "サプライヤーを選択…",
         "scope": "範囲",
+        "scopeSupplier": "サプライヤーレコード自体",
         "scopeAll": "このサプライヤーのすべての製品",
         "scopeOne": "1 つの製品",
         "entity": "製品",
@@ -2060,7 +2064,10 @@ const LOCALE = {
     },
     "components/monitor/supplier/RiskScore#LABELS": {
         "ring": "リスクスコア {score}/100、レベル {level}",
-        "none": "リスク要因なし"
+        "none": "リスク要因なし",
+        "scale": "レベルの尺度",
+        "contributions": "スコアの内訳",
+        "points": "+{points}"
     },
     "components/monitor/supplier/SheetLists#LABELS": {
         "documents": {
@@ -2086,6 +2093,13 @@ const LOCALE = {
             "empty": "紐付けられた製品はありません",
             "file": "supplier-products"
         },
+        "subSuppliers": {
+            "search": "下位サプライヤーを検索",
+            "supplier": "下位サプライヤー",
+            "code": "コード",
+            "state": "beCPG 状態",
+            "file": "sub-suppliers"
+        },
         "activity": {
             "empty": "記録されたやり取りはありません",
             "message": "メッセージ",
@@ -2110,7 +2124,8 @@ const LOCALE = {
             "blockingCatalog": "ブロッキングカタログを充足"
         },
         "met": "充足",
-        "unmet": "未充足"
+        "unmet": "未充足",
+        "progress": "{total} 件中 {met} 件の条件を満たしています"
     },
     "components/monitor/supplier/SupplierBand#LABELS": {
         "erp": "ERP {code}",
@@ -2122,6 +2137,8 @@ const LOCALE = {
         "since": "{count} 日間",
         "approved": "停止・更新・保留のいずれのルールにも該当しません。",
         "actions": "サプライヤーの操作",
+        "parent": "所属：",
+        "group": "{count} 社の下位サプライヤー",
         "verdict": "{status}："
     },
     "components/products/CatalogPanel#LABELS": {
@@ -2191,8 +2208,6 @@ const LOCALE = {
         "noDataHint": "このセクションには、この製品の行がありません。",
         "configTitle": "設定を利用できません",
         "configHint": "このセクションの設定を読み込めませんでした。他のタブは引き続き利用できます。",
-        "documentsHint": "この製品でお客様が求めている文書とその期限。",
-        "readOnly": "閲覧のみ：データの入力は割り当てられたタスクから行います。",
         "yes": "はい",
         "no": "いいえ"
     },

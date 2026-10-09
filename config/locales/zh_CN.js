@@ -701,6 +701,7 @@ const LOCALE = {
             "refused": "已拒绝",
             "toValidate": "审核中"
         },
+        "truncatedShort": "窗口：已读取 {scanned} 家供应商",
         "truncated": "供应商库超出扫描窗口（已读取 {scanned} 个，共 {total} 个供应商）：请缩小筛选条件以获得完整矩阵。",
         "scopeEmpty": "没有供应商符合此范围。未执行任何文件查询：上方计数器为零是结构所致，并非测量结果。",
         "cellsScope": "单元格 · 覆盖供应商库中的 {total} 个供应商",
@@ -842,6 +843,7 @@ const LOCALE = {
             "projects": "项目",
             "documents": "文件",
             "products": "产品",
+            "subSuppliers": "下级供应商",
             "history": "历史记录"
         },
         "status": "认证状态",
@@ -873,7 +875,6 @@ const LOCALE = {
             "sites": "工厂",
             "subsidiaries": "子公司",
             "parent": "上级供应商",
-            "subSuppliers": "下级供应商",
             "catalogs": "有效目录"
         },
         "scorecard": "评分",
@@ -1726,8 +1727,10 @@ const LOCALE = {
             "escalateTitle": "升级 {target}",
             "suspendTitle": "暂停 {target}",
             "messageLabel": "消息",
-            "messageHelp": "发布在供应商讨论串中 — 即门户和 Share 显示的同一讨论串。供应商通过其 Alfresco 订阅接收。",
-            "escalateHelp": "在供应商的进行中项目内部发布，绝不会发布在供应商可见的讨论串中，并提及负责人。如无进行中的项目，则不会发布任何内容。",
+            "messageHelp": "发布在供应商讨论串中，供应商可在门户和 beCPG 中查看。",
+            "escalateHelp": "在供应商的进行中项目内部发布，绝不会发布在供应商可见的讨论串中。",
+            "messageLang": "消息语言",
+            "supplierLang": "供应商语言",
             "messageRequired": "必须填写消息。",
             "suspendWarning": "认证状态是实时推导的，从不存储：此操作不会写入“已暂停”。它会启动客户的暂停流程。一旦 beCPG 中存在阻断性 NC，状态会自动切换。",
             "suspendIrreversible": "已发起的流程无法在门户中取消。请检查所选内容。",
@@ -1750,10 +1753,11 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "发起项目",
-        "subtitle": "每个产品一个准入项目，与 beCPG 中的“发送给供应商”相同。",
+        "subtitle": "每条记录一个准入项目，与 beCPG 中的“发送给供应商”相同。",
         "supplier": "供应商",
         "supplierPlaceholder": "选择供应商…",
         "scope": "范围",
+        "scopeSupplier": "供应商记录本身",
         "scopeAll": "该供应商的所有产品",
         "scopeOne": "单个产品",
         "entity": "产品",
@@ -2060,7 +2064,10 @@ const LOCALE = {
     },
     "components/monitor/supplier/RiskScore#LABELS": {
         "ring": "风险评分 {score}/100，等级 {level}",
-        "none": "无风险原因"
+        "none": "无风险原因",
+        "scale": "等级标尺",
+        "contributions": "评分构成",
+        "points": "+{points}"
     },
     "components/monitor/supplier/SheetLists#LABELS": {
         "documents": {
@@ -2086,6 +2093,13 @@ const LOCALE = {
             "empty": "无关联产品",
             "file": "supplier-products"
         },
+        "subSuppliers": {
+            "search": "搜索下级供应商",
+            "supplier": "下级供应商",
+            "code": "代码",
+            "state": "beCPG 状态",
+            "file": "sub-suppliers"
+        },
         "activity": {
             "empty": "无往来记录",
             "message": "消息",
@@ -2110,7 +2124,8 @@ const LOCALE = {
             "blockingCatalog": "阻断性目录已满足"
         },
         "met": "已满足",
-        "unmet": "未满足"
+        "unmet": "未满足",
+        "progress": "已满足 {met}/{total} 项条件"
     },
     "components/monitor/supplier/SupplierBand#LABELS": {
         "erp": "ERP {code}",
@@ -2122,6 +2137,8 @@ const LOCALE = {
         "since": "已持续 {count} 天",
         "approved": "未触发任何暂停、续期或待定规则。",
         "actions": "供应商操作",
+        "parent": "隶属于",
+        "group": "{count} 个下级供应商",
         "verdict": "{status}："
     },
     "components/products/CatalogPanel#LABELS": {
@@ -2191,8 +2208,6 @@ const LOCALE = {
         "noDataHint": "此部分没有此产品的数据行。",
         "configTitle": "配置不可用",
         "configHint": "无法加载此部分的配置。其他标签页仍可使用。",
-        "documentsHint": "客户对此产品的要求及截止日期。",
-        "readOnly": "仅查看：数据需通过分配给您的任务录入。",
         "yes": "是",
         "no": "否"
     },

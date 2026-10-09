@@ -78,7 +78,7 @@ export function ActivityChart({ history }) {
                 { key: 'delay', tone: 'orange', label: local.delay, round: true },
             ]}
             />
-            <CockpitChart build={build} height={240} label={local.aria} />
+            <CockpitChart build={build} height={280} label={local.aria} />
         </>
     );
 }

@@ -701,6 +701,7 @@ const LOCALE = {
             "refused": "Recusado",
             "toValidate": "Em análise"
         },
+        "truncatedShort": "Janela: {scanned} fornecedores lidos",
         "truncated": "Base de fornecedores maior que a janela de leitura ({scanned} fornecedores de {total}): restrinja os filtros para obter uma matriz completa.",
         "scopeEmpty": "Nenhum fornecedor corresponde a este perímetro. Nenhuma consulta de documentos foi executada: os contadores acima são zero por construção, não medições.",
         "cellsScope": "células · sobre os {total} fornecedores da base",
@@ -842,6 +843,7 @@ const LOCALE = {
             "projects": "Projetos",
             "documents": "Documentos",
             "products": "Produtos",
+            "subSuppliers": "Subfornecedores",
             "history": "Histórico"
         },
         "status": "Status de homologação",
@@ -873,7 +875,6 @@ const LOCALE = {
             "sites": "Unidades",
             "subsidiaries": "Filiais",
             "parent": "Fornecedor principal",
-            "subSuppliers": "Subfornecedores",
             "catalogs": "Catálogos ativos"
         },
         "scorecard": "Avaliação",
@@ -1726,8 +1727,10 @@ const LOCALE = {
             "escalateTitle": "Escalar {target}",
             "suspendTitle": "Suspender {target}",
             "messageLabel": "Mensagem",
-            "messageHelp": "Publicada no fio de discussão do fornecedor — o mesmo que o portal e o Share exibem. O fornecedor a recebe por meio de suas assinaturas do Alfresco.",
-            "escalateHelp": "Publicada internamente no projeto aberto do fornecedor, nunca no fio que o fornecedor lê, mencionando o responsável. Sem projeto aberto, nada é publicado.",
+            "messageHelp": "Publicada no fio de discussão do fornecedor, que ele lê no portal e no beCPG.",
+            "escalateHelp": "Publicada internamente no projeto aberto do fornecedor, nunca no fio que ele lê.",
+            "messageLang": "Idioma da mensagem",
+            "supplierLang": "idioma do fornecedor",
             "messageRequired": "Uma mensagem é obrigatória.",
             "suspendWarning": "O status de homologação é calculado em tempo real, nunca armazenado: esta ação não grava “suspenso”. Ela inicia o processo de suspensão do cliente. Assim que o beCPG registrar a NC bloqueante, o status muda por si só.",
             "suspendIrreversible": "Um processo iniciado não pode ser cancelado pelo portal. Verifique a seleção.",
@@ -1750,10 +1753,11 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Iniciar um projeto",
-        "subtitle": "Um projeto de referenciamento por produto, como faz “Enviar ao fornecedor” no beCPG.",
+        "subtitle": "Um projeto de referenciamento por ficha, como faz “Enviar ao fornecedor” no beCPG.",
         "supplier": "Fornecedor",
         "supplierPlaceholder": "Escolha um fornecedor…",
         "scope": "Escopo",
+        "scopeSupplier": "A própria ficha do fornecedor",
         "scopeAll": "Todos os produtos deste fornecedor",
         "scopeOne": "Um produto",
         "entity": "Produto",
@@ -2060,7 +2064,10 @@ const LOCALE = {
     },
     "components/monitor/supplier/RiskScore#LABELS": {
         "ring": "Pontuação de risco {score} de 100, nível {level}",
-        "none": "Nenhum motivo de risco"
+        "none": "Nenhum motivo de risco",
+        "scale": "Escala de níveis",
+        "contributions": "O que compõe a pontuação",
+        "points": "+{points}"
     },
     "components/monitor/supplier/SheetLists#LABELS": {
         "documents": {
@@ -2086,6 +2093,13 @@ const LOCALE = {
             "empty": "Nenhum produto vinculado",
             "file": "produtos-fornecedor"
         },
+        "subSuppliers": {
+            "search": "Pesquisar um subfornecedor",
+            "supplier": "Subfornecedor",
+            "code": "Código",
+            "state": "Estado beCPG",
+            "file": "subfornecedores"
+        },
         "activity": {
             "empty": "Nenhuma interação registrada",
             "message": "Mensagem",
@@ -2110,7 +2124,8 @@ const LOCALE = {
             "blockingCatalog": "Catálogos bloqueantes atendidos"
         },
         "met": "atendida",
-        "unmet": "não atendida"
+        "unmet": "não atendida",
+        "progress": "{met} de {total} condição(ões) atendida(s)"
     },
     "components/monitor/supplier/SupplierBand#LABELS": {
         "erp": "ERP {code}",
@@ -2122,6 +2137,8 @@ const LOCALE = {
         "since": "há {count} dias",
         "approved": "nenhuma regra de suspensão, renovação ou espera se aplica.",
         "actions": "Ações do fornecedor",
+        "parent": "Vinculado a",
+        "group": "{count} subfornecedor(es)",
         "verdict": "{status}:"
     },
     "components/products/CatalogPanel#LABELS": {
@@ -2191,8 +2208,6 @@ const LOCALE = {
         "noDataHint": "Esta seção não contém nenhuma linha para este produto.",
         "configTitle": "Configuração indisponível",
         "configHint": "Não foi possível carregar a configuração desta seção. As outras abas continuam disponíveis.",
-        "documentsHint": "O que seu cliente espera para este produto, e até quando.",
-        "readOnly": "Somente consulta: o preenchimento é feito a partir da tarefa atribuída a você.",
         "yes": "Sim",
         "no": "Não"
     },
