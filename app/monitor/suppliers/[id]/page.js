@@ -371,7 +371,7 @@ function ScorecardCard({ scorecard, local, lang }) {
 
 function Overview({ sheet, history, local, lang, onOpen }) {
     return (
-        <div className="grid grid-cols-12 gap-4">
+        <div className="grid grid-cols-12 items-start gap-4">
             <Card title={<CardTitle title={local.status} help={local.statusHelp} />} icon="rule" animate={false} className="col-span-12 xl:col-span-7">
                 <StatusLadder
                     approval={sheet.approval}

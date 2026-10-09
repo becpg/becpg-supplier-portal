@@ -8,6 +8,7 @@
 import { useCallback, useMemo } from 'react';
 import { HistoryUnavailable } from '@/components/monitor/SupplierScorecard';
 import { BAR_MAX_WIDTH, CockpitChart, Legend, axisStyle, tooltipStyle } from '@/components/monitor/cockpit/parts';
+import { formatNumber } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
@@ -36,7 +37,10 @@ export function ActivityChart({ history }) {
     const points = useMemo(() => history?.points || [], [history]);
 
     const build = useCallback((palette) => ({
-        tooltip: tooltipStyle(palette, { trigger: 'axis' }),
+        tooltip: tooltipStyle(palette, {
+            trigger: 'axis',
+            valueFormatter: (value) => (typeof value === 'number' ? formatNumber(value, lang, { maximumFractionDigits: 0 }) : '-'),
+        }),
         grid: { left: 44, right: 48, top: 16, bottom: 28 },
         xAxis: axisStyle(palette, { type: 'category', data: points.map((point) => point.label), splitLine: { show: false } }),
         yAxis: [
@@ -62,7 +66,7 @@ export function ActivityChart({ history }) {
                 itemStyle: { color: palette.orange },
             },
         ],
-    }), [points, local]);
+    }), [points, local, lang]);
 
     if (!history?.available || points.length === 0) {
         return <HistoryUnavailable history={history?.available ? { available: false, reason: 'noData' } : history || { available: false, reason: 'unreachable' }} />;
