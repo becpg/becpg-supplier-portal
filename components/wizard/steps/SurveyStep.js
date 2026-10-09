@@ -131,6 +131,7 @@ function questionLabels(survey, ids) {
  *        autosave, and a control that accepts input it then discards is worse
  *        than no control.
  * @param {string} [props.readOnlyReason] `frozen` | `readAccess` | `noAssignedTask` | `wizardReadOnly`
+ * @param {boolean} [props.consultation=false] read by the customer side: no read-only notice
  * @param {Function} [props.onComment] `({ nodeRef, label }) => void`
  * @param {Function} [props.onIssues] `(stepId, {count, labels}) => void` — the
  *        mandatory questions still blank, so the wizard can mark the step and
@@ -146,6 +147,7 @@ export function SurveyStep({
     readOnlyReason,
     onComment,
     onIssues,
+    consultation = false,
     className = '',
 }) {
     const { lang } = useMessages();
@@ -360,7 +362,7 @@ export function SurveyStep({
                 ) : null}
             </div>
 
-            {step.readOnly ? (
+            {step.readOnly && !consultation ? (
                 <ReadOnlyNotice reason={step.frozen ? 'frozen' : readOnlyReason || 'wizardReadOnly'} />
             ) : null}
 

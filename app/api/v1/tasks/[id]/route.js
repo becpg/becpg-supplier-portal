@@ -80,7 +80,11 @@ export async function GET(request, context) {
         if (!task) {
             throw new NotFoundError('Task not found');
         }
-        if (wizard) {
+        // The deliverable names the wizard (invariant I1); the state read ahead
+        // was resolved from the entity type, and is dropped when they differ —
+        // painting it showed the steps of another wizard, whose step ids the
+        // right one does not have.
+        if (wizard && (!task.wizardId || wizard.wizardId === task.wizardId)) {
             // Same rule as the wizard route: the per-step field definitions are
             // large, per-step and fetched one at a time as the supplier advances.
             task.wizard = withoutStepDefinitions(wizard);

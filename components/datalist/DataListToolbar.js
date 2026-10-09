@@ -18,7 +18,7 @@ import { useDataListLabels } from '@/components/datalist/useDataList';
 /**
  * @param {Object} props
  * @param {Object} props.list the `useDataList` instance
- * @param {React.ReactNode} [props.title] falls back to the step title from beCPG
+ * @param {React.ReactNode|null} [props.title] falls back to the step title from beCPG; `null` shows none
  * @param {React.ReactNode} [props.description]
  * @param {Function} [props.onAdd] `() => void`; omitted ⇒ no add button
  * @param {Function} [props.onShowShortcuts] opens the keyboard help
@@ -39,7 +39,8 @@ export function DataListToolbar({
     compact = false,
 }) {
     const label = useDataListLabels();
-    const heading = title ?? list.title;
+    // `null` and not `undefined`: the screen names the list itself.
+    const heading = title === null ? null : (title ?? list.title);
 
     if (compact) {
         return (

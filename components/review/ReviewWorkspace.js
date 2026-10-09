@@ -223,7 +223,7 @@ function SectionBody({ section, entityNodeRef, params, requirements, catalogs })
         return <FormStep entityId={entityNodeRef} step={step} params={params} autoSave={null} consultation />;
     }
     if (step.type === 'survey') {
-        return <SurveyStep entityId={entityNodeRef} step={step} params={params} autoSave={null} />;
+        return <SurveyStep entityId={entityNodeRef} step={step} params={params} autoSave={null} consultation />;
     }
     if (step.type === 'documents') {
         return (
@@ -241,7 +241,7 @@ function SectionBody({ section, entityNodeRef, params, requirements, catalogs })
             </RequirementChecklist>
         );
     }
-    return <DataListStep entityId={entityNodeRef} step={step} params={params} autoSave={null} consultation />;
+    return <DataListStep entityId={entityNodeRef} step={step} params={params} autoSave={null} consultation untitled />;
 }
 
 function CorrectionBox({ labels, onAdd, onCancel }) {
@@ -349,7 +349,7 @@ export function ReviewWorkspace({ task, taskId, entityNodeRef, wizardId, onDone 
     const router = useRouter();
 
     const wizard = useApi(entityNodeRef ? `wizard/${encodeURIComponent(entityNodeRef)}` : null, { params: { wizardId } });
-    const diff = useApi(entityNodeRef ? `entities/${encodeURIComponent(entityNodeRef)}/review-diff` : null);
+    const diff = useApi(entityNodeRef ? `entities/${encodeURIComponent(entityNodeRef)}/review-diff` : null, { params: { wizardId } });
     const catalogs = useApi(entityNodeRef ? `entities/${encodeURIComponent(entityNodeRef)}/catalogs` : null);
     const requirements = useApi(entityNodeRef ? 'documents/requirements' : null, { params: { entity: entityNodeRef } });
     const precheck = usePrecheck({ entityNodeRef, taskId: task.workflowTaskId });

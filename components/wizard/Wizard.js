@@ -81,6 +81,7 @@ import { AppShell } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
+import { useSession } from '@/components/providers/SessionProvider';
 import { Modal } from '@/components/ui/Modal';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/ui/StatusPill';
@@ -484,6 +485,7 @@ export function Wizard({
     const { lang, t } = useMessages();
     const labels = pickLabels(LABELS, lang);
     const toast = useToast();
+    const internalReader = useSession().space === 'monitor';
     const router = useRouter();
     const reduceMotion = useReducedMotion();
 
@@ -1586,6 +1588,9 @@ export function Wizard({
 
     const entity = wizardState.entity || {};
     const readOnlyReason = wizardState.readOnlyReason;
+    // The customer side reads a supplier's wizard: it is a consultation, not a
+    // form someone was locked out of, so no read-only notice is shown.
+    const consultation = Boolean(wizardState.readOnly) && internalReader;
     const stepReadOnlyReason = currentStep && currentStep.frozen ? 'frozen' : readOnlyReason;
 
     const stepContent = !currentStep ? null : currentStep.kind === 'documents' ? (
@@ -1593,6 +1598,7 @@ export function Wizard({
             entityNodeRef={entityNodeRef}
             step={currentStep}
             readOnlyReason={stepReadOnlyReason}
+            consultation={consultation}
             autoSave={autoSave}
             requirements={documents}
             onUploaded={(result, info) => {
@@ -1623,6 +1629,7 @@ export function Wizard({
             autoSave={autoSave}
             reloadNonce={reloadNonce}
             readOnlyReason={stepReadOnlyReason}
+            consultation={consultation}
             commentCounts={commentsEnabled ? discussion.counts : null}
             catalogGap={catalogGaps.byStep[currentStep.id] || null}
             onComment={
@@ -1642,6 +1649,7 @@ export function Wizard({
             params={params}
             autoSave={autoSave}
             readOnlyReason={stepReadOnlyReason}
+            consultation={consultation}
             onComment={commentsEnabled ? openComments : undefined}
             onIssues={reportStepIssues}
         />
@@ -1675,6 +1683,7 @@ export function Wizard({
             params={params}
             autoSave={autoSave}
             reloadNonce={reloadNonce}
+            consultation={consultation}
             onCommentTargets={setCommentTargets}
         />
     );
@@ -1867,7 +1876,7 @@ export function Wizard({
                     </div>
                 </div>
 
-                {wizardState.readOnly && readOnlyReason ? (
+                {wizardState.readOnly && readOnlyReason && !consultation ? (
                     <p className="mt-2 flex items-start gap-2 rounded-lg bg-[var(--becpg-grey)]/50 p-2 text-sm text-[var(--becpg-dark-grey-deep)]">
                         <Icon name="info" size={18} className="shrink-0" />
                         {labels.readOnlyReasons[readOnlyReason] || labels.readOnlyReasons.wizardReadOnly}

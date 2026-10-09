@@ -76,12 +76,21 @@ export function changesOfStep(diff, step) {
     return { kind: 'list', properties: [], list, count };
 }
 
+/** Longest value shown in full; the rest is in the tooltip. */
+const MAX_VALUE_LENGTH = 140;
+
+function Shown({ value, empty, className }) {
+    const text = value ?? empty;
+    const cut = text.length > MAX_VALUE_LENGTH ? `${text.slice(0, MAX_VALUE_LENGTH)}…` : text;
+    return <span className={`min-w-0 break-words [overflow-wrap:anywhere] rounded px-1 ${className}`} title={cut === text ? undefined : text}>{cut}</span>;
+}
+
 function Value({ before, after, labels }) {
     return (
-        <span className="inline-flex flex-wrap items-baseline gap-1.5 tabular-nums">
-            <span className="rounded bg-[var(--status-danger-bg)] px-1 text-xs text-[var(--status-danger)] line-through">{before ?? labels.empty}</span>
+        <span className="inline-flex min-w-0 max-w-full flex-wrap items-baseline gap-1.5 tabular-nums">
+            <Shown value={before} empty={labels.empty} className="bg-[var(--status-danger-bg)] text-xs text-[var(--status-danger)] line-through" />
             <Icon name="arrow_forward" size={13} className="text-[var(--becpg-muted)]" />
-            <span className="rounded bg-[var(--status-ok-bg)] px-1 text-[var(--status-ok)]">{after ?? labels.empty}</span>
+            <Shown value={after} empty={labels.empty} className="bg-[var(--status-ok-bg)] text-[var(--status-ok)]" />
         </span>
     );
 }
@@ -207,7 +216,7 @@ export function ReviewChanges({ changes, loading = false, onFlag = null, fieldLa
                 <Icon name={open ? 'expand_less' : 'expand_more'} size={18} />
             </button>
             {open ? (
-                <ul className="flex flex-col border-t border-[var(--status-info-border)] bg-white">
+                <ul className="flex max-h-[28rem] flex-col overflow-y-auto border-t border-[var(--status-info-border)] bg-white">
                     {rows.map((row) => (
                         <li key={row.key} className="grid grid-cols-1 items-start gap-2 border-b border-[var(--becpg-line)] px-3 py-2 last:border-0 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)_auto]">
                             <span className="truncate text-sm font-medium" title={row.label}>{row.label}</span>

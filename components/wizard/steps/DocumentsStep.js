@@ -67,6 +67,7 @@ function fill(template, vars) {
  * @param {string} props.entityNodeRef the entity the documents hang on
  * @param {Object} props.step the computed step (`readOnly` / `frozen` included)
  * @param {string|null} [props.readOnlyReason]
+ * @param {boolean} [props.consultation=false] read by the customer side: no read-only notice
  * @param {Object} [props.autoSave] the wizard's indicator, notified on deposit
  * @param {Function} [props.onUploaded] `(result, { attempt, last }) => void` — the wizard
  *        refreshes the AI panel, once the deposit has settled
@@ -82,6 +83,7 @@ export function DocumentsStep({
     autoSave,
     onUploaded,
     requirements,
+    consultation = false,
     className = '',
 }) {
     const { lang } = useMessages();
@@ -129,7 +131,7 @@ export function DocumentsStep({
 
     return (
         <div className={`min-w-0 ${className}`}>
-            {readOnly ? (
+            {readOnly && !consultation ? (
                 <StepReadOnlyNotice
                     reason={step.frozen ? 'frozen' : readOnlyReason || 'wizardReadOnly'}
                     lang={lang}

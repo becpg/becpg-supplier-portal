@@ -74,6 +74,7 @@ function commentTargetsOf(list, rowLabel) {
  * @param {Function} [props.onCommentTargets] `(targets) => void` — publishes the rows
  * @param {Function} [props.onDirty] called when the grid holds unsaved rows
  * @param {boolean} [props.consultation=false] a review: compact list header, no read-only notice
+ * @param {boolean} [props.untitled=false] the screen already names the list above it
  * @param {string} [props.className]
  */
 export function DataListStep({
@@ -84,6 +85,7 @@ export function DataListStep({
     reloadNonce = 0,
     onCommentTargets,
     consultation = false,
+    untitled = false,
     className = '',
 }) {
     const { lang } = useMessages();
@@ -175,13 +177,13 @@ export function DataListStep({
             // beCPG's own glyph for this characteristic list, next to the name
             // it gave the step — the same picture the product sheet's tab bar
             // and section headers use.
-            title={
+            title={untitled ? null : (
                 <span className="inline-flex items-center gap-2">
                     <ListIcon type={step.listName || step.listId || step.type} size={18} />
                     {/* A review names the list; the step's title is an instruction to fill it. */}
                     {consultation ? step.label || step.title : step.title || step.label}
                 </span>
-            }
+            )}
             description={consultation ? undefined : (step.title && step.label !== step.title ? step.label : undefined)}
             consultation={consultation}
             className={className}

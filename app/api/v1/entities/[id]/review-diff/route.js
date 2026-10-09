@@ -28,7 +28,8 @@ export async function GET(request, context) {
         if (!session) {
             throw new AuthError('No portal session');
         }
-        const payload = await getReviewDiff({ session, entity: id, lang: await resolveLang(session) });
+        const wizardId = new URL(request.url).searchParams.get('wizardId') || null;
+        const payload = await getReviewDiff({ session, entity: id, lang: await resolveLang(session), wizardId });
         const response = NextResponse.json(payload, { status: 200 });
         response.headers.set('Cache-Control', 'private, no-store');
         return response;
