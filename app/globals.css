@@ -286,6 +286,7 @@
   --becpg-grid-cell-padding: 9px 10px;
   --becpg-grid-control-height: 26px;
   --becpg-grid-row-border: var(--becpg-line);
+  --becpg-grid-edge-shadow: rgba(0, 66, 84, 0.3);
   --becpg-grid-header-border: var(--becpg-line);
   --becpg-grid-header-color: var(--becpg-muted);
 
@@ -1441,17 +1442,28 @@ body {
   z-index: 2;
 }
 
-/* Where the pinned part ends and the scrolling part begins — drawn only while
-   the grid is actually scrolled that way (`markScroll` writes the attribute).
-   A shadow rather than a border: a border takes a pixel from the cell and
-   shifts the whole column the moment it appears. */
+/* Where the pinned part ends and the scrolling part begins, drawn only while
+   something is hidden on that side (`markScroll` writes the attribute). A soft
+   shadow cast over the scrolling columns says "there is more this way"; a hairline
+   alone went unnoticed. A shadow rather than a border: a border takes a pixel
+   from the cell and shifts the whole column the moment it appears. */
 .table-scroll[data-scrolled-start='true'] .becpg-grid [data-sticky-edge='true'] {
-  box-shadow: 1px 0 0 var(--becpg-grid-row-border);
+  box-shadow: 1px 0 0 var(--becpg-grid-row-border), 14px 0 14px -10px var(--becpg-grid-edge-shadow);
 }
 
 .table-scroll[data-scrolled-end='true'] .becpg-grid td[data-sticky='end'],
 .table-scroll[data-scrolled-end='true'] .becpg-grid th[data-sticky='end'] {
-  box-shadow: -1px 0 0 var(--becpg-grid-row-border);
+  box-shadow: -1px 0 0 var(--becpg-grid-row-border), -14px 0 14px -10px var(--becpg-grid-edge-shadow);
+}
+
+/* Right to left, the pinned columns swap sides and so do their shadows. */
+[dir='rtl'] .table-scroll[data-scrolled-start='true'] .becpg-grid [data-sticky-edge='true'] {
+  box-shadow: -1px 0 0 var(--becpg-grid-row-border), -14px 0 14px -10px var(--becpg-grid-edge-shadow);
+}
+
+[dir='rtl'] .table-scroll[data-scrolled-end='true'] .becpg-grid td[data-sticky='end'],
+[dir='rtl'] .table-scroll[data-scrolled-end='true'] .becpg-grid th[data-sticky='end'] {
+  box-shadow: 1px 0 0 var(--becpg-grid-row-border), 14px 0 14px -10px var(--becpg-grid-edge-shadow);
 }
 
 /* Share draws no vertical rules at all (`border-right: 0` on every cell). */

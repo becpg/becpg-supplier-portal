@@ -578,6 +578,25 @@ export function DataListEditor({
             node.scrollLeft + node.clientWidth < node.scrollWidth - 1 ? 'true' : 'false';
     }, []);
 
+    /*
+     * The rows and the columns arrive after the scroller mounts, and a grid
+     * that becomes wider than its box fires no scroll event: without watching
+     * its size, the hint that columns are hidden on the right never showed.
+     */
+    const [scroller, setScroller] = useState(null);
+    useEffect(() => {
+        if (!scroller || typeof ResizeObserver === 'undefined') {
+            return undefined;
+        }
+        markScroll(scroller);
+        const observer = new ResizeObserver(() => markScroll(scroller));
+        observer.observe(scroller);
+        if (scroller.querySelector('table')) {
+            observer.observe(scroller.querySelector('table'));
+        }
+        return () => observer.disconnect();
+    }, [scroller, markScroll]);
+
     const undoPaste = useCallback(() => {
         if (pasteReport) {
             list.discardRows(pasteReport.keys);
@@ -829,7 +848,7 @@ export function DataListEditor({
                       * arrangement as the ingredient grid in the administration.
                       */}
                     <div
-                        ref={markScroll}
+                        ref={setScroller}
                         className="table-scroll hidden rounded-2xl border border-[var(--becpg-line)] bg-white shadow-[var(--becpg-shadow-raised)] md:block"
                         data-sticky="true"
                         onScroll={(event) => markScroll(event.currentTarget)}

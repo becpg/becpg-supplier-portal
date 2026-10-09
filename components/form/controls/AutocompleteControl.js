@@ -87,6 +87,7 @@ import { ListIcon } from '@/components/ui/ListIcon';
 import { hasListIcon } from '@/lib/listIcons';
 import { controlParams } from '@/components/form/validation';
 import { ReadOnlyControl } from '@/components/form/controls/ReadOnlyControl';
+import { useInGridCell } from '@/components/form/controls/GridCellContext';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** Pause after the last keystroke before querying, in ms. */
@@ -385,6 +386,7 @@ export function DatasourcePicker({
     ...rest
 }) {
     const labels = pickLabels(LABELS, lang);
+    const inGrid = useInGridCell();
     const params = controlParams(field);
     const many = multiple === undefined ? isMultiple(field) : multiple;
     const saveTitle = params.saveTitle === true || params.saveTitle === 'true';
@@ -905,10 +907,15 @@ export function DatasourcePicker({
         </div>
     );
 
+    // In a grid cell the chosen values and the field share one line, so a row
+    // keeps its height; the field then needs no placeholder beside its chips.
+    const inline = inGrid && many;
+    const placeholder = inline && selected.length > 0 ? '' : singleLabel || labels.search;
+
     return (
-        <div className="relative" {...rest}>
+        <div className={inline ? 'relative flex flex-wrap items-center gap-1' : 'relative'} {...rest}>
             {many && selected.length > 0 ? (
-                <ul className="mb-1 flex flex-wrap gap-1">
+                <ul className={inline ? 'contents' : 'mb-1 flex flex-wrap gap-1'}>
                     {selected.map((entry) => (
                         <li
                             key={entry}
@@ -928,7 +935,7 @@ export function DatasourcePicker({
                 </ul>
             ) : null}
 
-            <div ref={anchorRef} className="flex items-center gap-1">
+            <div ref={anchorRef} className={inline ? 'flex min-w-[4rem] flex-1 items-center gap-1' : 'flex items-center gap-1'}>
                 <Input
                     ref={inputRef}
                     id={id}
@@ -948,7 +955,7 @@ export function DatasourcePicker({
                      * the whole edit, without a request and without the risk of
                      * committing the old label by pressing ↵ on it.
                      */
-                    placeholder={singleLabel || labels.search}
+                    placeholder={placeholder}
                     invalid={Boolean(error) || invalid}
                     className="min-w-0 flex-1"
                     onChange={(event) => {
