@@ -100,8 +100,6 @@ const LABELS = defineLabels('components/products/ProductSections#LABELS', {
         configTitle: 'Configuration indisponible',
         configHint:
             'La configuration de cette section n’a pas pu être chargée. Les autres onglets restent consultables.',
-        documentsHint: 'Ce que votre client attend sur ce produit, et pour quand.',
-        readOnly: 'Consultation seule : la saisie se fait depuis la tâche qui vous est assignée.',
         yes: 'Oui',
         no: 'Non',
     },
@@ -120,8 +118,6 @@ const LABELS = defineLabels('components/products/ProductSections#LABELS', {
         configTitle: 'Configuration unavailable',
         configHint:
             'The configuration of this section could not be loaded. The other tabs remain available.',
-        documentsHint: 'What your customer expects on this product, and by when.',
-        readOnly: 'View only: data entry happens from the task assigned to you.',
         yes: 'Yes',
         no: 'No',
     },
@@ -620,11 +616,11 @@ function PanelSkeleton({ variant }) {
  *
  * @param {Object} props
  */
-function StepHeader({ step, labels }) {
-    const title = step.label || step.title || '';
-    const subtitle = step.title && step.title !== title ? step.title : labels.readOnly;
+function StepHeader({ step }) {
+    // No subtitle: the step's own text is an instruction to someone filling the
+    // wizard in ("please answer…"), which a consultation does not ask anyone.
     // Same glyph as the tab that opened this panel — one list, one picture.
-    return <SectionHeader title={title} subtitle={subtitle} icon={<ListIcon type={stepIconType(step)} size={18} />} />;
+    return <SectionHeader title={step.label || step.title || ''} icon={<ListIcon type={stepIconType(step)} size={18} />} />;
 }
 
 /**
@@ -659,7 +655,7 @@ function ListPanel({ entityId, step, params, labels }) {
     if (list.error && rows.length === 0) {
         return (
             <>
-                <StepHeader step={step} labels={labels} />
+                <StepHeader step={step} />
                 {isConfigUnavailable(list.error) ? (
                     <EmptyState
                         variant="error"
@@ -679,7 +675,7 @@ function ListPanel({ entityId, step, params, labels }) {
     if (rows.length === 0) {
         return (
             <>
-                <StepHeader step={step} labels={labels} />
+                <StepHeader step={step} />
                 <EmptyState
                     variant="empty"
                     icon="table_rows"
@@ -695,6 +691,7 @@ function ListPanel({ entityId, step, params, labels }) {
             entityId={entityId}
             list={list}
             readOnly
+            consultation
             // A node, not a string: the grid's own heading gets the same glyph as
             // the tab and the card header, and `DataListEditor` already types
             // `title` as a ReactNode — nothing in components/datalist changes.
@@ -704,7 +701,6 @@ function ListPanel({ entityId, step, params, labels }) {
                     {step.label || step.title}
                 </span>
             }
-            description={step.title && step.title !== step.label ? step.title : undefined}
         />
     );
 }
@@ -740,7 +736,7 @@ function SurveyPanel({ entityId, step, params, labels }) {
     if (call.error && !data) {
         return (
             <>
-                <StepHeader step={step} labels={labels} />
+                <StepHeader step={step} />
                 {isConfigUnavailable(call.error) ? (
                     <EmptyState
                         variant="error"
@@ -759,7 +755,7 @@ function SurveyPanel({ entityId, step, params, labels }) {
 
     return (
         <div className="min-w-0">
-            <StepHeader step={step} labels={labels} />
+            <StepHeader step={step} />
             {questions.length === 0 ? (
                 <EmptyState variant="empty" icon="quiz" title={labels.noData} message={labels.noDataHint} />
             ) : (
@@ -803,16 +799,21 @@ function DocumentsPanel({ nodeRef, step, labels }) {
     const requirements = useApi(nodeRef ? 'documents/requirements' : null, {
         params: { entity: nodeRef },
     });
+    const groups = (requirements.data && requirements.data.groups) || [];
+    // The folder below lists only what the check-list does not already draw.
+    const shownByChecklist = groups
+        .flatMap((group) => group.items || [])
+        .filter((item) => item.isProvided && item.nodeRef)
+        .map((item) => item.nodeRef);
 
     return (
         <div className="min-w-0">
             <SectionHeader
                 title={(step && (step.label || step.title)) || labels.documents}
-                subtitle={(step && step.title !== step.label && step.title) || labels.documentsHint}
                 icon={<ListIcon type={step ? stepIconType(step) : 'documents'} size={18} />}
             />
             <RequirementChecklist
-                groups={(requirements.data && requirements.data.groups) || []}
+                groups={groups}
                 summary={requirements.data ? requirements.data.summary : null}
                 loading={requirements.loading}
                 error={requirements.error}
@@ -820,11 +821,12 @@ function DocumentsPanel({ nodeRef, step, labels }) {
                 onUploaded={requirements.refresh}
                 groupByEntity={false}
             />
-            {/* The check-list only knows the typed requirements. The folder itself
-                holds everything else — the signed sheet in particular, which carries
-                no document type — and this is the screen a supplier opens to check
-                what was actually filed. */}
-            <DepositedDocuments entityNodeRef={nodeRef} className="mt-4" />
+            {/* The check-list only knows the typed requirements; the rest of the
+                folder (the signed sheet carries no document type) follows it in the
+                same list, and renders nothing when there is no such file. */}
+            {requirements.loading ? null : (
+                <DepositedDocuments entityNodeRef={nodeRef} exclude={shownByChecklist} bare className="mt-3" />
+            )}
         </div>
     );
 }
@@ -874,7 +876,7 @@ function SectionPanel({ tab, entity, entityId, params, lang, labels }) {
     // rather than paint an empty rectangle.
     return (
         <>
-            {step ? <StepHeader step={step} labels={labels} /> : null}
+            {step ? <StepHeader step={step} /> : null}
             <EmptyState variant="empty" icon="help_outline" title={labels.configTitle} message={labels.configHint} />
         </>
     );

@@ -151,6 +151,8 @@ async function resolveAssociations(pending, context, cache) {
  * @param {React.ReactNode} [props.title] defaults to the list title returned by beCPG
  * @param {React.ReactNode} [props.description] the step instructions, already translated
  * @param {boolean} [props.readOnly=false] forces read-only on top of the server verdict
+ * @param {boolean} [props.consultation=false] a sheet read, not a step filled in: compact
+ *        toolbar, and no read-only explanation, since nobody is trying to write
  * @param {number} [props.pageSize=25]
  * @param {{column: string, asc: boolean}} [props.initialSort]
  * @param {boolean} [props.dense=false] tighter table rows
@@ -168,6 +170,7 @@ export function DataListEditor({
     title,
     description,
     readOnly = false,
+    consultation = false,
     pageSize = 25,
     initialSort = null,
     dense = false,
@@ -618,12 +621,13 @@ export function DataListEditor({
                 list={list}
                 title={title}
                 description={description}
+                compact={consultation}
                 onAdd={editable ? () => handleAdd() : undefined}
                 onShowShortcuts={editable ? () => setShortcutsOpen(true) : undefined}
                 actions={actions}
             />
 
-            {list.readOnly ? <ReadOnlyNotice reason={list.readOnlyReason} /> : null}
+            {list.readOnly && !consultation ? <ReadOnlyNotice reason={list.readOnlyReason} /> : null}
 
             {/*
               * The paste report — the honest half of the feature.

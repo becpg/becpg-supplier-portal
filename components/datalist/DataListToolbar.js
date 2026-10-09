@@ -24,6 +24,9 @@ import { useDataListLabels } from '@/components/datalist/useDataList';
  * @param {Function} [props.onShowShortcuts] opens the keyboard help
  * @param {React.ReactNode} [props.actions] extra buttons (export, AI suggestions…)
  * @param {boolean} [props.showSearch=true]
+ * @param {boolean} [props.compact=false] consultation: the title, the search and the
+ *        count on one line, without the read-only marker nor the instructions, which
+ *        speak to someone entering data
  */
 export function DataListToolbar({
     list,
@@ -33,9 +36,31 @@ export function DataListToolbar({
     onShowShortcuts,
     actions,
     showSearch = true,
+    compact = false,
 }) {
     const label = useDataListLabels();
     const heading = title ?? list.title;
+
+    if (compact) {
+        return (
+            <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                {heading ? <h2 className="text-base font-medium text-[var(--becpg-blue)]">{heading}</h2> : null}
+                {list.readOnlyReason === 'frozen' ? (
+                    <StatusPill status="valid" tone="ok" icon="verified" size="sm" label={label('frozenTitle')} />
+                ) : null}
+                {showSearch ? (
+                    <div className={SEARCH_SLOT_CLASS}>
+                        <SearchInput value={list.filter} onChange={list.setFilter} placeholder={label('search')} />
+                    </div>
+                ) : null}
+                <span className="inline-flex items-center gap-1 text-xs text-[var(--becpg-dark-grey)]">
+                    {list.loading ? <Spinner size={12} /> : <Icon name="table_rows" size={14} />}
+                    {label('rows', { count: list.total })}
+                </span>
+                {actions ? <div className="ms-auto flex items-center gap-2">{actions}</div> : null}
+            </div>
+        );
+    }
 
     return (
         <div className="mb-3 flex flex-col gap-2">

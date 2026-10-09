@@ -39,6 +39,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { formatDate } from '@/lib/format';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { RichText } from '@/components/ui/RichText';
 
 /** `workspace://SpacesStore/<uuid>` → `<uuid>`, for a portal route. */
 function nodeRefUuid(nodeRef) {
@@ -276,7 +277,7 @@ export function ProductHeader({
             </div>
 
             <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-[var(--becpg-grey)] pt-4 sm:grid-cols-3 lg:grid-cols-4">
-                <Fact label={labels.legalName}>{entity.legalName}</Fact>
+                <Fact label={labels.legalName}>{entity.legalName ? <RichText value={entity.legalName} inline /> : null}</Fact>
                 <Fact label={labels.erpCode} icon="qr_code_2">
                     {entity.erpCode}
                 </Fact>
