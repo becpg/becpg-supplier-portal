@@ -25,7 +25,7 @@
  *    being silently cut.
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppShell, PageHeader } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -46,6 +46,8 @@ import { WindowNotice } from '@/components/monitor/WindowNotice';
 import { DocumentScene } from '@/components/monitor/DocumentScene';
 import { CockpitTabs } from '@/components/monitor/cockpit/CockpitTabs';
 import { SkeletonCard } from '@/components/ui/Skeleton';
+import { ErrorState } from '@/components/ui/EmptyState';
+import { fetchAllPages } from '@/lib/listExport';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 const LABELS = defineLabels('app/monitor/documents/page#LABELS', {
@@ -153,6 +155,46 @@ const LABELS = defineLabels('app/monitor/documents/page#LABELS', {
 const STATUSES = ['missing', 'refused', 'expired', 'expiring', 'toValidate', 'valid'];
 
 const PAGE_SIZES = [25, 50, 100];
+
+/**
+ * The 3D view reads the whole filtered perimeter, not the page the matrix shows:
+ * a landscape of 25 suppliers out of 174 would hide the very ones to chase.
+ */
+function SceneTab({ params, columns, onDone }) {
+    const query = useMemo(() => {
+        const { page: _page, pageSize: _pageSize, ...filters } = params;
+        return filters;
+    }, [params]);
+    const [state, setState] = useState({ key: null, rows: [], error: null });
+    const key = JSON.stringify(query);
+    useEffect(() => {
+        let cancelled = false;
+        fetchAllPages({ path: 'monitor/documents', query, itemsKey: 'rows' })
+            .then(({ rows }) => {
+                if (!cancelled) {
+                    setState({ key, rows, error: null });
+                }
+            })
+            .catch((error) => {
+                console.error('Document scene: the perimeter could not be read', error?.status);
+                if (!cancelled) {
+                    setState({ key, rows: [], error });
+                }
+            });
+        return () => {
+            cancelled = true;
+        };
+        // `key` carries the filters by value.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [key]);
+    if (state.key !== key) {
+        return <SkeletonCard lines={8} />;
+    }
+    if (state.error) {
+        return <ErrorState error={state.error} />;
+    }
+    return <DocumentScene columns={columns} rows={state.rows} onDone={onDone} />;
+}
 
 /** Where the last view opened is remembered, per viewer. */
 const VIEW_STORAGE_KEY = 'becpg_portal_documents_view';
@@ -467,9 +509,9 @@ export default function MonitorDocumentsPage() {
                         id: 'scene',
                         label: labels.sceneView,
                         icon: 'view_in_ar',
-                        render: () => (matrix.loading && !data ? <SkeletonCard lines={8} /> : (
-                            <DocumentScene columns={(data && data.columns) || []} rows={(data && data.rows) || []} onDone={matrix.refresh} />
-                        )),
+                        render: () => (
+                            <SceneTab params={params} columns={(data && data.columns) || []} onDone={matrix.refresh} />
+                        ),
                     },
                 ]}
             />
