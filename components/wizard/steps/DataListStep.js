@@ -73,6 +73,7 @@ function commentTargetsOf(list, rowLabel) {
  *        into the entity from outside the grid — an applied AI suggestion
  * @param {Function} [props.onCommentTargets] `(targets) => void` — publishes the rows
  * @param {Function} [props.onDirty] called when the grid holds unsaved rows
+ * @param {boolean} [props.consultation=false] a review: compact list header, no read-only notice
  * @param {string} [props.className]
  */
 export function DataListStep({
@@ -82,6 +83,7 @@ export function DataListStep({
     autoSave,
     reloadNonce = 0,
     onCommentTargets,
+    consultation = false,
     className = '',
 }) {
     const { lang } = useMessages();
@@ -179,7 +181,8 @@ export function DataListStep({
                     {step.title || step.label}
                 </span>
             }
-            description={step.title && step.label !== step.title ? step.label : undefined}
+            description={consultation ? undefined : (step.title && step.label !== step.title ? step.label : undefined)}
+            consultation={consultation}
             className={className}
         />
     );

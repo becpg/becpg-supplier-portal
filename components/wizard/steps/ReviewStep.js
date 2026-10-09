@@ -43,11 +43,13 @@ import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { portalCatalogs } from '@/lib/catalogs';
 import { defineLabels, pickLabels } from '@/lib/i18n';
+import { useSession } from '@/components/providers/SessionProvider';
 
 const LABELS = defineLabels('components/wizard/steps/ReviewStep#LABELS', {
     fr: {
         title: 'Conformité',
         subtitle: 'Ce qui manque encore pour que votre client puisse valider la fiche.',
+        subtitleInternal: 'Ce qui manque encore sur la fiche du fournisseur.',
         blocking: 'Catalogue(s) bloquant(s) : {names}',
         blockingHint: 'Complétez les champs manquants ci-dessous pour pouvoir terminer.',
         ready: 'Tous les catalogues bloquants sont satisfaits',
@@ -71,6 +73,7 @@ const LABELS = defineLabels('components/wizard/steps/ReviewStep#LABELS', {
     en: {
         title: 'Compliance',
         subtitle: 'What is still missing before your customer can validate the sheet.',
+        subtitleInternal: 'What is still missing on the supplier’s sheet.',
         blocking: 'Blocking catalog(s): {names}',
         blockingHint: 'Fill in the missing fields below to be able to finish.',
         ready: 'Every blocking catalog is satisfied',
@@ -197,6 +200,7 @@ export function ComplianceStep({
 }) {
     const { lang } = useMessages();
     const labels = pickLabels(LABELS, lang);
+    const internal = useSession().space === 'monitor';
 
     const blocking = useMemo(
         () => blockingCatalogs(catalogs, blockingIds, { translations: blockingTranslations }),
@@ -212,7 +216,7 @@ export function ComplianceStep({
         <div className={`min-w-0 ${className}`}>
             <div className="mb-3">
                 <h2 className="text-base font-medium text-[var(--becpg-blue)]">{labels.title}</h2>
-                <p className="text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
+                <p className="text-sm text-[var(--becpg-dark-grey)]">{internal ? labels.subtitleInternal : labels.subtitle}</p>
             </div>
 
             {!loading && !error ? (
@@ -224,7 +228,7 @@ export function ComplianceStep({
                             icon="report"
                             size="sm"
                             label={fill(labels.blocking, {
-                                names: blocking.map((catalog) => catalog.label).join(', '),
+                                names: [...new Set(blocking.map((catalog) => catalog.label))].join(', '),
                             })}
                         />
                     ) : unsatisfied.length > 0 ? (
@@ -234,7 +238,7 @@ export function ComplianceStep({
                             icon="edit_note"
                             size="sm"
                             label={fill(labels.incomplete, {
-                                names: unsatisfied.map((catalog) => catalog.label).join(', '),
+                                names: [...new Set(unsatisfied.map((catalog) => catalog.label))].join(', '),
                             })}
                         />
                     ) : (

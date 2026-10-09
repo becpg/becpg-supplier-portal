@@ -36,11 +36,14 @@ import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 import { DateText } from '@/components/ui/DateText';
+import { useSession } from '@/components/providers/SessionProvider';
 
 const LABELS = defineLabels('components/wizard/panels/CommentsPanel#LABELS', {
     fr: {
         title: 'Discussion',
         subtitle: 'Vos échanges avec votre client sur cette fiche',
+        subtitleInternal: 'Vos échanges avec le fournisseur sur cette fiche',
+        emptyHintInternal: 'Posez une question au fournisseur, ou répondez à une de ses remarques.',
         placeholder: 'Écrire un message…',
         send: 'Envoyer',
         empty: 'Aucun message',
@@ -68,6 +71,8 @@ const LABELS = defineLabels('components/wizard/panels/CommentsPanel#LABELS', {
     en: {
         title: 'Discussion',
         subtitle: 'Your exchanges with your customer on this sheet',
+        subtitleInternal: 'Your exchanges with the supplier on this sheet',
+        emptyHintInternal: 'Ask the supplier a question, or answer one of their remarks.',
         placeholder: 'Write a message…',
         send: 'Send',
         empty: 'No message',
@@ -251,7 +256,7 @@ function MessageItem({ message, index, lang, labels }) {
                 <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-[var(--becpg-grey)]/60 px-1.5 py-0.5 text-[11px] text-[var(--becpg-dark-grey-deep)]">
                     <Icon name="my_location" size={12} />
                     {message.field
-                        ? fill(labels.anchored, { label: message.field })
+                        ? fill(labels.anchored, { label: message.fieldLabel || message.field })
                         : anchorOf(message.source, labels)}
                 </span>
             ) : null}
@@ -295,6 +300,8 @@ export function CommentsPanel({
 }) {
     const { lang } = useMessages();
     const labels = pickLabels(LABELS, lang);
+    // The same thread, read by the customer: it speaks to the supplier, not about "your customer".
+    const internal = useSession().space === 'monitor';
     const [draft, setDraft] = useState('');
     const [sendError, setSendError] = useState(null);
 
@@ -413,7 +420,7 @@ export function CommentsPanel({
                     icon="forum"
                     compact
                     title={field || !onEntityThread ? labels.emptyAnchored : labels.empty}
-                    message={field || !onEntityThread ? undefined : labels.emptyHint}
+                    message={field || !onEntityThread ? undefined : (internal ? labels.emptyHintInternal : labels.emptyHint)}
                 />
             ) : (
                 <ul className="flex max-h-[26rem] flex-col gap-2 overflow-y-auto pe-0.5">
@@ -478,7 +485,7 @@ export function CommentsPanel({
     return (
         <Card
             title={title || labels.title}
-            subtitle={labels.subtitle}
+            subtitle={internal ? labels.subtitleInternal : labels.subtitle}
             icon="forum"
             padding="md"
             className={className}

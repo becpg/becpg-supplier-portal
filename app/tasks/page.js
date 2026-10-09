@@ -68,6 +68,7 @@ const LOCAL = defineLabels('app/tasks/page#LOCAL', {
         colProgress: 'Avancement',
         kpiTotal: 'Tâches',
         kpiLate: 'En retard',
+        kpiReview: 'À relire',
         kpiNext: 'Prochaine échéance',
         kpiNone: 'Aucune',
         reset: 'Réinitialiser',
@@ -111,6 +112,7 @@ const LOCAL = defineLabels('app/tasks/page#LOCAL', {
         colProgress: 'Progress',
         kpiTotal: 'Tasks',
         kpiLate: 'Late',
+        kpiReview: 'To review',
         kpiNext: 'Next due date',
         kpiNone: 'None',
         reset: 'Reset',
@@ -134,6 +136,9 @@ const LOCAL = defineLabels('app/tasks/page#LOCAL', {
 
 /** How many tasks a single read pulls; the adapter caps its own scan anyway. */
 const PAGE_SIZE = 100;
+
+/** The task type of a review: the reader looks at a sheet and decides. */
+const REVIEW_TYPE = 'review';
 
 /** `'{count} tâche(s)'` + `{count: 3}` → `'3 tâche(s)'`. */
 function fill(template, vars) {
@@ -497,7 +502,7 @@ function TasksScreen() {
                 </p>
             ) : null}
 
-            <StatGrid columns={3} className="mb-4">
+            <StatGrid columns={space === 'monitor' ? 4 : 3} className="mb-4">
                 <StatCard
                     label={local.kpiTotal}
                     value={counters.total || 0}
@@ -521,6 +526,22 @@ function TasksScreen() {
                         <span className="pill pill-info pill-sm pill-no-dot"><Icon name="filter_alt" size={12} /></span>
                     ) : null}
                 />
+                {/* The reviews of supplier sheets are the customer side's own work. */}
+                {space === 'monitor' ? (
+                    <StatCard
+                        label={local.kpiReview}
+                        value={(counters.byType && counters.byType[REVIEW_TYPE]) || 0}
+                        icon="rate_review"
+                        tone="info"
+                        loading={loading}
+                        index={2}
+                        onClick={() => patch({ type: filters.type === REVIEW_TYPE ? '' : REVIEW_TYPE })}
+                        aria-pressed={filters.type === REVIEW_TYPE}
+                        badge={filters.type === REVIEW_TYPE ? (
+                            <span className="pill pill-info pill-sm pill-no-dot"><Icon name="filter_alt" size={12} /></span>
+                        ) : null}
+                    />
+                ) : null}
                 <StatCard
                     label={local.kpiNext}
                     value={nextDue || local.kpiNone}

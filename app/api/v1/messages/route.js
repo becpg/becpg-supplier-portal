@@ -85,6 +85,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { classLabels } from '@/lib/adapters/dictionary';
 import { BadRequestError, toApiResponse } from '@/lib/errors';
 import {
     becpgJson,
@@ -376,6 +377,36 @@ async function readNodeThread(descriptor, { session, pageSize }) {
 }
 
 /**
+ * Names the field a message hangs on with the label the reader knows: the
+ * anchor stores the property's qname, which no reviewer reads. One dictionary
+ * read for the entity's type, and only when a message is anchored on a field.
+ *
+ * @param {Object[]} messages
+ * @param {string} nodeRef the entity
+ * @param {Object} session
+ * @returns {Promise<Object[]>} the messages, `fieldLabel` set where it is known
+ */
+async function nameFields(messages, nodeRef, session) {
+    if (!messages.some((message) => message.field)) {
+        return messages;
+    }
+    try {
+        const entity = await getJson('becpg/remote/entity', {
+            query: { nodeRef, lists: 'none', fields: 'cm:name' },
+            session,
+        });
+        const labels = await classLabels(session, entity?.entity?.type || 'bcpg:product');
+        return messages.map((message) => (message.field
+            ? { ...message, fieldLabel: labels[message.field] || null }
+            : message));
+    }
+    catch (error) {
+        logWarn('messages.fieldLabels.unavailable', { route: 'messages', status: error?.status });
+        return messages;
+    }
+}
+
+/**
  * @param {Request} request
  * @returns {Promise<Response>}
  */
@@ -440,6 +471,8 @@ export async function GET(request) {
                 .sort((a, b) => Date.parse(b.createdOn || 0) - Date.parse(a.createdOn || 0));
             aggregate = { scope: 'entity', sources: nodes.length, truncated };
         }
+
+        messages = await nameFields(messages, nodeRef, session);
 
         const response = NextResponse.json({
             nodeRef,

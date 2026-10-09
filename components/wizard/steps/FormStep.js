@@ -140,6 +140,7 @@ export function StepReadOnlyNotice({ reason, lang = 'fr', className = '' }) {
  *        mandatory fields still blank, so the wizard can mark the step and refuse
  *        to finish. Reported, never enforced here: this step does not own
  *        "Terminer".
+ * @param {boolean} [props.consultation=false] a review: no read-only notice
  * @param {string} [props.className]
  */
 export function FormStep({
@@ -156,6 +157,7 @@ export function FormStep({
     focusLocale = null,
     onLoaded,
     onIssues,
+    consultation = false,
     className = '',
 }) {
     const { lang } = useMessages();
@@ -410,7 +412,8 @@ export function FormStep({
 
     return (
         <div className={`min-w-0 ${className}`}>
-            {readOnly ? (
+            {/* A reviewer reads, he does not try to write: no "read only" notice. */}
+            {readOnly && !consultation ? (
                 <StepReadOnlyNotice
                     reason={step.frozen ? 'frozen' : readOnlyReason || 'wizardReadOnly'}
                     lang={lang}

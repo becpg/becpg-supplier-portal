@@ -54,6 +54,8 @@ import { DocumentsStep } from '@/components/wizard/steps/DocumentsStep';
 import { useDocumentRequirements } from '@/components/wizard/TechnicalSheetBanner';
 import { SignatureFlow } from '@/components/signature/SignatureFlow';
 import { DocumentViewer } from '@/components/documents/DocumentViewer';
+import { ReviewWorkspace } from '@/components/review/ReviewWorkspace';
+import { useSession } from '@/components/providers/SessionProvider';
 import { Button } from '@/components/ui/Button';
 import { RichText } from '@/components/ui/RichText';
 import { useMediaQuery } from '@/lib/useMediaQuery';
@@ -166,6 +168,7 @@ function TaskRouter() {
     const [viewing, setViewing] = useState(null);
     // Where the discussion goes: the side column from `lg`, under the sheet below.
     const wide = useMediaQuery(WIDE_LAYOUT);
+    const internal = useSession().space === 'monitor';
 
     // The wizard id comes from the deliverable URL when it carries one — the
     // deliverable is the authority, not the entity type (invariant I1).
@@ -280,6 +283,17 @@ function TaskRouter() {
     }
 
     /* --------------------------------------------------------------- review */
+
+    // A reviewer of the customer works the review section by section, with what
+    // changed since the validated reference; a supplier asked to look keeps the
+    // plain read-only sheet below.
+    if (data.type === 'review' && internal && !data.documentNodeRef) {
+        return (
+            <AppShell ownHeading title={data.name || labels.loading} fullWidth>
+                <ReviewWorkspace task={data} taskId={id} entityNodeRef={entityNodeRef} wizardId={wizardId} onDone={task.refresh} />
+            </AppShell>
+        );
+    }
 
     /*
      * The review is an internal user's screen: the « Validation » task of the
