@@ -10,11 +10,13 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button, ButtonGroup } from '@/components/ui/Button';
 import { Field, Input, Select, Textarea } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/providers/ToastProvider';
 import { collectPages } from '@/components/monitor/StartCampaignDialog';
+import { ncHref } from '@/components/monitor/NonConformityList';
 import { api } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
@@ -98,6 +100,7 @@ export function StartNcDialog({ open, onClose, supplier = null, onStarted }) {
     const { lang } = useMessages();
     const labels = pickLabels(LABELS, lang);
     const toast = useToast();
+    const router = useRouter();
     const [form, setForm] = useState({ supplier: '', product: '', batch: '', priority: DEFAULT_PRIORITY, dueDate: '', description: '' });
     const [busy, setBusy] = useState(false);
 
@@ -131,6 +134,11 @@ export function StartNcDialog({ open, onClose, supplier = null, onStarted }) {
             toast.success(labels.started);
             onStarted?.(payload);
             onClose();
+            // The NC opens right away: in the list a new one sorts last, as the
+            // youngest of the open ones.
+            if (payload?.nc?.nodeRef) {
+                router.push(ncHref(payload.nc.nodeRef));
+            }
         }
         catch (error) {
             toast.error(error);
