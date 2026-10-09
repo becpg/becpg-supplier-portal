@@ -35,7 +35,7 @@ import { AuthError, NotFoundError, toApiResponse } from '@/lib/errors';
 import { createBecpgClient } from '@/lib/adapters/session';
 import { getTask, peekTaskEntity } from '@/lib/adapters/tasks';
 import { buildEntityIndex } from '@/lib/adapters/entities';
-import { getWizardState, withoutStepDefinitions } from '@/lib/adapters/wizard';
+import { getWizardState, stepForRemarks, withoutStepDefinitions } from '@/lib/adapters/wizard';
 import { getWorkflowTask, isWorkflowTaskId } from '@/lib/adapters/workflowTasks';
 
 export const runtime = 'nodejs';
@@ -88,6 +88,9 @@ export async function GET(request, context) {
             // Same rule as the wizard route: the per-step field definitions are
             // large, per-step and fetched one at a time as the supplier advances.
             task.wizard = withoutStepDefinitions(wizard);
+            // Read here, while the definitions are still at hand: the wizard
+            // opens a task sent back on the step its refusal names.
+            task.refusalStepId = stepForRemarks(wizard, task.refusals);
         }
 
         if (task.entityNodeRef) {

@@ -35,6 +35,13 @@ const nextConfig = {
     // worker is a proper bundled asset.
     serverExternalPackages: ['pdfjs-dist'],
 
+    // Metadata is resolved before the first byte for every client, not streamed
+    // into the body. Streamed, the <title> sits in a suspended boundary whose
+    // fallback is empty: while a screen loads the tab has no title and the
+    // browser shows the raw URL. Every title here is a cookie read and a label
+    // lookup - no beCPG call - so blocking on it costs nothing measurable.
+    htmlLimitedBots: /.*/,
+
     // ... and the worker file has to BE THERE, which externalising does not
     // guarantee. The tracer copies what it can see imported; pdf.js reaches its
     // worker through a URL computed from its own module URL, so the standalone

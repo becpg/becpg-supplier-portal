@@ -13,6 +13,7 @@
  * | Type / family | `description` content | Rendering |
  * |---|---|---|
  * | `DocumentReview`, `RegulatoryToxSummary` | HTML (becpg-ai FreeMarker templates) | rich text |
+ * | any, with `sections` | titled display rows, already translated | name / value tables |
  * | family `DocumentExtraction` | JSON `[{name, value, confidence}]` | name / value table |
  * | `I18n` | `key : value ; key : value` | one row per language |
  * | `SpellCheck` | JSON `[{value, state, order}]` | sentence, corrections highlighted |
@@ -75,9 +76,18 @@ export function isApplicableSuggestion(suggestion) {
     if (Array.isArray(suggestion.plan) && suggestion.plan.length > 0) {
         return true;
     }
+    // Decided by the adapter on the patch itself, empty values excluded.
+    if (typeof suggestion.applicable === 'boolean') {
+        return suggestion.applicable;
+    }
     // `changes` is the flattening of `suggestedChanges`: non-empty, there is
     // something to write; empty, the envelope was empty too.
     return Array.isArray(suggestion.changes) && suggestion.changes.length > 0;
+}
+
+/** True when the suggestion carries display rows of its own. */
+function hasSections(suggestion) {
+    return Array.isArray(suggestion.sections) && suggestion.sections.length > 0;
 }
 
 /**
@@ -99,6 +109,9 @@ export function hasTypedBody(suggestion) {
         return true;
     }
     if (suggestion.type === 'CreationPlan' && Array.isArray(suggestion.plan) && suggestion.plan.length > 0) {
+        return true;
+    }
+    if (hasSections(suggestion)) {
         return true;
     }
     const trimmed = String(suggestion.rawDescription || '').trim();
@@ -428,6 +441,52 @@ function PlanRows({ plan }) {
 }
 
 /**
+ * A row of a section as the extraction table reads it: a line of a datalist
+ * is spelled out column by column rather than as its squashed value.
+ *
+ * @param {Object} section `{ columns, rows }`
+ * @returns {Function} `(row) => { name, value, previousValue, notApplicable }`
+ */
+function sectionRow(section) {
+    return (row) => {
+        const cells = Array.isArray(row.cells) && section.columns.length > 0
+            ? row.cells
+                .map((cell, index) => (cell && section.columns[index] ? `${section.columns[index]} : ${cell}` : ''))
+                .filter(Boolean)
+            : [];
+        return {
+            name: row.name,
+            value: cells.length > 0 ? cells.join(' · ') : row.value,
+            previousValue: row.previousValue,
+            notApplicable: row.notApplicable,
+        };
+    };
+}
+
+/**
+ * The sections of a suggestion, each under its title when it has one.
+ *
+ * @param {Object} props
+ * @param {Object[]} props.sections normalised by the adapter (`readSections`)
+ * @param {boolean} [props.compact]
+ * @param {string} [props.className]
+ */
+function SectionTables({ sections, compact, className = '' }) {
+    return (
+        <div className={className}>
+            {sections.map((section, index) => (
+                <div key={`${section.title || ''}-${index}`}>
+                    {section.title ? (
+                        <p className="mt-1.5 text-xs font-medium text-[var(--becpg-dark-grey)]">{section.title}</p>
+                    ) : null}
+                    <ExtractionTable rows={section.rows.map(sectionRow(section))} compact={compact} />
+                </div>
+            ))}
+        </div>
+    );
+}
+
+/**
  * The body of a suggestion.
  *
  * @param {Object} props
@@ -457,6 +516,10 @@ export function SuggestionBody({ suggestion, compact = false, className = '' }) 
 
     if (suggestion.type === 'CreationPlan' && Array.isArray(suggestion.plan) && suggestion.plan.length > 0) {
         return <div className={className}><PlanRows plan={suggestion.plan} /></div>;
+    }
+
+    if (hasSections(suggestion)) {
+        return <SectionTables sections={suggestion.sections} compact={compact} className={className} />;
     }
 
     if (trimmed === '') {

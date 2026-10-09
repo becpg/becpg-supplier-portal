@@ -79,7 +79,7 @@ import { useRouter } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { AppShell } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
-import { DocumentUpload } from '@/components/documents/DocumentUpload';
+import { DocumentUpload, uploadTargetOf } from '@/components/documents/DocumentUpload';
 import { Card } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { useSession } from '@/components/providers/SessionProvider';
@@ -106,6 +106,7 @@ import { useMessages } from '@/lib/messages';
 import { formatDate } from '@/lib/format';
 import { catalogGapsByStep, portalCatalogs, stepForMissingField } from '@/lib/catalogs';
 import { suggestionScopeForStep } from '@/lib/suggestionScope';
+import { useSuggestionsElsewhere } from '@/components/wizard/useSuggestionsElsewhere';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /**
@@ -215,9 +216,92 @@ const SYNTHETIC = Object.freeze({
     COMPLIANCE: '__compliance',
 });
 
-/** localStorage key holding where the supplier was — "reprise exacte" (spec §4.4). */
-function resumeKey(entityId) {
-    return `becpg.portal.wizard.${entityId}`;
+/** localStorage key holding the steps this browser has opened on one record. */
+function visitedKey(entityId) {
+    return `becpg.portal.wizard.${entityId}.visited`;
+}
+
+/**
+ * The steps already opened on this record, so a reopened task does not call
+ * every step « not visited yet ».
+ *
+ * @param {string} entityId
+ * @returns {string[]} step ids, `[]` when nothing is stored or storage is off
+ */
+function readVisited(entityId) {
+    if (typeof window === 'undefined' || !entityId) {
+        return [];
+    }
+    try {
+        const parsed = JSON.parse(window.localStorage.getItem(visitedKey(entityId)) || '[]');
+        return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string') : [];
+    }
+    catch {
+        return [];
+    }
+}
+
+/**
+ * @param {string} entityId
+ * @param {string[]|null} visited `null` forgets the record
+ */
+function writeVisited(entityId, visited) {
+    try {
+        if (visited) {
+            window.localStorage.setItem(visitedKey(entityId), JSON.stringify(visited));
+        }
+        else {
+            window.localStorage.removeItem(visitedKey(entityId));
+        }
+    }
+    catch {
+        // No storage (private window): the marks last as long as the page.
+    }
+}
+
+/** Quiet time after a write or a step change before the step verdicts are re-read. */
+const VERDICT_REREAD_DELAY_MS = 2500;
+
+/**
+ * The verdicts a fresh wizard state carries: each step's completion, and the
+ * catalogue score the entity stored at its last formulation.
+ *
+ * @param {Object} state payload of `GET /api/v1/wizard/{entityId}`
+ * @returns {{completion: Object.<string, Object>, catalogs: ?Object[]}}
+ */
+function servedVerdictsOf(state) {
+    const completion = {};
+    for (const step of state?.steps || []) {
+        if (step?.completion) {
+            completion[step.id] = step.completion;
+        }
+    }
+    return { completion, catalogs: Array.isArray(state?.catalogs) ? state.catalogs : null };
+}
+
+/**
+ * Where the wizard opens when no step was asked for explicitly.
+ *
+ * The step the refusal names, when the task was sent back and its wording
+ * named one; else the first step something is reported missing on; else the
+ * first step. The documents step comes last among the incomplete ones: a
+ * missing certificate usually follows from the entry, and opening on it sent a
+ * supplier asked to fix a label to the end of the sheet.
+ *
+ * @param {Object[]} steps step view models
+ * @param {Object} context
+ * @param {?string} context.refusalStepId resolved by the task route
+ * @param {Object.<string, {count: number}>} context.verdicts
+ * @param {Object.<string, {count: number}>} context.catalogGaps
+ * @returns {string} a step id
+ */
+function openingStepId(steps, { refusalStepId, verdicts, catalogGaps }) {
+    if (refusalStepId && steps.some((step) => step.id === refusalStepId)) {
+        return refusalStepId;
+    }
+    const incomplete = steps.filter((step) => (verdicts[step.id]?.count || 0) > 0
+        || (catalogGaps[step.id]?.count || 0) > 0);
+    return (incomplete.find((step) => step.kind !== 'documents') || incomplete[0] || steps[0]).id;
 }
 
 /**
@@ -521,10 +605,15 @@ export function Wizard({
         [wizardState, labels],
     );
 
-    // Where the supplier was, in order of authority: an explicit prop, the URL,
-    // the last visit. "Reprise exacte à l'étape en cours" (spec §4.4, F2).
-    // Read once, in a lazy initialiser: it is an entry condition, not a value
-    // that changes while the wizard is open.
+    /*
+     * A step asked for explicitly: the prop, else `?step=` — which `persist`
+     * keeps up to date, so a reload stays where the supplier was. Without one
+     * the wizard opens where the work is (see `openingStepId`), not on the last
+     * step this browser happened to show: that was Documents for a supplier
+     * whose sheet came back for its legal name.
+     * Read once, in a lazy initialiser: it is an entry condition, not a value
+     * that changes while the wizard is open.
+     */
     const [resumeStepId] = useState(() => {
         if (initialStepId) {
             return initialStepId;
@@ -532,19 +621,10 @@ export function Wizard({
         if (typeof window === 'undefined') {
             return '';
         }
-        const fromUrl = new URLSearchParams(window.location.search).get('step');
-        if (fromUrl) {
-            return fromUrl;
-        }
-        try {
-            return (entityId && window.localStorage.getItem(resumeKey(entityId))) || '';
-        }
-        catch {
-            return '';
-        }
+        return new URLSearchParams(window.location.search).get('step') || '';
     });
 
-    const [nav, setNav] = useState({ currentId: null, visited: [] });
+    const [nav, setNav] = useState(() => ({ currentId: null, visited: readVisited(entityId) }));
 
     /*
      * The requested step may exist ONLY AFTER the first render.
@@ -565,29 +645,7 @@ export function Wizard({
      */
     const [resumeDone, setResumeDone] = useState(false);
 
-    // Derived during render rather than in an effect: an effect would paint one
-    // frame of "no step" before settling (the pattern `useApi` uses too).
-    if (steps.length > 0) {
-        const resumeReachable = Boolean(resumeStepId) && steps.some((step) => step.id === resumeStepId);
-        const anchor = (target) => {
-            if (resumeReachable && target === resumeStepId) {
-                setResumeDone(true);
-            }
-            setNav((current) => ({
-                currentId: target,
-                visited: current.visited.includes(target) ? current.visited : [...current.visited, target],
-            }));
-        };
-
-        if (!steps.some((step) => step.id === nav.currentId)) {
-            anchor(resumeReachable ? resumeStepId : steps[0].id);
-        }
-        else if (!resumeDone && resumeReachable && nav.currentId !== resumeStepId) {
-            // The requested step has just appeared: honour it, at last.
-            anchor(resumeStepId);
-        }
-    }
-
+    // Anchored further down, once the verdicts the opening rule reads are known.
     const currentId = nav.currentId;
     const currentIndex = steps.findIndex((step) => step.id === currentId);
     const currentStep = currentIndex >= 0 ? steps[currentIndex] : null;
@@ -623,6 +681,15 @@ export function Wizard({
             : []),
         [suggestionsCall.data],
     );
+    const suggestionsElsewhere = useSuggestionsElsewhere({
+        entityId,
+        steps,
+        currentStep,
+        currentEmpty: Boolean(suggestionsCall.data) && !suggestionsCall.error && suggestions.length === 0
+            && !suggestionsCall.data.analysis?.running,
+        readAt: suggestionsCall.data?.readAt || null,
+        timeout: AI_TIMEOUT_MS,
+    });
 
     /* ------------------------------------------------- mandatory-entry gaps */
 
@@ -710,10 +777,16 @@ export function Wizard({
         };
     }, [documents.loading, documents.summary, documents.requirements]);
 
+    /*
+     * What the server ruled on its last re-read (see `rereadVerdicts`), which
+     * supersedes what it ruled when the wizard opened. `null` until one lands.
+     */
+    const [rereadState, setRereadState] = useState(null);
+
     const verdicts = useMemo(() => {
         const map = {};
         for (const step of steps) {
-            const served = step.completion;
+            const served = rereadState?.completion[step.id] || step.completion;
             if (served && served.evaluated) {
                 map[step.id] = { count: served.count || 0, labels: served.labels || [] };
             }
@@ -735,7 +808,7 @@ export function Wizard({
             }
         }
         return map;
-    }, [steps, stepIssues, documentVerdict]);
+    }, [steps, stepIssues, documentVerdict, rereadState]);
 
     const incompleteSteps = useMemo(
         () => steps.filter((step) => (verdicts[step.id]?.count || 0) > 0),
@@ -754,10 +827,20 @@ export function Wizard({
      */
     const wroteRef = useRef(false);
 
+    /*
+     * Bumped by every landed write and every step change; the step verdicts are
+     * re-read once it has stopped moving (see `rereadVerdicts`).
+     */
+    const [rereadTick, setRereadTick] = useState(0);
+
     const autoSave = useAutoSave({
         onError: (error) => toast.error(error),
-        onSaved: () => {
+        onSaved: (result, savedAt) => {
             wroteRef.current = true;
+            // `markWriting` reports here too, before the write has landed.
+            if (savedAt) {
+                setRereadTick((tick) => tick + 1);
+            }
         },
     });
 
@@ -897,8 +980,12 @@ export function Wizard({
      * rail when a task is reopened), then the two live reads.
      */
     const catalogList = useMemo(
-        () => mergeCatalogs([(wizardState && wizardState.catalogs) || [], freshCatalogs || []]),
-        [wizardState, freshCatalogs],
+        () => mergeCatalogs([
+            (wizardState && wizardState.catalogs) || [],
+            rereadState?.catalogs || [],
+            freshCatalogs || [],
+        ]),
+        [wizardState, rereadState, freshCatalogs],
     );
 
     // The step that edits a given list, so a catalogue check attached to a list
@@ -953,6 +1040,44 @@ export function Wizard({
         }),
         [steps, nav.visited, verdicts, catalogGaps],
     );
+
+    /*
+     * Which step is shown, decided during render rather than in an effect: an
+     * effect would paint one frame of "no step" before settling (the pattern
+     * `useApi` uses too). Placed after the verdicts because the opening rule
+     * reads them; the passes above it see no current step only on the render
+     * React discards for this very update.
+     */
+    if (steps.length > 0) {
+        const resumeReachable = Boolean(resumeStepId) && steps.some((step) => step.id === resumeStepId);
+        const anchor = (target) => {
+            if (resumeReachable && target === resumeStepId) {
+                setResumeDone(true);
+            }
+            setNav((current) => ({
+                currentId: target,
+                visited: current.visited.includes(target) ? current.visited : [...current.visited, target],
+            }));
+        };
+
+        if (!steps.some((step) => step.id === nav.currentId)) {
+            anchor(resumeReachable ? resumeStepId : openingStepId(steps, {
+                refusalStepId: task?.refusalStepId || null,
+                verdicts,
+                catalogGaps: catalogGaps.byStep,
+            }));
+        }
+        else if (!resumeDone && resumeReachable && nav.currentId !== resumeStepId) {
+            // The requested step has just appeared: honour it, at last.
+            anchor(resumeStepId);
+        }
+    }
+
+    useEffect(() => {
+        if (entityId && nav.visited.length > 0) {
+            writeVisited(entityId, nav.visited);
+        }
+    }, [entityId, nav.visited]);
     /*
      * WHICH CATALOGUES BLOCK: THE DELIVERABLE SAYS SO, AS IN SHARE.
      *
@@ -994,14 +1119,8 @@ export function Wizard({
 
     const persist = useCallback(
         (stepId) => {
-            if (typeof window === 'undefined' || !entityId) {
+            if (typeof window === 'undefined') {
                 return;
-            }
-            try {
-                window.localStorage.setItem(resumeKey(entityId), stepId);
-            }
-            catch {
-                // No storage (private window): the URL still carries the step.
             }
             const url = new URL(window.location.href);
             url.searchParams.set('step', stepId);
@@ -1009,7 +1128,7 @@ export function Wizard({
             // shareable without re-rendering the whole tree on every step.
             window.history.replaceState(window.history.state, '', url.toString());
         },
-        [entityId],
+        [],
     );
 
 
@@ -1106,6 +1225,58 @@ export function Wizard({
         },
         [entityId, params, wizardState, runHook],
     );
+
+    /**
+     * Re-reads what the server rules on each step, after the supplier wrote or
+     * moved on.
+     *
+     * The wizard state was read once, on opening, so a step completed since kept
+     * its "n missing" and a catalogue gap closed by a cell kept its « 1
+     * information attendue » until the page was reloaded. The fresh completions
+     * replace the live reports of the steps no longer mounted — those reports
+     * are older than this read — while the mounted step keeps reporting what is
+     * typed in it. The catalogues are re-read too, unless a step hook is
+     * running: `runHook` re-reads them when it lands, on a fresher entity.
+     *
+     * A failed read changes nothing on screen: the previous verdicts stay.
+     *
+     * @returns {Promise<void>} settled, never rejected
+     */
+    const rereadVerdicts = useCallback(async () => {
+        if (!entityId) {
+            return;
+        }
+        if (!formulatingRef.current) {
+            setCatalogsArmed(true);
+            catalogs.refresh();
+            wizardCatalog.refresh();
+        }
+        try {
+            const served = servedVerdictsOf(await api.get(`wizard/${encodeURIComponent(entityId)}`, { params }));
+            setRereadState(served);
+            // Only where the server did rule: a step it cannot judge keeps the
+            // last report its own definition gave.
+            setStepIssues((current) => Object.fromEntries(Object.entries(current)
+                .filter(([stepId]) => stepId === currentId || !served.completion[stepId]?.evaluated)));
+        }
+        catch (error) {
+            console.warn(`Wizard: step verdicts of ${entityId} not re-read, keeping the previous ones`, error);
+        }
+    }, [entityId, params, catalogs, wizardCatalog, currentId]);
+
+    // Through a ref so the timer below restarts on a tick only, never because a
+    // catalogue read it triggered changed the callback's identity.
+    const rereadRef = useRef(rereadVerdicts);
+    useEffect(() => {
+        rereadRef.current = rereadVerdicts;
+    });
+    useEffect(() => {
+        if (rereadTick === 0) {
+            return undefined;
+        }
+        const timer = setTimeout(() => rereadRef.current(), VERDICT_REREAD_DELAY_MS);
+        return () => clearTimeout(timer);
+    }, [rereadTick]);
 
     const goTo = useCallback(
         async (stepId, options = {}) => {
@@ -1215,6 +1386,7 @@ export function Wizard({
             }));
             setCommentTargets([]);
             persist(stepId);
+            setRereadTick((tick) => tick + 1);
 
             if (stepId === SYNTHETIC.COMPLIANCE) {
                 setComplianceSeen(true);
@@ -1405,12 +1577,7 @@ export function Wizard({
             await api.post(`tasks/${encodeURIComponent(task.uuid || task.id)}/complete`);
             toast.success(labels.finished);
             if (typeof window !== 'undefined' && entityId) {
-                try {
-                    window.localStorage.removeItem(resumeKey(entityId));
-                }
-                catch {
-                    // ignore
-                }
+                writeVisited(entityId, null);
             }
             router.push(backHref);
         }
@@ -1505,11 +1672,15 @@ export function Wizard({
         readOnly: wizardReadOnly,
         labelForField,
         onApplied: onSuggestionApplied,
+        readAt: suggestionsCall.data?.readAt || null,
+        elsewhere: suggestionsElsewhere,
+        onGoToStep: goTo,
+        documents: documents.requirements,
     }), [
         entityNodeRef, wizardEntity, suggestions, suggestionsCall.data, suggestionsCall.loading,
         suggestionsCall.refreshing, suggestionsCall.error, suggestionsCall.refresh,
         wizardReadOnly, labelForField,
-        onSuggestionApplied,
+        onSuggestionApplied, suggestionsElsewhere, goTo, documents.requirements,
     ]);
 
     /*
@@ -1517,16 +1688,20 @@ export function Wizard({
      * or any other document on the documents step.
      */
     const technicalSheet = documents.sheet;
+    // Same target and same validity as the band and the check-list row: a sheet
+    // renewed from here must move its expiry like one renewed from there.
+    const sheetTarget = technicalSheet ? uploadTargetOf(technicalSheet, entityNodeRef) : null;
     const documentsStep = steps.find((step) => step.kind === 'documents');
     const suggestionActions = wizardReadOnly ? null : (
         <div className="flex flex-col items-start gap-1.5">
             {technicalSheet ? (
                 <DocumentUpload
-                    documentRef={technicalSheet.uploadTarget?.documentRef}
-                    entityRef={technicalSheet.uploadTarget?.entityRef || entityNodeRef}
+                    documentRef={sheetTarget.documentRef}
+                    entityRef={sheetTarget.entityRef}
                     variant="inline"
                     compact
-                    action={technicalSheet.isProvided ? 'renew' : 'upload'}
+                    action={sheetTarget.action}
+                    validity={sheetTarget.validity}
                     label={technicalSheet.isProvided ? labels.renewSheet : labels.uploadSheet}
                     onUploaded={(result, info) => {
                         documents.refresh();

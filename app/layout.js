@@ -4,6 +4,7 @@ import "./globals.css";
 import { bcp47Of, dirOf, t as translate } from "@/config/messages";
 import { loadLocale } from "@/lib/i18n";
 import { resolveLang } from "@/lib/lang";
+import { PAGE_TITLE_TEMPLATE } from "@/lib/pageTitle";
 import { getSession, toPublicSession } from "@/lib/session";
 import { getTenant, toPublicTenant } from "@/lib/tenant";
 import { SessionProvider } from "@/components/providers/SessionProvider";
@@ -74,7 +75,9 @@ export async function generateMetadata() {
 
     return {
         ...THEME_METADATA,
-        title: `beCPG - ${title}`,
+        // Each route segment names itself through `lib/pageTitle.js`; the
+        // default covers the screens that do not.
+        title: { template: PAGE_TITLE_TEMPLATE, default: `${title} beCPG` },
         description: translate(lang, "app.description"),
         applicationName: `beCPG ${title}`,
         appleWebApp: { ...THEME_METADATA.appleWebApp, title: `beCPG ${translate(lang, "app.shortTitle")}` },

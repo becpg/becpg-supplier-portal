@@ -35,6 +35,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Button, ButtonGroup, Icon, Spinner } from '@/components/ui/Button';
+import { SupplierPicker } from '@/components/monitor/SupplierPicker';
 import { Field, Select } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/providers/ToastProvider';
@@ -46,7 +47,6 @@ const LABELS = defineLabels('components/monitor/StartCampaignDialog#LABELS', {
     fr: {
         title: 'Démarrer un projet',
         supplier: 'Fournisseur',
-        supplierPlaceholder: 'Choisir un fournisseur…',
         scope: 'Périmètre',
         scopeSupplier: 'La fiche fournisseur elle-même',
         scopeAll: 'Tous les produits de ce fournisseur',
@@ -75,7 +75,6 @@ const LABELS = defineLabels('components/monitor/StartCampaignDialog#LABELS', {
     en: {
         title: 'Start a project',
         supplier: 'Supplier',
-        supplierPlaceholder: 'Pick a supplier…',
         scope: 'Scope',
         scopeSupplier: 'The supplier record itself',
         scopeAll: 'Every product of this supplier',
@@ -336,17 +335,14 @@ export function StartCampaignDialog({ open, onClose, supplier = null, entity = n
             <div className="flex flex-col gap-3">
                 {supplier || entity ? null : (
                     <Field label={labels.supplier} required>
-                        <Select
+                        <SupplierPicker
+                            suppliers={suppliers.items}
+                            loading={suppliers.loading}
                             value={supplierRef}
-                            placeholder={labels.supplierPlaceholder}
-                            onChange={(event) => {
-                                setSupplierRef(event.target.value);
+                            onChange={(ref) => {
+                                setSupplierRef(ref);
                                 setEntityRef('');
                             }}
-                            options={suppliers.items.map((row) => ({
-                                value: row.nodeRef,
-                                label: [row.code, row.name].filter(Boolean).join(' — '),
-                            }))}
                         />
                         <ListingNotice
                             listing={suppliers}

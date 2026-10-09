@@ -29,7 +29,8 @@ import { GaugeBar } from '@/components/ui/Gauge';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonList } from '@/components/ui/Skeleton';
 import { download } from '@/lib/client';
-import { DocumentUpload, AiValidationBadge } from '@/components/documents/DocumentUpload';
+import { DocumentUpload, AiValidationBadge, uploadTargetOf } from '@/components/documents/DocumentUpload';
+import { AiVerdictContest } from '@/components/documents/AiVerdictContest';
 import { DocumentValidity } from '@/components/documents/DocumentValidity';
 import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import { ExpiryPill, ExpiryBar } from '@/components/documents/ExpiryPill';
@@ -60,6 +61,7 @@ const LABELS = defineLabels('components/documents/RequirementChecklist#LABELS', 
         aiHints: 'Remarques de l’analyse',
         deposit: 'Déposer un fichier',
         file: 'Fichier',
+        actionOn: '{action} : {document}',
     },
     en: {
         mandatory: 'Mandatory',
@@ -84,6 +86,7 @@ const LABELS = defineLabels('components/documents/RequirementChecklist#LABELS', 
         aiHints: 'Analysis notes',
         deposit: 'Upload a file',
         file: 'File',
+        actionOn: '{action}: {document}',
     },
 });
 
@@ -168,6 +171,9 @@ function RequirementRow({
     const [viewing, setViewing] = useState(false);
 
     const label = requirementLabel(requirement);
+    // Every row carries the same four actions: each name says which document it acts on.
+    const nameFor = (action) => fill(labels.actionOn, { action, document: label });
+    const target = uploadTargetOf(requirement);
     const canAct = Boolean(requirement.action) || requirement.status !== 'missing';
     const actionLabel = requirement.action === 'renew'
         ? labels.renew
@@ -254,6 +260,12 @@ function RequirementRow({
                             onSaved={onUploaded}
                             className="mt-1"
                         />
+                        <AiVerdictContest
+                            requirement={requirement}
+                            documentLabel={label}
+                            readOnly={readOnly}
+                            className="mt-1"
+                        />
                     </div>
 
                     <div className="flex shrink-0 items-center gap-1">
@@ -264,7 +276,7 @@ function RequirementRow({
                                 variant="outline"
                                 size="sm"
                                 icon={requirement.action === 'renew' ? 'autorenew' : 'upload_file'}
-                                label={actionLabel}
+                                label={nameFor(actionLabel)}
                                 onClick={() => setOpen(true)}
                             >
                                 <span className="hidden sm:inline">{actionLabel}</span>
@@ -284,7 +296,7 @@ function RequirementRow({
                         {requirement.downloadUrl ? (
                             <IconButton
                                 icon="visibility"
-                                label={labels.consult}
+                                label={nameFor(labels.consult)}
                                 variant="ghost"
                                 onClick={() => setViewing(true)}
                             />
@@ -292,14 +304,14 @@ function RequirementRow({
                         {requirement.downloadUrl ? (
                             <IconButton
                                 icon="download"
-                                label={labels.download}
+                                label={nameFor(labels.download)}
                                 variant="ghost"
                                 onClick={() => download(`documents/${requirement.id}/content`)}
                             />
                         ) : null}
                         <IconButton
                             icon={open ? 'expand_less' : 'expand_more'}
-                            label={open ? labels.hide : labels.details}
+                            label={nameFor(open ? labels.hide : labels.details)}
                             variant="ghost"
                             aria-expanded={open}
                             onClick={() => setOpen((value) => !value)}
@@ -356,18 +368,14 @@ function RequirementRow({
                                 <div className="mt-3">
                                     <DocumentUpload
                                         variant="inline"
-                                        action={requirement.action || 'upload'}
-                                        documentRef={requirement.nodeRef}
-                                        entityRef={requirement.entity ? requirement.entity.nodeRef : undefined}
+                                        action={target.action}
+                                        label={actionLabel}
+                                        documentRef={target.documentRef}
+                                        entityRef={target.entityRef || undefined}
                                         dropRef={rowRef}
                                         disabled={readOnly}
                                         disabledReason={labels.readOnly}
-                                        validity={{
-                                            editable: Boolean(requirement.validityEditable),
-                                            required: Boolean(requirement.validityRequired),
-                                            from: requirement.validFrom,
-                                            to: requirement.validTo,
-                                        }}
+                                        validity={target.validity}
                                         onUploaded={onUploaded}
                                         onCancel={() => setOpen(false)}
                                         autoFocus
@@ -458,7 +466,7 @@ function RequirementGroup({
                 </div>
                 <IconButton
                     icon={open ? 'expand_less' : 'expand_more'}
-                    label={open ? labels.hide : labels.details}
+                    label={fill(labels.actionOn, { action: open ? labels.hide : labels.details, document: entityName })}
                     aria-expanded={open}
                     onClick={() => setOpen((value) => !value)}
                 />

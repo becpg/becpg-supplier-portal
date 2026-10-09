@@ -37,7 +37,7 @@ import { useState } from 'react';
 import { Button, Icon } from '@/components/ui/Button';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api } from '@/lib/client';
-import { formatDate } from '@/lib/format';
+import { formatDate, toDayInput } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
@@ -89,18 +89,16 @@ function fill(template, vars) {
 
 /**
  * ISO instant → `YYYY-MM-DD`, the only form `<input type="date">` accepts.
- * `cm:from` / `cm:to` are `d:date`, so the day is read in UTC — the same day the
- * supplier typed, whatever timezone the browser is in.
+ *
+ * Read in the display zone, like every sentence that prints the same date: a
+ * date stored at local midnight is the previous day in UTC, and a box that
+ * disagrees with the line above it writes that previous day back on save.
  *
  * @param {string|null} value
  * @returns {string} `''` when there is no date
  */
 export function toInputDate(value) {
-    if (!value) {
-        return '';
-    }
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10);
+    return toDayInput(value);
 }
 
 /**

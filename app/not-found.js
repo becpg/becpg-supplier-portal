@@ -24,7 +24,8 @@ import { resolveLang } from '@/lib/lang';
 // Static by contract (`not-found.js` takes no `generateMetadata`), so the tab
 // title says what every language reads: the code, not a sentence.
 export const metadata = {
-    title: '404 — beCPG',
+    // Absolute: the root template would append « beCPG » a second time.
+    title: { absolute: '404 — beCPG' },
 };
 
 const LABELS = defineLabels('app/not-found#LABELS', {

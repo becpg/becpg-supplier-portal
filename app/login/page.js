@@ -41,7 +41,8 @@ export const dynamic = 'force-dynamic';
 
 /** The tab title, in the reader's language like the rest of the page. */
 export async function generateMetadata() {
-    return { title: `beCPG — ${t(await resolveLang(), 'account.login')}` };
+    // The root layout's template appends the product name.
+    return { title: t(await resolveLang(), 'account.login') };
 }
 
 /** Chrome strings owned by this page only (they never appear anywhere else). */

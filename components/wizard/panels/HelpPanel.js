@@ -152,6 +152,10 @@ export function HelpPanel({
                         readOnly={suggestions.readOnly}
                         onApplied={suggestions.onApplied}
                         labelForField={suggestions.labelForField}
+                        readAt={suggestions.readAt}
+                        elsewhere={suggestions.elsewhere}
+                        onGoToStep={suggestions.onGoToStep}
+                        documents={suggestions.documents}
                         emptyActions={suggestionActions}
                     />
                 </section>

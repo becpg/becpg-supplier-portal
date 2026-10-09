@@ -19,6 +19,8 @@ const LOCAL = defineLabels('components/dashboard/DashboardKpis#LOCAL', {
     fr: {
         approval: 'Statut d’agrément',
         approvalUnknown: 'Indisponible',
+        approvalSuppliers: '{count} fournisseurs',
+        approvalPickSupplier: 'Choisissez un fournisseur en haut de l’écran pour voir son statut.',
         validUntil: 'Valide jusqu’au {date}',
         noValidity: 'Aucune échéance connue',
         allGood: 'Aucun point bloquant',
@@ -43,6 +45,8 @@ const LOCAL = defineLabels('components/dashboard/DashboardKpis#LOCAL', {
     en: {
         approval: 'Approval status',
         approvalUnknown: 'Unavailable',
+        approvalSuppliers: '{count} suppliers',
+        approvalPickSupplier: 'Pick a supplier at the top of the screen to see its status.',
         validUntil: 'Valid until {date}',
         noValidity: 'No known deadline',
         allGood: 'Nothing is blocking',
@@ -123,6 +127,19 @@ function Hint({ children, className = '' }) {
     return <span className={`text-[11.5px] text-[var(--becpg-muted)] ${className}`}>{children}</span>;
 }
 
+/**
+ * « Tous les fournisseurs » on a multi-record account: an approval status
+ * belongs to one company, so the tile names how many are in play and asks for
+ * one rather than showing a status that would read as covering them all.
+ */
+function AllSuppliersApprovalKpi({ supplierCount, local }) {
+    return (
+        <Kpi href="/documents" icon="verified_user" label={local.approval} value={fill(local.approvalSuppliers, { count: supplierCount })}>
+            <Hint>{local.approvalPickSupplier}</Hint>
+        </Kpi>
+    );
+}
+
 function ApprovalKpi({ approval, supplier, validUntil, local, lang }) {
     const { t } = useMessages();
     const reasonLabels = pickLabels(REASONS, lang);
@@ -170,6 +187,8 @@ function CompletionKpi({ completion, local }) {
 
 function TasksKpi({ actions, local, lang }) {
     const open = actions?.open || 0;
+    // The scan stopped at its bound: the figure is a floor, said as such.
+    const shown = actions?.truncated ? `${open}+` : open;
     const late = actions?.late || 0;
     const nextDue = formatDate(actions?.nextDueDate, lang, { fallback: null });
     const parts = [
@@ -177,7 +196,7 @@ function TasksKpi({ actions, local, lang }) {
         { key: 'onTime', tone: 'teal', label: local.onTime, value: Math.max(open - late, 0) },
     ];
     return (
-        <Kpi href={late > 0 ? '/tasks?late=1' : '/tasks'} icon="assignment_turned_in" label={local.tasks} value={open}>
+        <Kpi href={late > 0 ? '/tasks?late=1' : '/tasks'} icon="assignment_turned_in" label={local.tasks} value={shown}>
             {open > 0 ? <SplitBar parts={parts} /> : null}
             {open > 0 ? <Legend items={parts.filter((part) => part.value > 0)} /> : null}
             <Hint>{open === 0 ? local.noTask : nextDue ? fill(local.nextDue, { date: nextDue }) : null}</Hint>
@@ -213,18 +232,24 @@ function DocumentsKpi({ documents, local }) {
 /**
  * @param {Object} props
  * @param {Object|null} props.approval `buildDashboard().approval`
- * @param {Object|null} props.supplier the record the approval is about
+ * @param {Object|null} props.supplier the record the approval is about, `null` under
+ *        « Tous les fournisseurs » on a multi-record account
+ * @param {number} [props.supplierCount] records the account acts for
  * @param {?string} props.validUntil nearest expiry of a mandatory document
  * @param {Object|null} props.completion `buildDashboard().completion`
  * @param {Object|null} props.actions `buildDashboard().actions`
  * @param {Object|null} props.documents `buildDashboard().documents`
  */
-export function DashboardKpis({ approval, supplier, validUntil, completion, actions, documents }) {
+export function DashboardKpis({ approval, supplier, supplierCount = 0, validUntil, completion, actions, documents }) {
     const { lang } = useMessages();
     const local = pickLabels(LOCAL, lang);
     return (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
-            <ApprovalKpi approval={approval} supplier={supplier} validUntil={validUntil} local={local} lang={lang} />
+            {!supplier && supplierCount > 1 ? (
+                <AllSuppliersApprovalKpi supplierCount={supplierCount} local={local} />
+            ) : (
+                <ApprovalKpi approval={approval} supplier={supplier} validUntil={validUntil} local={local} lang={lang} />
+            )}
             <CompletionKpi completion={completion} local={local} />
             <TasksKpi actions={actions} local={local} lang={lang} />
             <DocumentsKpi documents={documents} local={local} />

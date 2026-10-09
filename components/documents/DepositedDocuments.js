@@ -58,6 +58,7 @@ const LABELS = defineLabels('components/documents/DepositedDocuments#LABELS', {
         download: 'Télécharger',
         consult: 'Consulter',
         modified: 'Modifié le {date}',
+        actionOn: '{action} : {document}',
     },
     en: {
         title: 'Deposited documents',
@@ -68,8 +69,22 @@ const LABELS = defineLabels('components/documents/DepositedDocuments#LABELS', {
         download: 'Download',
         consult: 'View',
         modified: 'Modified on {date}',
+        actionOn: '{action}: {document}',
     },
 });
+
+/**
+ * The accessible name of a row action: every row carries the same buttons, so
+ * each one says which file it acts on.
+ *
+ * @param {Object} labels
+ * @param {string} action the action's own label
+ * @param {Object} item a row of the folder listing
+ * @returns {string}
+ */
+function actionName(labels, action, item) {
+    return labels.actionOn.replace('{action}', action).replace('{document}', item.title || item.name);
+}
 
 /**
  * Human file size. `null` for an unknown one — a "0 o" would read as an empty
@@ -196,13 +211,13 @@ export function DepositedDocuments({
                             <span className="flex shrink-0 items-center">
                                 <IconButton
                                     icon="visibility"
-                                    label={labels.consult}
+                                    label={actionName(labels, labels.consult, item)}
                                     variant="ghost"
                                     onClick={() => setViewing(item)}
                                 />
                                 <IconButton
                                     icon="download"
-                                    label={labels.download}
+                                    label={actionName(labels, labels.download, item)}
                                     variant="ghost"
                                     href={item.downloadUrl}
                                     external

@@ -45,6 +45,22 @@ const NAV_COLLAPSED_KEY = 'becpg.portal.nav.collapsed';
 /** Dispatched on the window so every mounted shell follows the same fold. */
 const NAV_COLLAPSED_EVENT = 'portalnavcollapsed';
 
+/** Badge scope key of « Tous les fournisseurs ». */
+const ALL_SUPPLIERS_SCOPE = 'all';
+
+/**
+ * The supplier scope the nav counters are computed for.
+ *
+ * @param {Object} session the `useSession()` value
+ * @returns {string|null} `'all'`, the scoped supplier nodeRef, or `null` while unknown
+ */
+function badgeScopeOf(session) {
+    if (session.scopeAll) {
+        return ALL_SUPPLIERS_SCOPE;
+    }
+    return session.scopedSupplier?.nodeRef ?? null;
+}
+
 /** Where the preference lives when there is no storage — a private window. */
 let navCollapsedFallback = false;
 
@@ -187,12 +203,15 @@ export function AppShell({
     const storedBadges = useSyncExternalStore(subscribeBadges, readBadges, serverBadges);
     const badgeKey = JSON.stringify(badges);
     const currentUser = session.user ? (session.user.username || session.user.sub || null) : null;
+    // A counter belongs to the supplier scope it was computed for: switching the
+    // top-bar supplier drops the others' figures instead of showing them as ours.
+    const currentScope = badgeScopeOf(session);
     useEffect(() => {
-        publishBadges(JSON.parse(badgeKey), currentUser);
+        publishBadges(JSON.parse(badgeKey), { user: currentUser, scope: currentScope });
         // `badges` is a literal recreated on every render: it is its value, not
         // its identity, that must trigger the publication — hence the serialised
         // key, which serves both as the dependency and as the source.
-    }, [badgeKey, currentUser]);
+    }, [badgeKey, currentUser, currentScope]);
     const mergedBadges = { ...storedBadges, ...badges };
 
     return (

@@ -47,7 +47,7 @@ import { Button, Icon, Spinner } from '@/components/ui/Button';
 import { useToast } from '@/components/providers/ToastProvider';
 import { ValidityFields, toInputDate } from '@/components/documents/DocumentValidity';
 import { AiReviewReport } from '@/components/documents/AiReviewReport';
-import { formatDateTime, plainText } from '@/lib/format';
+import { daysUntil, formatDateTime, plainText } from '@/lib/format';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 const LABELS = defineLabels('components/documents/DocumentUpload#LABELS', {
@@ -72,12 +72,14 @@ const LABELS = defineLabels('components/documents/DocumentUpload#LABELS', {
         accepted: 'Formats : {accept} — {max} maximum',
         aiValid: 'Document vérifié par l’IA',
         aiToValidate: 'À vérifier',
-        aiRefused: 'Document refusé par l’IA',
+        aiRefused: 'Non conforme selon l’IA',
         aiOn: 'Analysé le {date}',
         selected: 'Fichier sélectionné',
         validityHint: 'Les dates de validité portées sur le document.',
         validityInverted: 'La date de fin précède la date de début.',
         validityMissing: 'Renseignez la date de fin de validité avant de déposer le fichier.',
+        validityPast: 'La date de fin de validité est déjà passée : le document resterait expiré.',
+        fileInput: 'Choisir le fichier à déposer',
         validityNotApplied:
             'Le fichier est déposé, mais ses dates de validité n’ont pas été enregistrées. Renseignez-les sur la ligne du document.',
     },
@@ -102,12 +104,14 @@ const LABELS = defineLabels('components/documents/DocumentUpload#LABELS', {
         accepted: 'Formats: {accept} — {max} max',
         aiValid: 'Checked by AI',
         aiToValidate: 'To be checked',
-        aiRefused: 'Rejected by AI',
+        aiRefused: 'Flagged by AI',
         aiOn: 'Analysed on {date}',
         selected: 'Selected file',
         validityHint: 'The validity dates printed on the document.',
         validityInverted: 'The end date precedes the start date.',
         validityMissing: 'Fill in the end of validity before uploading the file.',
+        validityPast: 'The end of validity is already past: the document would stay expired.',
+        fileInput: 'Choose the file to upload',
         validityNotApplied:
             'The file is uploaded, but its validity dates were not saved. Fill them in on the document row.',
     },
@@ -214,12 +218,15 @@ function validateFile(file, { accept, maxBytes, labels }) {
  *
  * Same rule as the validity editor: an end before the start is refused, and a
  * row that requires its validity requires at least the end date, the one the
- * expiry follows. Checked before the upload, because once the file has landed
- * the route reports a refused date as a success with `validity.applied: false`.
+ * expiry follows. A renewal also refuses an end already past: renewing exists to
+ * move the expiry, and filing the new file under the old dates left the row
+ * expired with nothing telling the supplier why. Checked before the upload,
+ * because once the file has landed the route reports a refused date as a
+ * success with `validity.applied: false`.
  *
- * @param {{editable: boolean, required: boolean}|null} validity the row's verdict
+ * @param {{editable: boolean, required: boolean, renewing?: boolean}|null} validity the row's verdict
  * @param {{from: string, to: string}} dates `YYYY-MM-DD` strings, possibly empty
- * @returns {'validityInverted'|'validityMissing'|null}
+ * @returns {'validityInverted'|'validityMissing'|'validityPast'|null}
  */
 export function uploadValidityProblem(validity, dates) {
     if (!validity?.editable) {
@@ -231,23 +238,73 @@ export function uploadValidityProblem(validity, dates) {
     if (validity.required && !dates.to) {
         return 'validityMissing';
     }
+    if (validity.renewing && dates.to && daysUntil(dates.to) < 0) {
+        return 'validityPast';
+    }
     return null;
+}
+
+/** Statuses where a deposit replaces a window that is over or ending: new dates are expected. */
+const RENEWED_STATUSES = new Set(['expired', 'expiring']);
+
+/**
+ * Where a deposit against one requirement goes, and which validity it asks for.
+ *
+ * The single source for every control that files a document against a
+ * requirement - the check-list row, the technical sheet band, the context
+ * panel - so the three agree on the target and on the dates. They did not: the
+ * band and the panel sent no validity at all, so a technical sheet renewed
+ * from there landed on the right node and kept its expired end date.
+ *
+ * On a renewal the boxes start empty and the end date is required: the old
+ * window is the one being replaced, and pre-filling it re-wrote the expired
+ * date onto the new file.
+ *
+ * @param {Object} requirement a row of `GET /api/v1/documents/requirements`
+ * @param {string|null} [fallbackEntityRef] the entity to file under when the row names none
+ * @returns {{documentRef: string|null, entityRef: string|null, action: 'upload'|'renew',
+ *            validity: {editable: boolean, required: boolean, renewing: boolean,
+ *            from: string|null, to: string|null}}}
+ */
+export function uploadTargetOf(requirement, fallbackEntityRef = null) {
+    const renewing = RENEWED_STATUSES.has(requirement.status);
+    const editable = Boolean(requirement.validityEditable);
+    return {
+        documentRef: requirement.uploadTarget?.documentRef || requirement.nodeRef || null,
+        entityRef: requirement.uploadTarget?.entityRef || requirement.entity?.nodeRef || fallbackEntityRef,
+        action: requirement.action || (requirement.isProvided ? 'renew' : 'upload'),
+        validity: {
+            editable,
+            required: Boolean(requirement.validityRequired) || (renewing && editable),
+            renewing,
+            from: renewing ? null : requirement.validFrom ?? null,
+            to: renewing ? null : requirement.validTo ?? null,
+        },
+    };
 }
 
 /* -------------------------------------------------------------------------- */
 /* AI validation                                                               */
 /* -------------------------------------------------------------------------- */
 
+/** `bcpg:aiValidationState` value of a negative verdict. */
+export const AI_REFUSED_STATE = 'Refused';
+
+/*
+ * A negative AI verdict is painted as a warning, not as a refusal: it is advice
+ * for the customer, never a decision. Only `bcpg:documentState`, which the
+ * customer controls, refuses a document - and only that blocks finishing.
+ */
 const AI_TONES = {
     Valid: { tone: 'ok', icon: 'verified', key: 'aiValid' },
     ToValidate: { tone: 'info', icon: 'psychology', key: 'aiToValidate' },
-    Refused: { tone: 'danger', icon: 'report', key: 'aiRefused' },
+    [AI_REFUSED_STATE]: { tone: 'warn', icon: 'report_problem', key: 'aiRefused' },
 };
 
 const AI_PILL_CLASS = {
     ok: 'pill pill-ok pill-no-dot pill-sm',
     info: 'pill pill-info pill-no-dot pill-sm',
-    danger: 'pill pill-danger pill-no-dot pill-sm',
+    warn: 'pill pill-warn pill-no-dot pill-sm',
 };
 
 /**
@@ -343,8 +400,9 @@ export function AiValidationBadge({ state, hints, date, withHints = false, class
  *   fast path that avoids waiting for the index.
  * @param {Function} [props.onCancel] renders a cancel button in the inline variant
  * @param {{state: string|null, hints: string|null, date: string|null}} [props.aiValidation]
- * @param {{editable: boolean, required: boolean, from: string|null, to: string|null}} [props.validity]
- *   the row's validity verdict; the date boxes are rendered only when `editable`
+ * @param {{editable: boolean, required: boolean, renewing?: boolean, from: string|null, to: string|null}} [props.validity]
+ *   the row's validity verdict, as {@link uploadTargetOf} builds it; the date boxes are
+ *   rendered only when `editable`
  * @param {boolean} [props.autoFocus] focus the trigger on mount (row expanded by the user)
  * @param {string} [props.label] inline variant: the trigger's wording, instead of « Déposer »
  * @param {boolean} [props.compact] inline variant: no line of accepted formats beside the trigger
@@ -664,6 +722,10 @@ export function DocumentUpload({
             type="file"
             accept={accept}
             className="sr-only-text"
+            // Reached through the visible trigger: one tab stop, and a name for
+            // the screen readers that still list the input.
+            tabIndex={-1}
+            aria-label={label || labels.fileInput}
             onChange={(event) => {
                 onFiles(event.target.files);
                 // Let the same file be chosen twice in a row (retry after a failure).

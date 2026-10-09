@@ -51,6 +51,7 @@ import { getLiveSession } from '@/lib/session';
 import { cookies } from 'next/headers';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 import { resolveLang } from '@/lib/lang';
+import { PAGE_TITLE_TEMPLATE } from '@/lib/pageTitle';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,7 +86,12 @@ export async function generateMetadata() {
     const cookieStore = await cookies();
     const lang = await resolveLang();
     const local = pickLabels(LABELS, lang);
-    return { title: local.metaTitle, description: local.metaDescription };
+    // `metaTitle` already names beCPG; the monitoring sections below get the
+    // root template back.
+    return {
+        title: { absolute: local.metaTitle, template: PAGE_TITLE_TEMPLATE },
+        description: local.metaDescription,
+    };
 }
 
 /**

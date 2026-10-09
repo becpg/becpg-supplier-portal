@@ -12,6 +12,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, ButtonGroup } from '@/components/ui/Button';
+import { SupplierPicker } from '@/components/monitor/SupplierPicker';
 import { Field, Input, Select, Textarea } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/providers/ToastProvider';
@@ -25,7 +26,6 @@ const LABELS = defineLabels('components/monitor/StartNcDialog#LABELS', {
     fr: {
         title: 'Démarrer une non-conformité',
         supplier: 'Fournisseur',
-        supplierPlaceholder: 'Choisir un fournisseur…',
         product: 'Produit',
         productNone: 'Aucun produit en particulier',
         batch: 'Lot',
@@ -40,7 +40,6 @@ const LABELS = defineLabels('components/monitor/StartNcDialog#LABELS', {
     en: {
         title: 'Start a non-conformity',
         supplier: 'Supplier',
-        supplierPlaceholder: 'Pick a supplier…',
         product: 'Product',
         productNone: 'No product in particular',
         batch: 'Batch',
@@ -165,12 +164,12 @@ export function StartNcDialog({ open, onClose, supplier = null, onStarted }) {
             <div className="flex flex-col gap-3">
                 {supplier ? null : (
                     <Field label={labels.supplier} required id="nc-supplier">
-                        <Select
+                        <SupplierPicker
                             id="nc-supplier"
+                            suppliers={suppliers.items}
+                            loading={suppliers.loading}
                             value={form.supplier}
-                            placeholder={labels.supplierPlaceholder}
-                            onChange={set('supplier')}
-                            options={suppliers.items.map((row) => ({ value: row.nodeRef, label: [row.code, row.name].filter(Boolean).join(' · ') }))}
+                            onChange={(ref) => setForm((current) => ({ ...current, supplier: ref, product: '' }))}
                         />
                     </Field>
                 )}

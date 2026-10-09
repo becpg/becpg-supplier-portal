@@ -320,6 +320,34 @@ export function DataListCell({ row, column, list, context, autoFocus = false, la
     );
 }
 
+const PROGRESS_FLAG_CLASS = 'text-[var(--becpg-dark-grey)]';
+const SAVED_FLAG_CLASS = 'text-[var(--status-ok,green)]';
+
+/**
+ * A row status glyph that always carries its word.
+ *
+ * In the table the word is not printed — the actions cell has no room for it —
+ * so it becomes the hover title and the screen reader text instead: a green
+ * check on its own is a colour and a shape, not a status.
+ *
+ * @param {Object} props
+ * @param {string} props.text the status, in the user's language
+ * @param {boolean} props.compact glyph only (table layout)
+ * @param {string} props.className tone of the flag
+ * @param {React.ReactNode} props.children the glyph
+ */
+function StatusFlag({ text, compact, className, children }) {
+    return (
+        <span
+            className={`inline-flex items-center gap-1 text-xs ${className}`}
+            title={compact ? text : undefined}
+        >
+            {children}
+            {compact ? <span className="sr-only-text">{text}</span> : text}
+        </span>
+    );
+}
+
 /**
  * The per-row saving / saved / error indicator.
  *
@@ -338,26 +366,23 @@ export function RowStatus({ row, list, compact = false }) {
 
     if (status.state === ROW_STATUS.SAVING) {
         return (
-            <span className="inline-flex items-center gap-1 text-xs text-[var(--becpg-dark-grey)]">
+            <StatusFlag text={label('saving')} compact={compact} className={PROGRESS_FLAG_CLASS}>
                 <Spinner size={14} />
-                {compact ? null : label('saving')}
-            </span>
+            </StatusFlag>
         );
     }
     if (status.state === ROW_STATUS.DELETING) {
         return (
-            <span className="inline-flex items-center gap-1 text-xs text-[var(--becpg-dark-grey)]">
+            <StatusFlag text={label('deleting')} compact={compact} className={PROGRESS_FLAG_CLASS}>
                 <Spinner size={14} />
-                {compact ? null : label('deleting')}
-            </span>
+            </StatusFlag>
         );
     }
     if (status.state === ROW_STATUS.SAVED) {
         return (
-            <span className="inline-flex items-center gap-1 text-xs text-[var(--status-ok,green)]">
+            <StatusFlag text={label('saved')} compact={compact} className={SAVED_FLAG_CLASS}>
                 <Icon name="check_circle" size={16} />
-                {compact ? null : label('saved')}
-            </span>
+            </StatusFlag>
         );
     }
     if (status.state === ROW_STATUS.ERROR) {
@@ -366,7 +391,7 @@ export function RowStatus({ row, list, compact = false }) {
                 <Tooltip content={label('failed')} placement="left">
                     <span className="inline-flex items-center gap-1 text-xs text-[var(--status-danger,#c0392b)]">
                         <Icon name="error" size={16} />
-                        {compact ? null : label('failed')}
+                        {compact ? <span className="sr-only-text">{label('failed')}</span> : label('failed')}
                     </span>
                 </Tooltip>
                 <IconButton

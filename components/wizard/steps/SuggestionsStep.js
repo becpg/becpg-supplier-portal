@@ -40,7 +40,7 @@ import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
-import { formatDateTime, isIsoTimestamp } from '@/lib/format';
+import { formatDateTime, formatTime, isIsoTimestamp } from '@/lib/format';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 const LABELS = defineLabels('components/wizard/steps/SuggestionsStep#LABELS', {
@@ -95,6 +95,17 @@ const LABELS = defineLabels('components/wizard/steps/SuggestionsStep#LABELS', {
         source: 'Source',
         changes: '{count} valeur(s)',
         error: 'L’application de la suggestion a échoué.',
+        reading: 'Lecture des propositions…',
+        searchingElsewhere: 'Rien pour cette étape. Recherche de propositions sur les autres étapes…',
+        elsewhere: 'Rien pour cette étape, mais {count} proposition(s) sur d’autres étapes :',
+        elsewhereStep: '{label} ({count})',
+        runningElsewhere: 'Rien pour cette étape pour l’instant : l’analyse continue sur d’autres étapes.',
+        nothingFound: 'L’analyse n’a rien trouvé à proposer dans vos documents.',
+        runDone: 'Analyse terminée : {count} proposition(s) pour cette étape.',
+        readAt: 'Propositions lues à {time}',
+        extractedFrom: 'Valeurs lues dans « {document} »{type}',
+        imageFrom: 'Image trouvée dans « {document} »{type}',
+        documentFieldsFrom: 'Informations du document « {document} »{type}',
     },
     en: {
         title: 'Automatic extraction',
@@ -138,6 +149,17 @@ const LABELS = defineLabels('components/wizard/steps/SuggestionsStep#LABELS', {
         source: 'Source',
         changes: '{count} value(s)',
         error: 'Applying the suggestion failed.',
+        reading: 'Reading the proposals…',
+        searchingElsewhere: 'Nothing for this step. Looking for proposals on the other steps…',
+        elsewhere: 'Nothing for this step, but {count} proposal(s) on other steps:',
+        elsewhereStep: '{label} ({count})',
+        runningElsewhere: 'Nothing for this step yet: the analysis is still running on other steps.',
+        nothingFound: 'The analysis found nothing to propose in your documents.',
+        runDone: 'Analysis complete: {count} proposal(s) for this step.',
+        readAt: 'Proposals read at {time}',
+        extractedFrom: 'Values read from “{document}”{type}',
+        imageFrom: 'Image found in “{document}”{type}',
+        documentFieldsFrom: 'Details of the document “{document}”{type}',
     },
 });
 
@@ -176,6 +198,76 @@ function fill(template, vars) {
     );
 }
 
+/** The plugin whose titles say « extraits de la fiche technique » whatever it read. */
+const EXTRACTION_FAMILY = 'DocumentExtraction';
+
+/** An image found in a document; becpg-ai gives it no title and no family. */
+const IMAGE_TYPE = 'Image';
+
+/** The bare id of a nodeRef, so a document id compares whatever form it came in. */
+function uuidOf(ref) {
+    return String(ref || '').split('/').pop();
+}
+
+/**
+ * The deposited document a suggestion was read from, or `null`.
+ *
+ * @param {Object} suggestion
+ * @param {Object[]|undefined} documents the entity's document requirements
+ * @returns {Object|null} `{ nodeRef, name, type: { label } }`
+ */
+function sourceDocument(suggestion, documents) {
+    if (!suggestion.documentId || !Array.isArray(documents)) {
+        return null;
+    }
+    const id = uuidOf(suggestion.documentId);
+    return documents.find((document) => document.name && uuidOf(document.nodeRef) === id) || null;
+}
+
+/**
+ * The title of a card, after the document it was really read from.
+ *
+ * becpg-ai titles every extraction « … extraits de la fiche technique '<name>' »,
+ * a certificate included. When the document is one the portal lists, the title
+ * names it and its type; otherwise becpg-ai's title stays, as the only one
+ * there is.
+ *
+ * @param {Object} suggestion
+ * @param {Object[]|undefined} documents
+ * @param {Object} labels
+ * @returns {string}
+ */
+function suggestionTitle(suggestion, documents, labels) {
+    const extraction = suggestion.family === EXTRACTION_FAMILY || suggestion.type === IMAGE_TYPE;
+    const document = extraction ? sourceDocument(suggestion, documents) : null;
+    if (!document) {
+        return suggestion.title || labels.title;
+    }
+    const template = suggestion.type === IMAGE_TYPE ? labels.imageFrom
+        : (suggestion.isDocument ? labels.documentFieldsFrom : labels.extractedFrom);
+    const typeLabel = document.type?.label;
+    const type = typeLabel && typeLabel !== document.name ? ` (${typeLabel})` : '';
+    return fill(template, { document: document.name, type });
+}
+
+/**
+ * A readable label for a qname nothing else names: `bcpg:documentExpiryDate`
+ * becomes « Document expiry date ». A last resort, under the dictionary label.
+ *
+ * @param {string} qname
+ * @returns {string}
+ */
+function humanise(qname) {
+    const words = String(qname || '')
+        .split(':')
+        .pop()
+        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+        .replace(/[_-]+/g, ' ')
+        .trim()
+        .toLowerCase();
+    return words ? `${words.charAt(0).toUpperCase()}${words.slice(1)}` : '';
+}
+
 /*
  * THE ANALYSIS IS THE AUTHORITY ON WHAT IS APPLIED, NOT THIS BROWSER.
  *
@@ -209,6 +301,9 @@ function isRestorable(value) {
     return typeof value !== 'object';
 }
 
+/** What {@link readableValue} prints for a value that says nothing. */
+const EMPTY_VALUE = '—';
+
 /**
  * Renders a value the way a human reads it, whatever shape beCPG sent.
  *
@@ -218,10 +313,11 @@ function isRestorable(value) {
  */
 function readableValue(value, lang = 'fr') {
     if (value === null || value === undefined || value === '') {
-        return '—';
+        return EMPTY_VALUE;
     }
     if (Array.isArray(value)) {
-        return value.map((entry) => readableValue(entry, lang)).filter((entry) => entry !== '—').join(', ') || '—';
+        return value.map((entry) => readableValue(entry, lang)).filter((entry) => entry !== EMPTY_VALUE).join(', ')
+            || EMPTY_VALUE;
     }
     if (typeof value === 'object') {
         /*
@@ -250,7 +346,7 @@ function readableValue(value, lang = 'fr') {
         // `value.value` can be a map in turn: recurse through here rather than
         // let `String()` produce "[object Object]".
         const inner = value.displayValue ?? value.name ?? value.label ?? value.value;
-        return inner === undefined || inner === null ? '—' : readableValue(inner, lang);
+        return inner === undefined || inner === null ? EMPTY_VALUE : readableValue(inner, lang);
     }
     if (typeof value === 'boolean') {
         return value ? '✓' : '✗';
@@ -268,6 +364,7 @@ function readableValue(value, lang = 'fr') {
  */
 function SuggestionCard({
     suggestion,
+    title,
     status,
     error,
     labelFor,
@@ -290,6 +387,12 @@ function SuggestionCard({
     const wide = isWideSuggestion(suggestion);
     // An analysis has nothing to write: it is read, it is not applied.
     const applicable = isApplicableSuggestion(suggestion);
+    // A change whose proposed value is empty proposes nothing; listed, it read
+    // as « contains — » beside an « Appliquer » button.
+    const changes = useMemo(
+        () => (suggestion.changes || []).filter((change) => readableValue(change.value, lang) !== EMPTY_VALUE),
+        [suggestion.changes, lang],
+    );
 
     return (
         <motion.li
@@ -312,9 +415,9 @@ function SuggestionCard({
                     */}
                     <p
                         className={`text-sm font-medium text-[var(--becpg-blue)]${compact ? ' line-clamp-2' : ''}`}
-                        title={compact ? (suggestion.title || labels.title) : undefined}
+                        title={compact ? title : undefined}
                     >
-                        {suggestion.title || labels.title}
+                        {title}
                     </p>
 
                 </div>
@@ -344,10 +447,10 @@ function SuggestionCard({
                 n'a rien rendu : sinon les deux répètent la même chose, la
                 seconde en qnames.
             */}
-            {!hasTypedBody(suggestion) && suggestion.changes && suggestion.changes.length > 0 ? (
+            {!hasTypedBody(suggestion) && changes.length > 0 ? (
                 <>
                     <ul className="mt-2 flex flex-col gap-1">
-                        {(allChanges ? suggestion.changes : suggestion.changes.slice(0, MAX_CHANGES))
+                        {(allChanges ? changes : changes.slice(0, MAX_CHANGES))
                             .map((change, position) => (
                                 <li
                                     key={`${change.scope}-${change.listName || ''}-${change.name}-${position}`}
@@ -367,7 +470,7 @@ function SuggestionCard({
                     {/* Le compte des valeurs restantes était une phrase grise :
                         il annonçait ce qu'il ne donnait pas. C'est le bouton qui
                         les ouvre. */}
-                    {suggestion.changes.length > MAX_CHANGES ? (
+                    {changes.length > MAX_CHANGES ? (
                         <button
                             type="button"
                             onClick={() => setAllChanges((current) => !current)}
@@ -377,7 +480,7 @@ function SuggestionCard({
                             <Icon name={allChanges ? 'expand_less' : 'expand_more'} size={14} />
                             {allChanges
                                 ? t('action.showLess')
-                                : t('action.showMore', { count: suggestion.changes.length - MAX_CHANGES })}
+                                : t('action.showMore', { count: changes.length - MAX_CHANGES })}
                         </button>
                     ) : null}
                 </>
@@ -422,6 +525,83 @@ function SuggestionCard({
     );
 }
 
+/** One line saying a read is under way, in place of a skeleton. */
+function ReadingLine({ label, className = '' }) {
+    return (
+        <p role="status" aria-live="polite" className={`flex items-center gap-2 text-sm text-[var(--becpg-dark-grey)] ${className}`}>
+            <span className="skeleton h-3 w-3 shrink-0 rounded-full" aria-hidden="true" />
+            {label}
+        </p>
+    );
+}
+
+/** When the proposals on screen were read; nothing before the first read. */
+function ReadAt({ readAt, lang, labels }) {
+    const time = readAt ? formatTime(readAt, lang) : '';
+    if (!time) {
+        return <span />;
+    }
+    return <span className="text-xs text-[var(--becpg-dark-grey)]">{fill(labels.readAt, { time })}</span>;
+}
+
+/** The empty sentence of the panel, with what the supplier can do about it. */
+function EmptyLine({ text, children = null }) {
+    return (
+        <div className="flex flex-col gap-2">
+            <p className="flex items-center gap-1.5 text-sm text-[var(--becpg-dark-grey)]">
+                <Icon name="auto_awesome" size={16} className="shrink-0 text-[var(--becpg-blue-light)]" />
+                {text}
+            </p>
+            {children}
+        </div>
+    );
+}
+
+/**
+ * The open step has nothing to propose: say where the proposals are, or that
+ * the analysis found none at all — two different facts that « Rien à proposer
+ * pour cette étape » used to blur into one.
+ *
+ * @param {Object} props
+ * @param {Object|null} props.elsewhere see `useSuggestionsElsewhere`
+ * @param {Object} props.labels
+ * @param {Function} [props.onGoToStep]
+ * @param {React.ReactNode} [props.emptyActions]
+ */
+function EmptyPanel({ elsewhere, labels, onGoToStep, emptyActions }) {
+    if (elsewhere?.loading) {
+        return <ReadingLine label={labels.searchingElsewhere} />;
+    }
+    if (elsewhere?.entries.length > 0) {
+        return (
+            <EmptyLine text={fill(labels.elsewhere, { count: elsewhere.total })}>
+                <ul className="flex flex-col items-start gap-1">
+                    {elsewhere.entries.map((entry) => (
+                        <li key={entry.stepId}>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                icon="arrow_forward"
+                                onClick={onGoToStep ? () => onGoToStep(entry.stepId) : undefined}
+                                disabled={!onGoToStep}
+                            >
+                                {fill(labels.elsewhereStep, { label: entry.label, count: entry.total })}
+                            </Button>
+                        </li>
+                    ))}
+                </ul>
+            </EmptyLine>
+        );
+    }
+    if (elsewhere?.nothingFound) {
+        return <EmptyLine text={labels.nothingFound}>{emptyActions}</EmptyLine>;
+    }
+    if (elsewhere?.running) {
+        return <EmptyLine text={labels.runningElsewhere} />;
+    }
+    return <EmptyLine text={labels.emptyShort}>{emptyActions}</EmptyLine>;
+}
+
 /**
  * @param {Object} props
  * @param {string} props.entityId entity nodeRef
@@ -439,6 +619,10 @@ function SuggestionCard({
  * @param {Function} [props.labelForField] `(name) => string` — the dictionary label when known
  * @param {React.ReactNode} [props.emptyActions] panel variant: what the supplier can do
  *        when there is nothing to propose, shown instead of an explanation
+ * @param {string|null} [props.readAt] when the portal last read the suggestions
+ * @param {Object|null} [props.elsewhere] the other steps' counts, see `useSuggestionsElsewhere`
+ * @param {Function} [props.onGoToStep] `(stepId) => void`
+ * @param {Object[]} [props.documents] the entity's documents, to title a card after its source
  * @param {string} [props.className]
  */
 export function SuggestionsStep({
@@ -456,6 +640,10 @@ export function SuggestionsStep({
     onApplied,
     labelForField,
     emptyActions = null,
+    readAt = null,
+    elsewhere = null,
+    onGoToStep,
+    documents,
     variant = 'step',
     className = '',
 }) {
@@ -657,17 +845,48 @@ export function SuggestionsStep({
      * its own certainty, and nothing forces a screen to turn it into an action.
      */
 
+    /*
+     * The dictionary first, a humanised name last: a bare local name such as
+     * « contains » or « nutListValue » is never what a supplier reads.
+     */
     const labelFor = useCallback(
         (change) => {
-            const own = labelForField ? labelForField(change.name) : null;
-            if (own) {
-                return own;
+            const field = labelForField?.(change.name) || humanise(change.name);
+            if (!change.listName) {
+                return field;
             }
-            const local = String(change.name || '').split(':').pop();
-            return change.listName ? `${change.listName} · ${local}` : local;
+            return `${labelForField?.(change.listName) || humanise(change.listName)} · ${field}`;
         },
         [labelForField],
     );
+
+    /*
+     * « Relancer l'analyse » answers with a toast when its run ends.
+     *
+     * becpg-ai caches every plugin on the entity's modification date, so on an
+     * unchanged sheet a re-run comes back in a second with the same list: the
+     * spinner blinked and nothing else moved, which read as a dead button.
+     * Only a run started by the button is announced; the wizard's own re-reads
+     * on every step change stay silent.
+     */
+    const [manualRun, setManualRun] = useState(false);
+    const runAgain = useCallback(() => {
+        setManualRun(true);
+        onRefresh();
+    }, [onRefresh]);
+    const runSettled = !loading && !refreshing && !analysing;
+    useEffect(() => {
+        if (!manualRun || !runSettled) {
+            return;
+        }
+        setManualRun(false);
+        if (error) {
+            toast.error(error);
+        }
+        else {
+            toast.success(fill(labels.runDone, { count: suggestions.length }));
+        }
+    }, [manualRun, runSettled, error, suggestions.length, toast, labels.runDone]);
 
     /*
      * A SINGLE LIST.
@@ -682,8 +901,18 @@ export function SuggestionsStep({
      * them.
      */
 
-    if (error) {
-        return <ErrorState error={error} onRetry={onRefresh} />;
+    const inPanel = variant === 'panel';
+
+    if (error && !refreshing) {
+        return <ErrorState error={error} onRetry={onRefresh ? runAgain : undefined} />;
+    }
+    /*
+     * In the panel the first read is one line, not a skeleton: it takes 15 to
+     * 40 s when becpg-ai has to read a document, and two tall placeholder cards
+     * held the whole column for that long above the specifications.
+     */
+    if (inPanel && (loading || error) && suggestions.length === 0) {
+        return <ReadingLine label={labels.reading} className={className} />;
     }
     if (loading && suggestions.length === 0) {
         return (
@@ -701,7 +930,6 @@ export function SuggestionsStep({
      * refresh button stays — the analysis can be restarted by hand — but in its
      * most discreet form.
      */
-    const inPanel = variant === 'panel';
 
     /*
      * « Relancer l'analyse » spins while the run it started is under way.
@@ -713,13 +941,16 @@ export function SuggestionsStep({
      * left alone: it looked broken because nothing said it was working.
      */
     const running = loading || refreshing || analysing;
+    // A run the button started is shown as running even over an existing list.
+    const showAnalysing = (suggestions.length === 0 && analysing) || (manualRun && running);
 
     return (
         <div className={`min-w-0 ${className}`}>
             {inPanel ? (
                 onRefresh ? (
-                    <div className="mb-2 flex justify-end">
-                        <Button variant="ghost" size="sm" icon="refresh" onClick={onRefresh} loading={running}>
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                        <ReadAt readAt={readAt} lang={lang} labels={labels} />
+                        <Button variant="ghost" size="sm" icon="refresh" onClick={runAgain} loading={running}>
                             {labels.refresh}
                         </Button>
                     </div>
@@ -731,7 +962,7 @@ export function SuggestionsStep({
                         <p className="text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
                     </div>
                     {onRefresh ? (
-                        <Button variant="outline" size="sm" icon="refresh" onClick={onRefresh} loading={running}>
+                        <Button variant="outline" size="sm" icon="refresh" onClick={runAgain} loading={running}>
                             {labels.refresh}
                         </Button>
                     ) : null}
@@ -744,34 +975,34 @@ export function SuggestionsStep({
                 </p>
             ) : null}
 
-            {suggestions.length === 0 && analysing ? (
+            {showAnalysing ? (
                 /* Not the "empty" state: nothing is missing, the answer is not
                    there yet. Naming the plugins is what makes the wait credible
                    — it is the same wording becpg-ai streams. */
                 <div
                     role="status"
                     aria-live="polite"
-                    className="flex items-start gap-3 rounded-xl border border-[var(--becpg-grey)] bg-[var(--becpg-grey)]/40 p-4"
+                    className="mb-2 flex items-start gap-3 rounded-xl border border-[var(--becpg-grey)] bg-[var(--becpg-grey)]/40 p-4"
                 >
                     <span className="skeleton mt-0.5 h-5 w-5 shrink-0 rounded-full" aria-hidden="true" />
                     <div className="min-w-0">
                         <p className="text-sm font-medium text-[var(--becpg-blue)]">{labels.analysing}</p>
                         <p className="mt-0.5 text-sm text-[var(--becpg-dark-grey)]">{labels.analysingHint}</p>
-                        {analysis.plugins.length > 0 ? (
+                        {analysis?.plugins?.length > 0 ? (
                             <p className="mt-1 text-xs text-[var(--becpg-dark-grey)]">
                                 {fill(labels.analysingPlugins, { plugins: analysis.plugins.join(' · ') })}
                             </p>
                         ) : null}
                     </div>
                 </div>
-            ) : suggestions.length === 0 && inPanel ? (
-                <div className="flex flex-col gap-2">
-                    <p className="flex items-center gap-1.5 text-sm text-[var(--becpg-dark-grey)]">
-                        <Icon name="auto_awesome" size={16} className="shrink-0 text-[var(--becpg-blue-light)]" />
-                        {labels.emptyShort}
-                    </p>
-                    {emptyActions}
-                </div>
+            ) : null}
+            {suggestions.length === 0 && showAnalysing ? null : suggestions.length === 0 && inPanel ? (
+                <EmptyPanel
+                    elsewhere={elsewhere}
+                    labels={labels}
+                    onGoToStep={onGoToStep}
+                    emptyActions={emptyActions}
+                />
             ) : suggestions.length === 0 ? (
                 <EmptyState
                     variant="empty"
@@ -790,6 +1021,7 @@ export function SuggestionsStep({
                             <SuggestionCard
                                 key={suggestion.id}
                                 suggestion={suggestion}
+                                title={suggestionTitle(suggestion, documents, labels)}
                                 status={statusOf(suggestion)}
                                 error={errors[suggestion.id]}
                                 labelFor={labelFor}
@@ -820,7 +1052,7 @@ export function SuggestionsStep({
             <Modal
                 open={Boolean(expanded)}
                 onClose={() => setExpanded(null)}
-                title={expanded ? (expanded.title || labels.title) : ''}
+                title={expanded ? suggestionTitle(expanded, documents, labels) : ''}
                 size="lg"
             >
                 {expanded ? <SuggestionBody suggestion={expanded} /> : null}

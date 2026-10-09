@@ -35,7 +35,16 @@ import { DocumentList } from '@/components/dashboard/DocumentList';
 import { DiscussionList } from '@/components/dashboard/DiscussionList';
 import { NonConformityCard } from '@/components/dashboard/NonConformityCard';
 import { nodeRefToPath } from '@/lib/becpg';
-import { buildDashboard, createBecpgClient, getMyGroups, resolveSpace, scopeTasks } from '@/lib/adapters/session';
+import {
+    buildDashboard,
+    countOpenTasks,
+    createBecpgClient,
+    dashboardTaskOptions,
+    getMyGroups,
+    resolveDashboardSupplier,
+    resolveSpace,
+    scopeTasks,
+} from '@/lib/adapters/session';
 import { listMyTasks, mapWithConcurrency, nodeRefFromId } from '@/lib/adapters/tasks';
 import {
     buildEntityIndex,
@@ -81,9 +90,6 @@ const LOCAL = defineLabels('app/(home)/page#LOCAL', {
         generatedAt: 'Data as of {time}',
     },
 });
-
-/** Same window the `pjt:taskList` scan uses; 50 open tasks is already a lot. */
-const TASK_SCAN = 50;
 
 /** Entity window; mirrors what `buildDashboard` memoises, so the memo hits. */
 const ENTITY_SCAN = 200;
@@ -330,7 +336,6 @@ export default async function DashboardPage() {
      * the label promises.
      */
     const scope = parseScopeCookie(cookieStore.get(SCOPE_COOKIE)?.value, session.sub || null);
-    const supplierNodeRef = scope.all ? null : scope.ref;
 
     const client = createBecpgClient(session);
 
@@ -359,6 +364,9 @@ export default async function DashboardPage() {
         redirect('/monitor');
     }
 
+    // No stored choice reads as the first record, as the top bar shows it.
+    const supplierNodeRef = await safe(() => resolveDashboardSupplier(client, scope), scope.all ? null : scope.ref);
+
     // The documents read the session, not this client's memo: nothing they need
     // waits on the cards, so they start now and run beside them.
     const documentsRead = safe(() => listDocuments({
@@ -380,14 +388,10 @@ export default async function DashboardPage() {
              * on dev) to display six. The counters stay exact; only `byType`,
              * which the dashboard does not use, is omitted.
              */
-            () => client.memo(`tasks:${supplierNodeRef || 'all'}`, () => listMyTasks(client, {
-                pageSize: TASK_SCAN,
-                // Under a scope, the `enrichLimit` truncation would hide the
-                // tasks of the chosen supplier — see the detailed comment in
-                // `buildDashboard`. This memo is filled by it anyway, since it
-                // runs first; the two must say the same thing.
-                enrichLimit: supplierNodeRef ? null : PREVIEW.tasks * 2,
-            })),
+            () => client.memo(
+                `tasks:${supplierNodeRef || 'all'}`,
+                () => listMyTasks(client, dashboardTaskOptions(supplierNodeRef)),
+            ),
             { items: [], counters: { total: 0, late: 0, open: 0, byType: {} } },
         ),
         safe(
@@ -424,6 +428,9 @@ export default async function DashboardPage() {
     });
     const openTasks = inScope.filter((task) => task.isOpen !== false).sort(byUrgency);
     const previewTasks = openTasks.slice(0, PREVIEW.tasks);
+    // Without a perimeter `openTasks` is only the enriched head of the list; the
+    // count comes from the exact counters, as on « Mes tâches ».
+    const taskCounts = countOpenTasks(taskResult, inScope, supplierNodeRef);
 
     // Products the tasks point at that are not in my own product list (delegated
     // entry, a customer entity…): one bounded query, usually zero.
@@ -481,7 +488,7 @@ export default async function DashboardPage() {
         : null;
 
     const badges = {
-        tasks: openTasks.length,
+        tasks: taskCounts.open,
         documents: documentCounters
             ? (documentCounters.expired || 0) + (documentCounters.missing || 0)
             : 0,
@@ -516,6 +523,7 @@ export default async function DashboardPage() {
             <DashboardKpis
                 approval={approval}
                 supplier={supplier}
+                supplierCount={dashboard ? dashboard.supplierCount : 0}
                 validUntil={nextExpiry}
                 completion={dashboard ? dashboard.completion : null}
                 actions={dashboard ? dashboard.actions : null}
@@ -524,7 +532,7 @@ export default async function DashboardPage() {
 
             <div className="mt-5 sm:mt-6">
                 <DashboardTabs
-                    todoCount={openTasks.length + (dashboard?.nonConformities?.length || 0)}
+                    todoCount={taskCounts.open + (dashboard?.nonConformities?.length || 0)}
                     todo={
                         /*
                          * Three stacks of comparable height: the conversations and
@@ -535,7 +543,7 @@ export default async function DashboardPage() {
                             <div className="flex flex-col gap-3 sm:gap-4">
                                 <NonConformityCard nonConformities={dashboard ? dashboard.nonConformities : null} index={0} />
                                 <DiscussionList threads={threads} index={0} />
-                                <TaskList tasks={tasks} total={openTasks.length} index={1} />
+                                <TaskList tasks={tasks} total={taskCounts.open} index={1} />
                             </div>
                             {/* `totalItems` is null when beCPG could not count the products
                                 (see `formatTotal`); the floor travels with it so the card can

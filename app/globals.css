@@ -1361,12 +1361,34 @@ body {
  * own — which is what makes `position: sticky` on the header and on the pinned
  * columns work at all, since sticky needs a scrollport to stick to.
  *
- * `min()` rather than a fixed height: on a laptop the grid takes what the window
- * can spare, and on a tall screen it stops before becoming a page of its own.
+ * The ceiling is the viewport minus the chrome that stays on screen — the sticky
+ * top bar, the wizard's sticky action bar and, below `lg`, the bottom
+ * navigation. A grid shorter than that never scrolls on its own, so there is one
+ * scrollbar, the page's, and the horizontal bar is in view as soon as the grid
+ * is. A longer grid fills exactly the visible band: once the page has brought it
+ * in, nothing else moves, and its two bars are both on screen. A fraction of
+ * the viewport would not do: it caps a grid that would have fitted, and gives it
+ * a scrollbar of its own inside a page that scrolls too.
+ *
+ * 18rem is the floor on a short landscape window, where the header row and a
+ * handful of lines must still be readable.
+ *
+ * `--becpg-grid-viewport` stays as an override for a page with other chrome.
  */
 .table-scroll[data-sticky='true'] {
-  max-height: var(--becpg-grid-viewport, min(70vh, 40rem));
+  --becpg-grid-chrome: calc(3.5rem + 4.5rem + 1rem + env(safe-area-inset-top, 0px));
+  max-height: var(--becpg-grid-viewport, max(18rem, calc(100vh - var(--becpg-grid-chrome))));
+  max-height: var(--becpg-grid-viewport, max(18rem, calc(100dvh - var(--becpg-grid-chrome))));
   overflow: auto;
+}
+
+@media (max-width: 1023px) {
+  .table-scroll[data-sticky='true'] {
+    --becpg-grid-chrome: calc(
+      3.5rem + 4.5rem + 1rem + var(--portal-bottom-nav-height) + env(safe-area-inset-top, 0px)
+        + env(safe-area-inset-bottom, 0px)
+    );
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1430,16 +1452,23 @@ body {
   z-index: 2;
 }
 
-.becpg-grid th[data-sticky='start'],
-.becpg-grid th[data-sticky='end'] {
-  /* The corners: over both the pinned column and the pinned header. */
-  z-index: 4;
-}
-
 .becpg-grid td[data-sticky='end'],
 .becpg-grid th[data-sticky='end'] {
   inset-inline-end: 0;
   z-index: 2;
+}
+
+/*
+ * The corners: over both the pinned columns and the pinned header.
+ *
+ * `thead` in the selector is what makes it win over the start and end rules
+ * above, which share their specificity and would otherwise decide by source
+ * order. At 2 the end corner sits level with the actions cells of the body, and
+ * those come later in the document: the copy / edit / delete buttons of the
+ * scrolled rows paint over it.
+ */
+.becpg-grid thead th[data-sticky] {
+  z-index: 4;
 }
 
 /* Where the pinned part ends and the scrolling part begins, drawn only while

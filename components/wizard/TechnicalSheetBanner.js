@@ -28,7 +28,7 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Icon } from '@/components/ui/Button';
-import { AiValidationBadge, DocumentUpload } from '@/components/documents/DocumentUpload';
+import { AiValidationBadge, DocumentUpload, uploadTargetOf } from '@/components/documents/DocumentUpload';
 import { ExpiryPill } from '@/components/documents/ExpiryPill';
 import { formatDate } from '@/lib/format';
 import { useApi } from '@/lib/client';
@@ -40,6 +40,7 @@ const LABELS = defineLabels('components/wizard/TechnicalSheetBanner#LABELS', {
         title: 'Fiche technique',
         deposited: 'Déposée le {date}',
         replace: 'Remplacer',
+        replaceSheet: 'Remplacer la fiche technique',
         cancel: 'Annuler',
         missing: 'Fiche technique manquante',
         missingHint: 'Pour activer les suggestions de l’IA, déposez votre fiche technique.',
@@ -49,12 +50,21 @@ const LABELS = defineLabels('components/wizard/TechnicalSheetBanner#LABELS', {
         title: 'Technical sheet',
         deposited: 'Uploaded on {date}',
         replace: 'Replace',
+        replaceSheet: 'Replace the technical sheet',
         cancel: 'Cancel',
         missing: 'Technical sheet missing',
         missingHint: 'Upload your technical sheet to enable the AI suggestions.',
         missingClosed: 'No technical sheet has been uploaded on this sheet.',
     },
 });
+
+/** The icon beside « Fiche technique », by requirement status; the pill beside it says it in words. */
+const SHEET_STATUS_ICONS = {
+    valid: { icon: 'check_circle', className: 'text-[var(--status-ok)]' },
+    toValidate: { icon: 'check_circle', className: 'text-[var(--status-ok)]' },
+    expiring: { icon: 'schedule', className: 'text-[var(--status-warn)]' },
+    expired: { icon: 'error', className: 'text-[var(--status-danger)]' },
+};
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, key) =>
@@ -177,6 +187,8 @@ export function TechnicalSheetBanner({
     }
 
     const provided = Boolean(sheet.isProvided);
+    const target = uploadTargetOf(sheet, entityNodeRef);
+    const headIcon = SHEET_STATUS_ICONS[sheet.status] || SHEET_STATUS_ICONS.expired;
 
     if (!provided && readOnly) {
         return (
@@ -194,10 +206,11 @@ export function TechnicalSheetBanner({
     const upload = (
         <DocumentUpload
             key={`upload-${deposits}`}
-            documentRef={sheet.uploadTarget && sheet.uploadTarget.documentRef}
-            entityRef={(sheet.uploadTarget && sheet.uploadTarget.entityRef) || entityNodeRef}
+            documentRef={target.documentRef}
+            entityRef={target.entityRef}
             variant="inline"
-            action={provided ? 'renew' : 'upload'}
+            action={target.action}
+            validity={target.validity}
             dropRef={bandRef}
             onUploaded={handleUploaded}
             onCancel={provided ? () => setReplacing(false) : undefined}
@@ -214,12 +227,20 @@ export function TechnicalSheetBanner({
         </p>
     ) : (
         <p key="head" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[var(--becpg-dark-grey)]">
-            <Icon name="check_circle" size={15} className="shrink-0 text-[var(--status-ok)]" />
+            {/* The requirement's own verdict, not "a file is there": an expired
+                sheet is provided and still has to be renewed. */}
+            <Icon
+                name={headIcon.icon}
+                size={15}
+                className={`shrink-0 ${headIcon.className}`}
+            />
             <span className="font-medium text-[var(--becpg-blue)]">{labels.title}</span>
             {sheet.modified ? (
                 <span>{fill(labels.deposited, { date: formatDate(sheet.modified, lang) })}</span>
             ) : null}
-            {sheet.validTo ? <ExpiryPill validTo={sheet.validTo} /> : null}
+            {sheet.validTo ? (
+                <ExpiryPill status={sheet.status} validTo={sheet.validTo} daysToExpiry={sheet.daysToExpiry} />
+            ) : null}
             <AiValidationBadge
                 state={sheet.aiValidationState}
                 hints={sheet.aiValidationHints}
@@ -229,6 +250,7 @@ export function TechnicalSheetBanner({
                 <button
                     type="button"
                     onClick={() => setReplacing(true)}
+                    aria-label={labels.replaceSheet}
                     className="text-[var(--becpg-blue-light)] underline underline-offset-2 hover:opacity-80"
                 >
                     {labels.replace}
