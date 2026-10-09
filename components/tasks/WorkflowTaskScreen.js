@@ -23,6 +23,7 @@ import { FormRenderer } from '@/components/form/FormRenderer';
 import { validateForm } from '@/components/form/validation';
 import { CommentsPanel } from '@/components/wizard/panels/CommentsPanel';
 import { ncHref } from '@/components/monitor/NonConformityList';
+import { NcAssist } from '@/components/tasks/NcAssist';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api } from '@/lib/client';
 import { useMediaQuery } from '@/lib/useMediaQuery';
@@ -77,6 +78,7 @@ const WIDE_LAYOUT = '(min-width: 1024px)';
 
 const NC_TYPE = 'qa:nc';
 const SUPPLIER_TYPE = 'bcpg:supplier';
+const COMMENT_FIELD = 'bpm:comment';
 
 /** Where an item of the package opens in the portal. */
 function itemHref(item) {
@@ -214,12 +216,29 @@ export function WorkflowTaskScreen({ task, onChanged }) {
         }
     };
 
+    const addToComment = (line) => setValues((current) => {
+        const field = task.definition.fields.find((entry) => entry.name === COMMENT_FIELD);
+        if (!field) {
+            return current;
+        }
+        const before = current[field.formsName] ? `${current[field.formsName]}\n` : '';
+        return { ...current, [field.formsName]: `${before}- ${line}` };
+    });
+
     const discussion = discussionOn ? <CommentsPanel entityNodeRef={discussionOn.nodeRef} title={labels.discussion} /> : null;
 
     return (
         <AppShell ownHeading fullWidth space="monitor" title={task.title} aside={wide ? discussion : null}>
             <TaskHeader task={task} labels={labels} lang={lang} busy={busy === 'claim'} onClaim={claim} />
             <Items items={task.items} labels={labels} />
+            {task.items.some((item) => item.type === NC_TYPE) ? (
+                <NcAssist
+                    task={task}
+                    nc={task.items.find((item) => item.type === NC_TYPE).nodeRef}
+                    onApply={writable ? (field, value) => setValues((current) => ({ ...current, [field.formsName]: value })) : null}
+                    onAddToComment={writable ? addToComment : null}
+                />
+            ) : null}
             <Card icon="edit_note" title={labels.answer}>
                 {!task.open ? <p className="mb-3 text-sm text-[var(--becpg-muted)]">{labels.closed}</p> : null}
                 {task.open && !task.can.edit ? <p className="mb-3 text-sm text-[var(--becpg-muted)]">{labels.claimFirst}</p> : null}

@@ -29,7 +29,8 @@
  * ```json
  * { "action": "remind",
  *   "suppliers": ["workspace://SpacesStore/…", "workspace://SpacesStore/…"],
- *   "message": "Merci de déposer votre certificat IFS avant le 30/09." }
+ *   "message": "Merci de déposer votre certificat IFS avant le 30/09.",
+ *   "messages": { "workspace://SpacesStore/…": "a message written for this supplier only" } }
  * ```
  *
  * Answer:
@@ -90,6 +91,7 @@ export async function POST(request) {
             action: body.action,
             suppliers: Array.isArray(body.suppliers) ? body.suppliers : [],
             message: body.message,
+            messages: body.messages,
         });
 
         return NextResponse.json(payload, { status: 200, headers: NO_STORE });

@@ -37,6 +37,7 @@ import { DepositedDocuments } from '@/components/documents/DepositedDocuments';
 import { CommentsPanel } from '@/components/wizard/panels/CommentsPanel';
 import { ListIcon } from '@/components/ui/ListIcon';
 import { ReviewChanges, changesOfStep, useStepLabels } from '@/components/review/ReviewChanges';
+import { AiPrecheck, checksBySection, usePrecheck } from '@/components/review/AiPrecheck';
 import { api, useApi } from '@/lib/client';
 import { portalCatalogs } from '@/lib/catalogs';
 import { formatDate } from '@/lib/format';
@@ -62,6 +63,7 @@ const LABELS = defineLabels('components/review/ReviewWorkspace#LABELS', {
         legendAccepted: 'acceptée',
         legendReturned: 'correction demandée',
         legendChanged: 'changements depuis la référence',
+        aiPoints: 'points relevés par l’IA',
         frozen: 'Liste validée',
         accept: 'Accepter et passer à la suite',
         acceptLast: 'Accepter',
@@ -102,6 +104,7 @@ const LABELS = defineLabels('components/review/ReviewWorkspace#LABELS', {
         legendAccepted: 'accepted',
         legendReturned: 'correction requested',
         legendChanged: 'changes since the reference',
+        aiPoints: 'points raised by the AI',
         frozen: 'Validated list',
         accept: 'Accept and go on',
         acceptLast: 'Accept',
@@ -164,7 +167,7 @@ function useReviewMarks(taskId) {
     return [marks, setMarks];
 }
 
-function RailItem({ section, current, status, changes, labels, onSelect }) {
+function RailItem({ section, current, status, changes, aiPoints, labels, onSelect }) {
     const icon = status === ACCEPTED ? 'check_circle' : status === RETURNED ? 'reply' : 'radio_button_unchecked';
     const tone = status === ACCEPTED ? 'text-[var(--status-ok)]' : status === RETURNED ? 'text-[var(--becpg-orange-deep)]' : 'text-[var(--becpg-muted)]';
     const word = status === ACCEPTED ? labels.accepted : status === RETURNED ? labels.returned : labels.toRead;
@@ -182,11 +185,22 @@ function RailItem({ section, current, status, changes, labels, onSelect }) {
                 {section.label}
                 <span className="sr-only-text">{` (${word})`}</span>
             </span>
-            {changes > 0 ? (
-                <span className={`rounded-full px-1.5 text-[11px] leading-[18px] tabular-nums ${current ? 'bg-white/20 text-white' : 'bg-[var(--status-info-bg)] text-[var(--status-info)]'}`}>
-                    {changes}
-                </span>
-            ) : null}
+            <span className="inline-flex items-center gap-1">
+                {aiPoints > 0 ? (
+                    <span
+                        title={labels.aiPoints}
+                        className={`inline-flex items-center gap-0.5 rounded-full px-1.5 text-[11px] leading-[18px] tabular-nums ${current ? 'bg-white/20 text-white' : 'bg-[var(--status-warn-bg)] text-[var(--status-warn)]'}`}
+                    >
+                        <Icon name="auto_awesome" size={11} />{aiPoints}
+                        <span className="sr-only-text">{` ${labels.aiPoints}`}</span>
+                    </span>
+                ) : null}
+                {changes > 0 ? (
+                    <span className={`rounded-full px-1.5 text-[11px] leading-[18px] tabular-nums ${current ? 'bg-white/20 text-white' : 'bg-[var(--status-info-bg)] text-[var(--status-info)]'}`}>
+                        {changes}
+                    </span>
+                ) : null}
+            </span>
         </button>
     );
 }
@@ -338,6 +352,7 @@ export function ReviewWorkspace({ task, taskId, entityNodeRef, wizardId, onDone 
     const diff = useApi(entityNodeRef ? `entities/${encodeURIComponent(entityNodeRef)}/review-diff` : null);
     const catalogs = useApi(entityNodeRef ? `entities/${encodeURIComponent(entityNodeRef)}/catalogs` : null);
     const requirements = useApi(entityNodeRef ? 'documents/requirements' : null, { params: { entity: entityNodeRef } });
+    const precheck = usePrecheck({ entityNodeRef, taskId: task.workflowTaskId });
     const [marks, setMarks] = useReviewMarks(taskId);
     const [currentId, setCurrentId] = useState(null);
     const [correcting, setCorrecting] = useState(false);
@@ -433,6 +448,7 @@ export function ReviewWorkspace({ task, taskId, entityNodeRef, wizardId, onDone 
     }
 
     const sectionChanges = (section) => changesOfStep(diff.data, section.step);
+    const aiPoints = checksBySection(precheck.data, sections);
     const isLast = sections[sections.length - 1]?.id === current.id;
 
     return (
@@ -458,6 +474,7 @@ export function ReviewWorkspace({ task, taskId, entityNodeRef, wizardId, onDone 
                             current={section.id === current.id}
                             status={marks.status[section.id]}
                             changes={sectionChanges(section).count}
+                            aiPoints={aiPoints[section.id] || 0}
                             labels={labels}
                             onSelect={(id) => { setCurrentId(id); setCorrecting(false); }}
                         />
@@ -507,6 +524,17 @@ export function ReviewWorkspace({ task, taskId, entityNodeRef, wizardId, onDone 
                 </section>
 
                 <aside className="flex min-w-0 flex-col gap-4 lg:col-span-2 2xl:col-span-1 2xl:sticky 2xl:top-4">
+                    <AiPrecheck
+                        precheck={precheck}
+                        sections={sections}
+                        entityNodeRef={entityNodeRef}
+                        onOpen={(id) => { setCurrentId(id); setCorrecting(false); }}
+                        onAdd={task.isOpen ? (check, section) => {
+                            const target = section || current;
+                            correct(target, [check.title, check.detail].filter(Boolean).join(' : '), [target.label, check.row?.label].filter(Boolean).join(' › '));
+                        } : null}
+                        onUseMessage={task.isOpen ? (text) => { setMessage(text); setConfirming('refuse'); } : null}
+                    />
                     <FeedbackCard remarks={marks.remarks} labels={labels} onRemove={removeRemark} />
                     <CommentsPanel entityNodeRef={entityNodeRef} title={labels.discussion} />
                 </aside>

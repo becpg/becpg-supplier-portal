@@ -35,6 +35,7 @@ import {
     isApplicableSuggestion,
     isWideSuggestion,
 } from '@/components/wizard/SuggestionBody';
+import { ConflictChoices, SourceChips } from '@/components/wizard/SuggestionSources';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/providers/ToastProvider';
 import { api, useApi } from '@/lib/client';
@@ -274,6 +275,7 @@ function SuggestionCard({
     readOnly,
     revocable,
     onApply,
+    onChoose,
     onRevoke,
     onExpand,
     index,
@@ -331,7 +333,9 @@ function SuggestionCard({
                 ) : null}
             </div>
 
+            <SourceChips sources={suggestion.sources} />
             <SuggestionBody suggestion={suggestion} compact={compact} />
+            <ConflictChoices conflicts={suggestion.conflicts} readOnly={readOnly || applied} onChoose={onChoose} />
 
             {/*
                 La liste brute des changements ne s'affiche QUE si le corps typé
@@ -784,6 +788,7 @@ export function SuggestionsStep({
                                 readOnly={readOnly}
                                 revocable={revocableOf(suggestion)}
                                 onApply={() => apply(suggestion)}
+                                onChoose={(candidate) => apply({ ...suggestion, plan: null, suggestedChanges: candidate.suggestedChanges })}
                                 onRevoke={() => revoke(suggestion)}
                                 onExpand={() => setExpanded(suggestion)}
                             />

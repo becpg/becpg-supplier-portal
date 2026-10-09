@@ -54,6 +54,7 @@ import { api, useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 import { LANG_NAMES, SUPPORTED_LANGS } from '@/config/messages';
+import { AiDrafts } from '@/components/monitor/AiDrafts';
 
 /**
  * Reason vocabulary. The codes come from the API (`config.riskWeights` and the
@@ -344,6 +345,8 @@ export function MonitorActionDialog({
     const [process, setProcess] = useState('');
     const [error, setError] = useState(null);
     const [busy, setBusy] = useState(false);
+    // One message per supplier, once the AI drafted them; null for a common one.
+    const [drafts, setDrafts] = useState(null);
     // The suggestion depends on the action and the targets, both of which change
     // while the dialog is closed: re-seed on open rather than in an effect.
     const [seed, setSeed] = useState(null);
@@ -355,6 +358,7 @@ export function MonitorActionDialog({
         setMessage(suggestFor(writtenIn));
         setProcess(processes[0] || '');
         setError(null);
+        setDrafts(null);
     }
 
     const needsMessage = action === 'remind' || action === 'escalate';
@@ -365,7 +369,11 @@ export function MonitorActionDialog({
         : '';
 
     const run = async () => {
-        if (needsMessage && !message.trim()) {
+        const personal = drafts
+            ? Object.fromEntries(Object.entries(drafts).map(([ref, entry]) => [ref, entry.message.trim()]).filter(([, text]) => text))
+            : null;
+        const covered = personal && targets.every((target) => personal[target.nodeRef]);
+        if (needsMessage && !covered && !message.trim()) {
             setError(local.messageRequired);
             return;
         }
@@ -375,7 +383,8 @@ export function MonitorActionDialog({
             const payload = await api.post('monitor/actions', {
                 action,
                 suppliers: targets.map((target) => target.nodeRef),
-                message: needsMessage ? message.trim() : undefined,
+                message: needsMessage ? message.trim() || undefined : undefined,
+                messages: needsMessage && personal ? personal : undefined,
                 process: action === 'suspend' ? process || undefined : undefined,
             });
             const summary = payload.summary || { succeeded: 0, failed: 0 };
@@ -472,7 +481,10 @@ export function MonitorActionDialog({
                     </>
                 ) : (
                     <>
-                        {needsMessage ? (
+                        {needsMessage && targets.length > 0 ? (
+                            <AiDrafts intent={action} targets={targets} drafts={drafts} onDrafts={setDrafts} />
+                        ) : null}
+                        {needsMessage && !drafts ? (
                             <Field label={local.messageLang}>
                                 <Select
                                     value={messageLang}
@@ -489,19 +501,22 @@ export function MonitorActionDialog({
                                 />
                             </Field>
                         ) : null}
-                        <Field
-                            label={local.messageLabel}
-                            required
-                            error={error || undefined}
-                            help={action === 'escalate' ? local.escalateHelp : local.messageHelp}
-                        >
-                            <Textarea
-                                rows={6}
-                                value={message}
-                                onChange={(event) => setMessage(event.target.value)}
-                                invalid={Boolean(error)}
-                            />
-                        </Field>
+                        {drafts ? null : (
+                            <Field
+                                label={local.messageLabel}
+                                required
+                                error={error || undefined}
+                                help={action === 'escalate' ? local.escalateHelp : local.messageHelp}
+                            >
+                                <Textarea
+                                    rows={6}
+                                    value={message}
+                                    onChange={(event) => setMessage(event.target.value)}
+                                    invalid={Boolean(error)}
+                                />
+                            </Field>
+                        )}
+                        {drafts && error ? <p className="text-sm text-[var(--status-danger)]">{error}</p> : null}
                     </>
                 )}
             </div>
