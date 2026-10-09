@@ -3,8 +3,8 @@
 /**
  * The tasks running on a sheet — a non-conformity, a product, a supplier — as
  * Share's workflow view lists them: what is open, who holds it, by when, and,
- * on demand, what was already done. Each open task opens where it is treated:
- * its portal page for a project task, Share for the steps of a non-conformity.
+ * on demand, what was already done. Each open task opens on the page where it
+ * is treated: its project task page, or its workflow task page.
  *
  * Monitoring space only: the route answers 403 to a supplier account.
  */
@@ -28,7 +28,6 @@ const LABELS = defineLabels('components/monitor/WorkflowTasks#LABELS', {
         unassigned: 'Non assignée',
         due: 'Échéance',
         open: 'Ouvrir',
-        openInBecpg: 'Ouvrir dans beCPG',
         history: 'Historique ({count})',
         hideHistory: 'Masquer l’historique',
         doneBy: 'par {who}',
@@ -40,7 +39,6 @@ const LABELS = defineLabels('components/monitor/WorkflowTasks#LABELS', {
         unassigned: 'Unassigned',
         due: 'Due',
         open: 'Open',
-        openInBecpg: 'Open in beCPG',
         history: 'History ({count})',
         hideHistory: 'Hide the history',
         doneBy: 'by {who}',
@@ -72,15 +70,7 @@ function OpenTask({ task, workflow, labels, lang }) {
             </div>
             <div className="flex shrink-0 items-center gap-2">
                 {task.late ? <StatusPill status="late" size="sm" /> : null}
-                <Button
-                    size="sm"
-                    variant={task.external ? 'outline' : 'primary'}
-                    href={task.href}
-                    external={task.external}
-                    icon={task.external ? 'open_in_new' : 'arrow_forward'}
-                >
-                    {task.external ? labels.openInBecpg : labels.open}
-                </Button>
+                <Button size="sm" href={task.href} icon="arrow_forward">{labels.open}</Button>
             </div>
         </li>
     );
