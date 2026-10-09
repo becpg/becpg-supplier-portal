@@ -1608,7 +1608,16 @@ const LOCALE = {
         "noColumns": "Ningún tipo de documento está materializado en este perímetro",
         "noColumnsHint": "beCPG materializa los documentos esperados durante la formulación: sin ningún requisito documental configurado, la matriz está vacía.",
         "toggle": "Mostrar los documentos",
-        "summary": "{missing} faltan · {expired} caducados · {expiring} por renovar"
+        "summary": "{missing} faltan · {expired} caducados · {expiring} por renovar",
+        "completeness": "{value} % conformes",
+        "status": {
+            "missing": "Falta",
+            "expired": "Caducado",
+            "refused": "Rechazado",
+            "expiring": "Por renovar",
+            "toValidate": "Por validar",
+            "valid": "Válido"
+        }
     },
     "components/monitor/DocumentScene#LABELS": {
         "relief": "Relieve",

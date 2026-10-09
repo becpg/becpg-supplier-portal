@@ -1608,7 +1608,16 @@ const LOCALE = {
         "noColumns": "この範囲で具体化された文書種類はありません",
         "noColumnsHint": "beCPG は配合計算時に求められる文書を具体化します。文書の要求事項が設定されていない場合、マトリクスは空になります。",
         "toggle": "文書を表示",
-        "summary": "未提出 {missing} · 期限切れ {expired} · 要更新 {expiring}"
+        "summary": "未提出 {missing} · 期限切れ {expired} · 要更新 {expiring}",
+        "completeness": "{value} % 適合",
+        "status": {
+            "missing": "未提出",
+            "expired": "期限切れ",
+            "refused": "却下",
+            "expiring": "更新予定",
+            "toValidate": "確認待ち",
+            "valid": "有効"
+        }
     },
     "components/monitor/DocumentScene#LABELS": {
         "relief": "レリーフ",

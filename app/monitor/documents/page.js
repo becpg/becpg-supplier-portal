@@ -196,8 +196,6 @@ function SceneTab({ params, columns, onDone }) {
     return <DocumentScene columns={columns} rows={state.rows} onDone={onDone} />;
 }
 
-/** Where the last view opened is remembered, per viewer. */
-const VIEW_STORAGE_KEY = 'becpg_portal_documents_view';
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, key) =>
@@ -485,7 +483,8 @@ export default function MonitorDocumentsPage() {
             {/* ------------------------------------------- matrix and 3D view */}
             <CockpitTabs
                 label={labels.views}
-                storageKey={VIEW_STORAGE_KEY}
+                // The matrix always opens first; the 3D view is a click away.
+                storageKey={null}
                 tabs={[
                     {
                         id: 'matrix',

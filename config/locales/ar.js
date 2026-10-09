@@ -1608,7 +1608,16 @@ const LOCALE = {
         "noColumns": "لا يوجد نوع مستند مُجسَّد في هذا النطاق",
         "noColumnsHint": "يُجسّد beCPG المستندات المتوقعة أثناء الصياغة: في غياب أي متطلبات مستندية مهيّأة، تكون المصفوفة فارغة.",
         "toggle": "عرض المستندات",
-        "summary": "{missing} ناقصة · {expired} منتهية · {expiring} للتجديد"
+        "summary": "{missing} ناقصة · {expired} منتهية · {expiring} للتجديد",
+        "completeness": "{value} % مطابقة",
+        "status": {
+            "missing": "مفقود",
+            "expired": "منتهي الصلاحية",
+            "refused": "مرفوض",
+            "expiring": "للتجديد",
+            "toValidate": "للتحقق",
+            "valid": "صالح"
+        }
     },
     "components/monitor/DocumentScene#LABELS": {
         "relief": "تضاريس",

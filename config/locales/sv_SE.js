@@ -1608,7 +1608,16 @@ const LOCALE = {
         "noColumns": "Ingen dokumenttyp är materialiserad i det här omfånget",
         "noColumnsHint": "beCPG materialiserar förväntade dokument vid formuleringen: utan konfigurerade dokumentkrav är matrisen tom.",
         "toggle": "Visa dokument",
-        "summary": "{missing} saknas · {expired} utgångna · {expiring} ska förnyas"
+        "summary": "{missing} saknas · {expired} utgångna · {expiring} ska förnyas",
+        "completeness": "{value} % uppfyllda",
+        "status": {
+            "missing": "Saknas",
+            "expired": "Utgånget",
+            "refused": "Avvisat",
+            "expiring": "Ska förnyas",
+            "toValidate": "Att granska",
+            "valid": "Giltigt"
+        }
     },
     "components/monitor/DocumentScene#LABELS": {
         "relief": "Relief",

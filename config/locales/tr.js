@@ -1608,7 +1608,16 @@ const LOCALE = {
         "noColumns": "Bu kapsamda somutlaştırılmış belge türü yok",
         "noColumnsHint": "beCPG beklenen belgeleri formülasyon sırasında somutlaştırır: yapılandırılmış bir belge gereksinimi yoksa matris boştur.",
         "toggle": "Belgeleri göster",
-        "summary": "{missing} eksik · {expired} süresi dolmuş · {expiring} yenilenecek"
+        "summary": "{missing} eksik · {expired} süresi dolmuş · {expiring} yenilenecek",
+        "completeness": "%{value} uygun",
+        "status": {
+            "missing": "Eksik",
+            "expired": "Süresi dolmuş",
+            "refused": "Reddedildi",
+            "expiring": "Yenilenecek",
+            "toValidate": "Onaylanacak",
+            "valid": "Geçerli"
+        }
     },
     "components/monitor/DocumentScene#LABELS": {
         "relief": "Kabartma",

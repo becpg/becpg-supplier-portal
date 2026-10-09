@@ -1608,7 +1608,16 @@ const LOCALE = {
         "noColumns": "Tällä rajauksella ei ole muodostettuja asiakirjatyyppejä",
         "noColumnsHint": "beCPG muodostaa odotetut asiakirjat formuloinnin aikana: ilman määritettyjä asiakirjavaatimuksia matriisi on tyhjä.",
         "toggle": "Näytä asiakirjat",
-        "summary": "Puuttuvia: {missing} · vanhentuneita: {expired} · uusittavia: {expiring}"
+        "summary": "Puuttuvia: {missing} · vanhentuneita: {expired} · uusittavia: {expiring}",
+        "completeness": "{value} % kunnossa",
+        "status": {
+            "missing": "Puuttuu",
+            "expired": "Vanhentunut",
+            "refused": "Hylätty",
+            "expiring": "Uusittava",
+            "toValidate": "Tarkistettava",
+            "valid": "Voimassa"
+        }
     },
     "components/monitor/DocumentScene#LABELS": {
         "relief": "Kohokuva",

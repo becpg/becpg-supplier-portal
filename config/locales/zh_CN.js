@@ -1608,7 +1608,16 @@ const LOCALE = {
         "noColumns": "此范围内未生成任何文件类型",
         "noColumnsHint": "beCPG 在配方计算时生成所需文件：如果未配置任何文件要求，矩阵将为空。",
         "toggle": "显示文件",
-        "summary": "{missing} 份缺失 · {expired} 份已过期 · {expiring} 份待更新"
+        "summary": "{missing} 份缺失 · {expired} 份已过期 · {expiring} 份待更新",
+        "completeness": "{value} % 合规",
+        "status": {
+            "missing": "缺失",
+            "expired": "已过期",
+            "refused": "已拒绝",
+            "expiring": "待更新",
+            "toValidate": "待验证",
+            "valid": "有效"
+        }
     },
     "components/monitor/DocumentScene#LABELS": {
         "relief": "浮雕",

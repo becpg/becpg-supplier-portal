@@ -1608,7 +1608,16 @@ const LOCALE = {
         "noColumns": "In diesem Bereich ist kein Dokumenttyp materialisiert",
         "noColumnsHint": "beCPG materialisiert erwartete Dokumente bei der Formulierung: Ohne konfigurierte Dokumentenanforderung ist die Matrix leer.",
         "toggle": "Dokumente anzeigen",
-        "summary": "{missing} fehlend · {expired} abgelaufen · {expiring} zu erneuern"
+        "summary": "{missing} fehlend · {expired} abgelaufen · {expiring} zu erneuern",
+        "completeness": "{value} % konform",
+        "status": {
+            "missing": "Fehlt",
+            "expired": "Abgelaufen",
+            "refused": "Abgelehnt",
+            "expiring": "Zu erneuern",
+            "toValidate": "Zu prüfen",
+            "valid": "Gültig"
+        }
     },
     "components/monitor/DocumentScene#LABELS": {
         "relief": "Relief",

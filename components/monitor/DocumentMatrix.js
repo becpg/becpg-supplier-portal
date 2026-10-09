@@ -54,13 +54,13 @@ import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** Height of a matrix row, in px — fixed, because virtualisation needs it. */
-const ROW_H = 52;
+const ROW_H = 48;
 /** Width of a document-type column, in px. */
-const COL_W = 148;
+const COL_W = 150;
 /** Width of the frozen supplier column, in px. */
-const STICKY_W = 240;
+const STICKY_W = 260;
 /** Height of the sticky header row, in px. */
-const HEADER_H = 44;
+const HEADER_H = 48;
 /** Rows / columns rendered beyond the visible window. */
 const OVERSCAN_ROWS = 6;
 const OVERSCAN_COLS = 2;
@@ -84,6 +84,8 @@ const LABELS = defineLabels('components/monitor/DocumentMatrix#LABELS', {
             'beCPG matérialise les documents attendus lors de la formulation : sans exigence documentaire paramétrée, la matrice est vide.',
         toggle: 'Voir les documents',
         summary: '{missing} manquant(s) · {expired} expiré(s) · {expiring} à renouveler',
+        completeness: '{value} % conformes',
+        status: { missing: 'Manquant', expired: 'Expiré', refused: 'Refusé', expiring: 'À renouveler', toValidate: 'À valider', valid: 'Valide' },
     },
     en: {
         supplier: 'Supplier',
@@ -98,6 +100,8 @@ const LABELS = defineLabels('components/monitor/DocumentMatrix#LABELS', {
         preview: 'View',
         empty: 'No supplier in this perimeter',
         emptyHint: 'Widen the filters to see the matrix.',
+        completeness: '{value} % compliant',
+        status: { missing: 'Missing', expired: 'Expired', refused: 'Refused', expiring: 'To renew', toValidate: 'To validate', valid: 'Valid' },
         noColumns: 'No document type is materialised on this perimeter',
         noColumnsHint:
             'beCPG materialises expected documents during formulation: with no documentary requirement configured, the matrix is empty.',
@@ -160,6 +164,29 @@ export function selectionTypes(selection) {
 }
 
 /** Short text of a cell, next to its pill. */
+/** Tone and icon of a cell's tile, by document status. */
+const CELL_STYLES = Object.freeze({
+    missing: { tone: 'danger', icon: 'help_outline' },
+    expired: { tone: 'danger', icon: 'event_busy' },
+    refused: { tone: 'danger', icon: 'block' },
+    expiring: { tone: 'warn', icon: 'schedule' },
+    toValidate: { tone: 'info', icon: 'hourglass_top' },
+    valid: { tone: 'ok', icon: 'check_circle' },
+});
+
+const TILE_TONES = Object.freeze({
+    danger: 'bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger-border)]',
+    warn: 'bg-[var(--status-warn-bg)] text-[var(--status-warn)] border-[var(--status-warn-border)]',
+    info: 'bg-[var(--status-info-bg)] text-[var(--status-info)] border-[var(--status-info-border)]',
+    ok: 'bg-[var(--status-ok-bg)] text-[var(--status-ok)] border-[var(--status-ok-border)]',
+    neutral: 'bg-[var(--status-neutral-bg)] text-[var(--status-neutral)] border-[var(--status-neutral-border)]',
+});
+
+/** What a tile says: the date when the document has one, the status otherwise. */
+function tileText(cell, labels, lang) {
+    return cellText(cell, lang) || labels.status[cell.status] || cell.status;
+}
+
 function cellText(cell, lang) {
     if (cell.status === 'valid' || cell.status === 'expiring') {
         return cell.validTo ? formatDate(cell.validTo, lang) : '';
@@ -168,6 +195,31 @@ function cellText(cell, lang) {
         return cell.validTo ? formatDate(cell.validTo, lang) : '';
     }
     return '';
+}
+
+/**
+ * The supplier's code and how much of what it owes is in order, as a short bar.
+ *
+ * @param {Object} props
+ */
+function SupplierCompliance({ code, summary, labels }) {
+    const value = typeof summary?.completeness === 'number' ? Math.round(summary.completeness) : null;
+    return (
+        <span className="mt-0.5 flex items-center gap-2 text-[11px] text-[var(--becpg-muted)]">
+            <span className="shrink-0">{code || '—'}</span>
+            {value === null ? null : (
+                <span className="flex min-w-0 flex-1 items-center gap-1.5" title={fill(labels.completeness, { value })}>
+                    <span className="relative h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-[var(--becpg-grey)]" aria-hidden="true">
+                        <span
+                            className={`absolute inset-y-0 start-0 rounded-full ${value >= 100 ? 'bg-[var(--status-ok)]' : value >= 50 ? 'bg-[var(--status-warn)]' : 'bg-[var(--status-danger)]'}`}
+                            style={{ width: `${value}%` }}
+                        />
+                    </span>
+                    <span className="tabular-nums">{value} %</span>
+                </span>
+            )}
+        </span>
+    );
 }
 
 /**
@@ -413,7 +465,7 @@ export function DocumentMatrix({
             <div
                 ref={attachScroll}
                 onScroll={schedule}
-                className="hidden overflow-auto rounded-xl border border-[var(--becpg-grey)] bg-white md:block"
+                className="hidden overflow-auto rounded-2xl border border-[var(--becpg-line)] bg-white shadow-[var(--becpg-shadow-raised)] md:block"
                 style={{ maxHeight: height, contain: 'paint' }}
                 tabIndex={0}
                 aria-label={labels.supplier}
@@ -431,7 +483,7 @@ export function DocumentMatrix({
                         <tr style={{ height: HEADER_H }}>
                             <th
                                 scope="col"
-                                className="sticky start-0 top-0 z-30 bg-white px-2 text-start align-middle shadow-[inset_-1px_0_0_var(--becpg-grey),inset_0_-1px_0_var(--becpg-grey)]"
+                                className="sticky start-0 top-0 z-30 bg-[var(--becpg-page-surface)] px-3 text-start align-middle shadow-[inset_-1px_0_0_var(--becpg-line),inset_0_-1px_0_var(--becpg-line)]"
                                 style={{ width: STICKY_W, minWidth: STICKY_W }}
                             >
                                 <span className="flex items-center gap-2">
@@ -447,7 +499,7 @@ export function DocumentMatrix({
                                         onChange={toggleAll}
                                         aria-label={labels.supplier}
                                     />
-                                    <span className="font-medium uppercase tracking-wide text-[var(--becpg-dark-grey)]">
+                                    <span className="text-[0.8125rem] font-medium text-[var(--becpg-muted)]">
                                         {labels.supplier}
                                     </span>
                                 </span>
@@ -460,13 +512,13 @@ export function DocumentMatrix({
                                     key={columnKey(column)}
                                     scope="col"
                                     title={column.label}
-                                    className="sticky top-0 z-20 bg-white px-2 text-start align-middle shadow-[inset_0_-1px_0_var(--becpg-grey)]"
+                                    className="sticky top-0 z-20 bg-[var(--becpg-page-surface)] px-2 text-start align-middle shadow-[inset_0_-1px_0_var(--becpg-line)]"
                                     style={{ width: COL_W }}
                                 >
-                                    <span className="block truncate font-medium text-[var(--becpg-blue)]">
+                                    <span className="block truncate text-[0.8125rem] font-medium text-[var(--becpg-ink)]">
                                         {column.label}
                                     </span>
-                                    <span className="block truncate text-[10px] font-normal text-[var(--becpg-dark-grey)]">
+                                    <span className="block truncate text-[11px] font-normal text-[var(--becpg-muted)]">
                                         {column.category
                                             ? column.category
                                             : fill(labels.expected, { count: column.expected })}
@@ -492,15 +544,15 @@ export function DocumentMatrix({
                                 <tr
                                     key={supplier.nodeRef}
                                     style={{ height: ROW_H }}
-                                    className={rowSelected ? 'bg-[var(--becpg-blue-lighter)]/40' : ''}
+                                    className={`group ${rowSelected ? 'bg-[var(--becpg-teal-wash)]' : 'hover:bg-[var(--becpg-row-hover)]'}`}
                                 >
                                     <th
                                         scope="row"
                                         className={[
-                                            'sticky start-0 z-10 px-2 text-start align-middle font-normal',
-                                            'shadow-[inset_-1px_0_0_var(--becpg-grey),inset_0_-1px_0_var(--becpg-grey)]',
+                                            'sticky start-0 z-10 px-3 text-start align-middle font-normal',
+                                            'shadow-[inset_-1px_0_0_var(--becpg-line),inset_0_-1px_0_var(--becpg-line)]',
                                             rowSelected
-                                                ? 'bg-[#eef5f7]'
+                                                ? 'bg-[var(--becpg-teal-wash)]'
                                                 : 'bg-white',
                                         ].join(' ')}
                                         style={{ width: STICKY_W, minWidth: STICKY_W }}
@@ -521,9 +573,7 @@ export function DocumentMatrix({
                                                 >
                                                     {supplier.name}
                                                 </Link>
-                                                <span className="block truncate text-[10px] text-[var(--becpg-dark-grey)]">
-                                                    {supplier.code || '—'}
-                                                </span>
+                                                <SupplierCompliance code={supplier.code} summary={row.summary} labels={labels} />
                                             </span>
                                         </span>
                                     </th>
@@ -544,7 +594,7 @@ export function DocumentMatrix({
                                         return (
                                             <td
                                                 key={key}
-                                                className="px-1 align-middle shadow-[inset_0_-1px_0_var(--becpg-grey)]"
+                                                className="px-1.5 align-middle shadow-[inset_0_-1px_0_var(--becpg-line)]"
                                                 style={{ width: COL_W }}
                                             >
                                                 {cell ? (
@@ -558,33 +608,20 @@ export function DocumentMatrix({
                                                                 name: supplier.name,
                                                             })}
                                                             className={[
-                                                                'flex min-w-0 flex-1 items-center gap-1 rounded-md px-1 py-1 text-start transition-colors',
-                                                                selected
-                                                                    ? 'bg-[var(--becpg-blue-lighter)] ring-2 ring-[var(--becpg-blue-light)]'
-                                                                    : 'hover:bg-[var(--becpg-grey)]/60',
-                                                                cell.isMandatory ? 'font-medium' : '',
-                                                                dimmed ? 'opacity-35' : '',
+                                                                'flex h-8 min-w-0 flex-1 items-center gap-1 rounded-lg border px-1.5 text-start text-[11.5px] font-medium transition',
+                                                                TILE_TONES[(CELL_STYLES[cell.status] || {}).tone || 'neutral'],
+                                                                selected ? 'ring-2 ring-[var(--becpg-blue-light)] ring-offset-1' : 'hover:brightness-95',
+                                                                dimmed ? 'opacity-30' : '',
                                                             ]
                                                                 .filter(Boolean)
                                                                 .join(' ')}
                                                         >
-                                                            <ExpiryPill
-                                                                status={cell.status}
-                                                                validTo={cell.validTo}
-                                                                daysToExpiry={cell.daysToExpiry}
-                                                                size="sm"
-                                                                iconOnly
-                                                            />
-                                                            <span className="min-w-0 truncate text-[11px] text-[var(--becpg-dark-grey)]">
-                                                                {cellText(cell, lang)}
-                                                            </span>
+                                                            <Icon name={(CELL_STYLES[cell.status] || {}).icon || 'help_outline'} size={14} className="shrink-0" />
+                                                            <span className="min-w-0 truncate tabular-nums">{tileText(cell, labels, lang)}</span>
                                                             {cell.isMandatory ? (
-                                                                <span
-                                                                    title={labels.mandatory}
-                                                                    className="ms-auto text-[var(--becpg-orange)]"
-                                                                    aria-hidden="true"
-                                                                >
+                                                                <span title={labels.mandatory} className="ms-auto shrink-0 font-semibold">
                                                                     *
+                                                                    <span className="sr-only-text">{labels.mandatory}</span>
                                                                 </span>
                                                             ) : null}
                                                         </button>
@@ -601,11 +638,8 @@ export function DocumentMatrix({
                                                         ) : null}
                                                     </span>
                                                 ) : (
-                                                    <span
-                                                        title={labels.notApplicable}
-                                                        className="block px-1 text-center text-[var(--becpg-grey)]"
-                                                    >
-                                                        ·<span className="sr-only-text">{labels.notApplicable}</span>
+                                                    <span title={labels.notApplicable} className="block h-8">
+                                                        <span className="sr-only-text">{labels.notApplicable}</span>
                                                     </span>
                                                 )}
                                             </td>
