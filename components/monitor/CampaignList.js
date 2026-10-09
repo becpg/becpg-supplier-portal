@@ -71,7 +71,6 @@ const LABELS = defineLabels('components/monitor/CampaignList#LABELS', {
         overdue: 'Dépassée de {count} j',
         noDue: 'Sans échéance',
         others: '+{count}',
-        search: 'Rechercher un projet',
         empty: 'Aucun projet ouvert sur ce périmètre',
         // Wordings of beCPG's own `pjt:projectStates` list constraint.
         projectStates: {
@@ -113,7 +112,6 @@ const LABELS = defineLabels('components/monitor/CampaignList#LABELS', {
         overdue: '{count} d overdue',
         noDue: 'No due date',
         others: '+{count}',
-        search: 'Search a project',
         empty: 'No open project on this perimeter',
         projectStates: {
             Planned: 'Planned',
@@ -206,6 +204,9 @@ export function campaignTargets(campaigns, rowSelection) {
  * @param {boolean} [props.enablePagination=true] off when the page owns the paging
  * @param {React.ReactNode} [props.toolbar] filters rendered next to the search box
  * @param {React.ReactNode} [props.actions]
+ * @param {Function} [props.onExport] see DataTable
+ * @param {boolean} [props.exporting]
+ * @param {React.ReactNode} [props.legend] see DataTable
  */
 export function CampaignList({
     items = [],
@@ -217,6 +218,9 @@ export function CampaignList({
     enablePagination = true,
     toolbar,
     actions,
+    onExport,
+    exporting = false,
+    legend,
 }) {
     const { lang } = useMessages();
     const labels = pickLabels(LABELS, lang);
@@ -495,8 +499,13 @@ export function CampaignList({
             storageKey="monitor.campaigns"
             enablePagination={enablePagination}
             initialSorting={[{ id: 'due', desc: false }]}
-            searchPlaceholder={labels.search}
+            /* The page searches on the server, through its toolbar: a second box
+               searching the displayed page only would answer another question. */
+            enableFiltering={false}
             toolbar={toolbar}
+            onExport={onExport}
+            exporting={exporting}
+            legend={legend}
             actions={actions}
             pageSize={25}
             emptyState={<EmptyState icon="campaign" title={labels.empty} />}

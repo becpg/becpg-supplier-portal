@@ -685,7 +685,7 @@ const LOCALE = {
         "allTypes": "所有文件类型",
         "allStatuses": "所有状态",
         "mandatoryOnly": "仅必需文件",
-        "export": "导出（CSV）",
+        "export": "导出",
         "stats": {
             "suppliers": "供应商",
             "missing": "缺失",
@@ -726,12 +726,17 @@ const LOCALE = {
         "title": "供应商库监控",
         "description": "实时查看供应商库的准入、文件合规、到期、项目和不合格。",
         "generatedAt": "数据截至 {time}",
-        "openList": "查看完整列表",
-        "openDocuments": "文件合规性",
-        "openCampaigns": "项目",
-        "openQuality": "不合格项",
         "truncated": "供应商库超出扫描窗口：已读取 {scanned} 个，共 {total} 个供应商。标有“≈”的计数器已封顶；分布和前 10 名仅覆盖该窗口。",
-        "truncatedShort": "窗口：已读取 {scanned} 家供应商"
+        "truncatedShort": "窗口：已读取 {scanned} 家供应商",
+        "tablist": "供应商库解读",
+        "tabs": {
+            "quality": "质量",
+            "purchasing": "采购",
+            "rnd": "研发",
+            "csr": "企业社会责任",
+            "assistant": "助手"
+        },
+        "ai": "AI"
     },
     "app/monitor/products/page#LABELS": {
         "title": "供应商产品",
@@ -740,7 +745,7 @@ const LOCALE = {
         "state": "产品状态",
         "anyState": "所有状态",
         "certified": "证书日期",
-        "anyCertified": "全部",
+        "anyCertified": "所有日期",
         "certifiedNone": "无日期",
         "certifiedYears": "认证已超过 {count} 年",
         "columns": {
@@ -762,7 +767,13 @@ const LOCALE = {
         "previous": "上一页",
         "next": "下一页",
         "rows": "每页行数",
-        "sortScope": "排序仅适用于当前页，而非整个供应商库。"
+        "sortScope": "排序仅适用于当前页，而非整个供应商库。",
+        "tiles": {
+            "total": "产品",
+            "valid": "已验证",
+            "draft": "进行中",
+            "noCertificate": "无准入日期"
+        }
     },
     "app/monitor/quality/page#LABELS": {
         "title": "不合格项",
@@ -781,7 +792,7 @@ const LOCALE = {
             "noActionsLate": "无逾期纠正措施",
             "closing": "平均关闭时长 {value} 天",
             "noClosing": "此范围内无已关闭 NC",
-            "closingHidden": "{count} 个已关闭 NC — 勾选“包含已关闭 NC”以查看关闭时长"
+            "closingHidden": "{count} 条已关闭的不合格 · 点击以包含"
         },
         "dayUnit": "天",
         "allStates": "所有状态",
@@ -798,7 +809,8 @@ const LOCALE = {
         "rows": "行数",
         "reminder": "有一项涉及您的不合格项尚未关闭。请尽快在门户上处理相关纠正措施。",
         "hintTargets": "所选 NC 的供应商",
-        "note": "处理时长：自 NC 创建起计算；对于已关闭的 NC，为创建至最后修改之间的时长 — beCPG 不保存关闭日期。"
+        "note": "处理时长：自 NC 创建起计算；对于已关闭的 NC，为创建至最后修改之间的时长 — beCPG 不保存关闭日期。",
+        "truncatedShort": "窗口：已读取 {scanned} 条不合格"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "unavailable": {
@@ -1562,7 +1574,6 @@ const LOCALE = {
         "overdue": "逾期 {count} 天",
         "noDue": "无截止日期",
         "others": "+{count}",
-        "search": "搜索项目",
         "empty": "此范围内无进行中的项目",
         "projectStates": {
             "Planned": "已计划",
@@ -1597,7 +1608,7 @@ const LOCALE = {
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Stopped": "已停止",
     "components/monitor/MonitorFilters#LABELS": {
         "search": "搜索供应商、代码、法定名称…",
-        "toggle": "筛选",
+        "toggle": "更多筛选",
         "reset": "重置",
         "close": "隐藏筛选",
         "legend": "供应商库筛选",
@@ -1618,7 +1629,10 @@ const LOCALE = {
         "noVocabulary": "已加载范围内无值",
         "active": "{count} 个筛选已启用",
         "activePlural": "{count} 个筛选已启用",
-        "clearOne": "移除此筛选"
+        "clearOne": "移除此筛选",
+        "anyFamily": "所有类别",
+        "anySubFamily": "所有子类别",
+        "anyState": "所有状态"
     },
     "components/monitor/NonConformityList#LABELS": {
         "columns": {
@@ -1669,7 +1683,6 @@ const LOCALE = {
         "andMore": "…… 以及另外 {count} 项",
         "others": "+{count}",
         "noSupplier": "未关联供应商",
-        "search": "搜索不合格项",
         "empty": "此范围内无不合格项",
         "open": "打开此不合格项",
         "detail": {
@@ -1688,58 +1701,6 @@ const LOCALE = {
             "state": "状态",
             "type": "类型"
         }
-    },
-    "components/monitor/ParkStats#LABELS": {
-        "tiles": {
-            "approved": "已认证",
-            "toRenew": "待更新",
-            "suspended": "已暂停",
-            "compliance": "文件合规性",
-            "expiring30": "30 天内过期",
-            "campaigns": "项目",
-            "lateTasks": "逾期任务",
-            "nc": "未关闭 NC"
-        },
-        "hints": {
-            "ofPark": "共 {total} 个供应商",
-            "ofScanned": "已读取的 {scanned} 个供应商中",
-            "complianceDetail": "{missing} 份缺失 · {expired} 份已过期 · {refused} 份已拒绝",
-            "complianceMandatory": "必需文件 {compliant} / {total}",
-            "noRate": {
-                "countsCapped": "无法计算比率：beCPG 对文件计数进行了封顶。",
-                "scopeTruncated": "无法计算比率：供应商库中有 {dropped} 个供应商无法查询。",
-                "emptyScope": "此范围内无供应商：没有可评估的内容。"
-            },
-            "expiring": "份文件 · 60 天内 {d60} 份，90 天内 {d90} 份",
-            "campaigns": "进行中 · {rate} % 已回复，{late} 项逾期",
-            "campaignsNoRate": "进行中 · 无可计算的回复率，{late} 项逾期",
-            "lateTasks": "已过截止日期",
-            "nc": "其中 {blocking} 项为阻断性",
-            "inProgress": "{count} 个正在准入中",
-            "noNotice": "提前 {days} 天通知"
-        },
-        "park": {
-            "title": "供应商库构成",
-            "empty": "此范围内无供应商",
-            "share": "{share} %",
-            "unknown": "有 {count} 个已读取的供应商没有已评估的认证状态：它们不在任何柱状图中。",
-            "windowScope": "分布基于已读取的 {scanned} 个供应商计算（供应商库共 {total} 个）：请缩小筛选条件以获得准确分布。"
-        },
-        "expiry": {
-            "title": "到期时间范围",
-            "cumulative": "累计：计入 30 天的文件也计入 60 天和 90 天。",
-            "bucket": "< {days} 天",
-            "empty": "90 天内无文件过期",
-            "unit": "份文件",
-            "seeAll": "查看文件合规性"
-        },
-        "approx": "近似计数：beCPG 对计数进行了封顶。",
-        "approxShort": "近似值",
-        "scopeEmpty": "没有供应商符合此范围。未计算任何计数器：上方数字为零是结构所致，并非测量结果。",
-        "scopeDropped": "供应商库中有 {dropped} 个供应商无法查询（查询上限 {chunks}）：计数器为下限值。",
-        "unsupported": "此实例不支持该筛选：{names}。没有标准 beCPG 属性承载它。",
-        "assocScope": "筛选 {names} 应用于已读取的窗口（Alfresco 不索引关联）。",
-        "generatedAt": "数据截至 {time}"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "质量",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "文件合规性、不合格项、认证、审核",
@@ -1929,6 +1890,193 @@ const LOCALE = {
         "clear": "清除选择",
         "close": "关闭",
         "noReason": "无风险原因"
+    },
+    "components/monitor/cockpit/AssistantTab#LABELS": {
+        "priorities": "本周优先事项",
+        "prioritiesHelp": "按规则对风险最高的供应商计算：存在阻断性不合格的严重风险需升级；文件过期、至少五份文件缺失或项目未答复需催办。",
+        "kinds": {
+            "escalate": "待升级",
+            "remind": "待催办"
+        },
+        "score": "风险 {score}",
+        "openSheet": "打开档案",
+        "none": "本周此范围内没有优先事项。",
+        "copilot": "副驾驶",
+        "wire": "待在 beCPG 中接入",
+        "copilotSoon": "副驾驶接入 beCPG 助手后，将回答有关您供应商库的问题。",
+        "ask": "询问有关您供应商库的问题…",
+        "askLabel": "向副驾驶提问"
+    },
+    "components/monitor/cockpit/CsrTab#LABELS": {
+        "expected": "应提供的证书",
+        "expectedHelp": "标签包含“证书”的文件类型，每个相关供应商一份。",
+        "valid": "有效证书",
+        "outOf": "/ {total}",
+        "origins": "申报原产地",
+        "surveys": "企业社会责任问卷",
+        "notWired": "beCPG 尚未向门户提供此信息。",
+        "byType": "按文件类型的合规情况",
+        "byTypeAria": "按类型的文件状态",
+        "byTypeHelp": "每种文件类型，每个相关供应商一个状态：取其文件中最不利的状态。",
+        "map": "采购来源地",
+        "mapEmpty": "原产国和供应商场地地图。",
+        "csv": {
+            "type": "文件类型",
+            "expected": "应提供"
+        }
+    },
+    "components/monitor/cockpit/PurchasingTab#LABELS": {
+        "approved": "已准入供应商",
+        "outOf": "/ {total}",
+        "openProjects": "未结项目",
+        "answered": "已答复",
+        "unanswered": "未答复",
+        "openProjectsHelp": "整个实例中的未结供应商项目：项目不归属于某个供应商，因此供应商库筛选不适用。",
+        "responseRate": "答复率",
+        "meanCompletion": "平均进度 {value} %",
+        "lateTasks": "逾期任务",
+        "lateProjects": "{count} 个逾期项目",
+        "composition": "供应商库构成",
+        "compositionAria": "按类别、子类别和准入状态的供应商",
+        "compositionHelp": "内环：类别。中环：子类别。外环：准入状态。点击类别可展开。",
+        "reactivity": "供应商响应速度",
+        "reactivityAria": "每年任务数与平均答复时长",
+        "reactivityHelp": "柱：按结束年份的供应商项目任务（对数刻度）。线：平均答复天数。",
+        "tasks": "任务",
+        "delay": "平均答复时长（天）",
+        "days": "天数",
+        "taskStates": "供应商项目任务",
+        "taskStatesAria": "按状态的任务",
+        "taskStatesHelp": "从决策模块读取的所有供应商项目任务，按状态（对数刻度）。"
+    },
+    "components/monitor/cockpit/QualityTab#LABELS": {
+        "health": "供应商库健康度",
+        "healthAria": "健康指数 {value}/100",
+        "healthOutOf": "/ 100",
+        "healthHelp": "满分 100 的指数：准入率 35 %，文件合规 35 %，项目答复率 20 %，无阻断性不合格供应商占比 10 %。",
+        "healthPartial": "部分计算，权重已重新分配：{missing} 不可用。",
+        "weights": {
+            "approval": "准入 {weight} %",
+            "compliance": "合规 {weight} %",
+            "response": "答复 {weight} %",
+            "noBlockingNc": "无阻断性不合格 {weight} %"
+        },
+        "inputs": {
+            "approval": "准入率",
+            "compliance": "文件合规",
+            "response": "答复率",
+            "noBlockingNc": "无阻断性不合格占比"
+        },
+        "compliance": "文件合规",
+        "compliant": "合规",
+        "complianceHelp": "有效必备文件占范围内应提供必备文件的比例。",
+        "complianceNoRate": "比率不可用：某计数器已达到 beCPG 的读取上限。",
+        "openNc": "未关闭不合格",
+        "suspended": "已暂停供应商",
+        "outOf": "/ {total}",
+        "toReview": "待复核文件",
+        "toReviewHelp": "待审核和已过期的文件，每个供应商和文件类型一份。",
+        "riskMap": "风险图",
+        "riskMapAria": "按风险评分和未结项目的供应商",
+        "riskMapHelp": "横轴：未结项目。纵轴：风险评分。大小：异常（缺失和过期文件、阻断性不合格）。点击供应商可打开其档案。",
+        "openProjects": "未结项目",
+        "riskScore": "风险评分",
+        "anomalies": "大小：异常",
+        "priorities": "优先区域",
+        "bubble": "风险 {score} · {projects} 个未结项目 · {anomalies} 个异常",
+        "ncAge": "未关闭不合格的时长",
+        "ncAgeAria": "按时长的未关闭不合格",
+        "ncUndated": "{count} 个不合格无创建日期",
+        "csv": {
+            "rank": "排名",
+            "supplier": "供应商",
+            "code": "代码",
+            "status": "准入",
+            "level": "风险等级",
+            "score": "风险评分",
+            "reasons": "原因",
+            "openProjects": "未结项目",
+            "anomalies": "异常"
+        }
+    },
+    "components/monitor/cockpit/RndTab#LABELS": {
+        "progress": "{year} 年平均进度",
+        "progressNoYear": "平均进度",
+        "projects": "{count} 个项目",
+        "tasksInProgress": "进行中任务",
+        "tasksPlanned": "{count} 个已计划",
+        "technicalSheets": "缺失的技术规格书",
+        "technicalSheetsHint": "{toValidate} 个待审核 · {expired} 个已过期",
+        "technicalSheetsHelp": "标签包含“技术规格书”的文件类型，每个相关供应商一份。",
+        "activeFiles": "活跃档案",
+        "activeSince": "自 {date} 起有最近活动",
+        "activeHelp": "自上一季度初以来有修改的供应商。",
+        "projectProgress": "项目进度",
+        "projectProgressAria": "每年项目数量与平均进度",
+        "projectProgressHelp": "柱：按最后修改年份的项目。线：平均进度（%）。",
+        "projectsSeries": "项目",
+        "averageSeries": "平均进度（%）",
+        "landscape": "供应商库概览",
+        "landscapeAria": "按类别和准入状态的供应商",
+        "landscapeHelp": "按类别和准入状态的供应商。浏览器支持时显示 3D 视图，否则显示分组柱状图。",
+        "freshness": "档案新鲜度",
+        "freshnessAria": "按最近活动月份的供应商",
+        "recent": "自 {date} 起活跃",
+        "older": "更早",
+        "undated": "{count} 家供应商无活动日期",
+        "fromCube": "读取自 beCPG 决策模块，按批次加载。"
+    },
+    "components/monitor/cockpit/parts#LABELS": {
+        "export": "导出",
+        "soon": "待接入",
+        "decisionModule": "决策模块",
+        "chartFailed": "无法加载图表。",
+        "window": "扫描窗口：数据仅覆盖已读取的供应商。",
+        "unavailable": "数据不可用",
+        "empty": "无可显示内容",
+        "reasons": {
+            "denied": "beCPG 拒绝访问此信息。",
+            "notFound": "在 beCPG 中未找到此信息。",
+            "unavailable": "beCPG 未对此区块作出响应。请稍后重试。",
+            "noMatchingDocumentType": "此范围内没有匹配的文件类型。",
+            "noData": "此范围内无数据。"
+        }
+    },
+    "components/monitor/cockpit/vocabulary#VOCABULARY": {
+        "approval": {
+            "approved": "已准入",
+            "inProgress": "进行中",
+            "toRenew": "待续期",
+            "suspended": "已暂停"
+        },
+        "documents": {
+            "valid": "有效",
+            "expiring": "即将到期",
+            "toValidate": "待审核",
+            "expired": "已过期",
+            "refused": "已拒绝",
+            "missing": "缺失"
+        },
+        "taskStates": {
+            "planned": "已计划",
+            "inProgress": "进行中",
+            "completed": "已完成",
+            "cancelled": "已取消",
+            "refused": "已拒绝",
+            "onHold": "搁置中"
+        },
+        "ncAges": {
+            "under3Months": "< 3 个月",
+            "from3To12Months": "3-12 个月",
+            "from1To2Years": "1-2 年",
+            "over2Years": "> 2 年"
+        },
+        "nc": {
+            "blocking": "阻断性",
+            "nonBlocking": "非阻断性"
+        },
+        "noFamily": "无类别",
+        "noSubFamily": "无子类别"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "合规性",
@@ -2201,7 +2349,9 @@ const LOCALE = {
         "selectAll": "全选",
         "selectRow": "选择行",
         "columns": "显示的列",
-        "rowsPerPage": "每页行数"
+        "rowsPerPage": "每页行数",
+        "export": "导出",
+        "legend": "图例"
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "此处暂无内容。条目一经创建或提交即会显示。",
@@ -2542,6 +2692,10 @@ const LOCALE = {
             "averageProgress": "平均进度",
             "projectsNumber": "项目"
         }
+    },
+    "components/ui/useListExport#LABELS": {
+        "done": "已导出 {count} 行。",
+        "cut": "部分导出：{count} 行，已达导出上限。请缩小筛选范围以导出其余部分。"
     }
 };
 

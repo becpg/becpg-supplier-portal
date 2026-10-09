@@ -36,6 +36,7 @@ import { WindowNotice } from '@/components/monitor/WindowNotice';
 import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
+import { useListExport } from '@/components/ui/useListExport';
 import { SEARCH_SLOT_CLASS, SearchInput, Select } from '@/components/ui/Field';
 import { formatTotal } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
@@ -186,18 +187,36 @@ export default function MonitorCampaignsPage() {
     const [pageSize, setPageSize] = useState(25);
     const [rowSelection, setRowSelection] = useState({});
 
+    const [focus, setFocus] = useState('');
     const params = useMemo(
         () => ({
             states: state || undefined,
             sort,
             q: supplier.trim() || undefined,
+            focus: focus || undefined,
             page,
             pageSize,
         }),
-        [state, sort, supplier, page, pageSize],
+        [state, sort, supplier, focus, page, pageSize],
     );
 
     const campaigns = useApi('monitor/campaigns', { params });
+    const exportQuery = useMemo(() => {
+        const { page: unusedPage, pageSize: unusedPageSize, ...rest } = params;
+        return rest;
+    }, [params]);
+    const listExport = useListExport({ path: 'monitor/campaigns', query: exportQuery, filename: 'projets' });
+    /** A tile is a filter: one click narrows the list to what it counts, a second one clears it. */
+    const tileProps = (id) => ({
+        onClick: () => {
+            setFocus((current) => (current === id ? '' : id));
+            setPage(1);
+        },
+        'aria-pressed': focus === id,
+        badge: focus === id ? (
+            <span className="pill pill-info pill-sm pill-no-dot"><Icon name="filter_alt" size={12} /></span>
+        ) : null,
+    });
     const data = campaigns.data;
 
     // Memoised so an empty answer keeps one stable `[]` identity — otherwise the
@@ -260,17 +279,6 @@ export default function MonitorCampaignsPage() {
             fullWidth
             space="monitor"
             title={labels.title}
-            actions={
-                <div className="flex items-center gap-2">
-                    <Button
-                        size="sm"
-                        icon="rocket_launch"
-                        onClick={() => setStarting(true)}
-                    >
-                        {labels.startCampaign}
-                    </Button>
-                </div>
-            }
         >
             <StartCampaignDialog
                 open={starting}
@@ -283,12 +291,19 @@ export default function MonitorCampaignsPage() {
             <PageHeader
                 title={labels.title}
                 description={labels.subtitle}
-                actions={pagination.truncated ? (
-                    <WindowNotice
-                        label={fill(labels.truncatedShort, { scanned: pagination.scanned ?? summary.scanned ?? total.value })}
-                        detail={fill(labels.truncated, { scanned: pagination.scanned ?? summary.scanned ?? total.value })}
-                    />
-                ) : null}
+                actions={
+                    <div className="flex items-center gap-2">
+                        {pagination.truncated ? (
+                            <WindowNotice
+                                label={fill(labels.truncatedShort, { scanned: pagination.scanned ?? summary.scanned ?? total.value })}
+                                detail={fill(labels.truncated, { scanned: pagination.scanned ?? summary.scanned ?? total.value })}
+                            />
+                        ) : null}
+                        <Button size="sm" icon="rocket_launch" onClick={() => setStarting(true)}>
+                            {labels.startCampaign}
+                        </Button>
+                    </div>
+                }
             />
 
             {/* ------------------------------------------------------ KPI row */}
@@ -306,6 +321,11 @@ export default function MonitorCampaignsPage() {
                     tone="info"
                     loading={campaigns.loading}
                     index={0}
+                    onClick={() => {
+                        setFocus('');
+                        setPage(1);
+                    }}
+                    aria-pressed={!focus}
                     hint={
                         summary.scanned && summary.scanned !== open.value
                             ? fill(labels.hints.scanned, { count: summary.scanned })
@@ -328,6 +348,7 @@ export default function MonitorCampaignsPage() {
                     }
                     loading={campaigns.loading}
                     index={1}
+                    {...tileProps('answered')}
                     hint={
                         !hasRate
                             ? labels.noRate
@@ -343,6 +364,7 @@ export default function MonitorCampaignsPage() {
                     tone={summary.unanswered ? 'warn' : 'ok'}
                     loading={campaigns.loading}
                     index={2}
+                    {...tileProps('unanswered')}
                     hint={
                         summary.escalations
                             ? fill(labels.hints.escalations, { count: summary.escalations })
@@ -356,6 +378,7 @@ export default function MonitorCampaignsPage() {
                     tone={summary.pendingReminders ? 'danger' : 'ok'}
                     loading={campaigns.loading}
                     index={3}
+                    {...tileProps('reminders')}
                     hint={
                         summary.late
                             ? fill(labels.hints.late, { count: summary.late })
@@ -403,6 +426,16 @@ export default function MonitorCampaignsPage() {
                 enablePagination={false}
                 toolbar={
                     <>
+                        <div className={SEARCH_SLOT_CLASS}>
+                            <SearchInput
+                                value={supplier}
+                                placeholder={labels.searchSupplier}
+                                onChange={(value) => {
+                                    setSupplier(value);
+                                    resetView();
+                                }}
+                            />
+                        </div>
                         <Select
                             value={state}
                             aria-label={labels.state}
@@ -426,23 +459,16 @@ export default function MonitorCampaignsPage() {
                                 resetView();
                             }}
                         />
-                        <div className={SEARCH_SLOT_CLASS}>
-                            <SearchInput
-                                value={supplier}
-                                placeholder={labels.searchSupplier}
-                                onChange={(value) => {
-                                    setSupplier(value);
-                                    resetView();
-                                }}
-                            />
-                        </div>
                     </>
                 }
+                legend={labels.noteReminder}
+                onExport={listExport.onExport}
+                exporting={listExport.exporting}
             />
 
             {/* --------------------------------------------------- pagination */}
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--becpg-dark-grey)]">
-                <p className="max-w-xl">{labels.noteReminder}</p>
+                <span />
                 <div className="flex items-center gap-2">
                     <span className="tabular-nums">
                         {fill(labels.pageOf, { from, to, total: total.text })}

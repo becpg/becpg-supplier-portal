@@ -57,7 +57,7 @@ import {
     useDebouncedValue,
 } from '@/components/monitor/MonitorFilters';
 import { WindowNotice } from '@/components/monitor/WindowNotice';
-import { ProfileSwitcher, useMonitorProfile } from '@/components/monitor/ProfileSwitcher';
+import { DEFAULT_PROFILE_ID, MONITOR_PROFILES } from '@/components/monitor/ProfileSwitcher';
 import { SupplierTable } from '@/components/monitor/SupplierTable';
 import { download, useApi } from '@/lib/client';
 import { formatTotal } from '@/lib/format';
@@ -170,7 +170,9 @@ function MonitorSuppliersScreen() {
     const { lang } = useMessages();
     const local = useMemo(() => pickLabels(LABELS, lang), [lang]);
     const searchParams = useSearchParams();
-    const { profile } = useMonitorProfile();
+    // One reading of the list for everybody: the business profiles shape the
+    // monitoring home page, not the columns of a list the reader arranges.
+    const profile = MONITOR_PROFILES.find((entry) => entry.id === DEFAULT_PROFILE_ID);
 
     // --- state seeded by the URL --------------------------------------------
     const urlFilters = readMonitorFilters(searchParams);
@@ -332,27 +334,15 @@ function MonitorSuppliersScreen() {
             fullWidth
             space="monitor"
             title={local.title}
-            actions={
-                <div className="flex items-center gap-2">
-                    <Button variant="secondary" size="sm" icon="download" onClick={requestExport}>
-                        <span className="hidden sm:inline">{local.export}</span>
-                    </Button>
-                </div>
-            }
         >
             <PageHeader
                 title={local.title}
-                actions={
-                    <div className="flex flex-col items-end gap-1">
-                        <ProfileSwitcher compact />
-                        {pagination.truncated ? (
-                            <WindowNotice
-                                label={fill(local.truncatedShort, { scanned: pagination.scanned })}
-                                detail={fill(local.truncated, { scanned: pagination.scanned, total: total.label })}
-                            />
-                        ) : null}
-                    </div>
-                }
+                actions={pagination.truncated ? (
+                    <WindowNotice
+                        label={fill(local.truncatedShort, { scanned: pagination.scanned })}
+                        detail={fill(local.truncated, { scanned: pagination.scanned, total: total.label })}
+                    />
+                ) : null}
             />
 
             {/* --------------------------------------------- status breakdown */}
@@ -407,6 +397,7 @@ function MonitorSuppliersScreen() {
                             unsupported={payloadFilters.unsupported || []}
                         />
                     }
+                    onExport={requestExport}
                 />
             )}
 

@@ -126,7 +126,6 @@ const LABELS = defineLabels('components/monitor/NonConformityList#LABELS', {
         andMore: '… et {count} autre(s)',
         others: '+{count}',
         noSupplier: 'Aucun fournisseur rattaché',
-        search: 'Rechercher une non-conformité',
         empty: 'Aucune non-conformité sur ce périmètre',
         // Consultation: until now the NC opened nowhere, the screen listed its
         // code and its verdict without ever giving its text.
@@ -193,7 +192,6 @@ const LABELS = defineLabels('components/monitor/NonConformityList#LABELS', {
         andMore: '… and {count} more',
         others: '+{count}',
         noSupplier: 'No supplier linked',
-        search: 'Search a non-conformity',
         empty: 'No non-conformity in this perimeter',
         /* See the note on the French keys. */
         open: 'Open this non-conformity',
@@ -478,6 +476,9 @@ function NonConformityDetail({ nc, onClose, labels, lang }) {
  * @param {boolean} [props.enablePagination=true] off when the page owns the paging
  * @param {React.ReactNode} [props.toolbar] filters rendered next to the search box
  * @param {React.ReactNode} [props.actions]
+ * @param {Function} [props.onExport] see DataTable
+ * @param {boolean} [props.exporting]
+ * @param {React.ReactNode} [props.legend] see DataTable
  */
 export function NonConformityList({
     items = [],
@@ -489,6 +490,9 @@ export function NonConformityList({
     enablePagination = true,
     toolbar,
     actions,
+    onExport,
+    exporting = false,
+    legend,
 }) {
     const { lang } = useMessages();
     const labels = pickLabels(LABELS, lang);
@@ -770,8 +774,13 @@ export function NonConformityList({
                 enablePagination={enablePagination}
                 initialSorting={[{ id: 'delay', desc: true }]}
                 initialColumnVisibility={{ cost: false }}
-                searchPlaceholder={labels.search}
+                /* The page searches on the server, through its toolbar: a second box
+                   searching the displayed page only would answer another question. */
+                enableFiltering={false}
                 toolbar={toolbar}
+                onExport={onExport}
+                exporting={exporting}
+                legend={legend}
                 actions={actions}
                 emptyState={<EmptyState icon="verified_user" variant="success" title={labels.empty} />}
                 caption={labels.columns.nc}

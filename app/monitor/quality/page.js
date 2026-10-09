@@ -47,6 +47,8 @@ import { AppShell, PageHeader } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
+import { useListExport } from '@/components/ui/useListExport';
+import { WindowNotice } from '@/components/monitor/WindowNotice';
 import { Checkbox, SEARCH_SLOT_CLASS, SearchInput, Select } from '@/components/ui/Field';
 import { formatTotal } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
@@ -89,13 +91,14 @@ const LABELS = defineLabels('app/monitor/quality/page#LABELS', {
              * « Aucune NC fermée sur ce périmètre ». There is one; it simply is
              * not in the population that was read.
              */
-            closingHidden: '{count} NC fermée(s) — cochez « Inclure les NC fermées » pour le délai de clôture',
+            closingHidden: '{count} NC fermée(s) · cliquer pour les inclure',
         },
         dayUnit: 'j',
         allStates: 'Tous les états',
         allTypes: 'Tous les types',
         includeClosed: 'Inclure les NC fermées',
         searchSupplier: 'Filtrer par fournisseur',
+        truncatedShort: 'Fenêtre : {scanned} NC lues',
         truncated:
             'Plus de NC que la fenêtre d’analyse ({scanned} analysées) : affinez les filtres pour une vue complète.',
         inexact:
@@ -133,13 +136,14 @@ const LABELS = defineLabels('app/monitor/quality/page#LABELS', {
             closing: 'Mean closing {value} d',
             noClosing: 'No closed NC in this perimeter',
             /* See the note on the French `closingHidden`. */
-            closingHidden: '{count} closed NC — tick “Include closed NCs” for the closing delay',
+            closingHidden: '{count} closed NC · click to include them',
         },
         dayUnit: 'd',
         allStates: 'All states',
         allTypes: 'All types',
         includeClosed: 'Include closed NCs',
         searchSupplier: 'Filter by supplier',
+        truncatedShort: 'Window: {scanned} NCs read',
         truncated:
             'More NCs than the scan window ({scanned} scanned): narrow the filters for a complete view.',
         inexact: 'Approximate counters: the engine returned a capped total for at least one query.',
@@ -178,6 +182,7 @@ export default function MonitorQualityPage() {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);
     const [rowSelection, setRowSelection] = useState({});
+    const [focus, setFocus] = useState('');
 
     const params = useMemo(
         () => ({
@@ -188,13 +193,30 @@ export default function MonitorQualityPage() {
             // nothing would look like a bug rather than a setting.
             includeClosed: includeClosed || ncState === 'closed' ? 'true' : undefined,
             q: supplier.trim() || undefined,
+            focus: focus || undefined,
             page,
             pageSize,
         }),
-        [ncState, ncType, includeClosed, supplier, page, pageSize],
+        [ncState, ncType, includeClosed, supplier, focus, page, pageSize],
     );
 
     const quality = useApi('monitor/quality', { params });
+    const exportQuery = useMemo(() => {
+        const { page: unusedPage, pageSize: unusedPageSize, ...rest } = params;
+        return rest;
+    }, [params]);
+    const listExport = useListExport({ path: 'monitor/quality', query: exportQuery, filename: 'non-conformites' });
+    /** A tile is a filter: one click narrows the list to what it counts, a second one clears it. */
+    const tileProps = (id) => ({
+        onClick: () => {
+            setFocus((current) => (current === id ? '' : id));
+            setPage(1);
+        },
+        'aria-pressed': focus === id,
+        badge: focus === id ? (
+            <span className="pill pill-info pill-sm pill-no-dot"><Icon name="filter_alt" size={12} /></span>
+        ) : null,
+    });
     const data = quality.data;
 
     // Memoised so an empty answer keeps one stable `[]` identity — otherwise the
@@ -279,7 +301,16 @@ export default function MonitorQualityPage() {
             space="monitor"
             title={labels.title}
         >
-            <PageHeader title={labels.title} description={labels.subtitle} />
+            <PageHeader
+                title={labels.title}
+                description={labels.subtitle}
+                actions={pagination.truncated ? (
+                    <WindowNotice
+                        label={fill(labels.truncatedShort, { scanned: pagination.scanned || 0 })}
+                        detail={fill(labels.truncated, { scanned: pagination.scanned || 0 })}
+                    />
+                ) : null}
+            />
 
             {/* ------------------------------------------------------ KPI row */}
             <StatGrid columns={4} className="mb-4">
@@ -290,6 +321,11 @@ export default function MonitorQualityPage() {
                     tone={summary.open ? 'warn' : 'ok'}
                     loading={quality.loading}
                     index={0}
+                    onClick={() => {
+                        setFocus('');
+                        setPage(1);
+                    }}
+                    aria-pressed={!focus}
                     hint={
                         summary.total
                             ? fill(labels.hints.total, { count: countOf(summary.total).text })
@@ -303,6 +339,7 @@ export default function MonitorQualityPage() {
                     tone={summary.blocking ? 'danger' : 'ok'}
                     loading={quality.loading}
                     index={1}
+                    {...tileProps('blocking')}
                     hint={summary.blocking ? labels.hints.blocking : labels.hints.noBlocking}
                 />
                 <StatCard
@@ -312,6 +349,7 @@ export default function MonitorQualityPage() {
                     tone={summary.overdue ? 'danger' : 'ok'}
                     loading={quality.loading}
                     index={2}
+                    {...tileProps('overdue')}
                     hint={
                         correctiveActions.late
                             ? fill(labels.hints.actionsLate, { count: correctiveActions.late })
@@ -334,6 +372,11 @@ export default function MonitorQualityPage() {
                     }
                     loading={quality.loading}
                     index={3}
+                    onClick={(summary.closed || 0) > 0 ? () => {
+                        setIncludeClosed((value) => !value);
+                        setPage(1);
+                    } : undefined}
+                    aria-pressed={(summary.closed || 0) > 0 ? includeClosed : undefined}
                     /*
                      * `meanClosingDelayDays` is folded over the **listed** rows, and
                      * closed NCs are excluded from the list unless the box is ticked.
@@ -361,14 +404,6 @@ export default function MonitorQualityPage() {
                 </Card>
             ) : null}
 
-            {pagination.truncated ? (
-                <Card variant="accent" padding="sm" className="mb-3">
-                    <p className="flex items-start gap-2 text-xs">
-                        <Icon name="warning" size={16} className="mt-0.5 text-[var(--becpg-orange)]" />
-                        <span>{fill(labels.truncated, { scanned: pagination.scanned || 0 })}</span>
-                    </p>
-                </Card>
-            ) : null}
 
             {summary.exact === false ? (
                 <p className="mb-3 text-xs text-[var(--becpg-dark-grey)]">{labels.inexact}</p>
@@ -391,6 +426,16 @@ export default function MonitorQualityPage() {
                 enablePagination={false}
                 toolbar={
                     <>
+                        <div className={SEARCH_SLOT_CLASS}>
+                            <SearchInput
+                                value={supplier}
+                                placeholder={labels.searchSupplier}
+                                onChange={(value) => {
+                                    setSupplier(value);
+                                    resetView();
+                                }}
+                            />
+                        </div>
                         <Select
                             value={ncState}
                             aria-label={labels.allStates}
@@ -411,16 +456,6 @@ export default function MonitorQualityPage() {
                                 resetView();
                             }}
                         />
-                        <div className={SEARCH_SLOT_CLASS}>
-                            <SearchInput
-                                value={supplier}
-                                placeholder={labels.searchSupplier}
-                                onChange={(value) => {
-                                    setSupplier(value);
-                                    resetView();
-                                }}
-                            />
-                        </div>
                         <Checkbox
                             label={labels.includeClosed}
                             checked={includeClosed || ncState === 'closed'}
@@ -432,11 +467,14 @@ export default function MonitorQualityPage() {
                         />
                     </>
                 }
+                legend={labels.note}
+                onExport={listExport.onExport}
+                exporting={listExport.exporting}
             />
 
             {/* --------------------------------------------------- pagination */}
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--becpg-dark-grey)]">
-                <p className="max-w-xl">{labels.note}</p>
+                <span />
                 <div className="flex items-center gap-2">
                     <span className="tabular-nums">
                         {fill(labels.pageOf, { from, to, total: total.text })}

@@ -68,6 +68,7 @@ export async function GET(request) {
             filters: parseMonitorFilters(params),
             states,
             sort: params.get('sort') || undefined,
+            focus: params.get('focus') || undefined,
             page: params.get('page'),
             pageSize: params.get('pageSize'),
             lang: await resolveLang(session),

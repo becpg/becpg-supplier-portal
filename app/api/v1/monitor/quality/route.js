@@ -67,6 +67,7 @@ export async function GET(request) {
             state: params.get('ncState') || undefined,
             ncType: params.get('ncType') || undefined,
             includeClosed: params.get('includeClosed') === 'true',
+            focus: params.get('focus') || undefined,
             page: params.get('page'),
             pageSize: params.get('pageSize'),
             lang: await resolveLang(session),

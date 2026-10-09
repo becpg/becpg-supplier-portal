@@ -685,7 +685,7 @@ const LOCALE = {
         "allTypes": "Kaikki asiakirjatyypit",
         "allStatuses": "Kaikki tilat",
         "mandatoryOnly": "Vain pakolliset asiakirjat",
-        "export": "Vie (CSV)",
+        "export": "Vie",
         "stats": {
             "suppliers": "Toimittajat",
             "missing": "Puuttuvat",
@@ -726,12 +726,17 @@ const LOCALE = {
         "title": "Toimittajajoukon seuranta",
         "description": "Toimittajakantasi hyväksyntä, dokumenttien vaatimustenmukaisuus, vanhenemiset, projektit ja poikkeamat reaaliajassa.",
         "generatedAt": "Tiedot ajankohdalta {time}",
-        "openList": "Näytä koko luettelo",
-        "openDocuments": "Asiakirjojen vaatimustenmukaisuus",
-        "openCampaigns": "Projektit",
-        "openQuality": "Poikkeamat",
         "truncated": "Toimittajajoukko on hakuikkunaa suurempi: luettu {scanned}/{total} toimittajaa. ”≈”-merkityt laskurit on rajattu; jakauma ja top 10 koskevat hakuikkunaa.",
-        "truncatedShort": "Ikkuna: {scanned} toimittajaa luettu"
+        "truncatedShort": "Ikkuna: {scanned} toimittajaa luettu",
+        "tablist": "Toimittajajoukon tarkastelu",
+        "tabs": {
+            "quality": "Laatu",
+            "purchasing": "Hankinta",
+            "rnd": "T&K",
+            "csr": "Vastuullisuus",
+            "assistant": "Avustaja"
+        },
+        "ai": "Tekoäly"
     },
     "app/monitor/products/page#LABELS": {
         "title": "Toimittajien tuotteet",
@@ -740,7 +745,7 @@ const LOCALE = {
         "state": "Tuotteen tila",
         "anyState": "Kaikki tilat",
         "certified": "Sertifikaatin päivämäärä",
-        "anyCertified": "Kaikki",
+        "anyCertified": "Kaikki päivämäärät",
         "certifiedNone": "Ei päivämäärää",
         "certifiedYears": "Sertifioitu yli {count} v sitten",
         "columns": {
@@ -762,7 +767,13 @@ const LOCALE = {
         "previous": "Edellinen sivu",
         "next": "Seuraava sivu",
         "rows": "Rivejä sivulla",
-        "sortScope": "Lajittelu koskee näytettävää sivua, ei koko toimittajajoukkoa."
+        "sortScope": "Lajittelu koskee näytettävää sivua, ei koko toimittajajoukkoa.",
+        "tiles": {
+            "total": "Tuotteet",
+            "valid": "Hyväksytyt",
+            "draft": "Kesken",
+            "noCertificate": "Ei listauspäivää"
+        }
     },
     "app/monitor/quality/page#LABELS": {
         "title": "Poikkeamat",
@@ -781,7 +792,7 @@ const LOCALE = {
             "noActionsLate": "Ei myöhässä olevia korjaavia toimenpiteitä",
             "closing": "Keskimääräinen sulkemisaika {value} pv",
             "noClosing": "Tässä rajauksessa ei ole suljettuja NC:itä",
-            "closingHidden": "Suljettuja NC:itä: {count} — valitse ”Sisällytä suljetut NC:t” nähdäksesi sulkemisajan"
+            "closingHidden": "{count} suljettua poikkeamaa · napsauta sisällyttääksesi ne"
         },
         "dayUnit": "pv",
         "allStates": "Kaikki tilat",
@@ -798,7 +809,8 @@ const LOCALE = {
         "rows": "Rivejä",
         "reminder": "Teitä koskee avoin poikkeama. Pyydämme teitä käsittelemään siihen liittyvät korjaavat toimenpiteet portaalissa mahdollisimman pian.",
         "hintTargets": "Valittujen NC:iden toimittajat",
-        "note": "Käsittelyaika: NC:n luomisesta lähtien; suljetulle NC:lle sen luomisen ja viimeisimmän muokkauksen välinen aika — beCPG ei tallenna sulkemispäivää."
+        "note": "Käsittelyaika: NC:n luomisesta lähtien; suljetulle NC:lle sen luomisen ja viimeisimmän muokkauksen välinen aika — beCPG ei tallenna sulkemispäivää.",
+        "truncatedShort": "Ikkuna: {scanned} poikkeamaa luettu"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "unavailable": {
@@ -1562,7 +1574,6 @@ const LOCALE = {
         "overdue": "Myöhässä: {count} pv",
         "noDue": "Ei määräaikaa",
         "others": "+{count}",
-        "search": "Hae projektia",
         "empty": "Tällä rajauksella ei ole avoimia projekteja",
         "projectStates": {
             "Planned": "Suunniteltu",
@@ -1597,7 +1608,7 @@ const LOCALE = {
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Stopped": "Pysäytetty",
     "components/monitor/MonitorFilters#LABELS": {
         "search": "Hae toimittajaa, koodia tai virallista nimeä…",
-        "toggle": "Suodattimet",
+        "toggle": "Lisää suodattimia",
         "reset": "Nollaa",
         "close": "Piilota suodattimet",
         "legend": "Toimittajakannan suodattimet",
@@ -1618,7 +1629,10 @@ const LOCALE = {
         "noVocabulary": "Ladatussa rajauksessa ei ole arvoja",
         "active": "Aktiivisia suodattimia: {count}",
         "activePlural": "Aktiivisia suodattimia: {count}",
-        "clearOne": "Poista tämä suodatin"
+        "clearOne": "Poista tämä suodatin",
+        "anyFamily": "Kaikki tuoteperheet",
+        "anySubFamily": "Kaikki alaperheet",
+        "anyState": "Kaikki tilat"
     },
     "components/monitor/NonConformityList#LABELS": {
         "columns": {
@@ -1669,7 +1683,6 @@ const LOCALE = {
         "andMore": "… ja {count} muuta",
         "others": "+{count}",
         "noSupplier": "Ei linkitettyä toimittajaa",
-        "search": "Hae poikkeamaa",
         "empty": "Tällä rajauksella ei ole poikkeamia",
         "open": "Avaa tämä poikkeama",
         "detail": {
@@ -1688,58 +1701,6 @@ const LOCALE = {
             "state": "Tila",
             "type": "Tyyppi"
         }
-    },
-    "components/monitor/ParkStats#LABELS": {
-        "tiles": {
-            "approved": "Hyväksytyt",
-            "toRenew": "Uusittavat",
-            "suspended": "Keskeytetyt",
-            "compliance": "Asiak. vaatimustenmukaisuus",
-            "expiring30": "Vanhenee < 30 pv",
-            "campaigns": "Projektit",
-            "lateTasks": "Myöhässä olevat tehtävät",
-            "nc": "Avoimet NC:t"
-        },
-        "hints": {
-            "ofPark": "toimittajia yhteensä: {total}",
-            "ofScanned": "luettuja toimittajia: {scanned}",
-            "complianceDetail": "Puuttuvia: {missing} · vanhentuneita: {expired} · hylättyjä: {refused}",
-            "complianceMandatory": "Pakolliset asiakirjat: {compliant} / {total}",
-            "noRate": {
-                "countsCapped": "Osuutta ei voi laskea: beCPG rajoitti asiakirjojen määrän laskentaa.",
-                "scopeTruncated": "Osuutta ei voi laskea: toimittajakannasta jäi kyselemättä toimittajia: {dropped}.",
-                "emptyScope": "Tällä rajauksella ei ole toimittajia: arvioitavaa ei ole."
-            },
-            "expiring": "asiakirjaa · 60 pv: {d60}, 90 pv: {d90}",
-            "campaigns": "avoinna · vastattu {rate} %, myöhässä: {late}",
-            "campaignsNoRate": "avoinna · vastausprosenttia ei voi laskea, myöhässä: {late}",
-            "lateTasks": "määräaika ylitetty",
-            "nc": "joista estäviä: {blocking}",
-            "inProgress": "listattavana: {count}",
-            "noNotice": "ennakkovaroitus {days} pv"
-        },
-        "park": {
-            "title": "Toimittajakannan rakenne",
-            "empty": "Tällä rajauksella ei ole toimittajia",
-            "share": "{share} %",
-            "unknown": "Luettuja toimittajia ilman arvioitua hyväksyntätilaa: {count}. Ne eivät näy missään palkissa.",
-            "windowScope": "Jakauma laskettu luetuista toimittajista ({scanned}; toimittajakannassa yhteensä {total}): rajatkaa suodattimia saadaksenne tarkan jakauman."
-        },
-        "expiry": {
-            "title": "Vanhenemisnäkymä",
-            "cumulative": "Kumulatiivinen: 30 pv:n kohdalla laskettu asiakirja lasketaan myös 60 ja 90 pv:n kohdalla.",
-            "bucket": "< {days} pv",
-            "empty": "Mikään asiakirja ei vanhene 90 päivän kuluessa",
-            "unit": "asiakirjaa",
-            "seeAll": "Näytä asiakirjojen vaatimustenmukaisuus"
-        },
-        "approx": "Likimääräinen laskuri: beCPG rajoitti laskentaa.",
-        "approxShort": "likimääräinen",
-        "scopeEmpty": "Mikään toimittaja ei vastaa tätä rajausta. Laskureita ei laskettu: yllä olevat luvut ovat rakenteellisesti nollia, eivät mittauksia.",
-        "scopeDropped": "Toimittajakannasta jäi kyselemättä toimittajia: {dropped} (kyselyraja {chunks}): laskurit ovat alarajoja.",
-        "unsupported": "Suodatin ei ole käytettävissä tässä instanssissa: {names}. Mikään beCPG:n vakio-ominaisuus ei kata sitä.",
-        "assocScope": "Suodatin {names} sovellettu luettuun otokseen (Alfresco ei indeksoi assosiaatioita).",
-        "generatedAt": "Tiedot ajankohdalta: {time}"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "Laatu",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "Asiakirjojen vaatimustenmukaisuus, poikkeamat, sertifioinnit, auditoinnit",
@@ -1929,6 +1890,193 @@ const LOCALE = {
         "clear": "Tyhjennä valinta",
         "close": "Sulje",
         "noReason": "Ei riskisyytä"
+    },
+    "components/monitor/cockpit/AssistantTab#LABELS": {
+        "priorities": "Viikon prioriteetit",
+        "prioritiesHelp": "Laskettu säännöillä riskialtteimmille toimittajille: kriittinen riski ja estävä poikkeama, eskaloitava; vanhentunut dokumentti, vähintään viisi puuttuvaa dokumenttia tai vastaamaton projekti, muistutettava.",
+        "kinds": {
+            "escalate": "Eskaloitava",
+            "remind": "Muistutettava"
+        },
+        "score": "Riski {score}",
+        "openSheet": "Avaa kortti",
+        "none": "Ei prioriteetteja tällä viikolla tässä rajauksessa.",
+        "copilot": "Copilot",
+        "wire": "Kytkettävä beCPG:hen",
+        "copilotSoon": "Copilot vastaa toimittajajoukkoasi koskeviin kysymyksiin, kun se on kytketty beCPG-avustajaan.",
+        "ask": "Kysy toimittajajoukostasi…",
+        "askLabel": "Kysymys copilotille"
+    },
+    "components/monitor/cockpit/CsrTab#LABELS": {
+        "expected": "Odotetut sertifikaatit",
+        "expectedHelp": "Dokumenttityypit, joiden nimessä on ”sertifikaatti”, yksi kutakin asianomaista toimittajaa kohden.",
+        "valid": "Voimassa olevat sertifikaatit",
+        "outOf": "/ {total}",
+        "origins": "Ilmoitetut alkuperät",
+        "surveys": "Vastuullisuuskyselyt",
+        "notWired": "beCPG ei vielä välitä tätä tietoa portaaliin.",
+        "byType": "Vaatimustenmukaisuus dokumenttityypeittäin",
+        "byTypeAria": "Dokumenttien tila tyypeittäin",
+        "byTypeHelp": "Kullekin dokumenttityypille yksi tila asianomaista toimittajaa kohden: sen dokumenttien epäedullisin.",
+        "map": "Hankintojen alkuperä",
+        "mapEmpty": "Kartta alkuperämaista ja toimittajien toimipaikoista.",
+        "csv": {
+            "type": "Dokumenttityyppi",
+            "expected": "Odotetut"
+        }
+    },
+    "components/monitor/cockpit/PurchasingTab#LABELS": {
+        "approved": "Hyväksytyt toimittajat",
+        "outOf": "/ {total}",
+        "openProjects": "Avoimet projektit",
+        "answered": "Vastatut",
+        "unanswered": "Vastaamattomat",
+        "openProjectsHelp": "Koko instanssin avoimet toimittajaprojektit: projekti ei sijaitse toimittajan alla, joten toimittajajoukon suodattimet eivät koske sitä.",
+        "responseRate": "Vastausaste",
+        "meanCompletion": "Keskimääräinen edistyminen {value} %",
+        "lateTasks": "Myöhässä olevat tehtävät",
+        "lateProjects": "{count} myöhässä olevaa projektia",
+        "composition": "Toimittajajoukon rakenne",
+        "compositionAria": "Toimittajat perheittäin, alaperheittäin ja hyväksyntätilan mukaan",
+        "compositionHelp": "Sisärengas: perheet. Keskirengas: alaperheet. Ulkorengas: hyväksyntätila. Laajenna perhe napsauttamalla sitä.",
+        "reactivity": "Toimittajien reagointikyky",
+        "reactivityAria": "Tehtävät vuosittain ja keskimääräinen vastausaika",
+        "reactivityHelp": "Pylväät: toimittajaprojektien tehtävät päättymisvuoden mukaan (logaritminen asteikko). Viiva: keskimääräinen vastausaika päivinä.",
+        "tasks": "Tehtävät",
+        "delay": "Keskim. vastausaika (pv)",
+        "days": "Päivät",
+        "taskStates": "Toimittajaprojektien tehtävät",
+        "taskStatesAria": "Tehtävät tilan mukaan",
+        "taskStatesHelp": "Kaikki päätöstukimoduulista luetut toimittajaprojektien tehtävät tilan mukaan (logaritminen asteikko)."
+    },
+    "components/monitor/cockpit/QualityTab#LABELS": {
+        "health": "Toimittajajoukon kunto",
+        "healthAria": "Kuntoindeksi {value}/100",
+        "healthOutOf": "/ 100",
+        "healthHelp": "Indeksi 100:sta: 35 % hyväksyntäaste, 35 % dokumenttien vaatimustenmukaisuus, 20 % projektien vastausaste, 10 % toimittajat ilman estävää poikkeamaa.",
+        "healthPartial": "Osittainen laskenta, painot jaettu uudelleen: {missing} ei saatavilla.",
+        "weights": {
+            "approval": "Hyväksyntä {weight} %",
+            "compliance": "Vaatimustenmukaisuus {weight} %",
+            "response": "Vastaus {weight} %",
+            "noBlockingNc": "Ei estävää poikkeamaa {weight} %"
+        },
+        "inputs": {
+            "approval": "hyväksyntäaste",
+            "compliance": "dokumenttien vaatimustenmukaisuus",
+            "response": "vastausaste",
+            "noBlockingNc": "osuus ilman estävää poikkeamaa"
+        },
+        "compliance": "Dokumenttien vaatimustenmukaisuus",
+        "compliant": "Vaatimustenmukaiset",
+        "complianceHelp": "Voimassa olevat pakolliset dokumentit suhteessa rajauksen odotettuihin pakollisiin dokumentteihin.",
+        "complianceNoRate": "Aste ei saatavilla: laskuri saavutti beCPG:n lukurajan.",
+        "openNc": "Avoimet poikkeamat",
+        "suspended": "Keskeytetyt toimittajat",
+        "outOf": "/ {total}",
+        "toReview": "Tarkistettavat dokumentit",
+        "toReviewHelp": "Hyväksyttävät ja vanhentuneet dokumentit, yksi toimittajaa ja dokumenttityyppiä kohden.",
+        "riskMap": "Riskikartta",
+        "riskMapAria": "Toimittajat riskipisteiden ja avoimien projektien mukaan",
+        "riskMapHelp": "Vaaka-akseli: avoimet projektit. Pystyakseli: riskipisteet. Koko: poikkeamat (puuttuvat ja vanhentuneet dokumentit, estävät poikkeamat). Avaa toimittajan kortti napsauttamalla sitä.",
+        "openProjects": "Avoimet projektit",
+        "riskScore": "Riskipisteet",
+        "anomalies": "Koko: poikkeamat",
+        "priorities": "Ensisijainen alue",
+        "bubble": "Riski {score} · {projects} avointa projektia · {anomalies} poikkeamaa",
+        "ncAge": "Avoimien poikkeamien ikä",
+        "ncAgeAria": "Avoimet poikkeamat iän mukaan",
+        "ncUndated": "{count} poikkeamaa ilman luontipäivää",
+        "csv": {
+            "rank": "Sija",
+            "supplier": "Toimittaja",
+            "code": "Koodi",
+            "status": "Hyväksyntä",
+            "level": "Riskitaso",
+            "score": "Riskipisteet",
+            "reasons": "Syyt",
+            "openProjects": "Avoimet projektit",
+            "anomalies": "Poikkeamat"
+        }
+    },
+    "components/monitor/cockpit/RndTab#LABELS": {
+        "progress": "Keskimääräinen edistyminen {year}",
+        "progressNoYear": "Keskimääräinen edistyminen",
+        "projects": "{count} projektia",
+        "tasksInProgress": "Käynnissä olevat tehtävät",
+        "tasksPlanned": "{count} suunniteltua",
+        "technicalSheets": "Puuttuvat tekniset tuotekortit",
+        "technicalSheetsHint": "{toValidate} hyväksyttävänä · {expired} vanhentunutta",
+        "technicalSheetsHelp": "Dokumenttityypit, joiden nimessä on ”tekninen tuotekortti”, yksi kutakin asianomaista toimittajaa kohden.",
+        "activeFiles": "Aktiiviset kansiot",
+        "activeSince": "Viimeisin toiminta {date} alkaen",
+        "activeHelp": "Edellisen vuosineljänneksen alusta lähtien muokatut toimittajat.",
+        "projectProgress": "Projektien edistyminen",
+        "projectProgressAria": "Projektien määrä ja keskimääräinen edistyminen vuosittain",
+        "projectProgressHelp": "Pylväät: projektit viimeisimmän muokkausvuoden mukaan. Viiva: keskimääräinen edistyminen %.",
+        "projectsSeries": "Projektit",
+        "averageSeries": "Keskim. edistyminen (%)",
+        "landscape": "Toimittajamaisema",
+        "landscapeAria": "Toimittajat perheittäin ja hyväksyntätilan mukaan",
+        "landscapeHelp": "Toimittajat perheittäin ja hyväksyntätilan mukaan. 3D-näkymä, jos selain sallii, muuten ryhmitellyt pylväät.",
+        "freshness": "Kansioiden ajantasaisuus",
+        "freshnessAria": "Toimittajat viimeisimmän toimintakuukauden mukaan",
+        "recent": "Aktiivisia {date} alkaen",
+        "older": "Vanhemmat",
+        "undated": "{count} toimittajaa ilman toimintapäivää",
+        "fromCube": "Luettu beCPG:n päätöstukimoduulista, joka päivitetään eräajona."
+    },
+    "components/monitor/cockpit/parts#LABELS": {
+        "export": "Vie",
+        "soon": "Kytkettävä",
+        "decisionModule": "Päätöstukimoduuli",
+        "chartFailed": "Kaaviota ei voitu ladata.",
+        "window": "Hakuikkuna: luvut koskevat luettuja toimittajia.",
+        "unavailable": "Tietoja ei saatavilla",
+        "empty": "Ei näytettävää",
+        "reasons": {
+            "denied": "beCPG esti pääsyn tähän tietoon.",
+            "notFound": "Tietoa ei löytynyt beCPG:stä.",
+            "unavailable": "beCPG ei vastannut tämän lohkon osalta. Yritä hetken kuluttua uudelleen.",
+            "noMatchingDocumentType": "Ei vastaavaa dokumenttityyppiä tässä rajauksessa.",
+            "noData": "Ei tietoja tälle rajaukselle."
+        }
+    },
+    "components/monitor/cockpit/vocabulary#VOCABULARY": {
+        "approval": {
+            "approved": "Hyväksytyt",
+            "inProgress": "Käynnissä",
+            "toRenew": "Uusittava",
+            "suspended": "Keskeytetyt"
+        },
+        "documents": {
+            "valid": "Voimassa",
+            "expiring": "Vanhenee pian",
+            "toValidate": "Hyväksyttävänä",
+            "expired": "Vanhentuneet",
+            "refused": "Hylätyt",
+            "missing": "Puuttuvat"
+        },
+        "taskStates": {
+            "planned": "Suunnitellut",
+            "inProgress": "Käynnissä",
+            "completed": "Valmiit",
+            "cancelled": "Peruutetut",
+            "refused": "Hylätyt",
+            "onHold": "Odottaa"
+        },
+        "ncAges": {
+            "under3Months": "< 3 kk",
+            "from3To12Months": "3-12 kk",
+            "from1To2Years": "1-2 v",
+            "over2Years": "> 2 v"
+        },
+        "nc": {
+            "blocking": "Estävät",
+            "nonBlocking": "Ei-estävät"
+        },
+        "noFamily": "Ei perhettä",
+        "noSubFamily": "Ei alaperhettä"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "Vaatimustenmukaisuus",
@@ -2201,7 +2349,9 @@ const LOCALE = {
         "selectAll": "Valitse kaikki",
         "selectRow": "Valitse rivi",
         "columns": "Näkyvät sarakkeet",
-        "rowsPerPage": "Rivejä sivulla"
+        "rowsPerPage": "Rivejä sivulla",
+        "export": "Vie",
+        "legend": "Selite"
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "Täällä ei ole vielä mitään näytettävää. Kohteet tulevat näkyviin heti, kun ne luodaan tai lähetetään.",
@@ -2542,6 +2692,10 @@ const LOCALE = {
             "averageProgress": "Edistyminen keskim.",
             "projectsNumber": "Projektit"
         }
+    },
+    "components/ui/useListExport#LABELS": {
+        "done": "{count} riviä viety.",
+        "cut": "Osittainen vienti: {count} riviä, viennin enimmäismäärä. Tarkenna suodattimia lopuille."
     }
 };
 

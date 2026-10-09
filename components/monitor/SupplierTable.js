@@ -649,6 +649,7 @@ export function SupplierCompare({ items, open, onClose, onDone }) {
  * @param {Function} props.onSelectionChange
  * @param {React.ReactNode} [props.actions] page-level buttons (export, refresh)
  * @param {React.ReactNode} [props.toolbar] extra filters next to the search box
+ * @param {Function} [props.onExport] see DataTable
  * @param {boolean} [props.filtered] the park is filtered — changes the empty state
  * @param {Function} [props.onResetFilters]
  * @param {Function} [props.onAfterAction] called after a monitoring write
@@ -663,6 +664,7 @@ export function SupplierTable({
     onSelectionChange,
     actions,
     toolbar,
+    onExport,
     filtered = false,
     onResetFilters,
     onAfterAction,
@@ -733,6 +735,7 @@ export function SupplierTable({
                 enablePagination={false}
                 caption={local.caption}
                 toolbar={toolbar}
+                onExport={onExport}
                 actions={
                     <>
                         {selected.length >= 2 ? (

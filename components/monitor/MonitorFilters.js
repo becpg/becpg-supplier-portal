@@ -89,7 +89,10 @@ const NODEREF_RE = /^workspace:\/\/SpacesStore\/[0-9a-f-]{36}$/i;
 const LABELS = defineLabels('components/monitor/MonitorFilters#LABELS', {
     fr: {
         search: 'Rechercher un fournisseur, un code, une raison sociale…',
-        toggle: 'Filtres',
+        toggle: 'Plus de filtres',
+        anyFamily: 'Toutes les familles',
+        anySubFamily: 'Toutes les sous-familles',
+        anyState: 'Tous les états',
         reset: 'Réinitialiser',
         close: 'Masquer les filtres',
         legend: 'Filtres du parc',
@@ -116,7 +119,10 @@ const LABELS = defineLabels('components/monitor/MonitorFilters#LABELS', {
     },
     en: {
         search: 'Search a supplier, a code, a legal name…',
-        toggle: 'Filters',
+        toggle: 'More filters',
+        anyFamily: 'All families',
+        anySubFamily: 'All sub-families',
+        anyState: 'All states',
         reset: 'Reset',
         close: 'Hide the filters',
         legend: 'Park filters',
@@ -144,7 +150,12 @@ const LABELS = defineLabels('components/monitor/MonitorFilters#LABELS', {
 });
 
 /** The selects, in reading order. `q` and `state` are handled separately. */
-const VOCABULARY_FILTERS = Object.freeze(['family', 'subFamily', 'site', 'subsidiary', 'market']);
+/**
+ * The vocabulary filters shown in line with the search, as on every list of the
+ * portal; the others wait behind "Plus de filtres".
+ */
+const INLINE_FILTERS = Object.freeze(['family', 'subFamily']);
+const PANEL_FILTERS = Object.freeze(['site', 'subsidiary', 'market']);
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, key) =>
@@ -369,6 +380,7 @@ export function MonitorFilters({
     const [open, setOpen] = useState(defaultOpen);
 
     const count = activeFilterCount(filters);
+    const panelCount = [...PANEL_FILTERS, 'buyer'].filter((key) => filters[key]).length;
     const assocFilters = useMemo(
         () => new Set((applied || []).filter((entry) => entry.mode === 'assoc').map((entry) => entry.name)),
         [applied],
@@ -465,18 +477,40 @@ export function MonitorFilters({
                         placeholder={local.search}
                     />
                 </div>
+                {/* A select with nothing to offer is left out rather than shown
+                    greyed: the list it would filter has not given its values. */}
+                {INLINE_FILTERS.filter((key) => (options[key] || []).length > 0 || filters[key]).map((key) => (
+                    <Select
+                        key={key}
+                        value={filters[key] || ''}
+                        disabled={unsupportedSet.has(key)}
+                        aria-label={local[key]}
+                        placeholder={key === 'family' ? local.anyFamily : local.anySubFamily}
+                        options={options[key] || []}
+                        onChange={(event) => patch({ [key]: event.target.value })}
+                        className="w-auto max-w-[16rem]"
+                    />
+                ))}
+                <Select
+                    value={filters.state || ''}
+                    aria-label={local.state}
+                    placeholder={local.anyState}
+                    options={stateOptions}
+                    onChange={(event) => patch({ state: event.target.value })}
+                    className="w-auto"
+                />
                 <Button
                     variant={open ? 'secondary' : 'outline'}
                     size="md"
-                    icon="filter_list"
+                    icon="tune"
                     aria-expanded={open}
                     aria-controls="monitor-filter-panel"
                     onClick={() => setOpen((value) => !value)}
                 >
                     <span>{local.toggle}</span>
-                    {count > 0 ? (
+                    {panelCount > 0 ? (
                         <span className="ms-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full leading-none bg-[var(--becpg-orange-deep)] px-1.5 text-[11px] font-medium tabular-nums text-white">
-                            {count}
+                            {panelCount}
                         </span>
                     ) : null}
                 </Button>
@@ -489,12 +523,12 @@ export function MonitorFilters({
             </div>
 
             {/* ------------------------------------------------- active chips */}
-            {count > 0 ? (
+            {panelCount > 0 ? (
                 <div className="mt-2 flex flex-wrap items-center gap-1.5" aria-live="polite">
                     <span className="sr-only-text">
                         {fill(count > 1 ? local.activePlural : local.active, { count })}
                     </span>
-                    {MONITOR_FILTER_KEYS.filter((key) => filters[key]).map((key) => (
+                    {[...PANEL_FILTERS, 'buyer'].filter((key) => filters[key]).map((key) => (
                         <FilterChip
                             key={key}
                             label={key === 'q' ? local.search.replace('…', '') : local[key]}
@@ -520,7 +554,7 @@ export function MonitorFilters({
                         <fieldset className="mt-3 rounded-xl border border-[var(--becpg-grey)] bg-white p-3 sm:p-4">
                             <legend className="sr-only-text">{local.legend}</legend>
                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                {VOCABULARY_FILTERS.map((key) => selectFor(key))}
+                                {PANEL_FILTERS.map((key) => selectFor(key))}
 
                                 {/* The buyer is a beCPG username: a datalist gives
                                     the ones we have seen without forbidding the
@@ -548,23 +582,6 @@ export function MonitorFilters({
                                     <p className="mt-1 text-[11px] text-[var(--becpg-dark-grey)]">
                                         {local.buyerHint}
                                     </p>
-                                </div>
-
-                                <div className="min-w-0">
-                                    <label
-                                        htmlFor="monitor-filter-state"
-                                        className="mb-1 block truncate text-xs font-medium text-[var(--becpg-dark-grey)]"
-                                    >
-                                        {local.state}
-                                    </label>
-                                    <Select
-                                        id="monitor-filter-state"
-                                        value={filters.state || ''}
-                                        aria-label={local.state}
-                                        placeholder={local.any}
-                                        options={stateOptions}
-                                        onChange={(event) => patch({ state: event.target.value })}
-                                    />
                                 </div>
                             </div>
 

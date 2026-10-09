@@ -685,7 +685,7 @@ const LOCALE = {
         "allTypes": "جميع أنواع المستندات",
         "allStatuses": "جميع الحالات",
         "mandatoryOnly": "المستندات الإلزامية فقط",
-        "export": "تصدير (CSV)",
+        "export": "تصدير",
         "stats": {
             "suppliers": "الموردون",
             "missing": "ناقصة",
@@ -726,12 +726,17 @@ const LOCALE = {
         "title": "متابعة قاعدة الموردين",
         "description": "الاعتماد ومطابقة المستندات وانتهاء الصلاحيات والمشاريع وحالات عدم المطابقة لمورديك، في الوقت الفعلي.",
         "generatedAt": "البيانات حتى {time}",
-        "openList": "عرض القائمة كاملة",
-        "openDocuments": "مطابقة المستندات",
-        "openCampaigns": "المشاريع",
-        "openQuality": "حالات عدم المطابقة",
         "truncated": "قاعدة الموردين أكبر من نافذة الفحص: قُرئ {scanned} مورّد من أصل {total}. العدادات المعلّمة بـ «≈» محدودة بسقف؛ ويغطي التوزيع وأعلى 10 تلك النافذة.",
-        "truncatedShort": "النافذة: تمت قراءة {scanned} مورد"
+        "truncatedShort": "النافذة: تمت قراءة {scanned} مورد",
+        "tablist": "قراءة قاعدة الموردين",
+        "tabs": {
+            "quality": "الجودة",
+            "purchasing": "المشتريات",
+            "rnd": "البحث والتطوير",
+            "csr": "المسؤولية الاجتماعية",
+            "assistant": "المساعد"
+        },
+        "ai": "ذكاء اصطناعي"
     },
     "app/monitor/products/page#LABELS": {
         "title": "منتجات الموردين",
@@ -740,7 +745,7 @@ const LOCALE = {
         "state": "حالة المنتج",
         "anyState": "جميع الحالات",
         "certified": "تاريخ الشهادة",
-        "anyCertified": "الكل",
+        "anyCertified": "كل التواريخ",
         "certifiedNone": "بلا تاريخ",
         "certifiedYears": "معتمد منذ أكثر من {count} سنة(سنوات)",
         "columns": {
@@ -762,7 +767,13 @@ const LOCALE = {
         "previous": "الصفحة السابقة",
         "next": "الصفحة التالية",
         "rows": "عدد الصفوف في الصفحة",
-        "sortScope": "يُطبَّق الترتيب على الصفحة المعروضة، لا على قاعدة الموردين بأكملها."
+        "sortScope": "يُطبَّق الترتيب على الصفحة المعروضة، لا على قاعدة الموردين بأكملها.",
+        "tiles": {
+            "total": "المنتجات",
+            "valid": "المعتمدة",
+            "draft": "قيد التنفيذ",
+            "noCertificate": "بدون تاريخ اعتماد"
+        }
     },
     "app/monitor/quality/page#LABELS": {
         "title": "حالات عدم المطابقة",
@@ -781,7 +792,7 @@ const LOCALE = {
             "noActionsLate": "لا يوجد إجراء تصحيحي متأخر",
             "closing": "متوسط الإغلاق {value} يوم",
             "noClosing": "لا توجد حالة NC مغلقة في هذا النطاق",
-            "closingHidden": "{count} حالة NC مغلقة — حدّدوا «تضمين حالات NC المغلقة» لمعرفة مدة الإغلاق"
+            "closingHidden": "{count} حالة عدم مطابقة مغلقة · انقر لتضمينها"
         },
         "dayUnit": "يوم",
         "allStates": "جميع الحالات",
@@ -798,7 +809,8 @@ const LOCALE = {
         "rows": "الصفوف",
         "reminder": "توجد حالة عدم مطابقة مفتوحة تخصكم. يُرجى معالجة الإجراءات التصحيحية المرتبطة بها على البوابة في أقرب وقت ممكن.",
         "hintTargets": "موردو حالات NC المحددة",
-        "note": "مدة المعالجة: منذ إنشاء حالة NC؛ وبالنسبة لحالة NC مغلقة، بين إنشائها وآخر تعديل لها — لا يخزّن beCPG تاريخ الإغلاق."
+        "note": "مدة المعالجة: منذ إنشاء حالة NC؛ وبالنسبة لحالة NC مغلقة، بين إنشائها وآخر تعديل لها — لا يخزّن beCPG تاريخ الإغلاق.",
+        "truncatedShort": "النافذة: تمت قراءة {scanned} حالة عدم مطابقة"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "unavailable": {
@@ -1562,7 +1574,6 @@ const LOCALE = {
         "overdue": "متأخر {count} يوم",
         "noDue": "بلا تاريخ استحقاق",
         "others": "+{count}",
-        "search": "البحث عن مشروع",
         "empty": "لا يوجد مشروع مفتوح في هذا النطاق",
         "projectStates": {
             "Planned": "مخطط",
@@ -1597,7 +1608,7 @@ const LOCALE = {
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Stopped": "متوقف",
     "components/monitor/MonitorFilters#LABELS": {
         "search": "البحث عن مورّد، رمز، اسم قانوني…",
-        "toggle": "الفلاتر",
+        "toggle": "مزيد من عوامل التصفية",
         "reset": "إعادة التعيين",
         "close": "إخفاء الفلاتر",
         "legend": "فلاتر قاعدة الموردين",
@@ -1618,7 +1629,10 @@ const LOCALE = {
         "noVocabulary": "لا توجد قيمة في النطاق المحمَّل",
         "active": "{count} فلتر مفعّل",
         "activePlural": "{count} فلاتر مفعّلة",
-        "clearOne": "إزالة هذا الفلتر"
+        "clearOne": "إزالة هذا الفلتر",
+        "anyFamily": "كل العائلات",
+        "anySubFamily": "كل العائلات الفرعية",
+        "anyState": "كل الحالات"
     },
     "components/monitor/NonConformityList#LABELS": {
         "columns": {
@@ -1669,7 +1683,6 @@ const LOCALE = {
         "andMore": "… و{count} أخرى",
         "others": "+{count}",
         "noSupplier": "لا يوجد مورّد مرتبط",
-        "search": "البحث عن حالة عدم مطابقة",
         "empty": "لا توجد حالة عدم مطابقة في هذا النطاق",
         "open": "فتح حالة عدم المطابقة هذه",
         "detail": {
@@ -1688,58 +1701,6 @@ const LOCALE = {
             "state": "الحالة",
             "type": "النوع"
         }
-    },
-    "components/monitor/ParkStats#LABELS": {
-        "tiles": {
-            "approved": "معتمد",
-            "toRenew": "للتجديد",
-            "suspended": "معلّق",
-            "compliance": "مطابقة المستندات",
-            "expiring30": "تنتهي خلال أقل من 30 يومًا",
-            "campaigns": "المشاريع",
-            "lateTasks": "مهام متأخرة",
-            "nc": "حالات NC المفتوحة"
-        },
-        "hints": {
-            "ofPark": "من أصل {total} مورّد",
-            "ofScanned": "من أصل الموردين الـ {scanned} المقروئين",
-            "complianceDetail": "{missing} ناقصة · {expired} منتهية · {refused} مرفوضة",
-            "complianceMandatory": "{compliant} / {total} مستندات إلزامية",
-            "noRate": {
-                "countsCapped": "تعذّر حساب المعدل: حدّد beCPG عدد المستندات بسقف.",
-                "scopeTruncated": "تعذّر حساب المعدل: تعذّر الاستعلام عن {dropped} مورّد(ين) من قاعدة الموردين.",
-                "emptyScope": "لا يوجد مورّد في هذا النطاق: لا شيء للتقييم."
-            },
-            "expiring": "مستندات · {d60} خلال 60 يومًا، {d90} خلال 90 يومًا",
-            "campaigns": "مفتوحة · {rate} % تمت الإجابة، {late} متأخرة",
-            "campaignsNoRate": "مفتوحة · لا يوجد معدل استجابة لحسابه، {late} متأخرة",
-            "lateTasks": "تجاوزت الاستحقاق",
-            "nc": "منها {blocking} معيقة",
-            "inProgress": "{count} قيد الإدراج",
-            "noNotice": "مهلة {days} يوم"
-        },
-        "park": {
-            "title": "تركيبة قاعدة الموردين",
-            "empty": "لا يوجد مورّد في هذا النطاق",
-            "share": "{share} %",
-            "unknown": "{count} مورّد(ين) مقروئين بلا حالة اعتماد مُقيَّمة: لا يظهرون في أي من الأشرطة.",
-            "windowScope": "التوزيع محسوب على الموردين الـ {scanned} المقروئين (تضم القاعدة {total}): ضيّقوا الفلاتر للحصول على توزيع دقيق."
-        },
-        "expiry": {
-            "title": "أفق انتهاء الصلاحية",
-            "cumulative": "تراكمي: المستند المحسوب عند 30 يومًا يُحسب أيضًا عند 60 و90 يومًا.",
-            "bucket": "< {days} يوم",
-            "empty": "لا يوجد مستند تنتهي صلاحيته خلال 90 يومًا",
-            "unit": "مستندات",
-            "seeAll": "عرض مطابقة المستندات"
-        },
-        "approx": "عداد تقريبي: حدّد beCPG العدد بسقف.",
-        "approxShort": "تقريبي",
-        "scopeEmpty": "لا يوجد مورّد يطابق هذا النطاق. لم يُحسب أي عداد: الأرقام أعلاه أصفار بحكم البناء، لا قياسات.",
-        "scopeDropped": "تعذّر الاستعلام عن {dropped} مورّد(ين) من قاعدة الموردين (حد الاستعلامات {chunks}): العدادات حدود دنيا.",
-        "unsupported": "الفلتر غير متاح على هذا النظام: {names}. لا توجد خاصية قياسية في beCPG تحمله.",
-        "assocScope": "الفلتر {names} مطبَّق على النافذة المقروءة (لا يفهرس Alfresco الارتباطات).",
-        "generatedAt": "البيانات حتى {time}"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "الجودة",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "مطابقة المستندات، حالات عدم المطابقة، الشهادات، عمليات التدقيق",
@@ -1929,6 +1890,193 @@ const LOCALE = {
         "clear": "مسح التحديد",
         "close": "إغلاق",
         "noReason": "لا يوجد سبب للمخاطر"
+    },
+    "components/monitor/cockpit/AssistantTab#LABELS": {
+        "priorities": "أولويات الأسبوع",
+        "prioritiesHelp": "تُحسب بقواعد على الموردين الأعلى خطرًا: خطر حرج مع عدم مطابقة معطِّلة، للتصعيد؛ مستند منتهي الصلاحية أو خمسة مستندات ناقصة على الأقل أو مشروع بلا رد، للتذكير.",
+        "kinds": {
+            "escalate": "للتصعيد",
+            "remind": "للتذكير"
+        },
+        "score": "الخطر {score}",
+        "openSheet": "فتح البطاقة",
+        "none": "لا توجد أولويات هذا الأسبوع في هذا النطاق.",
+        "copilot": "المساعد الذكي",
+        "wire": "بانتظار الربط في beCPG",
+        "copilotSoon": "سيجيب المساعد الذكي عن الأسئلة المتعلقة بقاعدة مورديك بمجرد ربطه بمساعد beCPG.",
+        "ask": "اطرح سؤالًا عن قاعدة مورديك…",
+        "askLabel": "سؤال إلى المساعد الذكي"
+    },
+    "components/monitor/cockpit/CsrTab#LABELS": {
+        "expected": "الشهادات المطلوبة",
+        "expectedHelp": "أنواع المستندات التي تتضمن تسميتها «شهادة»، واحد لكل مورد معني.",
+        "valid": "الشهادات السارية",
+        "outOf": "/ {total}",
+        "origins": "المناشئ المصرَّح بها",
+        "surveys": "استبيانات المسؤولية الاجتماعية",
+        "notWired": "لا يتيح beCPG هذه المعلومة للبوابة بعد.",
+        "byType": "المطابقة حسب نوع المستند",
+        "byTypeAria": "حالة المستندات حسب النوع",
+        "byTypeHelp": "لكل نوع مستند، حالة واحدة لكل مورد معني: الأقل ملاءمة بين مستنداته.",
+        "map": "مناشئ الإمدادات",
+        "mapEmpty": "خريطة بلدان المنشأ ومواقع الموردين.",
+        "csv": {
+            "type": "نوع المستند",
+            "expected": "المطلوبة"
+        }
+    },
+    "components/monitor/cockpit/PurchasingTab#LABELS": {
+        "approved": "الموردون المعتمدون",
+        "outOf": "/ {total}",
+        "openProjects": "المشاريع المفتوحة",
+        "answered": "بها رد",
+        "unanswered": "بلا رد",
+        "openProjectsHelp": "مشاريع الموردين المفتوحة في المثيل بأكمله: لا يُصنَّف المشروع تحت مورد، لذا لا تنطبق عليه عوامل تصفية القاعدة.",
+        "responseRate": "معدل الرد",
+        "meanCompletion": "متوسط التقدم {value} %",
+        "lateTasks": "المهام المتأخرة",
+        "lateProjects": "{count} مشروع متأخر",
+        "composition": "تركيبة القاعدة",
+        "compositionAria": "الموردون حسب العائلة والعائلة الفرعية وحالة الاعتماد",
+        "compositionHelp": "الحلقة الداخلية: العائلات. الحلقة الوسطى: العائلات الفرعية. الحلقة الخارجية: حالة الاعتماد. انقر على عائلة لتوسيعها.",
+        "reactivity": "سرعة استجابة الموردين",
+        "reactivityAria": "المهام في السنة ومتوسط مدة الرد",
+        "reactivityHelp": "الأعمدة: مهام مشاريع الموردين حسب سنة الانتهاء (مقياس لوغاريتمي). الخط: متوسط مدة الرد بالأيام.",
+        "tasks": "المهام",
+        "delay": "متوسط مدة الرد (يوم)",
+        "days": "الأيام",
+        "taskStates": "مهام مشاريع الموردين",
+        "taskStatesAria": "المهام حسب الحالة",
+        "taskStatesHelp": "جميع مهام مشاريع الموردين المقروءة من وحدة دعم القرار، حسب الحالة (مقياس لوغاريتمي)."
+    },
+    "components/monitor/cockpit/QualityTab#LABELS": {
+        "health": "صحة القاعدة",
+        "healthAria": "مؤشر الصحة {value} من 100",
+        "healthOutOf": "من 100",
+        "healthHelp": "مؤشر من 100: ‏35 % معدل الاعتماد، 35 % مطابقة المستندات، 20 % معدل الرد على المشاريع، 10 % نسبة الموردين دون عدم مطابقة معطِّلة.",
+        "healthPartial": "حساب جزئي، أُعيد توزيع الأوزان: {missing} غير متاح.",
+        "weights": {
+            "approval": "الاعتماد {weight} %",
+            "compliance": "المطابقة {weight} %",
+            "response": "الرد {weight} %",
+            "noBlockingNc": "دون عدم مطابقة معطِّلة {weight} %"
+        },
+        "inputs": {
+            "approval": "معدل الاعتماد",
+            "compliance": "مطابقة المستندات",
+            "response": "معدل الرد",
+            "noBlockingNc": "النسبة دون عدم مطابقة معطِّلة"
+        },
+        "compliance": "مطابقة المستندات",
+        "compliant": "مطابقة",
+        "complianceHelp": "المستندات الإلزامية السارية من أصل المستندات الإلزامية المطلوبة في النطاق.",
+        "complianceNoRate": "المعدل غير متاح: بلغ أحد العدادات حد القراءة في beCPG.",
+        "openNc": "حالات عدم المطابقة المفتوحة",
+        "suspended": "الموردون المعلَّقون",
+        "outOf": "/ {total}",
+        "toReview": "مستندات للمراجعة",
+        "toReviewHelp": "مستندات بانتظار التحقق ومستندات منتهية الصلاحية، واحد لكل مورد ونوع مستند.",
+        "riskMap": "خريطة المخاطر",
+        "riskMapAria": "الموردون حسب درجة الخطر والمشاريع المفتوحة",
+        "riskMapHelp": "المحور الأفقي: المشاريع المفتوحة. المحور الرأسي: درجة الخطر. الحجم: الحالات الشاذة (المستندات الناقصة والمنتهية، حالات عدم المطابقة المعطِّلة). انقر على مورد لفتح بطاقته.",
+        "openProjects": "المشاريع المفتوحة",
+        "riskScore": "درجة الخطر",
+        "anomalies": "الحجم: الحالات الشاذة",
+        "priorities": "المنطقة ذات الأولوية",
+        "bubble": "الخطر {score} · {projects} مشروع مفتوح · {anomalies} حالة شاذة",
+        "ncAge": "عمر حالات عدم المطابقة المفتوحة",
+        "ncAgeAria": "حالات عدم المطابقة المفتوحة حسب العمر",
+        "ncUndated": "{count} حالة عدم مطابقة دون تاريخ إنشاء",
+        "csv": {
+            "rank": "الترتيب",
+            "supplier": "المورد",
+            "code": "الرمز",
+            "status": "الاعتماد",
+            "level": "مستوى الخطر",
+            "score": "درجة الخطر",
+            "reasons": "الأسباب",
+            "openProjects": "المشاريع المفتوحة",
+            "anomalies": "الحالات الشاذة"
+        }
+    },
+    "components/monitor/cockpit/RndTab#LABELS": {
+        "progress": "متوسط التقدم {year}",
+        "progressNoYear": "متوسط التقدم",
+        "projects": "{count} مشروع",
+        "tasksInProgress": "المهام الجارية",
+        "tasksPlanned": "{count} مخطط لها",
+        "technicalSheets": "الصحائف الفنية الناقصة",
+        "technicalSheetsHint": "{toValidate} بانتظار التحقق · {expired} منتهية الصلاحية",
+        "technicalSheetsHelp": "أنواع المستندات التي تتضمن تسميتها «صحيفة فنية»، واحد لكل مورد معني.",
+        "activeFiles": "الملفات النشطة",
+        "activeSince": "آخر نشاط منذ {date}",
+        "activeHelp": "الموردون المعدَّلون منذ بداية الربع السابق.",
+        "projectProgress": "تقدم المشاريع",
+        "projectProgressAria": "عدد المشاريع ومتوسط التقدم في السنة",
+        "projectProgressHelp": "الأعمدة: المشاريع حسب سنة آخر تعديل. الخط: متوسط التقدم بالنسبة المئوية %.",
+        "projectsSeries": "المشاريع",
+        "averageSeries": "متوسط التقدم (%)",
+        "landscape": "مشهد القاعدة",
+        "landscapeAria": "الموردون حسب العائلة وحالة الاعتماد",
+        "landscapeHelp": "الموردون حسب العائلة وحالة الاعتماد. عرض ثلاثي الأبعاد عندما يسمح المتصفح، وإلا فأعمدة مجمَّعة.",
+        "freshness": "حداثة الملفات",
+        "freshnessAria": "الموردون حسب شهر آخر نشاط",
+        "recent": "نشطون منذ {date}",
+        "older": "أقدم",
+        "undated": "{count} مورد دون تاريخ نشاط",
+        "fromCube": "مقروء من وحدة دعم القرار في beCPG، وتُغذّى على دفعات."
+    },
+    "components/monitor/cockpit/parts#LABELS": {
+        "export": "تصدير",
+        "soon": "بانتظار الربط",
+        "decisionModule": "وحدة دعم القرار",
+        "chartFailed": "تعذّر تحميل الرسم البياني.",
+        "window": "نافذة الفحص: تغطي الأرقام الموردين المقروئين.",
+        "unavailable": "البيانات غير متاحة",
+        "empty": "لا شيء لعرضه",
+        "reasons": {
+            "denied": "رفض beCPG الوصول إلى هذه المعلومة.",
+            "notFound": "المعلومة غير موجودة في beCPG.",
+            "unavailable": "لم يستجب beCPG لهذه الكتلة. أعد المحاولة بعد لحظات.",
+            "noMatchingDocumentType": "لا يوجد نوع مستند مطابق في هذا النطاق.",
+            "noData": "لا توجد بيانات لهذا النطاق."
+        }
+    },
+    "components/monitor/cockpit/vocabulary#VOCABULARY": {
+        "approval": {
+            "approved": "معتمدون",
+            "inProgress": "قيد التنفيذ",
+            "toRenew": "للتجديد",
+            "suspended": "معلَّقون"
+        },
+        "documents": {
+            "valid": "سارية",
+            "expiring": "تنتهي قريبًا",
+            "toValidate": "بانتظار التحقق",
+            "expired": "منتهية الصلاحية",
+            "refused": "مرفوضة",
+            "missing": "ناقصة"
+        },
+        "taskStates": {
+            "planned": "مخطط لها",
+            "inProgress": "قيد التنفيذ",
+            "completed": "مكتملة",
+            "cancelled": "ملغاة",
+            "refused": "مرفوضة",
+            "onHold": "قيد الانتظار"
+        },
+        "ncAges": {
+            "under3Months": "< 3 أشهر",
+            "from3To12Months": "3-12 شهرًا",
+            "from1To2Years": "1-2 سنة",
+            "over2Years": "> 2 سنة"
+        },
+        "nc": {
+            "blocking": "معطِّلة",
+            "nonBlocking": "غير معطِّلة"
+        },
+        "noFamily": "بلا عائلة",
+        "noSubFamily": "بلا عائلة فرعية"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "المطابقة",
@@ -2201,7 +2349,9 @@ const LOCALE = {
         "selectAll": "تحديد الكل",
         "selectRow": "تحديد الصف",
         "columns": "الأعمدة الظاهرة",
-        "rowsPerPage": "عدد الصفوف في الصفحة"
+        "rowsPerPage": "عدد الصفوف في الصفحة",
+        "export": "تصدير",
+        "legend": "وسيلة الإيضاح"
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "لا شيء لعرضه هنا بعد. ستظهر العناصر بمجرد إنشائها أو تقديمها.",
@@ -2542,6 +2692,10 @@ const LOCALE = {
             "averageProgress": "متوسط التقدم",
             "projectsNumber": "المشاريع"
         }
+    },
+    "components/ui/useListExport#LABELS": {
+        "done": "تم تصدير {count} سطر.",
+        "cut": "تصدير جزئي: {count} سطر، وهو حد التصدير. ضيّق عوامل التصفية للباقي."
     }
 };
 

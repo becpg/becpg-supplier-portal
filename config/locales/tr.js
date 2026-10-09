@@ -685,7 +685,7 @@ const LOCALE = {
         "allTypes": "Tüm belge türleri",
         "allStatuses": "Tüm durumlar",
         "mandatoryOnly": "Yalnızca zorunlu belgeler",
-        "export": "Dışa aktar (CSV)",
+        "export": "Dışa aktar",
         "stats": {
             "suppliers": "Tedarikçiler",
             "missing": "Eksik",
@@ -726,12 +726,17 @@ const LOCALE = {
         "title": "Tedarikçi portföyü izleme",
         "description": "Tedarikçi portföyünüzün onayı, doküman uygunluğu, süre bitişleri, projeleri ve uygunsuzlukları, gerçek zamanlı.",
         "generatedAt": "{time} itibarıyla veriler",
-        "openList": "Listenin tamamını gör",
-        "openDocuments": "Belge uygunluğu",
-        "openCampaigns": "Projeler",
-        "openQuality": "Uygunsuzluklar",
         "truncated": "Portföy tarama penceresinden büyük: {total} tedarikçiden {scanned} tanesi okundu. “≈” ile işaretli sayaçlar sınırlandırılmıştır; dağılım ve ilk 10 bu pencereyi kapsar.",
-        "truncatedShort": "Pencere: {scanned} tedarikçi okundu"
+        "truncatedShort": "Pencere: {scanned} tedarikçi okundu",
+        "tablist": "Portföy okuması",
+        "tabs": {
+            "quality": "Kalite",
+            "purchasing": "Satın alma",
+            "rnd": "Ar-Ge",
+            "csr": "KSS",
+            "assistant": "Asistan"
+        },
+        "ai": "YZ"
     },
     "app/monitor/products/page#LABELS": {
         "title": "Tedarikçi ürünleri",
@@ -740,7 +745,7 @@ const LOCALE = {
         "state": "Ürün durumu",
         "anyState": "Tüm durumlar",
         "certified": "Sertifika tarihi",
-        "anyCertified": "Tümü",
+        "anyCertified": "Tüm tarihler",
         "certifiedNone": "Tarih yok",
         "certifiedYears": "{count} yıldan uzun süre önce sertifikalandırıldı",
         "columns": {
@@ -762,7 +767,13 @@ const LOCALE = {
         "previous": "Önceki sayfa",
         "next": "Sonraki sayfa",
         "rows": "Sayfa başına satır",
-        "sortScope": "Sıralama, portföyün tamamına değil, gösterilen sayfaya uygulanır."
+        "sortScope": "Sıralama, portföyün tamamına değil, gösterilen sayfaya uygulanır.",
+        "tiles": {
+            "total": "Ürünler",
+            "valid": "Onaylananlar",
+            "draft": "Devam edenler",
+            "noCertificate": "Listeleme tarihi olmayanlar"
+        }
     },
     "app/monitor/quality/page#LABELS": {
         "title": "Uygunsuzluklar",
@@ -781,7 +792,7 @@ const LOCALE = {
             "noActionsLate": "Gecikmiş düzeltici faaliyet yok",
             "closing": "Ortalama kapanış {value} g",
             "noClosing": "Bu kapsamda kapatılmış NC yok",
-            "closingHidden": "{count} kapatılmış NC — kapanış süresi için “Kapatılmış NC'leri dahil et” seçeneğini işaretleyin"
+            "closingHidden": "{count} kapalı uygunsuzluk · dahil etmek için tıklayın"
         },
         "dayUnit": "g",
         "allStates": "Tüm durumlar",
@@ -798,7 +809,8 @@ const LOCALE = {
         "rows": "Satır",
         "reminder": "Sizi ilgilendiren açık bir uygunsuzluk var. Lütfen ilgili düzeltici faaliyetleri portalda en kısa sürede ele alın.",
         "hintTargets": "Seçilen NC'lerin tedarikçileri",
-        "note": "İşlem süresi: NC oluşturulduğundan beri; kapatılmış bir NC için oluşturulması ile son değiştirilmesi arasında — beCPG kapanış tarihi saklamaz."
+        "note": "İşlem süresi: NC oluşturulduğundan beri; kapatılmış bir NC için oluşturulması ile son değiştirilmesi arasında — beCPG kapanış tarihi saklamaz.",
+        "truncatedShort": "Pencere: {scanned} uygunsuzluk okundu"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "unavailable": {
@@ -1562,7 +1574,6 @@ const LOCALE = {
         "overdue": "{count} g gecikmiş",
         "noDue": "Son tarih yok",
         "others": "+{count}",
-        "search": "Proje ara",
         "empty": "Bu kapsamda açık proje yok",
         "projectStates": {
             "Planned": "Planlandı",
@@ -1597,7 +1608,7 @@ const LOCALE = {
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Stopped": "Durduruldu",
     "components/monitor/MonitorFilters#LABELS": {
         "search": "Tedarikçi, kod, yasal unvan ara…",
-        "toggle": "Filtreler",
+        "toggle": "Daha fazla filtre",
         "reset": "Sıfırla",
         "close": "Filtreleri gizle",
         "legend": "Portföy filtreleri",
@@ -1618,7 +1629,10 @@ const LOCALE = {
         "noVocabulary": "Yüklenen kapsamda değer yok",
         "active": "{count} etkin filtre",
         "activePlural": "{count} etkin filtre",
-        "clearOne": "Bu filtreyi kaldır"
+        "clearOne": "Bu filtreyi kaldır",
+        "anyFamily": "Tüm aileler",
+        "anySubFamily": "Tüm alt aileler",
+        "anyState": "Tüm durumlar"
     },
     "components/monitor/NonConformityList#LABELS": {
         "columns": {
@@ -1669,7 +1683,6 @@ const LOCALE = {
         "andMore": "… ve {count} tane daha",
         "others": "+{count}",
         "noSupplier": "Bağlı tedarikçi yok",
-        "search": "Uygunsuzluk ara",
         "empty": "Bu kapsamda uygunsuzluk yok",
         "open": "Bu uygunsuzluğu aç",
         "detail": {
@@ -1688,58 +1701,6 @@ const LOCALE = {
             "state": "Durum",
             "type": "Tür"
         }
-    },
-    "components/monitor/ParkStats#LABELS": {
-        "tiles": {
-            "approved": "Onaylandı",
-            "toRenew": "Yenilenecek",
-            "suspended": "Askıya alındı",
-            "compliance": "Belge uygunluğu",
-            "expiring30": "Süresi doluyor < 30 g",
-            "campaigns": "Projeler",
-            "lateTasks": "Gecikmiş görevler",
-            "nc": "Açık NC'ler"
-        },
-        "hints": {
-            "ofPark": "{total} tedarikçiden",
-            "ofScanned": "okunan {scanned} tedarikçiden",
-            "complianceDetail": "{missing} eksik · {expired} süresi dolmuş · {refused} reddedilmiş",
-            "complianceMandatory": "{compliant} / {total} zorunlu belge",
-            "noRate": {
-                "countsCapped": "Oran hesaplanamıyor: beCPG belge sayısını sınırlandırdı.",
-                "scopeTruncated": "Oran hesaplanamıyor: portföydeki {dropped} tedarikçi sorgulanamadı.",
-                "emptyScope": "Bu kapsamda tedarikçi yok: değerlendirilecek bir şey yok."
-            },
-            "expiring": "belge · 60 günde {d60}, 90 günde {d90}",
-            "campaigns": "açık · %{rate} yanıtlandı, {late} gecikmiş",
-            "campaignsNoRate": "açık · hesaplanacak yanıt oranı yok, {late} gecikmiş",
-            "lateTasks": "süresi geçmiş",
-            "nc": "{blocking} tanesi engelleyici",
-            "inProgress": "{count} listeleniyor",
-            "noNotice": "{days} g önceden bildirim"
-        },
-        "park": {
-            "title": "Portföy dağılımı",
-            "empty": "Bu kapsamda tedarikçi yok",
-            "share": "%{share}",
-            "unknown": "{count} tedarikçi değerlendirilmiş bir onay durumu olmadan okundu: hiçbir çubukta yer almıyorlar.",
-            "windowScope": "Dağılım okunan {scanned} tedarikçi üzerinden hesaplandı (portföyde {total} tedarikçi var): kesin bir dağılım için filtreleri daraltın."
-        },
-        "expiry": {
-            "title": "Süre dolum ufku",
-            "cumulative": "Kümülatif: 30 günde sayılan bir belge 60 ve 90 günde de sayılır.",
-            "bucket": "< {days} g",
-            "empty": "90 gün içinde süresi dolan belge yok",
-            "unit": "belge",
-            "seeAll": "Belge uygunluğunu gör"
-        },
-        "approx": "Yaklaşık sayaç: beCPG sayımı sınırlandırdı.",
-        "approxShort": "yaklaşık",
-        "scopeEmpty": "Bu kapsama uyan tedarikçi yok. Hiçbir sayaç hesaplanmadı: yukarıdaki rakamlar ölçüm değil, tanım gereği sıfırdır.",
-        "scopeDropped": "Portföydeki {dropped} tedarikçi sorgulanamadı ({chunks} sorgu sınırı): sayaçlar alt sınırdır.",
-        "unsupported": "Bu ortamda kullanılamayan filtre: {names}. Hiçbir standart beCPG özelliği bunu taşımıyor.",
-        "assocScope": "{names} filtresi okunan pencereye uygulandı (Alfresco ilişkileri dizinlemez).",
-        "generatedAt": "{time} itibarıyla veriler"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "Kalite",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "Belge uygunluğu, uygunsuzluklar, sertifikalar, denetimler",
@@ -1929,6 +1890,193 @@ const LOCALE = {
         "clear": "Seçimi temizle",
         "close": "Kapat",
         "noReason": "Risk nedeni yok"
+    },
+    "components/monitor/cockpit/AssistantTab#LABELS": {
+        "priorities": "Haftanın öncelikleri",
+        "prioritiesHelp": "En riskli tedarikçiler üzerinde kurallarla hesaplanır: engelleyici uygunsuzluklu kritik risk, üst kademeye iletilecek; süresi dolmuş doküman, en az beş eksik doküman veya yanıtsız proje, hatırlatılacak.",
+        "kinds": {
+            "escalate": "Üst kademeye iletilecek",
+            "remind": "Hatırlatılacak"
+        },
+        "score": "Risk {score}",
+        "openSheet": "Kartı aç",
+        "none": "Bu hafta bu kapsamda öncelik yok.",
+        "copilot": "Yardımcı pilot",
+        "wire": "beCPG tarafında bağlanacak",
+        "copilotSoon": "Yardımcı pilot, beCPG asistanına bağlandığında portföyünüzle ilgili soruları yanıtlayacak.",
+        "ask": "Portföyünüzle ilgili bir soru sorun…",
+        "askLabel": "Yardımcı pilota soru"
+    },
+    "components/monitor/cockpit/CsrTab#LABELS": {
+        "expected": "Beklenen sertifikalar",
+        "expectedHelp": "Etiketi “sertifika” içeren doküman türleri, ilgili her tedarikçi için bir tane.",
+        "valid": "Geçerli sertifikalar",
+        "outOf": "/ {total}",
+        "origins": "Beyan edilen menşeler",
+        "surveys": "KSS anketleri",
+        "notWired": "beCPG bu bilgiyi henüz portala sunmuyor.",
+        "byType": "Doküman türüne göre uygunluk",
+        "byTypeAria": "Türe göre doküman durumu",
+        "byTypeHelp": "Her doküman türü için ilgili tedarikçi başına bir durum: dokümanlarının en olumsuzu.",
+        "map": "Tedarik menşeleri",
+        "mapEmpty": "Menşe ülkeleri ve tedarikçi tesisleri haritası.",
+        "csv": {
+            "type": "Doküman türü",
+            "expected": "Beklenen"
+        }
+    },
+    "components/monitor/cockpit/PurchasingTab#LABELS": {
+        "approved": "Onaylı tedarikçiler",
+        "outOf": "/ {total}",
+        "openProjects": "Açık projeler",
+        "answered": "Yanıtlanan",
+        "unanswered": "Yanıtsız",
+        "openProjectsHelp": "Tüm örneğin açık tedarikçi projeleri: bir proje bir tedarikçi altında tutulmaz, bu yüzden portföy filtreleri uygulanmaz.",
+        "responseRate": "Yanıt oranı",
+        "meanCompletion": "Ortalama ilerleme %{value}",
+        "lateTasks": "Geciken görevler",
+        "lateProjects": "{count} geciken proje",
+        "composition": "Portföy bileşimi",
+        "compositionAria": "Aile, alt aile ve onay durumuna göre tedarikçiler",
+        "compositionHelp": "İç halka: aileler. Orta halka: alt aileler. Dış halka: onay durumu. Genişletmek için bir aileye tıklayın.",
+        "reactivity": "Tedarikçi tepki hızı",
+        "reactivityAria": "Yıllara göre görevler ve ortalama yanıt süresi",
+        "reactivityHelp": "Çubuklar: bitiş yılına göre tedarikçi proje görevleri (logaritmik ölçek). Çizgi: gün cinsinden ortalama yanıt süresi.",
+        "tasks": "Görevler",
+        "delay": "Ort. yanıt süresi (gün)",
+        "days": "Gün",
+        "taskStates": "Tedarikçi proje görevleri",
+        "taskStatesAria": "Duruma göre görevler",
+        "taskStatesHelp": "Karar destek modülünden okunan tüm tedarikçi proje görevleri, duruma göre (logaritmik ölçek)."
+    },
+    "components/monitor/cockpit/QualityTab#LABELS": {
+        "health": "Portföy sağlığı",
+        "healthAria": "Sağlık endeksi 100 üzerinden {value}",
+        "healthOutOf": "100 üzerinden",
+        "healthHelp": "100 üzerinden endeks: %35 onay oranı, %35 doküman uygunluğu, %20 projelere yanıt oranı, %10 engelleyici uygunsuzluğu olmayan tedarikçi payı.",
+        "healthPartial": "Kısmi hesaplama, ağırlıklar yeniden dağıtıldı: {missing} kullanılamıyor.",
+        "weights": {
+            "approval": "Onay %{weight}",
+            "compliance": "Uygunluk %{weight}",
+            "response": "Yanıt %{weight}",
+            "noBlockingNc": "Engelleyici uygunsuzluk yok %{weight}"
+        },
+        "inputs": {
+            "approval": "onay oranı",
+            "compliance": "doküman uygunluğu",
+            "response": "yanıt oranı",
+            "noBlockingNc": "engelleyici uygunsuzluğu olmayan pay"
+        },
+        "compliance": "Doküman uygunluğu",
+        "compliant": "Uygun",
+        "complianceHelp": "Geçerli zorunlu dokümanların kapsamda beklenen zorunlu dokümanlara oranı.",
+        "complianceNoRate": "Oran kullanılamıyor: bir sayaç beCPG okuma sınırına ulaştı.",
+        "openNc": "Açık uygunsuzluklar",
+        "suspended": "Askıya alınan tedarikçiler",
+        "outOf": "/ {total}",
+        "toReview": "Gözden geçirilecek dokümanlar",
+        "toReviewHelp": "Onaylanacak ve süresi dolmuş dokümanlar, tedarikçi ve doküman türü başına bir tane.",
+        "riskMap": "Risk haritası",
+        "riskMapAria": "Risk puanı ve açık projelere göre tedarikçiler",
+        "riskMapHelp": "Yatay: açık projeler. Dikey: risk puanı. Boyut: anomaliler (eksik ve süresi dolmuş dokümanlar, engelleyici uygunsuzluklar). Kartını açmak için bir tedarikçiye tıklayın.",
+        "openProjects": "Açık projeler",
+        "riskScore": "Risk puanı",
+        "anomalies": "Boyut: anomaliler",
+        "priorities": "Öncelikli bölge",
+        "bubble": "Risk {score} · {projects} açık proje · {anomalies} anomali",
+        "ncAge": "Açık uygunsuzlukların yaşı",
+        "ncAgeAria": "Yaşa göre açık uygunsuzluklar",
+        "ncUndated": "Oluşturma tarihi olmayan {count} uygunsuzluk",
+        "csv": {
+            "rank": "Sıra",
+            "supplier": "Tedarikçi",
+            "code": "Kod",
+            "status": "Onay",
+            "level": "Risk seviyesi",
+            "score": "Risk puanı",
+            "reasons": "Nedenler",
+            "openProjects": "Açık projeler",
+            "anomalies": "Anomaliler"
+        }
+    },
+    "components/monitor/cockpit/RndTab#LABELS": {
+        "progress": "{year} ortalama ilerleme",
+        "progressNoYear": "Ortalama ilerleme",
+        "projects": "{count} proje",
+        "tasksInProgress": "Devam eden görevler",
+        "tasksPlanned": "{count} planlanan",
+        "technicalSheets": "Eksik teknik föyler",
+        "technicalSheetsHint": "{toValidate} onaylanacak · {expired} süresi dolmuş",
+        "technicalSheetsHelp": "Etiketi “teknik föy” içeren doküman türleri, ilgili her tedarikçi için bir tane.",
+        "activeFiles": "Aktif dosyalar",
+        "activeSince": "{date} tarihinden beri son etkinlik",
+        "activeHelp": "Önceki çeyreğin başından beri değiştirilen tedarikçiler.",
+        "projectProgress": "Proje ilerlemesi",
+        "projectProgressAria": "Yıllara göre proje sayısı ve ortalama ilerleme",
+        "projectProgressHelp": "Çubuklar: son değişiklik yılına göre projeler. Çizgi: % cinsinden ortalama ilerleme.",
+        "projectsSeries": "Projeler",
+        "averageSeries": "Ortalama ilerleme (%)",
+        "landscape": "Portföy görünümü",
+        "landscapeAria": "Aile ve onay durumuna göre tedarikçiler",
+        "landscapeHelp": "Aile ve onay durumuna göre tedarikçiler. Tarayıcı izin verirse 3B görünüm, aksi halde gruplanmış çubuklar.",
+        "freshness": "Dosya güncelliği",
+        "freshnessAria": "Son etkinlik ayına göre tedarikçiler",
+        "recent": "{date} tarihinden beri aktif",
+        "older": "Daha eski",
+        "undated": "Etkinlik tarihi olmayan {count} tedarikçi",
+        "fromCube": "beCPG karar destek modülünden okunur, toplu iş ile beslenir."
+    },
+    "components/monitor/cockpit/parts#LABELS": {
+        "export": "Dışa aktar",
+        "soon": "Bağlanacak",
+        "decisionModule": "Karar destek modülü",
+        "chartFailed": "Grafik yüklenemedi.",
+        "window": "Tarama penceresi: rakamlar okunan tedarikçileri kapsar.",
+        "unavailable": "Veri kullanılamıyor",
+        "empty": "Gösterilecek bir şey yok",
+        "reasons": {
+            "denied": "beCPG bu bilgiye erişimi reddetti.",
+            "notFound": "Bilgi beCPG’de bulunamadı.",
+            "unavailable": "beCPG bu blok için yanıt vermedi. Birazdan tekrar deneyin.",
+            "noMatchingDocumentType": "Bu kapsamda eşleşen doküman türü yok.",
+            "noData": "Bu kapsam için veri yok."
+        }
+    },
+    "components/monitor/cockpit/vocabulary#VOCABULARY": {
+        "approval": {
+            "approved": "Onaylı",
+            "inProgress": "Devam ediyor",
+            "toRenew": "Yenilenecek",
+            "suspended": "Askıya alınan"
+        },
+        "documents": {
+            "valid": "Geçerli",
+            "expiring": "Yakında sona eriyor",
+            "toValidate": "Onaylanacak",
+            "expired": "Süresi dolmuş",
+            "refused": "Reddedilen",
+            "missing": "Eksik"
+        },
+        "taskStates": {
+            "planned": "Planlanan",
+            "inProgress": "Devam eden",
+            "completed": "Tamamlanan",
+            "cancelled": "İptal edilen",
+            "refused": "Reddedilen",
+            "onHold": "Beklemede"
+        },
+        "ncAges": {
+            "under3Months": "< 3 ay",
+            "from3To12Months": "3-12 ay",
+            "from1To2Years": "1-2 yıl",
+            "over2Years": "> 2 yıl"
+        },
+        "nc": {
+            "blocking": "Engelleyici",
+            "nonBlocking": "Engelleyici olmayan"
+        },
+        "noFamily": "Ailesiz",
+        "noSubFamily": "Alt ailesiz"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "Uygunluk",
@@ -2201,7 +2349,9 @@ const LOCALE = {
         "selectAll": "Tümünü seç",
         "selectRow": "Satırı seç",
         "columns": "Görünür sütunlar",
-        "rowsPerPage": "Sayfa başına satır"
+        "rowsPerPage": "Sayfa başına satır",
+        "export": "Dışa aktar",
+        "legend": "Açıklama"
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "Burada henüz gösterilecek bir şey yok. Öğeler oluşturulur veya gönderilir gönderilmez görünecek.",
@@ -2542,6 +2692,10 @@ const LOCALE = {
             "averageProgress": "Ort. ilerleme",
             "projectsNumber": "Projeler"
         }
+    },
+    "components/ui/useListExport#LABELS": {
+        "done": "{count} satır dışa aktarıldı.",
+        "cut": "Kısmi dışa aktarma: {count} satır, bir dışa aktarmanın sınırı. Geri kalanı için filtreleri daraltın."
     }
 };
 

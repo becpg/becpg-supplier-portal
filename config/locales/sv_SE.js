@@ -685,7 +685,7 @@ const LOCALE = {
         "allTypes": "Alla dokumenttyper",
         "allStatuses": "Alla statusar",
         "mandatoryOnly": "Endast obligatoriska dokument",
-        "export": "Exportera (CSV)",
+        "export": "Exportera",
         "stats": {
             "suppliers": "Leverantörer",
             "missing": "Saknas",
@@ -726,12 +726,17 @@ const LOCALE = {
         "title": "Uppföljning av leverantörsbasen",
         "description": "Godkännande, dokumentefterlevnad, utgångar, projekt och avvikelser i din leverantörsbas, i realtid.",
         "generatedAt": "Data per {time}",
-        "openList": "Visa hela listan",
-        "openDocuments": "Dokumentefterlevnad",
-        "openCampaigns": "Projekt",
-        "openQuality": "Avvikelser",
         "truncated": "Leverantörsbasen är större än genomsökningsfönstret: {scanned} leverantörer lästa av {total}. Räknare markerade med ”≈” är begränsade; fördelningen och topp 10 avser fönstret.",
-        "truncatedShort": "Fönster: {scanned} leverantörer lästa"
+        "truncatedShort": "Fönster: {scanned} leverantörer lästa",
+        "tablist": "Läsning av leverantörsbasen",
+        "tabs": {
+            "quality": "Kvalitet",
+            "purchasing": "Inköp",
+            "rnd": "FoU",
+            "csr": "Hållbarhet",
+            "assistant": "Assistent"
+        },
+        "ai": "AI"
     },
     "app/monitor/products/page#LABELS": {
         "title": "Leverantörsprodukter",
@@ -740,7 +745,7 @@ const LOCALE = {
         "state": "Produktstatus",
         "anyState": "Alla statusar",
         "certified": "Certifikatdatum",
-        "anyCertified": "Alla",
+        "anyCertified": "Alla datum",
         "certifiedNone": "Inget datum",
         "certifiedYears": "Certifierad för mer än {count} år sedan",
         "columns": {
@@ -762,7 +767,13 @@ const LOCALE = {
         "previous": "Föregående sida",
         "next": "Nästa sida",
         "rows": "Rader per sida",
-        "sortScope": "Sorteringen gäller den sida som visas, inte hela leverantörsbasen."
+        "sortScope": "Sorteringen gäller den sida som visas, inte hela leverantörsbasen.",
+        "tiles": {
+            "total": "Produkter",
+            "valid": "Godkända",
+            "draft": "Pågående",
+            "noCertificate": "Utan listningsdatum"
+        }
     },
     "app/monitor/quality/page#LABELS": {
         "title": "Avvikelser",
@@ -781,7 +792,7 @@ const LOCALE = {
             "noActionsLate": "Inga försenade korrigerande åtgärder",
             "closing": "Genomsnittlig stängning {value} d",
             "noClosing": "Ingen stängd NC i det här omfånget",
-            "closingHidden": "{count} stängda NC — markera ”Inkludera stängda NC” för stängningstiden"
+            "closingHidden": "{count} stängd(a) avvikelse(r) · klicka för att ta med dem"
         },
         "dayUnit": "d",
         "allStates": "Alla statusar",
@@ -798,7 +809,8 @@ const LOCALE = {
         "rows": "Rader",
         "reminder": "En öppen avvikelse berör dig. Hantera de tillhörande korrigerande åtgärderna i portalen så snart som möjligt.",
         "hintTargets": "Leverantörer för de valda avvikelserna",
-        "note": "Handläggningstid: sedan avvikelsen skapades; för en stängd avvikelse, mellan skapandet och den senaste ändringen — beCPG lagrar inget stängningsdatum."
+        "note": "Handläggningstid: sedan avvikelsen skapades; för en stängd avvikelse, mellan skapandet och den senaste ändringen — beCPG lagrar inget stängningsdatum.",
+        "truncatedShort": "Fönster: {scanned} avvikelser lästa"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "unavailable": {
@@ -1562,7 +1574,6 @@ const LOCALE = {
         "overdue": "{count} d försenat",
         "noDue": "Inget förfallodatum",
         "others": "+{count}",
-        "search": "Sök ett projekt",
         "empty": "Inga öppna projekt i det här omfånget",
         "projectStates": {
             "Planned": "Planerat",
@@ -1597,7 +1608,7 @@ const LOCALE = {
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Stopped": "Stoppad",
     "components/monitor/MonitorFilters#LABELS": {
         "search": "Sök en leverantör, en kod, ett juridiskt namn…",
-        "toggle": "Filter",
+        "toggle": "Fler filter",
         "reset": "Återställ",
         "close": "Dölj filtren",
         "legend": "Filter för leverantörsbasen",
@@ -1618,7 +1629,10 @@ const LOCALE = {
         "noVocabulary": "Inga värden i det inlästa omfånget",
         "active": "{count} aktivt filter",
         "activePlural": "{count} aktiva filter",
-        "clearOne": "Ta bort filtret"
+        "clearOne": "Ta bort filtret",
+        "anyFamily": "Alla familjer",
+        "anySubFamily": "Alla underfamiljer",
+        "anyState": "Alla statusar"
     },
     "components/monitor/NonConformityList#LABELS": {
         "columns": {
@@ -1669,7 +1683,6 @@ const LOCALE = {
         "andMore": "… och {count} till",
         "others": "+{count}",
         "noSupplier": "Ingen kopplad leverantör",
-        "search": "Sök en avvikelse",
         "empty": "Inga avvikelser i det här omfånget",
         "open": "Öppna avvikelsen",
         "detail": {
@@ -1688,58 +1701,6 @@ const LOCALE = {
             "state": "Status",
             "type": "Typ"
         }
-    },
-    "components/monitor/ParkStats#LABELS": {
-        "tiles": {
-            "approved": "Godkända",
-            "toRenew": "Ska förnyas",
-            "suspended": "Avstängda",
-            "compliance": "Dok.efterlevnad",
-            "expiring30": "Går ut < 30 d",
-            "campaigns": "Projekt",
-            "lateTasks": "Försenade uppgifter",
-            "nc": "Öppna NC"
-        },
-        "hints": {
-            "ofPark": "av {total} leverantörer",
-            "ofScanned": "av de {scanned} lästa leverantörerna",
-            "complianceDetail": "{missing} saknas · {expired} utgångna · {refused} avvisade",
-            "complianceMandatory": "{compliant} / {total} obligatoriska dokument",
-            "noRate": {
-                "countsCapped": "Andelen kan inte beräknas: beCPG begränsade antalet dokument.",
-                "scopeTruncated": "Andelen kan inte beräknas: {dropped} leverantör(er) i leverantörsbasen kunde inte frågas.",
-                "emptyScope": "Inga leverantörer i det här omfånget: det finns inget att utvärdera."
-            },
-            "expiring": "dokument · {d60} inom 60 d, {d90} inom 90 d",
-            "campaigns": "öppna · {rate} % besvarade, {late} försenade",
-            "campaignsNoRate": "öppna · ingen svarsfrekvens att beräkna, {late} försenade",
-            "lateTasks": "förfallna",
-            "nc": "varav {blocking} blockerande",
-            "inProgress": "{count} under listning",
-            "noNotice": "{days} d varsel"
-        },
-        "park": {
-            "title": "Leverantörsbasens sammansättning",
-            "empty": "Inga leverantörer i det här omfånget",
-            "share": "{share} %",
-            "unknown": "{count} lästa leverantör(er) utan utvärderad godkännandestatus: de ingår inte i någon av staplarna.",
-            "windowScope": "Fördelningen är beräknad på de {scanned} lästa leverantörerna (leverantörsbasen omfattar {total}): begränsa filtren för en exakt fördelning."
-        },
-        "expiry": {
-            "title": "Utgångshorisont",
-            "cumulative": "Kumulativt: ett dokument som räknas inom 30 d räknas även inom 60 och 90 d.",
-            "bucket": "< {days} d",
-            "empty": "Inga dokument går ut inom 90 dagar",
-            "unit": "dokument",
-            "seeAll": "Visa dokumentefterlevnad"
-        },
-        "approx": "Ungefärlig räknare: beCPG begränsade antalet.",
-        "approxShort": "ungefärligt",
-        "scopeEmpty": "Ingen leverantör matchar det här omfånget. Ingen räknare beräknades: siffrorna ovan är noll per definition, inte mätvärden.",
-        "scopeDropped": "{dropped} leverantör(er) i leverantörsbasen kunde inte frågas (gräns på {chunks} frågor): räknarna är minimivärden.",
-        "unsupported": "Filtret är inte tillgängligt på den här instansen: {names}. Ingen standardegenskap i beCPG bär det.",
-        "assocScope": "Filtret {names} tillämpat på det lästa fönstret (Alfresco indexerar inte associationer).",
-        "generatedAt": "Data per {time}"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "Kvalitet",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "Dokumentefterlevnad, avvikelser, certifieringar, revisioner",
@@ -1929,6 +1890,193 @@ const LOCALE = {
         "clear": "Rensa urvalet",
         "close": "Stäng",
         "noReason": "Ingen riskorsak"
+    },
+    "components/monitor/cockpit/AssistantTab#LABELS": {
+        "priorities": "Veckans prioriteringar",
+        "prioritiesHelp": "Beräknas med regler på leverantörerna med högst risk: kritisk risk med blockerande avvikelse, eskaleras; utgånget dokument, minst fem saknade dokument eller projekt utan svar, påminns.",
+        "kinds": {
+            "escalate": "Att eskalera",
+            "remind": "Att påminna"
+        },
+        "score": "Risk {score}",
+        "openSheet": "Öppna kortet",
+        "none": "Inga prioriteringar denna vecka i detta urval.",
+        "copilot": "Copilot",
+        "wire": "Ska kopplas i beCPG",
+        "copilotSoon": "Copiloten svarar på frågor om din leverantörsbas när den har kopplats till beCPG-assistenten.",
+        "ask": "Ställ en fråga om din leverantörsbas…",
+        "askLabel": "Fråga till copiloten"
+    },
+    "components/monitor/cockpit/CsrTab#LABELS": {
+        "expected": "Förväntade certifikat",
+        "expectedHelp": "Dokumenttyper vars benämning innehåller ”certifikat”, en per berörd leverantör.",
+        "valid": "Giltiga certifikat",
+        "outOf": "/ {total}",
+        "origins": "Angivna ursprung",
+        "surveys": "Hållbarhetsenkäter",
+        "notWired": "beCPG exponerar ännu inte denna information för portalen.",
+        "byType": "Efterlevnad per dokumenttyp",
+        "byTypeAria": "Dokumentstatus per typ",
+        "byTypeHelp": "För varje dokumenttyp en status per berörd leverantör: den minst gynnsamma bland dess dokument.",
+        "map": "Försörjningens ursprung",
+        "mapEmpty": "Karta över ursprungsländer och leverantörernas anläggningar.",
+        "csv": {
+            "type": "Dokumenttyp",
+            "expected": "Förväntade"
+        }
+    },
+    "components/monitor/cockpit/PurchasingTab#LABELS": {
+        "approved": "Godkända leverantörer",
+        "outOf": "/ {total}",
+        "openProjects": "Öppna projekt",
+        "answered": "Besvarade",
+        "unanswered": "Obesvarade",
+        "openProjectsHelp": "Öppna leverantörsprojekt i hela instansen: ett projekt ligger inte under en leverantör, så filtren för leverantörsbasen gäller inte.",
+        "responseRate": "Svarsfrekvens",
+        "meanCompletion": "Genomsnittlig framdrift {value} %",
+        "lateTasks": "Försenade uppgifter",
+        "lateProjects": "{count} försenade projekt",
+        "composition": "Leverantörsbasens sammansättning",
+        "compositionAria": "Leverantörer per familj, underfamilj och godkännandestatus",
+        "compositionHelp": "Inre ring: familjer. Mellersta ring: underfamiljer. Yttre ring: godkännandestatus. Klicka på en familj för att fälla ut den.",
+        "reactivity": "Leverantörernas reaktionsförmåga",
+        "reactivityAria": "Uppgifter per år och genomsnittlig svarstid",
+        "reactivityHelp": "Staplar: uppgifter i leverantörsprojekt per slutår (logaritmisk skala). Linje: genomsnittlig svarstid i dagar.",
+        "tasks": "Uppgifter",
+        "delay": "Genomsn. svarstid (d)",
+        "days": "Dagar",
+        "taskStates": "Uppgifter i leverantörsprojekt",
+        "taskStatesAria": "Uppgifter per status",
+        "taskStatesHelp": "Alla uppgifter i leverantörsprojekt lästa från beslutsstödsmodulen, per status (logaritmisk skala)."
+    },
+    "components/monitor/cockpit/QualityTab#LABELS": {
+        "health": "Leverantörsbasens hälsa",
+        "healthAria": "Hälsoindex {value} av 100",
+        "healthOutOf": "av 100",
+        "healthHelp": "Index av 100: 35 % godkännandegrad, 35 % dokumentefterlevnad, 20 % svarsfrekvens på projekt, 10 % andel leverantörer utan blockerande avvikelse.",
+        "healthPartial": "Partiell beräkning, vikter omfördelade: {missing} saknas.",
+        "weights": {
+            "approval": "Godkännande {weight} %",
+            "compliance": "Efterlevnad {weight} %",
+            "response": "Svar {weight} %",
+            "noBlockingNc": "Utan blockerande avvikelse {weight} %"
+        },
+        "inputs": {
+            "approval": "godkännandegrad",
+            "compliance": "dokumentefterlevnad",
+            "response": "svarsfrekvens",
+            "noBlockingNc": "andel utan blockerande avvikelse"
+        },
+        "compliance": "Dokumentefterlevnad",
+        "compliant": "Uppfyllda",
+        "complianceHelp": "Giltiga obligatoriska dokument i förhållande till de obligatoriska dokument som förväntas i urvalet.",
+        "complianceNoRate": "Andelen saknas: en räknare nådde läsgränsen i beCPG.",
+        "openNc": "Öppna avvikelser",
+        "suspended": "Avstängda leverantörer",
+        "outOf": "/ {total}",
+        "toReview": "Dokument att granska",
+        "toReviewHelp": "Dokument att validera och utgångna dokument, ett per leverantör och dokumenttyp.",
+        "riskMap": "Riskkarta",
+        "riskMapAria": "Leverantörer efter riskpoäng och öppna projekt",
+        "riskMapHelp": "Vågrätt: öppna projekt. Lodrätt: riskpoäng. Storlek: avvikelser (saknade och utgångna dokument, blockerande avvikelser). Klicka på en leverantör för att öppna dess kort.",
+        "openProjects": "Öppna projekt",
+        "riskScore": "Riskpoäng",
+        "anomalies": "Storlek: avvikelser",
+        "priorities": "Prioriterat område",
+        "bubble": "Risk {score} · {projects} öppna projekt · {anomalies} avvikelse(r)",
+        "ncAge": "Ålder på öppna avvikelser",
+        "ncAgeAria": "Öppna avvikelser efter ålder",
+        "ncUndated": "{count} avvikelse(r) utan skapandedatum",
+        "csv": {
+            "rank": "Rang",
+            "supplier": "Leverantör",
+            "code": "Kod",
+            "status": "Godkännande",
+            "level": "Risknivå",
+            "score": "Riskpoäng",
+            "reasons": "Orsaker",
+            "openProjects": "Öppna projekt",
+            "anomalies": "Avvikelser"
+        }
+    },
+    "components/monitor/cockpit/RndTab#LABELS": {
+        "progress": "Genomsnittlig framdrift {year}",
+        "progressNoYear": "Genomsnittlig framdrift",
+        "projects": "{count} projekt",
+        "tasksInProgress": "Pågående uppgifter",
+        "tasksPlanned": "{count} planerade",
+        "technicalSheets": "Saknade tekniska datablad",
+        "technicalSheetsHint": "{toValidate} att validera · {expired} utgångna",
+        "technicalSheetsHelp": "Dokumenttyper vars benämning innehåller ”tekniskt datablad”, en per berörd leverantör.",
+        "activeFiles": "Aktiva ärenden",
+        "activeSince": "Senaste aktivitet sedan {date}",
+        "activeHelp": "Leverantörer ändrade sedan början av föregående kvartal.",
+        "projectProgress": "Projektens framdrift",
+        "projectProgressAria": "Antal projekt och genomsnittlig framdrift per år",
+        "projectProgressHelp": "Staplar: projekt per år för senaste ändring. Linje: genomsnittlig framdrift i %.",
+        "projectsSeries": "Projekt",
+        "averageSeries": "Genomsn. framdrift (%)",
+        "landscape": "Leverantörslandskap",
+        "landscapeAria": "Leverantörer per familj och godkännandestatus",
+        "landscapeHelp": "Leverantörer per familj och godkännandestatus. 3D-vy när webbläsaren tillåter det, annars grupperade staplar.",
+        "freshness": "Ärendenas aktualitet",
+        "freshnessAria": "Leverantörer per månad för senaste aktivitet",
+        "recent": "Aktiva sedan {date}",
+        "older": "Äldre",
+        "undated": "{count} leverantör(er) utan aktivitetsdatum",
+        "fromCube": "Läst från beCPG:s beslutsstödsmodul, som fylls på i batch."
+    },
+    "components/monitor/cockpit/parts#LABELS": {
+        "export": "Exportera",
+        "soon": "Ska kopplas",
+        "decisionModule": "Beslutsstödsmodul",
+        "chartFailed": "Diagrammet kunde inte läsas in.",
+        "window": "Genomsökningsfönster: siffrorna avser de lästa leverantörerna.",
+        "unavailable": "Data saknas",
+        "empty": "Inget att visa",
+        "reasons": {
+            "denied": "beCPG nekade åtkomst till denna information.",
+            "notFound": "Informationen hittades inte i beCPG.",
+            "unavailable": "beCPG svarade inte för detta block. Försök igen om en stund.",
+            "noMatchingDocumentType": "Ingen matchande dokumenttyp i detta urval.",
+            "noData": "Inga data för detta urval."
+        }
+    },
+    "components/monitor/cockpit/vocabulary#VOCABULARY": {
+        "approval": {
+            "approved": "Godkända",
+            "inProgress": "Pågående",
+            "toRenew": "Att förnya",
+            "suspended": "Avstängda"
+        },
+        "documents": {
+            "valid": "Giltiga",
+            "expiring": "Går snart ut",
+            "toValidate": "Att validera",
+            "expired": "Utgångna",
+            "refused": "Avvisade",
+            "missing": "Saknas"
+        },
+        "taskStates": {
+            "planned": "Planerade",
+            "inProgress": "Pågående",
+            "completed": "Slutförda",
+            "cancelled": "Avbrutna",
+            "refused": "Avvisade",
+            "onHold": "Väntande"
+        },
+        "ncAges": {
+            "under3Months": "< 3 månader",
+            "from3To12Months": "3-12 månader",
+            "from1To2Years": "1-2 år",
+            "over2Years": "> 2 år"
+        },
+        "nc": {
+            "blocking": "Blockerande",
+            "nonBlocking": "Ej blockerande"
+        },
+        "noFamily": "Utan familj",
+        "noSubFamily": "Utan underfamilj"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "Efterlevnad",
@@ -2201,7 +2349,9 @@ const LOCALE = {
         "selectAll": "Välj alla",
         "selectRow": "Välj rad",
         "columns": "Synliga kolumner",
-        "rowsPerPage": "Rader per sida"
+        "rowsPerPage": "Rader per sida",
+        "export": "Exportera",
+        "legend": "Teckenförklaring"
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "Det finns inget att visa här ännu. Poster visas så snart de har skapats eller skickats in.",
@@ -2542,6 +2692,10 @@ const LOCALE = {
             "averageProgress": "Snittligt framsteg",
             "projectsNumber": "Projekt"
         }
+    },
+    "components/ui/useListExport#LABELS": {
+        "done": "{count} rad(er) exporterade.",
+        "cut": "Partiell export: {count} rad(er), gränsen för en export. Förfina filtren för resten."
     }
 };
 

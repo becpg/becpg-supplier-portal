@@ -34,6 +34,8 @@
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
+    "echarts": "^6.1.0",
+    "echarts-gl": "^2.1.0",
     "framer-motion": "^12.40.0",
     "jose": "^6.1.0",
     "next": "^16.2.7",

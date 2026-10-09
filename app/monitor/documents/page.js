@@ -53,7 +53,7 @@ const LABELS = defineLabels('app/monitor/documents/page#LABELS', {
         allTypes: 'Tous les types de document',
         allStatuses: 'Tous les statuts',
         mandatoryOnly: 'Documents obligatoires uniquement',
-        export: 'Exporter (CSV)',
+        export: 'Exporter',
         stats: {
             suppliers: 'Fournisseurs',
             missing: 'Manquants',
@@ -98,7 +98,7 @@ const LABELS = defineLabels('app/monitor/documents/page#LABELS', {
         allTypes: 'All document types',
         allStatuses: 'All statuses',
         mandatoryOnly: 'Mandatory documents only',
-        export: 'Export (CSV)',
+        export: 'Export',
         stats: {
             suppliers: 'Suppliers',
             missing: 'Missing',
@@ -273,13 +273,6 @@ export default function MonitorDocumentsPage() {
             fullWidth
             space="monitor"
             title={labels.title}
-            actions={
-                <div className="flex items-center gap-2">
-                    <Button variant="secondary" size="sm" icon="download" onClick={exportCsv}>
-                        <span className="hidden sm:inline">{labels.export}</span>
-                    </Button>
-                </div>
-            }
         >
             <PageHeader title={labels.title} description={labels.subtitle} />
 
@@ -311,6 +304,8 @@ export default function MonitorDocumentsPage() {
                     index={1}
                     hint={fill(labels.cellsScope, { total: total.text })}
                     onClick={() => setStatus(status === 'missing' ? 'all' : 'missing')}
+                    aria-pressed={status === 'missing'}
+                    badge={status === 'missing' ? <span className="pill pill-info pill-sm pill-no-dot"><Icon name="filter_alt" size={12} /></span> : null}
                 />
                 <StatCard
                     label={labels.stats.expired}
@@ -321,6 +316,8 @@ export default function MonitorDocumentsPage() {
                     index={2}
                     hint={fill(labels.cellsScope, { total: total.text })}
                     onClick={() => setStatus(status === 'expired' ? 'all' : 'expired')}
+                    aria-pressed={status === 'expired'}
+                    badge={status === 'expired' ? <span className="pill pill-info pill-sm pill-no-dot"><Icon name="filter_alt" size={12} /></span> : null}
                 />
                 <StatCard
                     label={labels.stats.expiring}
@@ -331,6 +328,8 @@ export default function MonitorDocumentsPage() {
                     index={3}
                     hint={fill(labels.cellsScope, { total: total.text })}
                     onClick={() => setStatus(status === 'expiring' ? 'all' : 'expiring')}
+                    aria-pressed={status === 'expiring'}
+                    badge={status === 'expiring' ? <span className="pill pill-info pill-sm pill-no-dot"><Icon name="filter_alt" size={12} /></span> : null}
                 />
             </StatGrid>
 
@@ -379,6 +378,12 @@ export default function MonitorDocumentsPage() {
                             resetView();
                         }}
                     />
+                </div>
+                <div className="flex items-center gap-2 lg:ms-auto">
+                    <MatrixLegend />
+                    <Button variant="outline" icon="download" label={labels.export} onClick={exportCsv}>
+                        <span className="hidden sm:inline">{labels.export}</span>
+                    </Button>
                 </div>
             </div>
 
@@ -440,7 +445,7 @@ export default function MonitorDocumentsPage() {
             />
 
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--becpg-dark-grey)]">
-                <MatrixLegend />
+                <span />
                 <div className="flex items-center gap-2">
                     <span className="tabular-nums">
                         {fill(labels.pageOf, { from, to, total: total.text })}

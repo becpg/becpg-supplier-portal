@@ -685,7 +685,7 @@ const LOCALE = {
         "allTypes": "Todos os tipos de documento",
         "allStatuses": "Todos os status",
         "mandatoryOnly": "Somente documentos obrigatórios",
-        "export": "Exportar (CSV)",
+        "export": "Exportar",
         "stats": {
             "suppliers": "Fornecedores",
             "missing": "Ausentes",
@@ -726,12 +726,17 @@ const LOCALE = {
         "title": "Monitoramento da base de fornecedores",
         "description": "Homologação, conformidade documental, vencimentos, projetos e não conformidades da sua base, em tempo real.",
         "generatedAt": "Dados de {time}",
-        "openList": "Ver a lista completa",
-        "openDocuments": "Conformidade documental",
-        "openCampaigns": "Projetos",
-        "openQuality": "Não conformidades",
         "truncated": "Base maior que a janela de leitura: {scanned} fornecedores lidos de {total}. Os contadores marcados com “≈” são limitados; a distribuição e o top 10 cobrem a janela.",
-        "truncatedShort": "Janela: {scanned} fornecedores lidos"
+        "truncatedShort": "Janela: {scanned} fornecedores lidos",
+        "tablist": "Leitura da base",
+        "tabs": {
+            "quality": "Qualidade",
+            "purchasing": "Compras",
+            "rnd": "P&D",
+            "csr": "ESG",
+            "assistant": "Assistente"
+        },
+        "ai": "IA"
     },
     "app/monitor/products/page#LABELS": {
         "title": "Produtos de fornecedores",
@@ -740,7 +745,7 @@ const LOCALE = {
         "state": "Estado do produto",
         "anyState": "Todos os estados",
         "certified": "Data do certificado",
-        "anyCertified": "Todos",
+        "anyCertified": "Todas as datas",
         "certifiedNone": "Sem data",
         "certifiedYears": "Certificado há mais de {count} ano(s)",
         "columns": {
@@ -762,7 +767,13 @@ const LOCALE = {
         "previous": "Página anterior",
         "next": "Próxima página",
         "rows": "Linhas por página",
-        "sortScope": "A ordenação se aplica à página exibida, não à base inteira."
+        "sortScope": "A ordenação se aplica à página exibida, não à base inteira.",
+        "tiles": {
+            "total": "Produtos",
+            "valid": "Validados",
+            "draft": "Em andamento",
+            "noCertificate": "Sem data de referenciamento"
+        }
     },
     "app/monitor/quality/page#LABELS": {
         "title": "Não conformidades",
@@ -781,7 +792,7 @@ const LOCALE = {
             "noActionsLate": "Nenhuma ação corretiva atrasada",
             "closing": "Encerramento médio {value} d",
             "noClosing": "Nenhuma NC encerrada neste perímetro",
-            "closingHidden": "{count} NC encerrada(s) — marque “Incluir NCs encerradas” para ver o prazo de encerramento"
+            "closingHidden": "{count} NC fechada(s) · clique para incluí-las"
         },
         "dayUnit": "d",
         "allStates": "Todos os estados",
@@ -798,7 +809,8 @@ const LOCALE = {
         "rows": "Linhas",
         "reminder": "Uma não conformidade aberta diz respeito a você. Trate as ações corretivas relacionadas no portal o mais breve possível.",
         "hintTargets": "Fornecedores das NCs selecionadas",
-        "note": "Prazo de tratamento: desde a criação da NC; para uma NC encerrada, entre sua criação e sua última modificação — o beCPG não armazena data de encerramento."
+        "note": "Prazo de tratamento: desde a criação da NC; para uma NC encerrada, entre sua criação e sua última modificação — o beCPG não armazena data de encerramento.",
+        "truncatedShort": "Janela: {scanned} NC lidas"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "unavailable": {
@@ -1562,7 +1574,6 @@ const LOCALE = {
         "overdue": "{count} d de atraso",
         "noDue": "Sem data de vencimento",
         "others": "+{count}",
-        "search": "Pesquisar um projeto",
         "empty": "Nenhum projeto aberto neste perímetro",
         "projectStates": {
             "Planned": "Planejado",
@@ -1597,7 +1608,7 @@ const LOCALE = {
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Stopped": "Interrompido",
     "components/monitor/MonitorFilters#LABELS": {
         "search": "Pesquisar um fornecedor, um código, uma razão social…",
-        "toggle": "Filtros",
+        "toggle": "Mais filtros",
         "reset": "Redefinir",
         "close": "Ocultar os filtros",
         "legend": "Filtros da base",
@@ -1618,7 +1629,10 @@ const LOCALE = {
         "noVocabulary": "Nenhum valor no perímetro carregado",
         "active": "{count} filtro ativo",
         "activePlural": "{count} filtros ativos",
-        "clearOne": "Remover este filtro"
+        "clearOne": "Remover este filtro",
+        "anyFamily": "Todas as famílias",
+        "anySubFamily": "Todas as subfamílias",
+        "anyState": "Todos os estados"
     },
     "components/monitor/NonConformityList#LABELS": {
         "columns": {
@@ -1669,7 +1683,6 @@ const LOCALE = {
         "andMore": "… e mais {count}",
         "others": "+{count}",
         "noSupplier": "Nenhum fornecedor vinculado",
-        "search": "Pesquisar uma não conformidade",
         "empty": "Nenhuma não conformidade neste perímetro",
         "open": "Abrir esta não conformidade",
         "detail": {
@@ -1688,58 +1701,6 @@ const LOCALE = {
             "state": "Estado",
             "type": "Tipo"
         }
-    },
-    "components/monitor/ParkStats#LABELS": {
-        "tiles": {
-            "approved": "Homologados",
-            "toRenew": "A renovar",
-            "suspended": "Suspensos",
-            "compliance": "Conformidade doc.",
-            "expiring30": "Expiram em < 30 d",
-            "campaigns": "Projetos",
-            "lateTasks": "Tarefas atrasadas",
-            "nc": "NCs abertas"
-        },
-        "hints": {
-            "ofPark": "de {total} fornecedores",
-            "ofScanned": "dos {scanned} fornecedores lidos",
-            "complianceDetail": "{missing} ausente(s) · {expired} expirado(s) · {refused} recusado(s)",
-            "complianceMandatory": "{compliant} / {total} documentos obrigatórios",
-            "noRate": {
-                "countsCapped": "Taxa não calculável: o beCPG limitou a contagem de documentos.",
-                "scopeTruncated": "Taxa não calculável: {dropped} fornecedor(es) da base não puderam ser consultados.",
-                "emptyScope": "Nenhum fornecedor neste perímetro: não há nada a avaliar."
-            },
-            "expiring": "documentos · {d60} em 60 d, {d90} em 90 d",
-            "campaigns": "abertos · {rate} % respondidos, {late} atrasado(s)",
-            "campaignsNoRate": "abertos · nenhuma taxa de resposta a calcular, {late} atrasado(s)",
-            "lateTasks": "vencidas",
-            "nc": "das quais {blocking} bloqueante(s)",
-            "inProgress": "{count} em referenciamento",
-            "noNotice": "aviso de {days} d"
-        },
-        "park": {
-            "title": "Composição da base",
-            "empty": "Nenhum fornecedor neste perímetro",
-            "share": "{share} %",
-            "unknown": "{count} fornecedor(es) lido(s) sem status de homologação avaliado: não aparecem em nenhuma das barras.",
-            "windowScope": "Distribuição calculada sobre os {scanned} fornecedores lidos (a base contém {total}): restrinja os filtros para uma distribuição exata."
-        },
-        "expiry": {
-            "title": "Horizonte de expiração",
-            "cumulative": "Cumulativo: um documento contado em 30 d também é contado em 60 e 90 d.",
-            "bucket": "< {days} d",
-            "empty": "Nenhum documento expira nos próximos 90 dias",
-            "unit": "documentos",
-            "seeAll": "Ver a conformidade documental"
-        },
-        "approx": "Contador aproximado: o beCPG limitou a contagem.",
-        "approxShort": "aproximado",
-        "scopeEmpty": "Nenhum fornecedor corresponde a este perímetro. Nenhum contador foi calculado: os números acima são zero por construção, não medições.",
-        "scopeDropped": "{dropped} fornecedor(es) da base não puderam ser consultados (limite de {chunks} consultas): os contadores são valores mínimos.",
-        "unsupported": "Filtro não disponível nesta instância: {names}. Nenhuma propriedade padrão do beCPG o contém.",
-        "assocScope": "Filtro {names} aplicado sobre a janela lida (o Alfresco não indexa as associações).",
-        "generatedAt": "Dados de {time}"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "Qualidade",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "Conformidade documental, não conformidades, certificações, auditorias",
@@ -1929,6 +1890,193 @@ const LOCALE = {
         "clear": "Limpar a seleção",
         "close": "Fechar",
         "noReason": "Nenhum motivo de risco"
+    },
+    "components/monitor/cockpit/AssistantTab#LABELS": {
+        "priorities": "Prioridades da semana",
+        "prioritiesHelp": "Calculadas por regras sobre os fornecedores de maior risco: risco crítico com NC bloqueante, a escalar; documento vencido, ao menos cinco documentos faltantes ou projeto sem resposta, a cobrar.",
+        "kinds": {
+            "escalate": "A escalar",
+            "remind": "A cobrar"
+        },
+        "score": "Risco {score}",
+        "openSheet": "Abrir a ficha",
+        "none": "Nenhuma prioridade nesta semana neste escopo.",
+        "copilot": "Copiloto",
+        "wire": "A conectar no beCPG",
+        "copilotSoon": "O copiloto responderá às perguntas sobre a sua base assim que for conectado ao assistente do beCPG.",
+        "ask": "Faça uma pergunta sobre a sua base…",
+        "askLabel": "Pergunta ao copiloto"
+    },
+    "components/monitor/cockpit/CsrTab#LABELS": {
+        "expected": "Certificados esperados",
+        "expectedHelp": "Tipos de documento cujo rótulo contém “certificado”, um por fornecedor envolvido.",
+        "valid": "Certificados válidos",
+        "outOf": "/ {total}",
+        "origins": "Origens declaradas",
+        "surveys": "Questionários ESG",
+        "notWired": "O beCPG ainda não expõe esta informação ao portal.",
+        "byType": "Conformidade por tipo de documento",
+        "byTypeAria": "Status dos documentos por tipo",
+        "byTypeHelp": "Para cada tipo de documento, um status por fornecedor envolvido: o mais desfavorável dos seus documentos.",
+        "map": "Origens dos suprimentos",
+        "mapEmpty": "Mapa dos países de origem e das unidades dos fornecedores.",
+        "csv": {
+            "type": "Tipo de documento",
+            "expected": "Esperados"
+        }
+    },
+    "components/monitor/cockpit/PurchasingTab#LABELS": {
+        "approved": "Fornecedores homologados",
+        "outOf": "/ {total}",
+        "openProjects": "Projetos abertos",
+        "answered": "Com resposta",
+        "unanswered": "Sem resposta",
+        "openProjectsHelp": "Projetos de fornecedores abertos de toda a instância: um projeto não fica sob um fornecedor, então os filtros da base não se aplicam.",
+        "responseRate": "Taxa de resposta",
+        "meanCompletion": "Progresso médio {value} %",
+        "lateTasks": "Tarefas atrasadas",
+        "lateProjects": "{count} projeto(s) atrasado(s)",
+        "composition": "Composição da base",
+        "compositionAria": "Fornecedores por família, subfamília e status de homologação",
+        "compositionHelp": "Anel interno: famílias. Anel do meio: subfamílias. Anel externo: status de homologação. Clique em uma família para expandi-la.",
+        "reactivity": "Reatividade dos fornecedores",
+        "reactivityAria": "Tarefas por ano e prazo médio de resposta",
+        "reactivityHelp": "Barras: tarefas dos projetos de fornecedores por ano de término (escala logarítmica). Linha: prazo médio de resposta em dias.",
+        "tasks": "Tarefas",
+        "delay": "Prazo médio de resposta (d)",
+        "days": "Dias",
+        "taskStates": "Tarefas dos projetos de fornecedores",
+        "taskStatesAria": "Tarefas por status",
+        "taskStatesHelp": "Todas as tarefas dos projetos de fornecedores lidas no módulo decisório, por status (escala logarítmica)."
+    },
+    "components/monitor/cockpit/QualityTab#LABELS": {
+        "health": "Saúde da base",
+        "healthAria": "Índice de saúde {value} de 100",
+        "healthOutOf": "de 100",
+        "healthHelp": "Índice de 100: 35 % taxa de homologação, 35 % conformidade documental, 20 % taxa de resposta aos projetos, 10 % parcela de fornecedores sem NC bloqueante.",
+        "healthPartial": "Cálculo parcial, pesos redistribuídos: {missing} indisponível(is).",
+        "weights": {
+            "approval": "Homologação {weight} %",
+            "compliance": "Conformidade {weight} %",
+            "response": "Resposta {weight} %",
+            "noBlockingNc": "Sem NC bloqueante {weight} %"
+        },
+        "inputs": {
+            "approval": "taxa de homologação",
+            "compliance": "conformidade documental",
+            "response": "taxa de resposta",
+            "noBlockingNc": "parcela sem NC bloqueante"
+        },
+        "compliance": "Conformidade documental",
+        "compliant": "Conformes",
+        "complianceHelp": "Documentos obrigatórios válidos sobre os documentos obrigatórios esperados no escopo.",
+        "complianceNoRate": "Taxa indisponível: um contador atingiu o limite de leitura do beCPG.",
+        "openNc": "Não conformidades abertas",
+        "suspended": "Fornecedores suspensos",
+        "outOf": "/ {total}",
+        "toReview": "Documentos a revisar",
+        "toReviewHelp": "Documentos a validar e documentos vencidos, um por fornecedor e tipo de documento.",
+        "riskMap": "Mapa de riscos",
+        "riskMapAria": "Fornecedores por pontuação de risco e projetos abertos",
+        "riskMapHelp": "Horizontal: projetos abertos. Vertical: pontuação de risco. Tamanho: anomalias (documentos faltantes e vencidos, NCs bloqueantes). Clique em um fornecedor para abrir a ficha.",
+        "openProjects": "Projetos abertos",
+        "riskScore": "Pontuação de risco",
+        "anomalies": "Tamanho: anomalias",
+        "priorities": "Zona prioritária",
+        "bubble": "Risco {score} · {projects} projeto(s) aberto(s) · {anomalies} anomalia(s)",
+        "ncAge": "Idade das NCs abertas",
+        "ncAgeAria": "Não conformidades abertas por idade",
+        "ncUndated": "{count} NC(s) sem data de criação",
+        "csv": {
+            "rank": "Posição",
+            "supplier": "Fornecedor",
+            "code": "Código",
+            "status": "Homologação",
+            "level": "Nível de risco",
+            "score": "Pontuação de risco",
+            "reasons": "Motivos",
+            "openProjects": "Projetos abertos",
+            "anomalies": "Anomalias"
+        }
+    },
+    "components/monitor/cockpit/RndTab#LABELS": {
+        "progress": "Progresso médio {year}",
+        "progressNoYear": "Progresso médio",
+        "projects": "{count} projeto(s)",
+        "tasksInProgress": "Tarefas em andamento",
+        "tasksPlanned": "{count} planejada(s)",
+        "technicalSheets": "Fichas técnicas faltantes",
+        "technicalSheetsHint": "{toValidate} a validar · {expired} vencida(s)",
+        "technicalSheetsHelp": "Tipos de documento cujo rótulo contém “ficha técnica”, um por fornecedor envolvido.",
+        "activeFiles": "Dossiês ativos",
+        "activeSince": "Última atividade desde {date}",
+        "activeHelp": "Fornecedores modificados desde o início do trimestre anterior.",
+        "projectProgress": "Progresso dos projetos",
+        "projectProgressAria": "Número de projetos e progresso médio por ano",
+        "projectProgressHelp": "Barras: projetos por ano da última modificação. Linha: progresso médio em %.",
+        "projectsSeries": "Projetos",
+        "averageSeries": "Progresso médio (%)",
+        "landscape": "Panorama da base",
+        "landscapeAria": "Fornecedores por família e status de homologação",
+        "landscapeHelp": "Fornecedores por família e status de homologação. Visão 3D quando o navegador permite; caso contrário, barras agrupadas.",
+        "freshness": "Atualidade dos dossiês",
+        "freshnessAria": "Fornecedores por mês da última atividade",
+        "recent": "Ativos desde {date}",
+        "older": "Mais antigos",
+        "undated": "{count} fornecedor(es) sem data de atividade",
+        "fromCube": "Lido no módulo decisório do beCPG, alimentado em lote."
+    },
+    "components/monitor/cockpit/parts#LABELS": {
+        "export": "Exportar",
+        "soon": "A conectar",
+        "decisionModule": "Módulo decisório",
+        "chartFailed": "Não foi possível carregar o gráfico.",
+        "window": "Janela de leitura: os números cobrem os fornecedores lidos.",
+        "unavailable": "Dados indisponíveis",
+        "empty": "Nada a exibir",
+        "reasons": {
+            "denied": "O beCPG negou o acesso a esta informação.",
+            "notFound": "Informação não encontrada no beCPG.",
+            "unavailable": "O beCPG não respondeu para este bloco. Tente novamente em instantes.",
+            "noMatchingDocumentType": "Nenhum tipo de documento correspondente neste escopo.",
+            "noData": "Sem dados para este escopo."
+        }
+    },
+    "components/monitor/cockpit/vocabulary#VOCABULARY": {
+        "approval": {
+            "approved": "Homologados",
+            "inProgress": "Em andamento",
+            "toRenew": "A renovar",
+            "suspended": "Suspensos"
+        },
+        "documents": {
+            "valid": "Válidos",
+            "expiring": "Vencem em breve",
+            "toValidate": "A validar",
+            "expired": "Vencidos",
+            "refused": "Recusados",
+            "missing": "Faltantes"
+        },
+        "taskStates": {
+            "planned": "Planejadas",
+            "inProgress": "Em andamento",
+            "completed": "Concluídas",
+            "cancelled": "Canceladas",
+            "refused": "Recusadas",
+            "onHold": "Em espera"
+        },
+        "ncAges": {
+            "under3Months": "< 3 meses",
+            "from3To12Months": "3-12 meses",
+            "from1To2Years": "1-2 anos",
+            "over2Years": "> 2 anos"
+        },
+        "nc": {
+            "blocking": "Bloqueantes",
+            "nonBlocking": "Não bloqueantes"
+        },
+        "noFamily": "Sem família",
+        "noSubFamily": "Sem subfamília"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "Conformidade",
@@ -2201,7 +2349,9 @@ const LOCALE = {
         "selectAll": "Selecionar tudo",
         "selectRow": "Selecionar a linha",
         "columns": "Colunas visíveis",
-        "rowsPerPage": "Linhas por página"
+        "rowsPerPage": "Linhas por página",
+        "export": "Exportar",
+        "legend": "Legenda"
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "Ainda não há nada a exibir aqui. Os itens aparecerão assim que forem criados ou enviados.",
@@ -2542,6 +2692,10 @@ const LOCALE = {
             "averageProgress": "Andamento médio",
             "projectsNumber": "Projetos"
         }
+    },
+    "components/ui/useListExport#LABELS": {
+        "done": "{count} linha(s) exportada(s).",
+        "cut": "Exportação parcial: {count} linha(s), o limite de uma exportação. Refine os filtros para o restante."
     }
 };
 

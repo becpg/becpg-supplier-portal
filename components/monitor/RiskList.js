@@ -616,8 +616,9 @@ function RiskRow({ item, rank, local, lang, onDone }) {
  * @param {Object} props
  * @param {Array<Object>} props.items `overview.topRisk`
  * @param {Function} [props.onRefresh] called after a successful action
+ * @param {React.ReactNode} [props.actions] rendered at the right of the card header
  */
-export function RiskList({ items = [], onRefresh, className = '' }) {
+export function RiskList({ items = [], onRefresh, actions, className = '' }) {
     const { lang } = useMessages();
     const local = pickLabels(LABELS, lang);
     const router = useRouter();
@@ -636,6 +637,7 @@ export function RiskList({ items = [], onRefresh, className = '' }) {
         <Card
             title={local.title}
             icon="crisis_alert"
+            actions={actions}
             className={className}
         >
             {items.length === 0 ? (

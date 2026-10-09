@@ -40,12 +40,13 @@
  * types listed and individually selectable. Same data, same selection object.
  */
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Icon } from '@/components/ui/Button';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonTable } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/ui/StatusPill';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { ExpiryPill } from '@/components/documents/ExpiryPill';
 import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
@@ -735,40 +736,33 @@ export function DocumentMatrix({
 }
 
 /**
- * The colour legend of the matrix, folded behind a "Légende" button: needed the
- * first time, in the way every time after. Printed unfolded, so a paper copy is
- * readable without the screen.
+ * The colour legend of the matrix, in a help bubble at the right of the toolbar —
+ * where every list of the monitoring keeps its legend.
  */
 export function MatrixLegend({ statuses = ['valid', 'expiring', 'expired', 'missing', 'refused', 'toValidate'] }) {
     const { lang } = useMessages();
     const labels = pickLabels(LABELS, lang);
-    const [open, setOpen] = useState(false);
-    const panelId = useId();
     return (
-        <div className="text-xs text-[var(--becpg-dark-grey)]">
-            <button
-                type="button"
-                aria-expanded={open}
-                aria-controls={panelId}
-                onClick={() => setOpen((value) => !value)}
-                className="inline-flex items-center gap-1 rounded-full px-2 py-1 font-medium text-[var(--becpg-ink)] hover:bg-[var(--becpg-grey)] print:hidden"
-            >
-                <Icon name={open ? 'expand_less' : 'expand_more'} size={16} />
-                {labels.legend}
-            </button>
-            <div id={panelId} className={`${open ? 'flex' : 'hidden'} mt-1.5 flex-wrap items-center gap-2 print:flex`}>
-            {statuses.map((status) => (
-                <StatusPill key={status} status={status} size="sm" />
-            ))}
-            <span className="inline-flex items-center gap-1">
-                <span className="text-[var(--becpg-orange)]">*</span>
-                {labels.mandatory}
-            </span>
-            <span className="inline-flex items-center gap-1">
-                <span className="text-[var(--becpg-grey)]">·</span>
-                {labels.notApplicable}
-            </span>
-            </div>
-        </div>
+        <Tooltip
+            label={labels.legend}
+            variant="info"
+            placement="bottom"
+            maxWidth={340}
+            content={
+                <span className="flex flex-wrap items-center gap-2">
+                    {statuses.map((status) => (
+                        <StatusPill key={status} status={status} size="sm" />
+                    ))}
+                    <span className="inline-flex items-center gap-1">
+                        <span className="text-[var(--becpg-orange)]">*</span>
+                        {labels.mandatory}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                        <span>·</span>
+                        {labels.notApplicable}
+                    </span>
+                </span>
+            }
+        />
     );
 }

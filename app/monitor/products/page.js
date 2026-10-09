@@ -43,6 +43,8 @@ import { useMessages } from '@/lib/messages';
 import { SUPPLIER_STATES, useDebouncedValue } from '@/components/monitor/MonitorFilters';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 import { DateText } from '@/components/ui/DateText';
+import { StatCard, StatGrid } from '@/components/ui/StatCard';
+import { useListExport } from '@/components/ui/useListExport';
 
 const LABELS = defineLabels('app/monitor/products/page#LABELS', {
     fr: {
@@ -53,9 +55,15 @@ const LABELS = defineLabels('app/monitor/products/page#LABELS', {
         state: 'État du produit',
         anyState: 'Tous les états',
         certified: 'Date de référencement',
-        anyCertified: 'Toutes',
+        anyCertified: 'Toutes les dates',
         certifiedNone: 'Sans date',
         certifiedYears: 'Référencé il y a plus de {count} an(s)',
+        tiles: {
+            total: 'Produits',
+            valid: 'Validés',
+            draft: 'En cours',
+            noCertificate: 'Sans date de référencement',
+        },
         columns: {
             name: 'Produit',
             code: 'Code',
@@ -86,9 +94,15 @@ const LABELS = defineLabels('app/monitor/products/page#LABELS', {
         state: 'Product state',
         anyState: 'All states',
         certified: 'Certificate date',
-        anyCertified: 'All',
+        anyCertified: 'All dates',
         certifiedNone: 'No date',
         certifiedYears: 'Certified more than {count} year(s) ago',
+        tiles: {
+            total: 'Products',
+            valid: 'Validated',
+            draft: 'In progress',
+            noCertificate: 'No referencing date',
+        },
         columns: {
             name: 'Product',
             code: 'Code',
@@ -194,6 +208,11 @@ export default function MonitorProductsPage() {
     );
 
     const call = useApi('monitor/products', { params });
+    const exportQuery = useMemo(() => {
+        const { page: unusedPage, pageSize: unusedPageSize, ...rest } = params;
+        return rest;
+    }, [params]);
+    const listExport = useListExport({ path: 'monitor/products', query: exportQuery, filename: 'produits-fournisseurs' });
     const data = call.data;
     const items = useMemo(() => (data && Array.isArray(data.items) ? data.items : []), [data]);
     const pagination = (data && data.pagination) || {
@@ -211,6 +230,18 @@ export default function MonitorProductsPage() {
         () => SUPPLIER_STATES.map((entry) => ({ value: entry.value, label: pickLabels(entry, lang) })),
         [lang],
     );
+
+    /*
+     * The tiles are the list's own filters, counted: a click applies one, a
+     * second click on the active tile removes it.
+     */
+    const summary = (data && data.summary) || null;
+    const TILES = [
+        { id: 'total', icon: 'inventory_2', tone: 'info', active: !state && !certified, apply: () => { setState(''); setCertified(''); } },
+        { id: 'valid', icon: 'verified', tone: 'ok', active: state === 'Valid', apply: () => setState(state === 'Valid' ? '' : 'Valid') },
+        { id: 'draft', icon: 'edit_note', tone: 'neutral', active: state === 'Simulation', apply: () => setState(state === 'Simulation' ? '' : 'Simulation') },
+        { id: 'noCertificate', icon: 'event_busy', tone: 'warn', active: certified === 'none', apply: () => setCertified(certified === 'none' ? '' : 'none') },
+    ];
 
     const certifiedOptions = useMemo(
         () => [
@@ -330,6 +361,28 @@ export default function MonitorProductsPage() {
         <AppShell ownHeading fullWidth space="monitor" title={labels.title}>
             <PageHeader title={labels.title} description={labels.subtitle} />
 
+            <StatGrid columns={4} className="mb-4">
+                {TILES.map((tile, index) => {
+                    const entry = summary ? summary[tile.id] : null;
+                    return (
+                        <StatCard
+                            key={tile.id}
+                            index={index}
+                            label={labels.tiles[tile.id]}
+                            value={entry ? formatTotal({ total: entry.count, exact: entry.exact }, lang).text : null}
+                            icon={tile.icon}
+                            tone={tile.tone}
+                            loading={call.loading && !data}
+                            onClick={() => reset(tile.apply)}
+                            aria-pressed={tile.active}
+                            badge={tile.active && tile.id !== 'total' ? (
+                                <span className="pill pill-info pill-sm pill-no-dot"><Icon name="filter_alt" size={12} /></span>
+                            ) : null}
+                        />
+                    );
+                })}
+            </StatGrid>
+
             <DataTable
                 columns={columns}
                 data={items}
@@ -340,6 +393,8 @@ export default function MonitorProductsPage() {
                 enableFiltering={false}
                 enablePagination={false}
                 enableColumnVisibility
+                onExport={listExport.onExport}
+                exporting={listExport.exporting}
                 storageKey="monitor.products"
                 toolbar={
                     <>

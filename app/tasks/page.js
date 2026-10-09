@@ -35,6 +35,7 @@ import { TASK_TYPE_META, taskTypeLabel } from '@/components/dashboard/ActionsCar
 import { DueBadge, PriorityPill } from '@/components/dashboard/TaskList';
 import { daysUntil, formatDate } from '@/lib/format';
 import { useSession } from '@/components/providers/SessionProvider';
+import { useListExport } from '@/components/ui/useListExport';
 import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
@@ -231,7 +232,7 @@ function TasksScreen() {
      * excludes it. That is deliberate — filing it under the selected record
      * would be a guess — but it is **said**, below, rather than silently applied.
      */
-    const { scopedSupplier, scopeAll, suppliers } = useSession();
+    const { scopedSupplier, scopeAll, suppliers, space } = useSession();
     const scopeRef = scopedSupplier ? scopedSupplier.nodeRef : null;
     const items = useMemo(
         () => (scopeRef
@@ -298,6 +299,7 @@ function TasksScreen() {
             }),
         [items, filters.type, filters.priority, filters.product, filters.due],
     );
+    const listExport = useListExport({ rows, filename: 'taches' });
 
     const nextDue = useMemo(() => {
         const dates = rows.map((task) => task.dueDate).filter(Boolean).sort();
@@ -503,6 +505,8 @@ function TasksScreen() {
                     tone="info"
                     loading={loading}
                     index={0}
+                    onClick={() => patch({ due: 'all' })}
+                    aria-pressed={filters.due === 'all'}
                 />
                 <StatCard
                     label={local.kpiLate}
@@ -511,6 +515,11 @@ function TasksScreen() {
                     tone={counters.late > 0 ? 'danger' : 'ok'}
                     loading={loading}
                     index={1}
+                    onClick={() => patch({ due: filters.due === 'late' ? 'all' : 'late' })}
+                    aria-pressed={filters.due === 'late'}
+                    badge={filters.due === 'late' ? (
+                        <span className="pill pill-info pill-sm pill-no-dot"><Icon name="filter_alt" size={12} /></span>
+                    ) : null}
                 />
                 <StatCard
                     label={local.kpiNext}
@@ -540,6 +549,8 @@ function TasksScreen() {
                 initialSorting={[{ id: 'dueDate', desc: false }]}
                 enableColumnVisibility
                 storageKey="tasks"
+                // The pilots export their lists; a supplier's own task list stays plain.
+                onExport={space === 'monitor' ? listExport.onExport : undefined}
                 pageSize={25}
                 searchPlaceholder={local.search}
                 caption={local.caption}

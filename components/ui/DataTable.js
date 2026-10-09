@@ -50,6 +50,7 @@ import { Button, Icon, IconButton } from '@/components/ui/Button';
 import { SEARCH_SLOT_CLASS, SearchInput } from '@/components/ui/Field';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonTable } from '@/components/ui/Skeleton';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
@@ -66,12 +67,16 @@ const LOCAL_LABELS = defineLabels('components/ui/DataTable#LOCAL_LABELS', {
         selectAll: 'Tout sélectionner',
         selectRow: 'Sélectionner la ligne',
         columns: 'Colonnes affichées',
+        export: 'Exporter',
+        legend: 'Légende',
         rowsPerPage: 'Lignes par page',
     },
     en: {
         selectAll: 'Select all',
         selectRow: 'Select row',
         columns: 'Visible columns',
+        export: 'Export',
+        legend: 'Legend',
         rowsPerPage: 'Rows per page',
     },
 });
@@ -83,6 +88,45 @@ function columnLabel(column) {
     }
     const header = column.columnDef.header;
     return typeof header === 'string' ? header : column.id;
+}
+
+/**
+ * A cell value as text a spreadsheet can hold: references read by their label,
+ * lists joined, nothing rendered.
+ *
+ * @param {*} value
+ * @returns {string|number|null}
+ */
+function plainValue(value) {
+    if (value === null || value === undefined) {
+        return null;
+    }
+    if (Array.isArray(value)) {
+        return value.map(plainValue).filter((entry) => entry !== null && entry !== '').join(', ');
+    }
+    if (typeof value === 'object') {
+        return value.label ?? value.name ?? value.title ?? null;
+    }
+    return value;
+}
+
+/**
+ * The visible columns of a table as export columns `{ label, get }`, in the order
+ * the reader sees them. `meta.exportValue(row)` overrides a column whose accessor
+ * is a sort key rather than a readable value; a column without an accessor (an
+ * action column) is left out.
+ *
+ * @param {Object} table TanStack table
+ * @returns {Array<{label: string, get: Function}>}
+ */
+function exportColumnsOf(table) {
+    return table
+        .getVisibleLeafColumns()
+        .filter((column) => column.id !== '__select' && (column.accessorFn || column.columnDef.meta?.exportValue))
+        .map((column) => {
+            const read = column.columnDef.meta?.exportValue || column.accessorFn;
+            return { label: columnLabel(column), get: (row) => plainValue(read(row, 0)) };
+        });
 }
 
 function alignClass(meta) {
@@ -215,6 +259,13 @@ function selectionColumn(selectAllLabel, selectRowLabel) {
  * @param {Function} [props.rowHref] `(row.original) => string` — makes a row/card a link
  * @param {React.ReactNode} [props.toolbar] extra filters, rendered next to the search box
  * @param {React.ReactNode} [props.actions] buttons, rendered at the right of the toolbar
+ * @param {Function} [props.onExport] renders the Exporter button, at the right next to
+ *        the column picker — the same place on every list; called with the visible
+ *        columns as `[{ label, get(row) }]` and the rows the reader sees, searched
+ *        and sorted, across every page of the table
+ * @param {boolean} [props.exporting] the export is running
+ * @param {React.ReactNode} [props.legend] what the colours and marks of the list mean,
+ *        in a help bubble at the right of the toolbar instead of a block under the list
  * @param {React.ReactNode} [props.emptyState] overrides the default EmptyState
  * @param {string} [props.searchPlaceholder]
  * @param {Function} [props.renderCard] `(row.original, row) => node` — full control of the mobile card
@@ -244,6 +295,9 @@ export function DataTable({
     rowHref,
     toolbar,
     actions,
+    onExport,
+    exporting = false,
+    legend,
     emptyState,
     searchPlaceholder,
     renderCard,
@@ -314,7 +368,7 @@ export function DataTable({
         return <SkeletonTable rows={5} columns={Math.min(finalColumns.length, 5)} className={className} />;
     }
 
-    const hasToolbar = enableFiltering || toolbar || actions || enableColumnVisibility;
+    const hasToolbar = enableFiltering || toolbar || actions || enableColumnVisibility || onExport || legend;
 
     // --- Card layout helpers ------------------------------------------------
     const visibleColumns = table.getVisibleLeafColumns().filter((column) => column.id !== '__select');
@@ -370,6 +424,20 @@ export function DataTable({
                     {toolbar}
                     <div className="ms-auto flex items-center gap-2">
                         {actions}
+                        {legend ? (
+                            <Tooltip content={legend} label={local.legend} variant="info" placement="bottom" maxWidth={340} />
+                        ) : null}
+                        {onExport ? (
+                            <Button
+                                variant="outline"
+                                icon="download"
+                                label={local.export}
+                                loading={exporting}
+                                onClick={() => onExport(exportColumnsOf(table), table.getSortedRowModel().rows.map((row) => row.original))}
+                            >
+                                <span className="hidden sm:inline">{local.export}</span>
+                            </Button>
+                        ) : null}
                         {enableColumnVisibility ? (
                             <div className="relative hidden md:block">
                                 <IconButton

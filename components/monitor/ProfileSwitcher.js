@@ -6,7 +6,7 @@
  * This is a **selector, not four applications**. There is one API, one payload
  * and one set of components; a profile only decides:
  *
- *   - `tiles`   — the order of the header KPI tiles (`ParkStats`);
+ *   - `tiles`   — the order of the KPI tiles of a reading;
  *   - `panels`  — which of the two park panels comes first;
  *   - `columns` — the order **and** the default visibility of the supplier table
  *     columns (`SupplierTable`); a column left out is hidden, never dropped —
@@ -45,7 +45,7 @@ export const PROFILE_CHANGE_EVENT = 'portalmonitorprofilechange';
 /**
  * The four readings of spec §4.6.5.
  *
- * `tiles` and `columns` reference ids owned by `ParkStats` and `SupplierTable`;
+ * `columns` reference ids owned by `SupplierTable`;
  * an unknown id is ignored, so a profile can name a tile a future version adds.
  *
  * @type {ReadonlyArray<Object>}

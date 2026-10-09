@@ -685,7 +685,7 @@ const LOCALE = {
         "allTypes": "すべての文書種類",
         "allStatuses": "すべてのステータス",
         "mandatoryOnly": "必須文書のみ",
-        "export": "エクスポート（CSV）",
+        "export": "エクスポート",
         "stats": {
             "suppliers": "サプライヤー",
             "missing": "未提出",
@@ -726,12 +726,17 @@ const LOCALE = {
         "title": "サプライヤーベースのモニタリング",
         "description": "サプライヤー全体の承認、文書適合、期限切れ、プロジェクト、不適合をリアルタイムで表示します。",
         "generatedAt": "{time} 時点のデータ",
-        "openList": "一覧をすべて表示",
-        "openDocuments": "文書の適合性",
-        "openCampaigns": "プロジェクト",
-        "openQuality": "不適合",
         "truncated": "サプライヤーベースが走査範囲を超えています：{total} 社中 {scanned} 社を読み込みました。「≈」の付いたカウンターは上限値です。内訳と上位 10 件は走査範囲が対象です。",
-        "truncatedShort": "範囲：{scanned} 社のサプライヤーを読み込み"
+        "truncatedShort": "範囲：{scanned} 社のサプライヤーを読み込み",
+        "tablist": "サプライヤーベースの分析",
+        "tabs": {
+            "quality": "品質",
+            "purchasing": "購買",
+            "rnd": "研究開発",
+            "csr": "CSR",
+            "assistant": "アシスタント"
+        },
+        "ai": "AI"
     },
     "app/monitor/products/page#LABELS": {
         "title": "サプライヤー製品",
@@ -740,7 +745,7 @@ const LOCALE = {
         "state": "製品の状態",
         "anyState": "すべての状態",
         "certified": "証明書の日付",
-        "anyCertified": "すべて",
+        "anyCertified": "すべての日付",
         "certifiedNone": "日付なし",
         "certifiedYears": "{count} 年以上前に認証",
         "columns": {
@@ -762,7 +767,13 @@ const LOCALE = {
         "previous": "前のページ",
         "next": "次のページ",
         "rows": "1 ページあたりの行数",
-        "sortScope": "並べ替えはサプライヤーベース全体ではなく、表示中のページに適用されます。"
+        "sortScope": "並べ替えはサプライヤーベース全体ではなく、表示中のページに適用されます。",
+        "tiles": {
+            "total": "製品",
+            "valid": "承認済み",
+            "draft": "進行中",
+            "noCertificate": "登録日なし"
+        }
     },
     "app/monitor/quality/page#LABELS": {
         "title": "不適合",
@@ -781,7 +792,7 @@ const LOCALE = {
             "noActionsLate": "期限超過の是正処置はありません",
             "closing": "平均完了日数 {value} 日",
             "noClosing": "この範囲に完了した NC はありません",
-            "closingHidden": "完了した NC {count} 件 — 完了日数を表示するには「完了した NC を含める」をオンにしてください"
+            "closingHidden": "クローズ済みの不適合 {count} 件 · クリックで含める"
         },
         "dayUnit": "日",
         "allStates": "すべての状態",
@@ -798,7 +809,8 @@ const LOCALE = {
         "rows": "行数",
         "reminder": "貴社に関する未解決の不適合があります。関連する是正処置をポータル上でできるだけ早く対応してください。",
         "hintTargets": "選択した NC のサプライヤー",
-        "note": "処理日数：NC の作成日からの日数です。完了した NC については、作成日から最終更新日までの日数です — beCPG は完了日を保存しません。"
+        "note": "処理日数：NC の作成日からの日数です。完了した NC については、作成日から最終更新日までの日数です — beCPG は完了日を保存しません。",
+        "truncatedShort": "範囲：{scanned} 件の不適合を読み込み"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "unavailable": {
@@ -1562,7 +1574,6 @@ const LOCALE = {
         "overdue": "{count} 日超過",
         "noDue": "期限なし",
         "others": "+{count}",
-        "search": "プロジェクトを検索",
         "empty": "この範囲に進行中のプロジェクトはありません",
         "projectStates": {
             "Planned": "予定",
@@ -1597,7 +1608,7 @@ const LOCALE = {
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Stopped": "停止",
     "components/monitor/MonitorFilters#LABELS": {
         "search": "サプライヤー、コード、正式名称を検索…",
-        "toggle": "フィルター",
+        "toggle": "その他のフィルター",
         "reset": "リセット",
         "close": "フィルターを非表示",
         "legend": "サプライヤーベースのフィルター",
@@ -1618,7 +1629,10 @@ const LOCALE = {
         "noVocabulary": "読み込んだ範囲に値はありません",
         "active": "{count} 件のフィルターを適用中",
         "activePlural": "{count} 件のフィルターを適用中",
-        "clearOne": "このフィルターを解除"
+        "clearOne": "このフィルターを解除",
+        "anyFamily": "すべてのファミリー",
+        "anySubFamily": "すべてのサブファミリー",
+        "anyState": "すべての状態"
     },
     "components/monitor/NonConformityList#LABELS": {
         "columns": {
@@ -1669,7 +1683,6 @@ const LOCALE = {
         "andMore": "… ほか {count} 件",
         "others": "+{count}",
         "noSupplier": "紐付けられたサプライヤーなし",
-        "search": "不適合を検索",
         "empty": "この範囲に不適合はありません",
         "open": "この不適合を開く",
         "detail": {
@@ -1688,58 +1701,6 @@ const LOCALE = {
             "state": "状態",
             "type": "種類"
         }
-    },
-    "components/monitor/ParkStats#LABELS": {
-        "tiles": {
-            "approved": "承認済み",
-            "toRenew": "要更新",
-            "suspended": "停止中",
-            "compliance": "文書の適合率",
-            "expiring30": "30 日以内に期限切れ",
-            "campaigns": "プロジェクト",
-            "lateTasks": "期限超過のタスク",
-            "nc": "未解決の NC"
-        },
-        "hints": {
-            "ofPark": "全 {total} 社中",
-            "ofScanned": "読み込んだ {scanned} 社中",
-            "complianceDetail": "未提出 {missing} · 期限切れ {expired} · 差し戻し {refused}",
-            "complianceMandatory": "必須文書 {total} 件中 {compliant} 件",
-            "noRate": {
-                "countsCapped": "率を算出できません：beCPG が文書数に上限を適用しました。",
-                "scopeTruncated": "率を算出できません：サプライヤーベースのうち {dropped} 社を照会できませんでした。",
-                "emptyScope": "この範囲にサプライヤーはいないため、評価対象がありません。"
-            },
-            "expiring": "文書 · 60 日以内 {d60}、90 日以内 {d90}",
-            "campaigns": "進行中 · 回答率 {rate} %、期限超過 {late} 件",
-            "campaignsNoRate": "進行中 · 算出可能な回答率なし、期限超過 {late} 件",
-            "lateTasks": "期限超過",
-            "nc": "うちブロッキング {blocking} 件",
-            "inProgress": "{count} 社が取引登録中",
-            "noNotice": "{days} 日前に通知"
-        },
-        "park": {
-            "title": "サプライヤーベースの構成",
-            "empty": "この範囲にサプライヤーはいません",
-            "share": "{share} %",
-            "unknown": "読み込んだサプライヤーのうち {count} 社は承認ステータスが評価されていないため、どのバーにも含まれていません。",
-            "windowScope": "内訳は読み込んだ {scanned} 社に基づいて算出されています（サプライヤーベース全体は {total} 社）。正確な内訳を得るにはフィルターを絞り込んでください。"
-        },
-        "expiry": {
-            "title": "期限の見通し",
-            "cumulative": "累積：30 日でカウントされた文書は、60 日と 90 日でもカウントされます。",
-            "bucket": "{days} 日以内",
-            "empty": "90 日以内に期限切れになる文書はありません",
-            "unit": "文書",
-            "seeAll": "文書の適合性を表示"
-        },
-        "approx": "概算のカウンター：beCPG が件数に上限を適用しました。",
-        "approxShort": "概算",
-        "scopeEmpty": "この範囲に該当するサプライヤーはいません。カウンターは算出されていないため、上記の数値は測定値ではなく、構造上ゼロになっています。",
-        "scopeDropped": "サプライヤーベースのうち {dropped} 社を照会できませんでした（照会上限 {chunks}）。カウンターは最小値です。",
-        "unsupported": "このインスタンスでは利用できないフィルター：{names}。これを持つ標準の beCPG プロパティはありません。",
-        "assocScope": "フィルター {names} は読み込んだ範囲に適用されています（Alfresco は関連付けをインデックスしません）。",
-        "generatedAt": "{time} 時点のデータ"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "品質",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "文書の適合性、不適合、認証、監査",
@@ -1929,6 +1890,193 @@ const LOCALE = {
         "clear": "選択を解除",
         "close": "閉じる",
         "noReason": "リスク要因なし"
+    },
+    "components/monitor/cockpit/AssistantTab#LABELS": {
+        "priorities": "今週の優先事項",
+        "prioritiesHelp": "リスクの高いサプライヤーにルールを適用して算出：ブロッキング不適合を伴う重大リスクはエスカレーション、期限切れ文書・5 件以上の不足文書・未回答プロジェクトはリマインド。",
+        "kinds": {
+            "escalate": "エスカレーション",
+            "remind": "リマインド"
+        },
+        "score": "リスク {score}",
+        "openSheet": "シートを開く",
+        "none": "今週、この範囲に優先事項はありません。",
+        "copilot": "コパイロット",
+        "wire": "beCPG 側で接続予定",
+        "copilotSoon": "beCPG アシスタントに接続されると、コパイロットがサプライヤーベースに関する質問に回答します。",
+        "ask": "サプライヤーベースについて質問する…",
+        "askLabel": "コパイロットへの質問"
+    },
+    "components/monitor/cockpit/CsrTab#LABELS": {
+        "expected": "必要な証明書",
+        "expectedHelp": "ラベルに「証明書」を含む文書タイプ。対象サプライヤーごとに 1 件。",
+        "valid": "有効な証明書",
+        "outOf": "/ {total}",
+        "origins": "申告された原産地",
+        "surveys": "CSR アンケート",
+        "notWired": "この情報は beCPG からポータルにまだ公開されていません。",
+        "byType": "文書タイプ別の適合",
+        "byTypeAria": "タイプ別の文書ステータス",
+        "byTypeHelp": "文書タイプごとに、対象サプライヤー 1 社につき 1 つのステータス（その文書のうち最も不利なもの）。",
+        "map": "調達の原産地",
+        "mapEmpty": "原産国とサプライヤー拠点の地図。",
+        "csv": {
+            "type": "文書タイプ",
+            "expected": "必要数"
+        }
+    },
+    "components/monitor/cockpit/PurchasingTab#LABELS": {
+        "approved": "承認済みサプライヤー",
+        "outOf": "/ {total}",
+        "openProjects": "進行中のプロジェクト",
+        "answered": "回答あり",
+        "unanswered": "未回答",
+        "openProjectsHelp": "インスタンス全体の進行中サプライヤープロジェクト。プロジェクトはサプライヤーの下に分類されないため、絞り込み条件は適用されません。",
+        "responseRate": "回答率",
+        "meanCompletion": "平均進捗 {value} %",
+        "lateTasks": "遅延タスク",
+        "lateProjects": "遅延プロジェクト {count} 件",
+        "composition": "サプライヤー構成",
+        "compositionAria": "ファミリー、サブファミリー、承認ステータス別のサプライヤー",
+        "compositionHelp": "内側のリング：ファミリー。中間のリング：サブファミリー。外側のリング：承認ステータス。ファミリーをクリックすると展開します。",
+        "reactivity": "サプライヤーの対応速度",
+        "reactivityAria": "年別タスク数と平均回答日数",
+        "reactivityHelp": "棒：終了年別のサプライヤープロジェクトのタスク（対数目盛）。線：平均回答日数。",
+        "tasks": "タスク",
+        "delay": "平均回答日数（日）",
+        "days": "日数",
+        "taskStates": "サプライヤープロジェクトのタスク",
+        "taskStatesAria": "状態別のタスク",
+        "taskStatesHelp": "意思決定モジュールから読み込んだサプライヤープロジェクトの全タスク（状態別、対数目盛）。"
+    },
+    "components/monitor/cockpit/QualityTab#LABELS": {
+        "health": "サプライヤーベースの健全性",
+        "healthAria": "健全性指数 {value}/100",
+        "healthOutOf": "/ 100",
+        "healthHelp": "100 点満点の指数：承認率 35 %、文書適合 35 %、プロジェクト回答率 20 %、ブロッキング不適合のないサプライヤーの割合 10 %。",
+        "healthPartial": "部分的な計算（重みを再配分）：{missing} は利用できません。",
+        "weights": {
+            "approval": "承認 {weight} %",
+            "compliance": "適合 {weight} %",
+            "response": "回答 {weight} %",
+            "noBlockingNc": "ブロッキング不適合なし {weight} %"
+        },
+        "inputs": {
+            "approval": "承認率",
+            "compliance": "文書適合",
+            "response": "回答率",
+            "noBlockingNc": "ブロッキング不適合なしの割合"
+        },
+        "compliance": "文書適合",
+        "compliant": "適合",
+        "complianceHelp": "範囲内で必要な必須文書のうち、有効な必須文書の割合。",
+        "complianceNoRate": "率を算出できません：カウンターが beCPG の読み込み上限に達しました。",
+        "openNc": "未解決の不適合",
+        "suspended": "停止中のサプライヤー",
+        "outOf": "/ {total}",
+        "toReview": "要確認の文書",
+        "toReviewHelp": "承認待ちおよび期限切れの文書。サプライヤーと文書タイプの組み合わせごとに 1 件。",
+        "riskMap": "リスクマップ",
+        "riskMapAria": "リスクスコアと進行中プロジェクト別のサプライヤー",
+        "riskMapHelp": "横軸：進行中のプロジェクト。縦軸：リスクスコア。サイズ：異常（不足・期限切れの文書、ブロッキング不適合）。サプライヤーをクリックするとシートを開きます。",
+        "openProjects": "進行中のプロジェクト",
+        "riskScore": "リスクスコア",
+        "anomalies": "サイズ：異常",
+        "priorities": "優先ゾーン",
+        "bubble": "リスク {score} · 進行中プロジェクト {projects} 件 · 異常 {anomalies} 件",
+        "ncAge": "未解決の不適合の経過期間",
+        "ncAgeAria": "経過期間別の未解決の不適合",
+        "ncUndated": "作成日のない不適合 {count} 件",
+        "csv": {
+            "rank": "順位",
+            "supplier": "サプライヤー",
+            "code": "コード",
+            "status": "承認",
+            "level": "リスクレベル",
+            "score": "リスクスコア",
+            "reasons": "理由",
+            "openProjects": "進行中のプロジェクト",
+            "anomalies": "異常"
+        }
+    },
+    "components/monitor/cockpit/RndTab#LABELS": {
+        "progress": "{year} 年の平均進捗",
+        "progressNoYear": "平均進捗",
+        "projects": "プロジェクト {count} 件",
+        "tasksInProgress": "進行中のタスク",
+        "tasksPlanned": "計画済み {count} 件",
+        "technicalSheets": "不足している技術データシート",
+        "technicalSheetsHint": "承認待ち {toValidate} 件 · 期限切れ {expired} 件",
+        "technicalSheetsHelp": "ラベルに「技術データシート」を含む文書タイプ。対象サプライヤーごとに 1 件。",
+        "activeFiles": "アクティブなファイル",
+        "activeSince": "{date} 以降の最終アクティビティ",
+        "activeHelp": "前四半期の初め以降に更新されたサプライヤー。",
+        "projectProgress": "プロジェクトの進捗",
+        "projectProgressAria": "年別のプロジェクト数と平均進捗",
+        "projectProgressHelp": "棒：最終更新年別のプロジェクト。線：平均進捗（%）。",
+        "projectsSeries": "プロジェクト",
+        "averageSeries": "平均進捗（%）",
+        "landscape": "サプライヤーの全体像",
+        "landscapeAria": "ファミリーと承認ステータス別のサプライヤー",
+        "landscapeHelp": "ファミリーと承認ステータス別のサプライヤー。ブラウザーが対応していれば 3D 表示、それ以外はグループ化された棒グラフ。",
+        "freshness": "ファイルの鮮度",
+        "freshnessAria": "最終アクティビティ月別のサプライヤー",
+        "recent": "{date} 以降アクティブ",
+        "older": "それ以前",
+        "undated": "アクティビティ日のないサプライヤー {count} 社",
+        "fromCube": "beCPG の意思決定モジュールから読み込み（バッチで更新）。"
+    },
+    "components/monitor/cockpit/parts#LABELS": {
+        "export": "エクスポート",
+        "soon": "接続予定",
+        "decisionModule": "意思決定モジュール",
+        "chartFailed": "グラフを読み込めませんでした。",
+        "window": "走査範囲：数値は読み込んだサプライヤーが対象です。",
+        "unavailable": "データを取得できません",
+        "empty": "表示する項目はありません",
+        "reasons": {
+            "denied": "beCPG によりこの情報へのアクセスが拒否されました。",
+            "notFound": "beCPG に情報が見つかりません。",
+            "unavailable": "このブロックについて beCPG から応答がありません。しばらくしてから再試行してください。",
+            "noMatchingDocumentType": "この範囲に該当する文書タイプはありません。",
+            "noData": "この範囲のデータはありません。"
+        }
+    },
+    "components/monitor/cockpit/vocabulary#VOCABULARY": {
+        "approval": {
+            "approved": "承認済み",
+            "inProgress": "進行中",
+            "toRenew": "更新予定",
+            "suspended": "停止中"
+        },
+        "documents": {
+            "valid": "有効",
+            "expiring": "まもなく期限切れ",
+            "toValidate": "承認待ち",
+            "expired": "期限切れ",
+            "refused": "却下",
+            "missing": "不足"
+        },
+        "taskStates": {
+            "planned": "計画済み",
+            "inProgress": "進行中",
+            "completed": "完了",
+            "cancelled": "中止",
+            "refused": "却下",
+            "onHold": "保留中"
+        },
+        "ncAges": {
+            "under3Months": "3 か月未満",
+            "from3To12Months": "3-12 か月",
+            "from1To2Years": "1-2 年",
+            "over2Years": "2 年超"
+        },
+        "nc": {
+            "blocking": "ブロッキング",
+            "nonBlocking": "非ブロッキング"
+        },
+        "noFamily": "ファミリーなし",
+        "noSubFamily": "サブファミリーなし"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "適合性",
@@ -2201,7 +2349,9 @@ const LOCALE = {
         "selectAll": "すべて選択",
         "selectRow": "行を選択",
         "columns": "表示する列",
-        "rowsPerPage": "1 ページあたりの行数"
+        "rowsPerPage": "1 ページあたりの行数",
+        "export": "エクスポート",
+        "legend": "凡例"
     },
     "components/ui/EmptyState#SENTENCES": {
         "empty": "ここにはまだ表示する内容がありません。項目が作成または提出されると表示されます。",
@@ -2542,6 +2692,10 @@ const LOCALE = {
             "averageProgress": "平均進捗",
             "projectsNumber": "プロジェクト"
         }
+    },
+    "components/ui/useListExport#LABELS": {
+        "done": "{count} 行をエクスポートしました。",
+        "cut": "一部のみエクスポート：{count} 行（エクスポートの上限）。残りはフィルターを絞り込んでください。"
     }
 };
 
