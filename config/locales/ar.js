@@ -821,7 +821,7 @@ const LOCALE = {
             "label": "مؤشرات المورد",
             "nc": "حالات NC المانعة",
             "ncHint": "مفتوحة",
-            "projects": "المشاريع المفتوحة",
+            "projects": "المشاريع الجارية",
             "projectsHint": "{count} دون رد",
             "documents": "المستندات الإلزامية",
             "documentsHint": "{expired} منتهية · {missing} ناقصة",
@@ -930,8 +930,9 @@ const LOCALE = {
         "notFound": "المنتج غير موجود",
         "notFoundHint": "هذه البطاقة غير موجودة، أو لا تدخل ضمن نطاقكم.",
         "back": "منتجاتي",
-        "partial": "تُعرض هذه البطاقة غير مكتملة: فهي تشير إلى معلومة واحدة على الأقل قد لا يحق لحسابكم قراءتها. الحقول المعنية غائبة عن الشاشة — وهذا لا يعني أنها فارغة. اطلبوا الوصول من جهة اتصالكم لدى beCPG إن احتجتم إلى أحدها.",
-        "request": "طلب تحديث"
+        "monitorBack": "منتجات الموردين",
+        "request": "طلب تحديث",
+        "partial": "تُعرض هذه البطاقة غير مكتملة: فهي تشير إلى معلومة واحدة على الأقل قد لا يحق لحسابكم قراءتها. الحقول المعنية غائبة عن الشاشة — وهذا لا يعني أنها فارغة. اطلبوا الوصول من جهة اتصالكم لدى beCPG إن احتجتم إلى أحدها."
     },
     "app/products/page#LABELS": {
         "title": "منتجاتي",
@@ -1362,7 +1363,12 @@ const LOCALE = {
         "unsupported": "لا توجد معاينة لهذا النوع من الملفات",
         "unsupportedHint": "لا يمكن معاينة هذه الصيغة في المتصفح. نزّلوه لقراءته.",
         "failed": "تعذّر عرض المستند",
-        "failedHint": "لا يزال بالإمكان تنزيله."
+        "failedHint": "لا يزال بالإمكان تنزيله.",
+        "signed": "موقَّع إلكترونيًا",
+        "signedBy": "{name}، في {date}",
+        "pending": "التوقيع قيد التنفيذ",
+        "validated": "تم التحقق في {date}",
+        "validatedBy": "تحقق منه {name} في {date}"
     },
     "components/documents/ExpiryPill#LABELS": {
         "missing": "للتقديم",
@@ -1492,36 +1498,13 @@ const LOCALE = {
             "escalate": "تصعيد",
             "suspend": "تعليق"
         },
-        "confirm": {
-            "remind": "تذكير {count} مورّد(ين)",
-            "escalate": "تصعيد {count} مورّد(ين)",
-            "suspend": "تعليق {count} مورّد(ين)"
-        },
-        "mechanism": {
-            "remind": "تُنشر الرسالة في سلسلة مناقشة المورّد — وهي ذاتها التي تعرضها البوابة وShare بالفعل. لا تُنشأ أي قناة أخرى.",
-            "escalate": "تُنشر الرسالة داخليًا على المشروع المفتوح للمورّد، مع ذكر مدير المشروع. لا يراها المورّد. وفي غياب مشروع مفتوح، لا يُنشر شيء.",
-            "suspend": "حالة الاعتماد مُستنتَجة ولا تُخزَّن أبدًا: يبدأ التعليق إجراء التعليق المهيّأ في beCPG. وتتغير الحالة من تلقاء نفسها."
-        },
-        "message": "الرسالة",
-        "messageRequired": "الرسالة مطلوبة.",
-        "process": "الإجراء المطلوب بدؤه",
         "targets": "الموردون المعنيون",
-        "andMore": "… و{count} آخرين",
-        "send": "إرسال",
-        "suspendConfirm": "تعليق",
         "report": "نتيجة الإجراء",
         "reportOk": "تمت معالجة {count} مورّد(ين) بنجاح.",
         "reportKo": "{count} حالة(حالات) فشل:",
         "reportSkipped": "{count} مورّد(ين) مستبعدون: تجاوز الحد البالغ {max}.",
         "reportNone": "لم تتم معالجة أي مورّد.",
         "close": "إغلاق",
-        "successToast": {
-            "remind": "تم تذكير {ok} مورّد(ين)",
-            "escalate": "تم إرسال {ok} تصعيد(ات)",
-            "suspend": "تم بدء {ok} تعليق(ات)"
-        },
-        "successToastFallback": "تمت معالجة {ok} مورّد(ين)",
-        "partialToast": "تمت معالجة {ok}، وفشل {ko}",
         "errors": {
             "notFound": "مورّد خارج نطاقكم"
         }
@@ -1570,17 +1553,18 @@ const LOCALE = {
         "types": "{count} نوع(أنواع) مستندات",
         "notApplicable": "لا ينطبق على هذا المورّد",
         "mandatory": "إلزامي",
+        "legend": "وسيلة الإيضاح",
         "expected": "{count} متوقعة",
         "selectRow": "تحديد {name}",
         "selectCell": "تحديد {type} لـ {name}",
         "download": "تنزيل",
+        "preview": "عرض",
         "empty": "لا يوجد مورّد في هذا النطاق",
         "emptyHint": "وسّعوا الفلاتر لعرض المصفوفة.",
         "noColumns": "لا يوجد نوع مستند مُجسَّد في هذا النطاق",
         "noColumnsHint": "يُجسّد beCPG المستندات المتوقعة أثناء الصياغة: في غياب أي متطلبات مستندية مهيّأة، تكون المصفوفة فارغة.",
         "toggle": "عرض المستندات",
-        "summary": "{missing} ناقصة · {expired} منتهية · {expiring} للتجديد",
-        "legend": "وسيلة الإيضاح"
+        "summary": "{missing} ناقصة · {expired} منتهية · {expiring} للتجديد"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "صالح",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "محاكاة",
@@ -1753,7 +1737,6 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "بدء مشروع",
-        "subtitle": "مشروع إدراج واحد لكل سجل، كما يفعل «الإرسال إلى المورّد» في beCPG.",
         "supplier": "المورّد",
         "supplierPlaceholder": "اختيار مورّد…",
         "scope": "النطاق",
@@ -2134,12 +2117,9 @@ const LOCALE = {
         "lastActivity": "آخر نشاط",
         "startProject": "بدء مشروع",
         "openInBecpg": "فتح في beCPG",
-        "since": "منذ {count} يومًا",
-        "approved": "لا تنطبق أي قاعدة تعليق أو تجديد أو انتظار.",
         "actions": "إجراءات المورد",
         "parent": "تابع لـ",
-        "group": "{count} مورّد(ين) فرعي(ين)",
-        "verdict": "{status}:"
+        "group": "{count} مورّد(ين) فرعي(ين)"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "المطابقة",

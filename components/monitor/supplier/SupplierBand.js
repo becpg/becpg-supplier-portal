@@ -2,14 +2,13 @@
 
 /**
  * The head of the supplier sheet: who the supplier is, its status, its risk and
- * the actions on it, then one sentence saying why the status is what it is.
+ * the actions on it. Why the status is what it is reads in the rule ladder below.
  */
 
 import Link from 'next/link';
 import { Button, Icon } from '@/components/ui/Button';
 import { StatusPill } from '@/components/ui/StatusPill';
-import { RISK_LEVELS, describeReason, MonitorActionButtons } from '@/components/monitor/RiskList';
-import { heldRules } from '@/lib/approvalLadder';
+import { RISK_LEVELS, MonitorActionButtons } from '@/components/monitor/RiskList';
 import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
@@ -22,12 +21,9 @@ const LABELS = defineLabels('components/monitor/supplier/SupplierBand#LABELS', {
         lastActivity: 'Dernière activité',
         startProject: 'Démarrer un projet',
         openInBecpg: 'Ouvrir dans beCPG',
-        since: 'depuis {count} jours',
-        approved: 'aucune règle de suspension, de renouvellement ou d’attente ne s’applique.',
         actions: 'Actions sur le fournisseur',
         parent: 'Rattaché à',
         group: '{count} sous-fournisseur(s)',
-        verdict: '{status} :',
     },
     en: {
         erp: 'ERP {code}',
@@ -36,45 +32,11 @@ const LABELS = defineLabels('components/monitor/supplier/SupplierBand#LABELS', {
         lastActivity: 'Last activity',
         startProject: 'Start a project',
         openInBecpg: 'Open in beCPG',
-        since: 'for {count} days',
-        approved: 'no suspension, renewal or pending rule applies.',
         actions: 'Supplier actions',
         parent: 'Part of',
         group: '{count} sub-supplier(s)',
-        verdict: '{status}:',
     },
 });
-
-const VERDICT_CLASSES = Object.freeze({
-    danger: 'border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] text-[var(--status-danger)]',
-    warn: 'border-[var(--status-warn-border)] bg-[var(--status-warn-bg)] text-[var(--status-warn)]',
-    info: 'border-[var(--status-info-border)] bg-[var(--status-info-bg)] text-[var(--status-info)]',
-    ok: 'border-[var(--status-ok-border)] bg-[var(--status-ok-bg)] text-[var(--status-ok)]',
-});
-
-const STATUS_TONES = Object.freeze({ suspended: 'danger', toRenew: 'warn', inProgress: 'info', approved: 'ok' });
-const STATUS_ICONS = Object.freeze({ suspended: 'block', toRenew: 'event_repeat', inProgress: 'autorenew', approved: 'verified' });
-
-function fill(template, vars) {
-    return String(template).replace(/\{(\w+)\}/g, (match, key) => (vars[key] ?? match));
-}
-
-/**
- * The reasons of the rule that decides the status, as one sentence: "2 blocking
- * NC(s) for 524 days". The age is the oldest blocking NC's, when it is known.
- */
-function verdictReasons({ approval, nonConformities, lang, local }) {
-    const [current] = heldRules(approval);
-    if (!current) {
-        return local.approved;
-    }
-    return current.reasons.map((code) => {
-        const count = (approval.details?.[code] || []).length || 1;
-        const label = describeReason({ code, count }, lang)?.label || code;
-        const oldest = code === 'blockingNc' ? nonConformities[0]?.delayDays : null;
-        return typeof oldest === 'number' ? `${label} ${fill(local.since, { count: oldest })}` : label;
-    }).join(' · ');
-}
 
 function Facts({ supplier, local, lang }) {
     const facts = [
@@ -104,12 +66,10 @@ function Facts({ supplier, local, lang }) {
  * @param {Function} props.onDone reloads the sheet after an action
  */
 export function SupplierBand({ sheet, onStartProject, onDone }) {
-    const { lang, t } = useMessages();
+    const { lang } = useMessages();
     const local = pickLabels(LABELS, lang);
     const { supplier, approval, risk } = sheet;
     const level = RISK_LEVELS[risk?.level] || RISK_LEVELS.low;
-    const tone = STATUS_TONES[approval.status] || 'info';
-    const statusLabel = approval.statusLabel || t(`status.${approval.status}`);
     const targets = [{
         nodeRef: supplier.nodeRef,
         name: supplier.name,
@@ -167,13 +127,6 @@ export function SupplierBand({ sheet, onStartProject, onDone }) {
                 ) : null}
             </div>
 
-            <p role="status" className={`flex items-center gap-3 rounded-xl border px-3.5 py-2.5 text-sm lg:col-span-2 ${VERDICT_CLASSES[tone]}`}>
-                <Icon name={STATUS_ICONS[approval.status] || 'rule'} size={22} className="shrink-0" />
-                <span className="text-[var(--becpg-ink)]">
-                    <b className="font-medium">{fill(local.verdict, { status: statusLabel })}</b>{' '}
-                    {verdictReasons({ approval, nonConformities: sheet.nonConformities || [], lang, local })}
-                </span>
-            </p>
         </section>
     );
 }

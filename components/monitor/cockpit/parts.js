@@ -165,7 +165,7 @@ export function KpiCard({ icon, label, value, unit, parts, legend = true, hint, 
                     {help ? <Tooltip content={help} label={label} maxWidth={320} /> : null}
                     {badge}
                 </span>
-                <span className="text-[28px] font-light leading-tight tabular-nums text-[var(--becpg-ink)]">
+                <span className="text-[28px] font-semibold leading-tight tabular-nums text-[var(--becpg-ink)]">
                     {shown}
                     {unit ? <small className="ms-1 text-[13px] text-[var(--becpg-muted)]">{unit}</small> : null}
                 </span>

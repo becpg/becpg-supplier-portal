@@ -821,7 +821,7 @@ const LOCALE = {
             "label": "Indicatori del fornitore",
             "nc": "NC bloccanti",
             "ncHint": "aperte",
-            "projects": "Progetti aperti",
+            "projects": "Progetti in corso",
             "projectsHint": "{count} senza risposta",
             "documents": "Documenti obbligatori",
             "documentsHint": "{expired} scaduto/i · {missing} mancante/i",
@@ -930,8 +930,9 @@ const LOCALE = {
         "notFound": "Prodotto non trovato",
         "notFoundHint": "Questa scheda non esiste, oppure non rientra nel vostro perimetro.",
         "back": "I miei prodotti",
-        "partial": "Questa scheda è visualizzata in modo incompleto: fa riferimento ad almeno un dato che il vostro account potrebbe non poter leggere. I campi interessati sono assenti dalla schermata — il che non significa che siano vuoti. Chiedete l'accesso al vostro referente beCPG se vi serve uno di essi.",
-        "request": "Richiedere un aggiornamento"
+        "monitorBack": "Prodotti fornitore",
+        "request": "Richiedere un aggiornamento",
+        "partial": "Questa scheda è visualizzata in modo incompleto: fa riferimento ad almeno un dato che il vostro account potrebbe non poter leggere. I campi interessati sono assenti dalla schermata — il che non significa che siano vuoti. Chiedete l'accesso al vostro referente beCPG se vi serve uno di essi."
     },
     "app/products/page#LABELS": {
         "title": "I miei prodotti",
@@ -1362,7 +1363,12 @@ const LOCALE = {
         "unsupported": "Nessuna anteprima per questo tipo di file",
         "unsupportedHint": "Questo formato non può essere visualizzato in anteprima nel browser. Scaricatelo per leggerlo.",
         "failed": "Impossibile visualizzare il documento",
-        "failedHint": "È comunque possibile scaricarlo."
+        "failedHint": "È comunque possibile scaricarlo.",
+        "signed": "Firmato elettronicamente",
+        "signedBy": "{name}, il {date}",
+        "pending": "Firma in corso",
+        "validated": "Convalidato il {date}",
+        "validatedBy": "Convalidato da {name} il {date}"
     },
     "components/documents/ExpiryPill#LABELS": {
         "missing": "Da fornire",
@@ -1492,36 +1498,13 @@ const LOCALE = {
             "escalate": "Escalation",
             "suspend": "Sospendi"
         },
-        "confirm": {
-            "remind": "Sollecita {count} fornitore/i",
-            "escalate": "Escalation per {count} fornitore/i",
-            "suspend": "Sospendi {count} fornitore/i"
-        },
-        "mechanism": {
-            "remind": "Il messaggio viene pubblicato nella discussione del fornitore — quella già visualizzata dal portale e da Share. Non viene creato alcun altro canale.",
-            "escalate": "Il messaggio viene pubblicato internamente sul progetto aperto del fornitore, menzionandone il project manager. Il fornitore non lo vede. In assenza di un progetto aperto, non viene pubblicato nulla.",
-            "suspend": "Lo stato di qualifica è calcolato, mai memorizzato: la sospensione avvia il processo di sospensione configurato in beCPG. Lo stato cambia da solo."
-        },
-        "message": "Messaggio",
-        "messageRequired": "Il messaggio è obbligatorio.",
-        "process": "Processo da avviare",
         "targets": "Fornitori interessati",
-        "andMore": "… e altri {count}",
-        "send": "Invia",
-        "suspendConfirm": "Sospendi",
         "report": "Esito dell'azione",
         "reportOk": "{count} fornitore/i elaborato/i correttamente.",
         "reportKo": "{count} errore/i:",
         "reportSkipped": "{count} fornitore/i esclusi: oltre il limite di {max}.",
         "reportNone": "Nessun fornitore è stato elaborato.",
         "close": "Chiudi",
-        "successToast": {
-            "remind": "{ok} fornitore/i sollecitato/i",
-            "escalate": "{ok} escalation inviata/e",
-            "suspend": "{ok} sospensione/i avviata/e"
-        },
-        "successToastFallback": "{ok} fornitore/i elaborato/i",
-        "partialToast": "{ok} elaborati, {ko} non riusciti",
         "errors": {
             "notFound": "Fornitore fuori dal vostro perimetro"
         }
@@ -1570,17 +1553,18 @@ const LOCALE = {
         "types": "{count} tipo/i di documento",
         "notApplicable": "Non applicabile a questo fornitore",
         "mandatory": "Obbligatorio",
+        "legend": "Legenda",
         "expected": "{count} attesi",
         "selectRow": "Seleziona {name}",
         "selectCell": "Seleziona {type} per {name}",
         "download": "Scarica",
+        "preview": "Visualizza",
         "empty": "Nessun fornitore in questo perimetro",
         "emptyHint": "Ampliate i filtri per vedere la matrice.",
         "noColumns": "Nessun tipo di documento è materializzato in questo perimetro",
         "noColumnsHint": "beCPG materializza i documenti attesi durante la formulazione: senza alcun requisito documentale configurato, la matrice è vuota.",
         "toggle": "Mostra i documenti",
-        "summary": "{missing} mancanti · {expired} scaduti · {expiring} da rinnovare",
-        "legend": "Legenda"
+        "summary": "{missing} mancanti · {expired} scaduti · {expiring} da rinnovare"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Valido",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simulazione",
@@ -1753,7 +1737,6 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Avvia un progetto",
-        "subtitle": "Un progetto di referenziamento per scheda, come fa «Invia al fornitore» in beCPG.",
         "supplier": "Fornitore",
         "supplierPlaceholder": "Scegliete un fornitore…",
         "scope": "Perimetro",
@@ -2134,12 +2117,9 @@ const LOCALE = {
         "lastActivity": "Ultima attività",
         "startProject": "Avvia un progetto",
         "openInBecpg": "Apri in beCPG",
-        "since": "da {count} giorni",
-        "approved": "non si applica alcuna regola di sospensione, rinnovo o attesa.",
         "actions": "Azioni sul fornitore",
         "parent": "Appartiene a",
-        "group": "{count} subfornitore/i",
-        "verdict": "{status}:"
+        "group": "{count} subfornitore/i"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "Conformità",

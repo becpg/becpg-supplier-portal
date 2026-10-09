@@ -821,7 +821,7 @@ const LOCALE = {
             "label": "Toimittajan tunnusluvut",
             "nc": "Estävät NC:t",
             "ncHint": "avoinna",
-            "projects": "Avoimet projektit",
+            "projects": "Käynnissä olevat projektit",
             "projectsHint": "{count} vastaamatta",
             "documents": "Pakolliset asiakirjat",
             "documentsHint": "{expired} vanhentunut · {missing} puuttuu",
@@ -930,8 +930,9 @@ const LOCALE = {
         "notFound": "Tuotetta ei löytynyt",
         "notFoundHint": "Tätä tuotekorttia ei ole olemassa tai se ei kuulu rajaukseenne.",
         "back": "Omat tuotteet",
-        "partial": "Tämä tuotekortti näytetään puutteellisena: se viittaa vähintään yhteen tietoon, jota tilinne ei ehkä voi lukea. Kyseiset kentät puuttuvat näytöltä — mikä ei tarkoita, että ne olisivat tyhjiä. Pyydä käyttöoikeutta beCPG-yhteyshenkilöltäsi, jos tarvitset jotakin niistä.",
-        "request": "Pyydä päivitystä"
+        "monitorBack": "Toimittajien tuotteet",
+        "request": "Pyydä päivitystä",
+        "partial": "Tämä tuotekortti näytetään puutteellisena: se viittaa vähintään yhteen tietoon, jota tilinne ei ehkä voi lukea. Kyseiset kentät puuttuvat näytöltä — mikä ei tarkoita, että ne olisivat tyhjiä. Pyydä käyttöoikeutta beCPG-yhteyshenkilöltäsi, jos tarvitset jotakin niistä."
     },
     "app/products/page#LABELS": {
         "title": "Omat tuotteet",
@@ -1362,7 +1363,12 @@ const LOCALE = {
         "unsupported": "Tälle tiedostotyypille ei ole esikatselua",
         "unsupportedHint": "Tätä muotoa ei voi esikatsella selaimessa. Ladatkaa tiedosto lukeaksenne sen.",
         "failed": "Asiakirjaa ei voitu näyttää",
-        "failedHint": "Sen voi silti ladata."
+        "failedHint": "Sen voi silti ladata.",
+        "signed": "Sähköisesti allekirjoitettu",
+        "signedBy": "{name}, {date}",
+        "pending": "Allekirjoitus kesken",
+        "validated": "Hyväksytty {date}",
+        "validatedBy": "Hyväksynyt {name} {date}"
     },
     "components/documents/ExpiryPill#LABELS": {
         "missing": "Toimitettava",
@@ -1492,36 +1498,13 @@ const LOCALE = {
             "escalate": "Eskaloi",
             "suspend": "Keskeytä"
         },
-        "confirm": {
-            "remind": "Muistuta toimittajia ({count})",
-            "escalate": "Eskaloi toimittajat ({count})",
-            "suspend": "Keskeytä toimittajat ({count})"
-        },
-        "mechanism": {
-            "remind": "Viesti julkaistaan toimittajan keskusteluketjussa — samassa, jonka portaali ja Share jo näyttävät. Muuta kanavaa ei luoda.",
-            "escalate": "Viesti julkaistaan sisäisesti toimittajan avoimessa projektissa, ja siinä mainitaan projektipäällikkö. Toimittaja ei näe sitä. Ilman avointa projektia mitään ei julkaista.",
-            "suspend": "Hyväksyntätila johdetaan eikä sitä koskaan tallenneta: keskeytys käynnistää beCPG:hen määritetyn keskeytysprosessin. Tila vaihtuu itsestään."
-        },
-        "message": "Viesti",
-        "messageRequired": "Viesti on pakollinen.",
-        "process": "Käynnistettävä prosessi",
         "targets": "Asianomaiset toimittajat",
-        "andMore": "… ja {count} muuta",
-        "send": "Lähetä",
-        "suspendConfirm": "Keskeytä",
         "report": "Toiminnon tulos",
         "reportOk": "Onnistuneesti käsiteltyjä toimittajia: {count}.",
         "reportKo": "Epäonnistumisia: {count}:",
         "reportSkipped": "Pois jätettyjä toimittajia: {count} (yli rajan {max}).",
         "reportNone": "Yhtään toimittajaa ei käsitelty.",
         "close": "Sulje",
-        "successToast": {
-            "remind": "Muistutettuja toimittajia: {ok}",
-            "escalate": "Lähetettyjä eskalointeja: {ok}",
-            "suspend": "Käynnistettyjä keskeytyksiä: {ok}"
-        },
-        "successToastFallback": "Käsiteltyjä toimittajia: {ok}",
-        "partialToast": "Käsitelty: {ok}, epäonnistui: {ko}",
         "errors": {
             "notFound": "Toimittaja on rajauksenne ulkopuolella"
         }
@@ -1570,17 +1553,18 @@ const LOCALE = {
         "types": "Asiakirjatyyppejä: {count}",
         "notApplicable": "Ei koske tätä toimittajaa",
         "mandatory": "Pakollinen",
+        "legend": "Selite",
         "expected": "Odotettuja: {count}",
         "selectRow": "Valitse {name}",
         "selectCell": "Valitse {type} ({name})",
         "download": "Lataa",
+        "preview": "Näytä",
         "empty": "Tällä rajauksella ei ole toimittajia",
         "emptyHint": "Laajentakaa suodattimia nähdäksenne matriisin.",
         "noColumns": "Tällä rajauksella ei ole muodostettuja asiakirjatyyppejä",
         "noColumnsHint": "beCPG muodostaa odotetut asiakirjat formuloinnin aikana: ilman määritettyjä asiakirjavaatimuksia matriisi on tyhjä.",
         "toggle": "Näytä asiakirjat",
-        "summary": "Puuttuvia: {missing} · vanhentuneita: {expired} · uusittavia: {expiring}",
-        "legend": "Selite"
+        "summary": "Puuttuvia: {missing} · vanhentuneita: {expired} · uusittavia: {expiring}"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Hyväksytty",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simulointi",
@@ -1753,7 +1737,6 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Käynnistä projekti",
-        "subtitle": "Yksi listausprojekti tietuetta kohden, kuten beCPG:n toiminto \"Lähetä toimittajalle\".",
         "supplier": "Toimittaja",
         "supplierPlaceholder": "Valitse toimittaja…",
         "scope": "Laajuus",
@@ -2134,12 +2117,9 @@ const LOCALE = {
         "lastActivity": "Viimeisin toiminta",
         "startProject": "Aloita projekti",
         "openInBecpg": "Avaa beCPG:ssä",
-        "since": "{count} päivän ajan",
-        "approved": "mikään keskeytys-, uusimis- tai odotussääntö ei ole voimassa.",
         "actions": "Toimittajan toiminnot",
         "parent": "Kuuluu:",
-        "group": "{count} alitoimittaja(a)",
-        "verdict": "{status}:"
+        "group": "{count} alitoimittaja(a)"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "Vaatimustenmukaisuus",

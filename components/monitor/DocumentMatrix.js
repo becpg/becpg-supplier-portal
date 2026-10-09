@@ -48,6 +48,7 @@ import { SkeletonTable } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ExpiryPill } from '@/components/documents/ExpiryPill';
+import { DocumentViewer } from '@/components/documents/DocumentViewer';
 import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
@@ -75,6 +76,7 @@ const LABELS = defineLabels('components/monitor/DocumentMatrix#LABELS', {
         selectRow: 'Sélectionner {name}',
         selectCell: 'Sélectionner {type} pour {name}',
         download: 'Télécharger',
+        preview: 'Consulter',
         empty: 'Aucun fournisseur dans ce périmètre',
         emptyHint: 'Élargissez les filtres pour voir la matrice.',
         noColumns: 'Aucun type de document n’est matérialisé sur ce périmètre',
@@ -93,6 +95,7 @@ const LABELS = defineLabels('components/monitor/DocumentMatrix#LABELS', {
         selectRow: 'Select {name}',
         selectCell: 'Select {type} for {name}',
         download: 'Download',
+        preview: 'View',
         empty: 'No supplier in this perimeter',
         emptyHint: 'Widen the filters to see the matrix.',
         noColumns: 'No document type is materialised on this perimeter',
@@ -206,6 +209,14 @@ export function DocumentMatrix({
     const frameRef = useRef(0);
     const [view, setView] = useState({ top: 0, left: 0, width: 1200, height });
     const [expanded, setExpanded] = useState({});
+    // The document opens in the viewer, signature included; downloading stays
+    // one click away inside it.
+    const [viewing, setViewing] = useState(null);
+    const openDocument = (cell, fallbackName) => setViewing({
+        nodeRef: cell.documentRef,
+        name: cell.documentName || fallbackName,
+        downloadUrl: cell.downloadUrl,
+    });
 
     // Measurement happens in a rAF callback (never synchronously inside the
     // effect) and only writes when a number actually moved, so scrolling costs
@@ -578,14 +589,15 @@ export function DocumentMatrix({
                                                             ) : null}
                                                         </button>
                                                         {cell.downloadUrl ? (
-                                                            <a
-                                                                href={cell.downloadUrl}
-                                                                title={`${labels.download} — ${cell.documentName || column.label}`}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => openDocument(cell, column.label)}
+                                                                title={`${labels.preview} — ${cell.documentName || column.label}`}
                                                                 className="rounded p-1 text-[var(--becpg-dark-grey-deep)] hover:bg-[var(--becpg-grey)] hover:text-[var(--becpg-blue)]"
                                                             >
-                                                                <Icon name="download" size={14} />
-                                                                <span className="sr-only-text">{labels.download}</span>
-                                                            </a>
+                                                                <Icon name="visibility" size={14} />
+                                                                <span className="sr-only-text">{labels.preview}</span>
+                                                            </button>
                                                         ) : null}
                                                     </span>
                                                 ) : (
@@ -709,13 +721,14 @@ export function DocumentMatrix({
                                                     size="sm"
                                                 />
                                                 {cell.downloadUrl ? (
-                                                    <a
-                                                        href={cell.downloadUrl}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => openDocument(cell, column.label)}
                                                         className="touch-target flex items-center text-[var(--becpg-blue)]"
-                                                        aria-label={labels.download}
+                                                        aria-label={labels.preview}
                                                     >
-                                                        <Icon name="download" size={18} />
-                                                    </a>
+                                                        <Icon name="visibility" size={18} />
+                                                    </button>
                                                 ) : null}
                                             </li>
                                         );
@@ -731,6 +744,7 @@ export function DocumentMatrix({
                     );
                 })}
             </div>
+            <DocumentViewer document={viewing} onClose={() => setViewing(null)} />
         </div>
     );
 }

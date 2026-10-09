@@ -45,7 +45,6 @@ import { defineLabels, pickLabels } from '@/lib/i18n';
 const LABELS = defineLabels('components/monitor/StartCampaignDialog#LABELS', {
     fr: {
         title: 'Démarrer un projet',
-        subtitle: 'Un projet de référencement par fiche, comme « Envoyer au fournisseur » dans beCPG.',
         supplier: 'Fournisseur',
         supplierPlaceholder: 'Choisir un fournisseur…',
         scope: 'Périmètre',
@@ -75,7 +74,6 @@ const LABELS = defineLabels('components/monitor/StartCampaignDialog#LABELS', {
     },
     en: {
         title: 'Start a project',
-        subtitle: 'One referencing project per record, as "Send to supplier" does in beCPG.',
         supplier: 'Supplier',
         supplierPlaceholder: 'Pick a supplier…',
         scope: 'Scope',
@@ -320,7 +318,6 @@ export function StartCampaignDialog({ open, onClose, supplier = null, onStarted 
             open={open}
             onClose={starting ? () => {} : onClose}
             title={labels.title}
-            description={labels.subtitle}
             size="md"
             footer={(
                 <div className="flex flex-wrap justify-end gap-2">

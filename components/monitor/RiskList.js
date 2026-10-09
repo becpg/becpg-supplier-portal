@@ -292,8 +292,20 @@ export function useMonitorActionCatalog() {
  * @param {string[]} [props.processes] allow-listed suspension processes
  * @param {Function} props.onClose
  * @param {Function} [props.onDone] called after a run that succeeded at least once
+ * @param {Function} [props.onResult] called with the per-target answer of every run,
+ *        for a caller that reports the failures one by one
+ * @param {string} [props.defaultMessage] the opening text, when the caller knows the
+ *        selection better than its risk reasons do; changing language rewrites it
  */
-export function MonitorActionDialog({ action, targets = [], processes = [], onClose, onDone }) {
+export function MonitorActionDialog({
+    action,
+    targets = [],
+    processes = [],
+    onClose,
+    onDone,
+    onResult,
+    defaultMessage = '',
+}) {
     const { lang, t } = useMessages();
     const local = (pickLabels(LABELS, lang)).dialog;
     const results = (pickLabels(LABELS, lang)).result;
@@ -311,6 +323,9 @@ export function MonitorActionDialog({ action, targets = [], processes = [], onCl
         if (!action || action === 'suspend') {
             return '';
         }
+        if (defaultMessage && writtenIn === lang) {
+            return defaultMessage;
+        }
         const templates = (pickLabels(LABELS, writtenIn)).defaults;
         const codes = new Set();
         for (const target of targets) {
@@ -323,7 +338,7 @@ export function MonitorActionDialog({ action, targets = [], processes = [], onCl
         }
         const reasons = codes.size > 0 ? [...codes].slice(0, 4).join(', ') : templates.genericReasons;
         return interpolate(templates[action] || '', { reasons });
-    }, [action, targets]);
+    }, [action, targets, defaultMessage, lang]);
 
     const [message, setMessage] = useState('');
     const [process, setProcess] = useState('');
@@ -378,6 +393,7 @@ export function MonitorActionDialog({ action, targets = [], processes = [], onCl
             if (summary.succeeded > 0 && onDone) {
                 onDone(payload);
             }
+            onResult?.(payload);
             onClose();
         }
         catch (failure) {
@@ -456,7 +472,7 @@ export function MonitorActionDialog({ action, targets = [], processes = [], onCl
                     </>
                 ) : (
                     <>
-                        {action === 'remind' ? (
+                        {needsMessage ? (
                             <Field label={local.messageLang}>
                                 <Select
                                     value={messageLang}

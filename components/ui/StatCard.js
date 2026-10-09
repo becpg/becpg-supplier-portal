@@ -131,7 +131,7 @@ export function StatCard({
                 ) : null}
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                        <span className="truncate text-xs font-medium uppercase tracking-wide text-[var(--becpg-dark-grey)]">
+                        <span className="truncate text-[0.8125rem] text-[var(--becpg-dark-grey)]">
                             {label}
                         </span>
                         {badge}
@@ -140,7 +140,7 @@ export function StatCard({
                         <Skeleton width="55%" height={30} className="mt-1.5" />
                     ) : (
                         <div className="mt-0.5 flex items-baseline gap-1 text-[var(--becpg-ink)]">
-                            <span className="text-2xl font-light leading-tight tabular-nums">
+                            <span className="text-[1.625rem] font-semibold leading-tight tabular-nums">
                                 <AnimatedNumber value={value ?? '—'} reduceMotion={reduceMotion} />
                             </span>
                             {unit ? (

@@ -930,8 +930,9 @@ const LOCALE = {
         "notFound": "製品が見つかりません",
         "notFoundHint": "このシートは存在しないか、貴社の範囲外です。",
         "back": "製品",
-        "partial": "このシートは不完全な状態で表示されています。お使いのアカウントで閲覧できないデータを少なくとも 1 つ参照しています。該当する項目は画面に表示されていませんが、空であるという意味ではありません。必要な場合は、beCPG のご担当者にアクセス権を依頼してください。",
-        "request": "更新を依頼"
+        "monitorBack": "サプライヤー製品",
+        "request": "更新を依頼",
+        "partial": "このシートは不完全な状態で表示されています。お使いのアカウントで閲覧できないデータを少なくとも 1 つ参照しています。該当する項目は画面に表示されていませんが、空であるという意味ではありません。必要な場合は、beCPG のご担当者にアクセス権を依頼してください。"
     },
     "app/products/page#LABELS": {
         "title": "製品",
@@ -1362,7 +1363,12 @@ const LOCALE = {
         "unsupported": "このファイル形式はプレビューできません",
         "unsupportedHint": "この形式はブラウザーでプレビューできません。ダウンロードしてご確認ください。",
         "failed": "文書を表示できませんでした",
-        "failedHint": "ダウンロードは可能です。"
+        "failedHint": "ダウンロードは可能です。",
+        "signed": "電子署名済み",
+        "signedBy": "{name}（{date}）",
+        "pending": "署名処理中",
+        "validated": "{date} に承認済み",
+        "validatedBy": "{date} に {name} が承認"
     },
     "components/documents/ExpiryPill#LABELS": {
         "missing": "提出待ち",
@@ -1492,36 +1498,13 @@ const LOCALE = {
             "escalate": "エスカレーション",
             "suspend": "停止"
         },
-        "confirm": {
-            "remind": "{count} 社にリマインド",
-            "escalate": "{count} 社をエスカレーション",
-            "suspend": "{count} 社を停止"
-        },
-        "mechanism": {
-            "remind": "メッセージはサプライヤーのディスカッションスレッド（ポータルと Share で既に表示されているもの）に投稿されます。他の連絡手段は作成されません。",
-            "escalate": "メッセージは、サプライヤーの進行中のプロジェクトに、プロジェクトマネージャーを指名して社内向けに投稿されます。サプライヤーには表示されません。進行中のプロジェクトがない場合は、何も投稿されません。",
-            "suspend": "承認ステータスは算出値であり、保存されません。停止操作は beCPG で設定された停止プロセスを開始します。ステータスは自動的に切り替わります。"
-        },
-        "message": "メッセージ",
-        "messageRequired": "メッセージは必須です。",
-        "process": "開始するプロセス",
         "targets": "対象のサプライヤー",
-        "andMore": "… ほか {count} 社",
-        "send": "送信",
-        "suspendConfirm": "停止",
         "report": "アクションの結果",
         "reportOk": "{count} 社のサプライヤーを正常に処理しました。",
         "reportKo": "{count} 件の失敗：",
         "reportSkipped": "{count} 社のサプライヤーは上限 {max} 社を超えたため除外されました。",
         "reportNone": "処理されたサプライヤーはありません。",
         "close": "閉じる",
-        "successToast": {
-            "remind": "{ok} 社にリマインドしました",
-            "escalate": "{ok} 件のエスカレーションを送信しました",
-            "suspend": "{ok} 件の停止を開始しました"
-        },
-        "successToastFallback": "{ok} 社のサプライヤーを処理しました",
-        "partialToast": "{ok} 件処理、{ko} 件失敗",
         "errors": {
             "notFound": "担当範囲外のサプライヤー"
         }
@@ -1570,17 +1553,18 @@ const LOCALE = {
         "types": "文書種類 {count} 件",
         "notApplicable": "このサプライヤーには該当しません",
         "mandatory": "必須",
+        "legend": "凡例",
         "expected": "{count} 件が必要",
         "selectRow": "{name} を選択",
         "selectCell": "{name} の {type} を選択",
         "download": "ダウンロード",
+        "preview": "表示",
         "empty": "この範囲にサプライヤーはいません",
         "emptyHint": "マトリクスを表示するには、フィルターの範囲を広げてください。",
         "noColumns": "この範囲で具体化された文書種類はありません",
         "noColumnsHint": "beCPG は配合計算時に求められる文書を具体化します。文書の要求事項が設定されていない場合、マトリクスは空になります。",
         "toggle": "文書を表示",
-        "summary": "未提出 {missing} · 期限切れ {expired} · 要更新 {expiring}",
-        "legend": "凡例"
+        "summary": "未提出 {missing} · 期限切れ {expired} · 要更新 {expiring}"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "有効",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "シミュレーション",
@@ -1753,7 +1737,6 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "プロジェクトを開始",
-        "subtitle": "beCPG の「サプライヤーに送信」と同様に、レコードごとに 1 つの取引登録プロジェクトを作成します。",
         "supplier": "サプライヤー",
         "supplierPlaceholder": "サプライヤーを選択…",
         "scope": "範囲",
@@ -2134,12 +2117,9 @@ const LOCALE = {
         "lastActivity": "最終アクティビティ",
         "startProject": "プロジェクトを開始",
         "openInBecpg": "beCPG で開く",
-        "since": "{count} 日間",
-        "approved": "停止・更新・保留のいずれのルールにも該当しません。",
         "actions": "サプライヤーの操作",
         "parent": "所属：",
-        "group": "{count} 社の下位サプライヤー",
-        "verdict": "{status}："
+        "group": "{count} 社の下位サプライヤー"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "適合性",

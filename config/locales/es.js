@@ -821,7 +821,7 @@ const LOCALE = {
             "label": "Indicadores del proveedor",
             "nc": "NC bloqueantes",
             "ncHint": "abiertas",
-            "projects": "Proyectos abiertos",
+            "projects": "Proyectos en curso",
             "projectsHint": "{count} sin respuesta",
             "documents": "Documentos obligatorios",
             "documentsHint": "{expired} caducado(s) · {missing} faltante(s)",
@@ -930,8 +930,9 @@ const LOCALE = {
         "notFound": "Producto no encontrado",
         "notFoundHint": "Esta ficha no existe o no forma parte de su ámbito.",
         "back": "Mis productos",
-        "partial": "Esta ficha se muestra incompleta: hace referencia al menos a un dato que su cuenta no puede leer. Los campos afectados no aparecen en pantalla — lo que no significa que estén vacíos. Solicite acceso a su interlocutor de beCPG si necesita alguno de ellos.",
-        "request": "Solicitar una actualización"
+        "monitorBack": "Productos de proveedores",
+        "request": "Solicitar una actualización",
+        "partial": "Esta ficha se muestra incompleta: hace referencia al menos a un dato que su cuenta no puede leer. Los campos afectados no aparecen en pantalla — lo que no significa que estén vacíos. Solicite acceso a su interlocutor de beCPG si necesita alguno de ellos."
     },
     "app/products/page#LABELS": {
         "title": "Mis productos",
@@ -1362,7 +1363,12 @@ const LOCALE = {
         "unsupported": "Sin vista previa para este tipo de archivo",
         "unsupportedHint": "Este formato no se puede previsualizar en el navegador. Descárguelo para leerlo.",
         "failed": "No se ha podido mostrar el documento",
-        "failedHint": "Aun así, se puede descargar."
+        "failedHint": "Aun así, se puede descargar.",
+        "signed": "Firmado electrónicamente",
+        "signedBy": "{name}, el {date}",
+        "pending": "Firma en curso",
+        "validated": "Validado el {date}",
+        "validatedBy": "Validado por {name} el {date}"
     },
     "components/documents/ExpiryPill#LABELS": {
         "missing": "Por aportar",
@@ -1492,36 +1498,13 @@ const LOCALE = {
             "escalate": "Escalar",
             "suspend": "Suspender"
         },
-        "confirm": {
-            "remind": "Enviar un recordatorio a {count} proveedor(es)",
-            "escalate": "Escalar {count} proveedor(es)",
-            "suspend": "Suspender {count} proveedor(es)"
-        },
-        "mechanism": {
-            "remind": "El mensaje se publica en el hilo de conversación del proveedor — el que ya muestran el portal y Share. No se crea ningún otro canal.",
-            "escalate": "El mensaje se publica internamente en el proyecto abierto del proveedor, mencionando a su jefe de proyecto. El proveedor no lo ve. Sin proyecto abierto, no se publica nada.",
-            "suspend": "El estado de homologación se calcula, nunca se almacena: la suspensión inicia el proceso de suspensión configurado en beCPG. El estado cambia por sí solo."
-        },
-        "message": "Mensaje",
-        "messageRequired": "El mensaje es obligatorio.",
-        "process": "Proceso que iniciar",
         "targets": "Proveedores afectados",
-        "andMore": "… y {count} más",
-        "send": "Enviar",
-        "suspendConfirm": "Suspender",
         "report": "Resultado de la acción",
         "reportOk": "{count} proveedor(es) tratado(s) correctamente.",
         "reportKo": "{count} error(es):",
         "reportSkipped": "{count} proveedor(es) excluido(s): por encima del límite de {max}.",
         "reportNone": "No se ha tratado ningún proveedor.",
         "close": "Cerrar",
-        "successToast": {
-            "remind": "Recordatorio enviado a {ok} proveedor(es)",
-            "escalate": "{ok} escalada(s) enviada(s)",
-            "suspend": "{ok} suspensión(es) iniciada(s)"
-        },
-        "successToastFallback": "{ok} proveedor(es) tratado(s)",
-        "partialToast": "{ok} tratado(s), {ko} con error",
         "errors": {
             "notFound": "Proveedor fuera de su perímetro"
         }
@@ -1570,17 +1553,18 @@ const LOCALE = {
         "types": "{count} tipo(s) de documento",
         "notApplicable": "No se aplica a este proveedor",
         "mandatory": "Obligatorio",
+        "legend": "Leyenda",
         "expected": "{count} esperado(s)",
         "selectRow": "Seleccionar {name}",
         "selectCell": "Seleccionar {type} para {name}",
         "download": "Descargar",
+        "preview": "Consultar",
         "empty": "Ningún proveedor en este perímetro",
         "emptyHint": "Amplíe los filtros para ver la matriz.",
         "noColumns": "Ningún tipo de documento está materializado en este perímetro",
         "noColumnsHint": "beCPG materializa los documentos esperados durante la formulación: sin ningún requisito documental configurado, la matriz está vacía.",
         "toggle": "Mostrar los documentos",
-        "summary": "{missing} faltan · {expired} caducados · {expiring} por renovar",
-        "legend": "Leyenda"
+        "summary": "{missing} faltan · {expired} caducados · {expiring} por renovar"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Válido",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simulación",
@@ -1753,7 +1737,6 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Iniciar un proyecto",
-        "subtitle": "Un proyecto de referenciación por ficha, como hace «Enviar al proveedor» en beCPG.",
         "supplier": "Proveedor",
         "supplierPlaceholder": "Elija un proveedor…",
         "scope": "Ámbito",
@@ -2134,12 +2117,9 @@ const LOCALE = {
         "lastActivity": "Última actividad",
         "startProject": "Iniciar un proyecto",
         "openInBecpg": "Abrir en beCPG",
-        "since": "desde hace {count} días",
-        "approved": "no se aplica ninguna regla de suspensión, renovación o espera.",
         "actions": "Acciones sobre el proveedor",
         "parent": "Vinculado a",
-        "group": "{count} subproveedor(es)",
-        "verdict": "{status}:"
+        "group": "{count} subproveedor(es)"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "Conformidad",

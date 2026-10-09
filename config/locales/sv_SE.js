@@ -821,7 +821,7 @@ const LOCALE = {
             "label": "Leverantörsindikatorer",
             "nc": "Blockerande NC",
             "ncHint": "öppna",
-            "projects": "Öppna projekt",
+            "projects": "Pågående projekt",
             "projectsHint": "{count} utan svar",
             "documents": "Obligatoriska dokument",
             "documentsHint": "{expired} utgångna · {missing} saknas",
@@ -930,8 +930,9 @@ const LOCALE = {
         "notFound": "Produkten hittades inte",
         "notFoundHint": "Bladet finns inte, eller ingår inte i ditt omfång.",
         "back": "Mina produkter",
-        "partial": "Bladet visas ofullständigt: det pekar på minst en uppgift som ditt konto kanske inte får läsa. De berörda fälten saknas på skärmen — vilket inte betyder att de är tomma. Be din beCPG-kontakt om åtkomst om du behöver någon av dem.",
-        "request": "Begär en uppdatering"
+        "monitorBack": "Leverantörsprodukter",
+        "request": "Begär en uppdatering",
+        "partial": "Bladet visas ofullständigt: det pekar på minst en uppgift som ditt konto kanske inte får läsa. De berörda fälten saknas på skärmen — vilket inte betyder att de är tomma. Be din beCPG-kontakt om åtkomst om du behöver någon av dem."
     },
     "app/products/page#LABELS": {
         "title": "Mina produkter",
@@ -1362,7 +1363,12 @@ const LOCALE = {
         "unsupported": "Ingen förhandsvisning för den här filtypen",
         "unsupportedHint": "Formatet kan inte förhandsvisas i webbläsaren. Ladda ned filen för att läsa den.",
         "failed": "Dokumentet kunde inte visas",
-        "failedHint": "Det kan fortfarande laddas ned."
+        "failedHint": "Det kan fortfarande laddas ned.",
+        "signed": "Elektroniskt signerat",
+        "signedBy": "{name}, den {date}",
+        "pending": "Signering pågår",
+        "validated": "Validerat den {date}",
+        "validatedBy": "Validerat av {name} den {date}"
     },
     "components/documents/ExpiryPill#LABELS": {
         "missing": "Ska lämnas in",
@@ -1492,36 +1498,13 @@ const LOCALE = {
             "escalate": "Eskalera",
             "suspend": "Stäng av"
         },
-        "confirm": {
-            "remind": "Påminn {count} leverantör(er)",
-            "escalate": "Eskalera {count} leverantör(er)",
-            "suspend": "Stäng av {count} leverantör(er)"
-        },
-        "mechanism": {
-            "remind": "Meddelandet publiceras i leverantörens diskussionstråd — den som portalen och Share redan visar. Ingen annan kanal skapas.",
-            "escalate": "Meddelandet publiceras internt i leverantörens öppna projekt och nämner projektledaren. Leverantören ser det inte. Utan ett öppet projekt publiceras inget.",
-            "suspend": "Godkännandestatusen härleds och lagras aldrig: avstängningen startar den avstängningsprocess som är konfigurerad i beCPG. Statusen ändras av sig själv."
-        },
-        "message": "Meddelande",
-        "messageRequired": "Ett meddelande krävs.",
-        "process": "Process att starta",
         "targets": "Berörda leverantörer",
-        "andMore": "… och {count} till",
-        "send": "Skicka",
-        "suspendConfirm": "Stäng av",
         "report": "Resultat av åtgärden",
         "reportOk": "{count} leverantör(er) behandlade.",
         "reportKo": "{count} misslyckande(n):",
         "reportSkipped": "{count} leverantör(er) utelämnade: över gränsen på {max}.",
         "reportNone": "Ingen leverantör behandlades.",
         "close": "Stäng",
-        "successToast": {
-            "remind": "{ok} leverantör(er) påminda",
-            "escalate": "{ok} eskalering(ar) skickade",
-            "suspend": "{ok} avstängning(ar) startade"
-        },
-        "successToastFallback": "{ok} leverantör(er) behandlade",
-        "partialToast": "{ok} behandlade, {ko} misslyckades",
         "errors": {
             "notFound": "Leverantören ligger utanför ditt omfång"
         }
@@ -1570,17 +1553,18 @@ const LOCALE = {
         "types": "{count} dokumenttyp(er)",
         "notApplicable": "Gäller inte den här leverantören",
         "mandatory": "Obligatoriskt",
+        "legend": "Teckenförklaring",
         "expected": "{count} förväntade",
         "selectRow": "Välj {name}",
         "selectCell": "Välj {type} för {name}",
         "download": "Ladda ned",
+        "preview": "Visa",
         "empty": "Inga leverantörer i det här omfånget",
         "emptyHint": "Vidga filtren för att se matrisen.",
         "noColumns": "Ingen dokumenttyp är materialiserad i det här omfånget",
         "noColumnsHint": "beCPG materialiserar förväntade dokument vid formuleringen: utan konfigurerade dokumentkrav är matrisen tom.",
         "toggle": "Visa dokument",
-        "summary": "{missing} saknas · {expired} utgångna · {expiring} ska förnyas",
-        "legend": "Teckenförklaring"
+        "summary": "{missing} saknas · {expired} utgångna · {expiring} ska förnyas"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Giltig",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simulering",
@@ -1753,7 +1737,6 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Starta ett projekt",
-        "subtitle": "Ett listningsprojekt per post, som ”Skicka till leverantör” gör i beCPG.",
         "supplier": "Leverantör",
         "supplierPlaceholder": "Välj en leverantör…",
         "scope": "Omfång",
@@ -2134,12 +2117,9 @@ const LOCALE = {
         "lastActivity": "Senaste aktivitet",
         "startProject": "Starta ett projekt",
         "openInBecpg": "Öppna i beCPG",
-        "since": "i {count} dagar",
-        "approved": "ingen regel för spärr, förnyelse eller väntan gäller.",
         "actions": "Leverantörsåtgärder",
         "parent": "Del av",
-        "group": "{count} underleverantör(er)",
-        "verdict": "{status}:"
+        "group": "{count} underleverantör(er)"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "Efterlevnad",

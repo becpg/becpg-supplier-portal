@@ -930,8 +930,9 @@ const LOCALE = {
         "notFound": "未找到产品",
         "notFoundHint": "此资料表不存在，或不在您的范围内。",
         "back": "我的产品",
-        "partial": "此资料表显示不完整：其中至少有一项数据您的账户无权读取。相关字段未在页面上显示 — 这并不表示它们为空。如需访问其中某项，请联系您的 beCPG 联系人。",
-        "request": "申请更新"
+        "monitorBack": "供应商产品",
+        "request": "申请更新",
+        "partial": "此资料表显示不完整：其中至少有一项数据您的账户无权读取。相关字段未在页面上显示 — 这并不表示它们为空。如需访问其中某项，请联系您的 beCPG 联系人。"
     },
     "app/products/page#LABELS": {
         "title": "我的产品",
@@ -1362,7 +1363,12 @@ const LOCALE = {
         "unsupported": "此文件类型无法预览",
         "unsupportedHint": "此格式无法在浏览器中预览。请下载后查看。",
         "failed": "无法显示文件",
-        "failedHint": "仍可下载该文件。"
+        "failedHint": "仍可下载该文件。",
+        "signed": "已电子签名",
+        "signedBy": "{name}，{date}",
+        "pending": "签名进行中",
+        "validated": "已于 {date} 验证",
+        "validatedBy": "由 {name} 于 {date} 验证"
     },
     "components/documents/ExpiryPill#LABELS": {
         "missing": "待提供",
@@ -1492,36 +1498,13 @@ const LOCALE = {
             "escalate": "升级",
             "suspend": "暂停"
         },
-        "confirm": {
-            "remind": "提醒 {count} 个供应商",
-            "escalate": "升级 {count} 个供应商",
-            "suspend": "暂停 {count} 个供应商"
-        },
-        "mechanism": {
-            "remind": "消息将发布在供应商讨论串中 — 即门户和 Share 已显示的讨论串。不会创建其他渠道。",
-            "escalate": "消息将在供应商的进行中项目内部发布，并提及其项目负责人。供应商看不到该消息。如无进行中的项目，则不会发布任何内容。",
-            "suspend": "认证状态是推导得出的，从不存储：暂停操作会启动 beCPG 中配置的暂停流程。状态会自动切换。"
-        },
-        "message": "消息",
-        "messageRequired": "必须填写消息。",
-        "process": "要发起的流程",
         "targets": "相关供应商",
-        "andMore": "…… 以及另外 {count} 个",
-        "send": "发送",
-        "suspendConfirm": "暂停",
         "report": "操作结果",
         "reportOk": "已成功处理 {count} 个供应商。",
         "reportKo": "{count} 项失败：",
         "reportSkipped": "有 {count} 个供应商未处理：超出 {max} 个的上限。",
         "reportNone": "未处理任何供应商。",
         "close": "关闭",
-        "successToast": {
-            "remind": "已提醒 {ok} 个供应商",
-            "escalate": "已发送 {ok} 项升级",
-            "suspend": "已发起 {ok} 项暂停"
-        },
-        "successToastFallback": "已处理 {ok} 个供应商",
-        "partialToast": "{ok} 个已处理，{ko} 个失败",
         "errors": {
             "notFound": "供应商超出您的范围"
         }
@@ -1570,17 +1553,18 @@ const LOCALE = {
         "types": "{count} 种文件类型",
         "notApplicable": "不适用于此供应商",
         "mandatory": "必需",
+        "legend": "图例",
         "expected": "需 {count} 份",
         "selectRow": "选择 {name}",
         "selectCell": "为 {name} 选择 {type}",
         "download": "下载",
+        "preview": "查看",
         "empty": "此范围内无供应商",
         "emptyHint": "请放宽筛选条件以查看矩阵。",
         "noColumns": "此范围内未生成任何文件类型",
         "noColumnsHint": "beCPG 在配方计算时生成所需文件：如果未配置任何文件要求，矩阵将为空。",
         "toggle": "显示文件",
-        "summary": "{missing} 份缺失 · {expired} 份已过期 · {expiring} 份待更新",
-        "legend": "图例"
+        "summary": "{missing} 份缺失 · {expired} 份已过期 · {expiring} 份待更新"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "有效",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "模拟",
@@ -1753,7 +1737,6 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "发起项目",
-        "subtitle": "每条记录一个准入项目，与 beCPG 中的“发送给供应商”相同。",
         "supplier": "供应商",
         "supplierPlaceholder": "选择供应商…",
         "scope": "范围",
@@ -2134,12 +2117,9 @@ const LOCALE = {
         "lastActivity": "最近活动",
         "startProject": "启动项目",
         "openInBecpg": "在 beCPG 中打开",
-        "since": "已持续 {count} 天",
-        "approved": "未触发任何暂停、续期或待定规则。",
         "actions": "供应商操作",
         "parent": "隶属于",
-        "group": "{count} 个下级供应商",
-        "verdict": "{status}："
+        "group": "{count} 个下级供应商"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "合规性",

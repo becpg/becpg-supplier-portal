@@ -34,6 +34,8 @@ import dynamic from 'next/dynamic';
 import { Modal } from '@/components/ui/Modal';
 import { Button, Icon, Spinner } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { useApi } from '@/lib/client';
+import { formatDateTime } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
@@ -71,6 +73,11 @@ const LABELS = defineLabels('components/documents/DocumentViewer#LABELS', {
             'Ce format ne se prévisualise pas dans le navigateur. Téléchargez-le pour le consulter.',
         failed: 'Le document n’a pas pu être affiché',
         failedHint: 'Il reste téléchargeable.',
+        signed: 'Signé électroniquement',
+        signedBy: '{name}, le {date}',
+        pending: 'Signature en cours',
+        validated: 'Validé le {date}',
+        validatedBy: 'Validé par {name} le {date}',
     },
     en: {
         title: 'Document',
@@ -80,6 +87,11 @@ const LABELS = defineLabels('components/documents/DocumentViewer#LABELS', {
         unsupportedHint: 'This format cannot be previewed in the browser. Download it to read it.',
         failed: 'The document could not be displayed',
         failedHint: 'It can still be downloaded.',
+        signed: 'Electronically signed',
+        signedBy: '{name}, on {date}',
+        pending: 'Signature in progress',
+        validated: 'Validated on {date}',
+        validatedBy: 'Validated by {name} on {date}',
     },
 });
 
@@ -113,9 +125,48 @@ export function previewKind(document) {
     return 'none';
 }
 
+function fill(template, vars) {
+    return String(template).replace(/\{(\w+)\}/g, (match, key) => (vars[key] ?? match));
+}
+
+/**
+ * Who signed the document, and when — read from `sign:signatureAspect`. Renders
+ * nothing for a document that was never sent for signature.
+ */
+function SignatureBand({ nodeRef, labels, lang }) {
+    const signature = useApi(nodeRef ? `documents/${encodeURIComponent(String(nodeRef).split("/").pop())}/signature` : null);
+    const data = signature.data;
+    if (!data || (!data.signed && !data.status)) {
+        return null;
+    }
+    const validation = data.validatedAt
+        ? fill(data.validator ? labels.validatedBy : labels.validated, {
+            name: data.validator,
+            date: formatDateTime(data.validatedAt, lang),
+        })
+        : null;
+    return (
+        <div className="flex flex-wrap items-start gap-x-4 gap-y-1 border-b border-[var(--becpg-line)] bg-[var(--status-ok-bg)] px-4 py-2.5 text-sm sm:px-6">
+            <span className={`inline-flex items-center gap-1.5 font-medium ${data.signed ? 'text-[var(--status-ok)]' : 'text-[var(--status-warn)]'}`}>
+                <Icon name={data.signed ? 'verified' : 'pending'} size={18} />
+                {data.signed ? labels.signed : labels.pending}
+            </span>
+            <ul className="flex min-w-0 flex-1 flex-col gap-0.5 text-[var(--becpg-ink)]">
+                {data.signers.filter((signer) => signer.signedAt).map((signer, index) => (
+                    <li key={`${signer.name}-${index}`}>
+                        {fill(labels.signedBy, { name: signer.name || '—', date: formatDateTime(signer.signedAt, lang) })}
+                    </li>
+                ))}
+                {validation ? <li className="text-[var(--becpg-muted)]">{validation}</li> : null}
+            </ul>
+        </div>
+    );
+}
+
 /**
  * @param {Object} props
- * @param {Object|null} props.document the document to show, null closes the panel
+ * @param {Object|null} props.document the document to show, null closes the panel;
+ *        its `nodeRef`, when known, brings the signature details
  * @param {Function} props.onClose
  */
 export function DocumentViewer({ document, onClose }) {
@@ -151,6 +202,7 @@ export function DocumentViewer({ document, onClose }) {
                 </div>
             }
         >
+            {open && document.nodeRef ? <SignatureBand nodeRef={document.nodeRef} labels={labels} lang={lang} /> : null}
             {!open ? null : kind === 'pdf' && href ? (
                 // `PdfViewer` grows with its page count and has no scroller of
                 // its own, so this box must be the one that scrolls: clipping it

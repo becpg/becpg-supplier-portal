@@ -911,7 +911,9 @@ export function SignatureFlow({
                                     {labels.signedView}
                                 </Button>
                             ) : null}
-                            {downloadUrl && outcome === OUTCOME.SIGNED ? (
+                            {/* The viewer carries the download and the signature details:
+                                a second button would only skip the reading. */}
+                            {downloadUrl && !viewerDocument && outcome === OUTCOME.SIGNED ? (
                                 <Button variant="outline" icon="download" href={downloadUrl} external>
                                     {labels.successDownload}
                                 </Button>
@@ -966,7 +968,11 @@ export function SignatureFlow({
                         }
                         actions={
                             <>
-                                {downloadUrl ? (
+                                {viewerDocument ? (
+                                    <Button variant="outline" icon="visibility" onClick={() => setViewing(viewerDocument)}>
+                                        {labels.signedView}
+                                    </Button>
+                                ) : downloadUrl ? (
                                     <Button variant="outline" icon="download" href={downloadUrl} external>
                                         {labels.successDownload}
                                     </Button>
@@ -978,6 +984,7 @@ export function SignatureFlow({
                         }
                     />
                 </motion.div>
+                <DocumentViewer document={viewing} onClose={() => setViewing(null)} />
             </AppShell>
         );
     }

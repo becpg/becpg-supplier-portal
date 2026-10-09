@@ -494,6 +494,26 @@ function RequirementGroup({
     );
 }
 
+/** Every row of every group, most urgent first, without the group headers. */
+function HeadlessRows({ groups, onUploaded, noticeDays, compact, readOnly }) {
+    const items = useMemo(() => sortRequirements(groups.flatMap((group) => group.items || [])), [groups]);
+    return (
+        <ul className="m-0 flex list-none flex-col p-0">
+            {items.map((requirement, position) => (
+                <RequirementRow
+                    key={requirement.nodeRef || requirement.id || position}
+                    requirement={requirement}
+                    onUploaded={onUploaded}
+                    noticeDays={noticeDays}
+                    compact={compact}
+                    readOnly={readOnly}
+                    index={position}
+                />
+            ))}
+        </ul>
+    );
+}
+
 /* -------------------------------------------------------------------------- */
 /* The check-list                                                              */
 /* -------------------------------------------------------------------------- */
@@ -513,6 +533,10 @@ function RequirementGroup({
  * @param {boolean} [props.readOnly] entry is closed: the rows show, nothing is writable
  * @param {boolean} [props.groupByEntity=true] `false` renders one flat list
  * @param {React.ReactNode} [props.emptyState] overrides the default empty surface
+ * @param {boolean} [props.headless=false] one card of rows, with no group header: for a
+ *        screen that already names the one entity the rows belong to
+ * @param {React.ReactNode} [props.children] rendered under the rows, in the same card,
+ *        when `headless`
  */
 export function RequirementChecklist({
     groups,
@@ -527,6 +551,8 @@ export function RequirementChecklist({
     readOnly = false,
     groupByEntity = true,
     emptyState,
+    headless = false,
+    children,
     className = '',
 }) {
     const { lang } = useMessages();
@@ -586,6 +612,21 @@ export function RequirementChecklist({
                     compact={compact}
                 />
             )
+        );
+    }
+
+    if (headless) {
+        return (
+            <Card padding="md" className={className}>
+                <HeadlessRows
+                    groups={ordered}
+                    onUploaded={onUploaded}
+                    noticeDays={noticeDays}
+                    compact={compact}
+                    readOnly={readOnly}
+                />
+                {children}
+            </Card>
         );
     }
 

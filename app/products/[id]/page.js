@@ -40,6 +40,7 @@ import { ContentLocalesProvider } from '@/components/form/ContentLocalesProvider
 import { ProductTaskBanner } from '@/components/products/ProductTaskBanner';
 import { UpdateRequestDialog } from '@/components/products/UpdateRequestDialog';
 import { routeParamId, useApi } from '@/lib/client';
+import { useSession } from '@/components/providers/SessionProvider';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
@@ -49,6 +50,7 @@ const LABELS = defineLabels('app/products/[id]/page#LABELS', {
         notFound: 'Produit introuvable',
         notFoundHint: 'Cette fiche n’existe pas ou ne fait pas partie de votre périmètre.',
         back: 'Mes produits',
+        monitorBack: 'Produits fournisseurs',
         request: 'Demander une mise à jour',
         partial:
             'Cette fiche est affichée de façon incomplète : elle renvoie vers au moins une'
@@ -61,6 +63,7 @@ const LABELS = defineLabels('app/products/[id]/page#LABELS', {
         notFound: 'Product not found',
         notFoundHint: 'This sheet does not exist, or is not part of your scope.',
         back: 'My products',
+        monitorBack: 'Supplier products',
         request: 'Request an update',
         partial:
             'This sheet is shown incomplete: it points at least at one piece of data your'
@@ -86,6 +89,12 @@ function ProductScreen() {
     const id = routeParamId(params.id);
     const { lang } = useMessages();
     const labels = pickLabels(LABELS, lang);
+    // A monitoring account reaches a product from the supplier screens: "my
+    // products" is a supplier page it does not have.
+    const monitor = useSession().space === 'monitor';
+    const back = monitor
+        ? { href: '/monitor/products', label: labels.monitorBack }
+        : { href: '/products', label: labels.back };
 
     const router = useRouter();
     const pathname = usePathname();
@@ -134,8 +143,8 @@ function ProductScreen() {
                         icon="search_off"
                         title={labels.notFound}
                         message={labels.notFoundHint}
-                        actionLabel={labels.back}
-                        actionHref="/products"
+                        actionLabel={back.label}
+                        actionHref={back.href}
                     />
                 ) : (
                     <ErrorState error={entity.error} onRetry={entity.refresh} />
@@ -151,7 +160,8 @@ function ProductScreen() {
             <ProductHeader
                 entity={product}
                 loading={entity.loading}
-                backHref="/products"
+                backHref={back.href}
+                backLabel={back.label}
                 className="mb-4"
                 actions={product?.state === VALID_STATE ? (
                     <Button variant="outline" size="sm" icon="published_with_changes" onClick={() => setRequesting(true)}>

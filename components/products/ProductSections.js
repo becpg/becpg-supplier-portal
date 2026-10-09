@@ -820,13 +820,13 @@ function DocumentsPanel({ nodeRef, step, labels }) {
                 onRetry={requirements.refresh}
                 onUploaded={requirements.refresh}
                 groupByEntity={false}
-            />
-            {/* The check-list only knows the typed requirements; the rest of the
-                folder (the signed sheet carries no document type) follows it in the
-                same list, and renders nothing when there is no such file. */}
-            {requirements.loading ? null : (
+                headless
+            >
+                {/* The check-list only knows the typed requirements; the rest of the
+                    folder (the signed sheet carries no document type) follows in the
+                    same card, and renders nothing when there is no such file. */}
                 <DepositedDocuments entityNodeRef={nodeRef} exclude={shownByChecklist} bare className="mt-3" />
-            )}
+            </RequirementChecklist>
         </div>
     );
 }

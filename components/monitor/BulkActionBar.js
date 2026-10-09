@@ -13,9 +13,9 @@
  *     `GET /api/v1/monitor/actions` declares available on this instance —
  *     `suspend` simply is not shown when no suspension template is allow-listed,
  *     rather than failing on click.
- *  2. **A bulk write is always confirmed.** The dialog names the mechanism, the
- *     number of suppliers, and lists them — nobody relaunches 80 suppliers by
- *     mis-clicking.
+ *  2. **A bulk write is always confirmed**, in the same dialog as a single one
+ *     (`MonitorActionDialog`), which lists the suppliers — nobody relaunches 80
+ *     suppliers by mis-clicking.
  *  3. **The result is reported precisely.** The endpoint attempts every target
  *     and answers per target, so the report says *n relancés*, and for each
  *     failure the supplier and the reason. A partial failure is never rounded
@@ -30,9 +30,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Button, ButtonGroup, Icon, Spinner } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { Textarea, Select } from '@/components/ui/Field';
-import { useToast } from '@/components/providers/ToastProvider';
-import { api, useApi } from '@/lib/client';
+import { MonitorActionDialog } from '@/components/monitor/RiskList';
+import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
@@ -57,41 +56,13 @@ const LABELS = defineLabels('components/monitor/BulkActionBar#LABELS', {
             escalate: 'Escalader',
             suspend: 'Suspendre',
         },
-        confirm: {
-            remind: 'Relancer {count} fournisseur(s)',
-            escalate: 'Escalader {count} fournisseur(s)',
-            suspend: 'Suspendre {count} fournisseur(s)',
-        },
-        mechanism: {
-            remind:
-                'Le message est publié sur le fil de discussion du fournisseur — celui que le portail et Share affichent déjà. Aucun autre canal n’est créé.',
-            escalate:
-                'Le message est publié en interne sur le projet ouvert du fournisseur, en nommant son chef de projet. Le fournisseur ne le voit pas. Sans projet ouvert, rien n’est publié.',
-            suspend:
-                'Le statut d’agrément est calculé, jamais stocké : la suspension démarre le process de suspension paramétré côté beCPG. Le statut basculera de lui-même.',
-        },
-        message: 'Message',
-        messageRequired: 'Un message est obligatoire.',
-        process: 'Process à démarrer',
         targets: 'Fournisseurs concernés',
-        andMore: '… et {count} autre(s)',
-        send: 'Envoyer',
-        suspendConfirm: 'Suspendre',
         report: 'Résultat de l’action',
         reportOk: '{count} fournisseur(s) traité(s) avec succès.',
         reportKo: '{count} échec(s) :',
         reportSkipped: '{count} fournisseur(s) non traité(s) : au-delà de la limite de {max}.',
         reportNone: 'Aucun fournisseur n’a été traité.',
         close: 'Fermer',
-        // Per action, because "relancé" is false for an escalation and for a
-        // suspension — the toast must say what actually happened.
-        successToast: {
-            remind: '{ok} fournisseur(s) relancé(s)',
-            escalate: '{ok} escalade(s) envoyée(s)',
-            suspend: '{ok} suspension(s) démarrée(s)',
-        },
-        successToastFallback: '{ok} fournisseur(s) traité(s)',
-        partialToast: '{ok} traité(s), {ko} en échec',
         errors: {
             notFound: 'Fournisseur hors de votre périmètre',
         },
@@ -108,39 +79,13 @@ const LABELS = defineLabels('components/monitor/BulkActionBar#LABELS', {
             escalate: 'Escalate',
             suspend: 'Suspend',
         },
-        confirm: {
-            remind: 'Remind {count} supplier(s)',
-            escalate: 'Escalate {count} supplier(s)',
-            suspend: 'Suspend {count} supplier(s)',
-        },
-        mechanism: {
-            remind:
-                'The message is posted on the supplier discussion thread — the one the portal and Share already display. No other channel is created.',
-            escalate:
-                'The message is posted internally on the supplier’s open project, naming its project manager. The supplier does not see it. Without an open project, nothing is posted.',
-            suspend:
-                'The approval status is derived, never stored: suspension starts the suspension process configured in beCPG. The status flips on its own.',
-        },
-        message: 'Message',
-        messageRequired: 'A message is required.',
-        process: 'Process to start',
         targets: 'Suppliers concerned',
-        andMore: '… and {count} more',
-        send: 'Send',
-        suspendConfirm: 'Suspend',
         report: 'Action result',
         reportOk: '{count} supplier(s) processed successfully.',
         reportKo: '{count} failure(s):',
         reportSkipped: '{count} supplier(s) left out: above the limit of {max}.',
         reportNone: 'No supplier was processed.',
         close: 'Close',
-        successToast: {
-            remind: '{ok} supplier(s) reminded',
-            escalate: '{ok} escalation(s) sent',
-            suspend: '{ok} suspension(s) started',
-        },
-        successToastFallback: '{ok} supplier(s) processed',
-        partialToast: '{ok} processed, {ko} failed',
         errors: {
             notFound: 'Supplier outside your perimeter',
         },
@@ -182,11 +127,7 @@ export function BulkActionBar({
     const reduceMotion = useReducedMotion();
 
     const [pending, setPending] = useState(null); // action id being confirmed
-    const [message, setMessage] = useState('');
-    const [process, setProcess] = useState('');
-    const [busy, setBusy] = useState(false);
     const [report, setReport] = useState(null);
-    const [touched, setTouched] = useState(false);
 
     // The instance's own capabilities: an action that cannot work here is not
     // rendered at all (GET /monitor/actions, spec §4.6.1).
@@ -214,62 +155,13 @@ export function BulkActionBar({
     const overflow = Math.max(0, unique.length - MAX_BULK_TARGETS);
     const sent = unique.slice(0, MAX_BULK_TARGETS);
 
-    const openAction = useCallback(
-        (action) => {
-            setPending(action.id);
-            setTouched(false);
-            setMessage(action.needsMessage ? defaultMessage : '');
-            setProcess(action.processes && action.processes.length > 0 ? action.processes[0] : '');
-        },
-        [defaultMessage],
-    );
-
-    const close = useCallback(() => {
-        if (!busy) {
-            setPending(null);
-        }
-    }, [busy]);
-
-    const run = useCallback(async () => {
-        if (!current) {
-            return;
-        }
-        if (current.needsMessage && !message.trim()) {
-            setTouched(true);
-            return;
-        }
-        setBusy(true);
-        try {
-            const payload = await api.post('monitor/actions', {
-                action: current.id,
-                suppliers: sent.map((target) => target.nodeRef),
-                message: message.trim() || undefined,
-                process: current.id === 'suspend' ? process || undefined : undefined,
-            });
-            setPending(null);
+    // The dialog already says when every target went through; the report only
+    // opens to name the ones that did not.
+    const onResult = useCallback((payload) => {
+        if ((payload?.summary?.failed || 0) > 0 || overflow > 0) {
             setReport({ ...payload, skipped: overflow });
-            const { succeeded = 0, failed = 0 } = payload.summary || {};
-            if (failed === 0) {
-                toast.success(
-                    fill(labels.successToast[current.id] || labels.successToastFallback, {
-                        ok: succeeded,
-                    }),
-                );
-            }
-            else {
-                toast.warning(fill(labels.partialToast, { ok: succeeded, ko: failed }));
-            }
-            if (onDone) {
-                onDone(payload);
-            }
         }
-        catch (error) {
-            toast.error(error);
-        }
-        finally {
-            setBusy(false);
-        }
-    }, [current, message, process, sent, overflow, toast, labels, onDone]);
+    }, [overflow]);
 
     const failures = report ? (report.results || []).filter((result) => !result.ok) : [];
 
@@ -324,7 +216,7 @@ export function BulkActionBar({
                                         size="sm"
                                         variant={action.id === 'suspend' ? 'danger' : action.id === 'remind' ? 'accent' : 'outline'}
                                         icon={ACTION_ICONS[action.id] || 'bolt'}
-                                        onClick={() => openAction(action)}
+                                        onClick={() => setPending(action.id)}
                                     >
                                         {labels.actions[action.id] || action.id}
                                     </Button>
@@ -343,102 +235,17 @@ export function BulkActionBar({
                 ) : null}
             </AnimatePresence>
 
-            {/* ------------------------------------------------- confirmation */}
-            <Modal
-                open={Boolean(current)}
-                onClose={close}
-                size="md"
-                title={
-                    current
-                        ? fill(labels.confirm[current.id] || labels.actions[current.id], {
-                              count: sent.length,
-                          })
-                        : ''
-                }
-                description={current ? labels.mechanism[current.id] : undefined}
-                footer={
-                    <ButtonGroup>
-                        <Button variant="outline" onClick={close} disabled={busy}>
-                            {labels.close}
-                        </Button>
-                        <Button
-                            variant={current && current.id === 'suspend' ? 'danger' : 'primary'}
-                            loading={busy}
-                            onClick={run}
-                        >
-                            {current && current.id === 'suspend' ? labels.suspendConfirm : labels.send}
-                        </Button>
-                    </ButtonGroup>
-                }
-            >
-                {current ? (
-                    <div className="flex flex-col gap-4">
-                        {overflow > 0 ? (
-                            <p className="rounded-lg bg-[var(--status-warn-bg)] px-3 py-2 text-xs text-[var(--status-warn)]">
-                                {fill(labels.overflow, { max: MAX_BULK_TARGETS })}
-                            </p>
-                        ) : null}
-
-                        {current.needsMessage ? (
-                            <div className="flex flex-col gap-1">
-                                <label
-                                    htmlFor="bulk-action-message"
-                                    className="text-sm font-medium text-[var(--becpg-blue)]"
-                                >
-                                    {labels.message}
-                                </label>
-                                <Textarea
-                                    id="bulk-action-message"
-                                    rows={4}
-                                    value={message}
-                                    invalid={touched && !message.trim()}
-                                    onChange={(event) => setMessage(event.target.value)}
-                                />
-                                {touched && !message.trim() ? (
-                                    <p className="text-xs text-[var(--status-danger)]">
-                                        {labels.messageRequired}
-                                    </p>
-                                ) : null}
-                            </div>
-                        ) : null}
-
-                        {current.id === 'suspend' && current.processes && current.processes.length > 0 ? (
-                            <div className="flex flex-col gap-1">
-                                <label
-                                    htmlFor="bulk-action-process"
-                                    className="text-sm font-medium text-[var(--becpg-blue)]"
-                                >
-                                    {labels.process}
-                                </label>
-                                <Select
-                                    id="bulk-action-process"
-                                    value={process}
-                                    onChange={(event) => setProcess(event.target.value)}
-                                    options={current.processes.map((id) => ({ value: id, label: id }))}
-                                />
-                            </div>
-                        ) : null}
-
-                        <div>
-                            <p className="mb-1 text-sm font-medium text-[var(--becpg-blue)]">
-                                {labels.targets}
-                            </p>
-                            <ul className="max-h-40 overflow-y-auto rounded-lg border border-[var(--becpg-grey)] p-2 text-sm">
-                                {sent.slice(0, 12).map((target) => (
-                                    <li key={target.nodeRef} className="truncate py-0.5">
-                                        {target.name}
-                                    </li>
-                                ))}
-                                {sent.length > 12 ? (
-                                    <li className="py-0.5 text-xs text-[var(--becpg-dark-grey)]">
-                                        {fill(labels.andMore, { count: sent.length - 12 })}
-                                    </li>
-                                ) : null}
-                            </ul>
-                        </div>
-                    </div>
-                ) : null}
-            </Modal>
+            {/* The same dialog as every other monitoring action, so a reminder
+                reads and behaves alike from a sheet, a list or a selection. */}
+            <MonitorActionDialog
+                action={current ? current.id : null}
+                targets={sent}
+                processes={(current && current.processes) || []}
+                defaultMessage={defaultMessage}
+                onClose={() => setPending(null)}
+                onDone={onDone}
+                onResult={onResult}
+            />
 
             {/* -------------------------------------------------------- report */}
             <Modal

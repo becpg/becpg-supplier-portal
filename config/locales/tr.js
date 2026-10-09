@@ -821,7 +821,7 @@ const LOCALE = {
             "label": "Tedarikçi göstergeleri",
             "nc": "Engelleyici NC'ler",
             "ncHint": "açık",
-            "projects": "Açık projeler",
+            "projects": "Devam eden projeler",
             "projectsHint": "{count} yanıtsız",
             "documents": "Zorunlu belgeler",
             "documentsHint": "{expired} süresi dolmuş · {missing} eksik",
@@ -930,8 +930,9 @@ const LOCALE = {
         "notFound": "Ürün bulunamadı",
         "notFoundHint": "Bu kart mevcut değil veya kapsamınızda değil.",
         "back": "Ürünlerim",
-        "partial": "Bu kart eksik gösteriliyor: hesabınızın okuyamayabileceği en az bir veriye işaret ediyor. İlgili alanlar ekranda yer almıyor — bu, boş oldukları anlamına gelmez. Bunlardan birine ihtiyacınız varsa beCPG irtibat kişinizden erişim isteyin.",
-        "request": "Güncelleme talep et"
+        "monitorBack": "Tedarikçi ürünleri",
+        "request": "Güncelleme talep et",
+        "partial": "Bu kart eksik gösteriliyor: hesabınızın okuyamayabileceği en az bir veriye işaret ediyor. İlgili alanlar ekranda yer almıyor — bu, boş oldukları anlamına gelmez. Bunlardan birine ihtiyacınız varsa beCPG irtibat kişinizden erişim isteyin."
     },
     "app/products/page#LABELS": {
         "title": "Ürünlerim",
@@ -1362,7 +1363,12 @@ const LOCALE = {
         "unsupported": "Bu dosya türü için önizleme yok",
         "unsupportedHint": "Bu biçim tarayıcıda önizlenemez. Okumak için indirin.",
         "failed": "Belge görüntülenemedi",
-        "failedHint": "Yine de indirilebilir."
+        "failedHint": "Yine de indirilebilir.",
+        "signed": "Elektronik olarak imzalandı",
+        "signedBy": "{name}, {date}",
+        "pending": "İmza sürüyor",
+        "validated": "{date} tarihinde onaylandı",
+        "validatedBy": "{name} tarafından {date} tarihinde onaylandı"
     },
     "components/documents/ExpiryPill#LABELS": {
         "missing": "Sağlanacak",
@@ -1492,36 +1498,13 @@ const LOCALE = {
             "escalate": "Üst kademeye ilet",
             "suspend": "Askıya al"
         },
-        "confirm": {
-            "remind": "{count} tedarikçiye hatırlat",
-            "escalate": "{count} tedarikçiyi üst kademeye ilet",
-            "suspend": "{count} tedarikçiyi askıya al"
-        },
-        "mechanism": {
-            "remind": "Mesaj, tedarikçi tartışma dizisine gönderilir — portalın ve Share'in zaten gösterdiği dizi. Başka bir kanal oluşturulmaz.",
-            "escalate": "Mesaj, tedarikçinin açık projesine proje yöneticisinin adı belirtilerek dahili olarak gönderilir. Tedarikçi bunu görmez. Açık proje yoksa hiçbir şey gönderilmez.",
-            "suspend": "Onay durumu türetilir, asla saklanmaz: askıya alma, beCPG'de yapılandırılmış askıya alma sürecini başlatır. Durum kendiliğinden değişir."
-        },
-        "message": "Mesaj",
-        "messageRequired": "Mesaj zorunludur.",
-        "process": "Başlatılacak süreç",
         "targets": "İlgili tedarikçiler",
-        "andMore": "… ve {count} tane daha",
-        "send": "Gönder",
-        "suspendConfirm": "Askıya al",
         "report": "Eylem sonucu",
         "reportOk": "{count} tedarikçi başarıyla işlendi.",
         "reportKo": "{count} başarısız:",
         "reportSkipped": "{count} tedarikçi dışarıda bırakıldı: {max} sınırının üzerinde.",
         "reportNone": "Hiçbir tedarikçi işlenmedi.",
         "close": "Kapat",
-        "successToast": {
-            "remind": "{ok} tedarikçiye hatırlatma gönderildi",
-            "escalate": "{ok} üst kademeye iletme gönderildi",
-            "suspend": "{ok} askıya alma başlatıldı"
-        },
-        "successToastFallback": "{ok} tedarikçi işlendi",
-        "partialToast": "{ok} işlendi, {ko} başarısız",
         "errors": {
             "notFound": "Tedarikçi kapsamınızın dışında"
         }
@@ -1570,17 +1553,18 @@ const LOCALE = {
         "types": "{count} belge türü",
         "notApplicable": "Bu tedarikçi için geçerli değil",
         "mandatory": "Zorunlu",
+        "legend": "Açıklama",
         "expected": "{count} bekleniyor",
         "selectRow": "{name} seç",
         "selectCell": "{name} için {type} seç",
         "download": "İndir",
+        "preview": "Görüntüle",
         "empty": "Bu kapsamda tedarikçi yok",
         "emptyHint": "Matrisi görmek için filtreleri genişletin.",
         "noColumns": "Bu kapsamda somutlaştırılmış belge türü yok",
         "noColumnsHint": "beCPG beklenen belgeleri formülasyon sırasında somutlaştırır: yapılandırılmış bir belge gereksinimi yoksa matris boştur.",
         "toggle": "Belgeleri göster",
-        "summary": "{missing} eksik · {expired} süresi dolmuş · {expiring} yenilenecek",
-        "legend": "Açıklama"
+        "summary": "{missing} eksik · {expired} süresi dolmuş · {expiring} yenilenecek"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Geçerli",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simülasyon",
@@ -1753,7 +1737,6 @@ const LOCALE = {
     },
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Proje başlat",
-        "subtitle": "beCPG'deki \"Tedarikçiye gönder\" işlevinde olduğu gibi, kayıt başına bir listeleme projesi.",
         "supplier": "Tedarikçi",
         "supplierPlaceholder": "Bir tedarikçi seçin…",
         "scope": "Kapsam",
@@ -2134,12 +2117,9 @@ const LOCALE = {
         "lastActivity": "Son etkinlik",
         "startProject": "Proje başlat",
         "openInBecpg": "beCPG'de aç",
-        "since": "{count} gündür",
-        "approved": "askıya alma, yenileme veya bekleme kuralı uygulanmıyor.",
         "actions": "Tedarikçi işlemleri",
         "parent": "Bağlı olduğu:",
-        "group": "{count} alt tedarikçi",
-        "verdict": "{status}:"
+        "group": "{count} alt tedarikçi"
     },
     "components/products/CatalogPanel#LABELS": {
         "title": "Uygunluk",

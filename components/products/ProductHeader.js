@@ -159,6 +159,7 @@ function Fact({ label, children, icon }) {
  * @param {React.ReactNode} [props.actions] buttons rendered at the top right
  * @param {boolean} [props.loading]
  * @param {string} [props.backHref] renders a "back to the list" link above the title
+ * @param {string} [props.backLabel] the list it leads back to, when it is not "my products"
  * @param {boolean} [props.showCompletion=true]
  * @param {React.ReactNode} [props.children] extra content under the facts (tabs, alerts)
  */
@@ -167,6 +168,7 @@ export function ProductHeader({
     actions,
     loading = false,
     backHref,
+    backLabel,
     showCompletion = true,
     className = '',
     children,
@@ -204,7 +206,7 @@ export function ProductHeader({
                     className="mb-2 inline-flex items-center gap-1 text-xs text-[var(--becpg-blue-light)] hover:text-[var(--becpg-orange)]"
                 >
                     <Icon name="arrow_back" size={14} />
-                    {labels.back}
+                    {backLabel || labels.back}
                 </Link>
             ) : null}
 
@@ -269,10 +271,10 @@ export function ProductHeader({
                 </div>
 
                 <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-                    {showCompletion ? <CompletionMeter completion={entity.completion} /> : null}
                     {actions ? (
                         <div className="flex flex-col items-stretch gap-2">{actions}</div>
                     ) : null}
+                    {showCompletion ? <CompletionMeter completion={entity.completion} /> : null}
                 </div>
             </div>
 
