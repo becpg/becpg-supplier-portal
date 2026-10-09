@@ -1770,7 +1770,6 @@ const LOCALE = {
     "components/monitor/RiskList#RISK_LEVELS.low": "Baixo",
     "components/monitor/RiskList#LABELS": {
         "title": "Top 10 fornecedores em risco",
-        "subtitle": "Motivo, pontuação de risco e ação direta",
         "empty": "Nenhum fornecedor em risco neste perímetro",
         "emptyHint": "Nenhum documento expirado, NC bloqueante ou projeto sem resposta detectado.",
         "riskScore": "Pontuação de risco {score}",
@@ -2527,7 +2526,8 @@ const LOCALE = {
         "status.draft": "Rascunho",
         "status.notApplicable": "Não aplicável",
         "test.banner": "Instância de TESTE — os dados digitados aqui não têm valor contratual",
-        "test.badge": "Teste"
+        "test.badge": "Teste",
+        "app.monitorSuffix": "gestão de fornecedores"
     },
     "components/monitor/HistoryPanel#LABELS": {
         "title": "Evolução",

@@ -1770,7 +1770,6 @@ const LOCALE = {
     "components/monitor/RiskList#RISK_LEVELS.low": "低",
     "components/monitor/RiskList#LABELS": {
         "title": "风险最高的 10 个供应商",
-        "subtitle": "原因、风险评分和直接操作",
         "empty": "此范围内无风险供应商",
         "emptyHint": "未检测到已过期文件、阻断性 NC 或无回复的项目。",
         "riskScore": "风险评分 {score}",
@@ -2527,7 +2526,8 @@ const LOCALE = {
         "status.draft": "草稿",
         "status.notApplicable": "不适用",
         "test.banner": "TEST 实例 — 在此输入的数据不具有合同效力",
-        "test.badge": "测试"
+        "test.badge": "测试",
+        "app.monitorSuffix": "供应商管理"
     },
     "components/monitor/HistoryPanel#LABELS": {
         "title": "趋势",

@@ -59,7 +59,9 @@ export function tenantLogoUrl(tenant) {
  *        explicit tenant; falls back to the session's (needed on /login, which has none)
  * @param {'sm'|'md'|'lg'} [props.size='md']
  * @param {boolean} [props.showLabel=true] hide the text to keep only the logo
- * @param {boolean} [props.showSuffix=false] appends "espace fournisseur" under the name
+ * @param {boolean} [props.showSuffix=false] appends the space under the name — "espace
+ *        fournisseur", or "pilotage fournisseurs" when `space` is `monitor`
+ * @param {'supplier'|'monitor'} [props.space='supplier']
  * @param {'light'|'dark'} [props.tone='light'] `dark` for a coloured header background
  */
 export function TenantBadge({
@@ -67,6 +69,7 @@ export function TenantBadge({
     size = 'md',
     showLabel = true,
     showSuffix = false,
+    space = 'supplier',
     tone = 'light',
     className = '',
 }) {
@@ -126,7 +129,7 @@ export function TenantBadge({
                                 tone === 'dark' ? 'text-white/70' : 'text-[var(--becpg-dark-grey)]'
                             }`}
                         >
-                            {t('app.tenantSuffix')}
+                            {t(space === 'monitor' ? 'app.monitorSuffix' : 'app.tenantSuffix')}
                         </span>
                     ) : null}
                 </span>

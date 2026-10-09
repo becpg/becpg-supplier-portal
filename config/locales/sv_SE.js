@@ -1770,7 +1770,6 @@ const LOCALE = {
     "components/monitor/RiskList#RISK_LEVELS.low": "Låg",
     "components/monitor/RiskList#LABELS": {
         "title": "Topp 10 leverantörer i riskzonen",
-        "subtitle": "Orsak, riskpoäng och direkt åtgärd",
         "empty": "Inga leverantörer i riskzonen i det här omfånget",
         "emptyHint": "Inga utgångna dokument, blockerande NC eller obesvarade projekt upptäcktes.",
         "riskScore": "Riskpoäng {score}",
@@ -2527,7 +2526,8 @@ const LOCALE = {
         "status.draft": "Utkast",
         "status.notApplicable": "Ej tillämplig",
         "test.banner": "TEST-instans — uppgifter som anges här är inte avtalsmässigt bindande",
-        "test.badge": "Test"
+        "test.badge": "Test",
+        "app.monitorSuffix": "leverantörsstyrning"
     },
     "components/monitor/HistoryPanel#LABELS": {
         "title": "Utveckling",

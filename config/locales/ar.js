@@ -1770,7 +1770,6 @@ const LOCALE = {
     "components/monitor/RiskList#RISK_LEVELS.low": "منخفضة",
     "components/monitor/RiskList#LABELS": {
         "title": "أعلى 10 موردين من حيث المخاطر",
-        "subtitle": "السبب، ودرجة المخاطر، والإجراء المباشر",
         "empty": "لا يوجد مورّد معرّض للمخاطر في هذا النطاق",
         "emptyHint": "لم يُكتشف أي مستند منتهي الصلاحية أو حالة NC معيقة أو مشروع بلا إجابة.",
         "riskScore": "درجة المخاطر {score}",
@@ -2527,7 +2526,8 @@ const LOCALE = {
         "status.draft": "مسودة",
         "status.notApplicable": "غير منطبق",
         "test.banner": "نسخة TEST — البيانات المُدخلة هنا غير مُلزِمة تعاقديًا",
-        "test.badge": "تجريبي"
+        "test.badge": "تجريبي",
+        "app.monitorSuffix": "متابعة الموردين"
     },
     "components/monitor/HistoryPanel#LABELS": {
         "title": "التطور",

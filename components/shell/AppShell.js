@@ -198,7 +198,8 @@ export function AppShell({
     return (
         <div className="flex min-h-dvh flex-col bg-[var(--becpg-grey)]/30">
             <Header
-                title={showTitle ? null : title}
+                title={showTitle || ownHeading ? null : title}
+                space={resolvedSpace}
                 actions={actions}
                 status={headerStatus}
                 notificationCount={notificationCount}

@@ -75,8 +75,9 @@ function initials(name) {
  * @param {number} [props.notificationCount] count shown on the bell before its own
  *     fetch lands; the bell keeps it up to date itself afterwards
  * @param {React.ReactNode} [props.status] a StatusPill (approval status) shown on desktop
+ * @param {'supplier'|'monitor'} [props.space] the space shown under the tenant name
  */
-export function Header({ onMenuClick, title, actions, notificationCount = 0, status, className = '' }) {
+export function Header({ onMenuClick, title, actions, notificationCount = 0, status, space, className = '' }) {
     const { t, lang, setLang, langs } = useMessages();
     const session = useSession();
     const [open, setOpen] = useState(false);
@@ -195,7 +196,7 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                         href="/"
                         className="toolbar-item flex min-w-0 items-center rounded-lg px-1 py-1"
                     >
-                        <TenantBadge size="md" tone="dark" showSuffix />
+                        <TenantBadge size="md" tone="dark" showSuffix space={space} />
                     </Link>
 
                     {title ? (

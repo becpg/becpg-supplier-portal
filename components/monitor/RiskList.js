@@ -140,7 +140,6 @@ export const RISK_LEVELS = Object.freeze({
 const LABELS = defineLabels('components/monitor/RiskList#LABELS', {
     fr: {
         title: 'Top 10 des fournisseurs à risque',
-        subtitle: 'Motif, score de risque et action directe',
         empty: 'Aucun fournisseur à risque dans ce périmètre',
         emptyHint: 'Aucun document expiré, NC bloquante ou projet sans réponse détecté.',
         riskScore: 'Score de risque {score}',
@@ -188,7 +187,6 @@ const LABELS = defineLabels('components/monitor/RiskList#LABELS', {
     },
     en: {
         title: 'Top 10 suppliers at risk',
-        subtitle: 'Reason, risk score and direct action',
         empty: 'No supplier at risk in this perimeter',
         emptyHint: 'No expired document, blocking NC or unanswered project detected.',
         riskScore: 'Risk score {score}',
@@ -531,10 +529,14 @@ function RiskRow({ item, rank, local, lang, onDone }) {
     const reasons = ((item.risk && item.risk.reasons) || [])
         .map((reason) => describeReason(reason, lang))
         .filter(Boolean);
+    const lowCompletion = ((item.risk && item.risk.reasons) || []).some((reason) => reason.code === 'lowCompletion');
     const details = [
         ...reasons.map((reason) => reason.label),
         item.buyer ? interpolate(local.buyer, { name: item.buyer }) : null,
-        typeof item.completion === 'number' ? interpolate(local.completion, { value: item.completion }) : null,
+        // Said once: a low completion is already one of the reasons when it is one.
+        typeof item.completion === 'number' && !lowCompletion
+            ? interpolate(local.completion, { value: item.completion })
+            : null,
         item.lastActivity ? interpolate(local.lastActivity, { date: formatDate(item.lastActivity, lang) }) : null,
     ]
         .filter(Boolean)
@@ -633,7 +635,6 @@ export function RiskList({ items = [], onRefresh, className = '' }) {
     return (
         <Card
             title={local.title}
-            subtitle={items.length > 0 ? local.subtitle : undefined}
             icon="crisis_alert"
             className={className}
         >

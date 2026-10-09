@@ -1770,7 +1770,6 @@ const LOCALE = {
     "components/monitor/RiskList#RISK_LEVELS.low": "Bajo",
     "components/monitor/RiskList#LABELS": {
         "title": "Top 10 de proveedores en riesgo",
-        "subtitle": "Motivo, puntuación de riesgo y acción directa",
         "empty": "Ningún proveedor en riesgo en este perímetro",
         "emptyHint": "No se ha detectado ningún documento caducado, NC bloqueante ni proyecto sin respuesta.",
         "riskScore": "Puntuación de riesgo {score}",
@@ -2527,7 +2526,8 @@ const LOCALE = {
         "status.draft": "Borrador",
         "status.notApplicable": "No aplicable",
         "test.banner": "Instancia de TEST — los datos introducidos aquí no tienen valor contractual",
-        "test.badge": "Test"
+        "test.badge": "Test",
+        "app.monitorSuffix": "pilotaje de proveedores"
     },
     "components/monitor/HistoryPanel#LABELS": {
         "title": "Evolución",

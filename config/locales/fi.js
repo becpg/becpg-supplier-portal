@@ -1770,7 +1770,6 @@ const LOCALE = {
     "components/monitor/RiskList#RISK_LEVELS.low": "Matala",
     "components/monitor/RiskList#LABELS": {
         "title": "Top 10 riskitoimittajat",
-        "subtitle": "Syy, riskipisteet ja suora toimenpide",
         "empty": "Tässä rajauksessa ei ole riskitoimittajia",
         "emptyHint": "Vanhentuneita asiakirjoja, estäviä NC-poikkeamia tai vastaamattomia projekteja ei havaittu.",
         "riskScore": "Riskipisteet {score}",
@@ -2527,7 +2526,8 @@ const LOCALE = {
         "status.draft": "Luonnos",
         "status.notApplicable": "Ei sovellettavissa",
         "test.banner": "TEST-instanssi — tänne syötetyt tiedot eivät ole sitovia",
-        "test.badge": "Testi"
+        "test.badge": "Testi",
+        "app.monitorSuffix": "toimittajaseuranta"
     },
     "components/monitor/HistoryPanel#LABELS": {
         "title": "Kehitys",

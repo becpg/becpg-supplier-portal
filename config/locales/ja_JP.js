@@ -1770,7 +1770,6 @@ const LOCALE = {
     "components/monitor/RiskList#RISK_LEVELS.low": "低",
     "components/monitor/RiskList#LABELS": {
         "title": "リスクの高いサプライヤー上位 10 社",
-        "subtitle": "理由、リスクスコア、直接アクション",
         "empty": "この範囲にリスクのあるサプライヤーはいません",
         "emptyHint": "期限切れの文書、ブロッキングの NC、回答のないプロジェクトは検出されませんでした。",
         "riskScore": "リスクスコア {score}",
@@ -2527,7 +2526,8 @@ const LOCALE = {
         "status.draft": "下書き",
         "status.notApplicable": "該当なし",
         "test.banner": "TEST インスタンス — ここで入力したデータは契約上の効力を持ちません",
-        "test.badge": "テスト"
+        "test.badge": "テスト",
+        "app.monitorSuffix": "サプライヤー管理"
     },
     "components/monitor/HistoryPanel#LABELS": {
         "title": "推移",

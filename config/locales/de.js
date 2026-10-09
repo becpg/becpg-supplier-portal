@@ -1770,7 +1770,6 @@ const LOCALE = {
     "components/monitor/RiskList#RISK_LEVELS.low": "Niedrig",
     "components/monitor/RiskList#LABELS": {
         "title": "Top 10 der Risikolieferanten",
-        "subtitle": "Grund, Risikoscore und direkte Aktion",
         "empty": "Kein Risikolieferant in diesem Bereich",
         "emptyHint": "Kein abgelaufenes Dokument, keine blockierende NC und kein unbeantwortetes Projekt festgestellt.",
         "riskScore": "Risikoscore {score}",
@@ -2527,7 +2526,8 @@ const LOCALE = {
         "status.draft": "Entwurf",
         "status.notApplicable": "Nicht zutreffend",
         "test.banner": "TEST-Instanz — hier eingegebene Daten sind nicht vertraglich verbindlich",
-        "test.badge": "Test"
+        "test.badge": "Test",
+        "app.monitorSuffix": "Lieferantensteuerung"
     },
     "components/monitor/HistoryPanel#LABELS": {
         "title": "Entwicklung",

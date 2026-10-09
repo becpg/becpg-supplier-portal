@@ -1770,7 +1770,6 @@ const LOCALE = {
     "components/monitor/RiskList#RISK_LEVELS.low": "Düşük",
     "components/monitor/RiskList#LABELS": {
         "title": "Risk altındaki ilk 10 tedarikçi",
-        "subtitle": "Neden, risk puanı ve doğrudan eylem",
         "empty": "Bu kapsamda risk altında tedarikçi yok",
         "emptyHint": "Süresi dolmuş belge, engelleyici NC veya yanıtsız proje tespit edilmedi.",
         "riskScore": "Risk puanı {score}",
@@ -2527,7 +2526,8 @@ const LOCALE = {
         "status.draft": "Taslak",
         "status.notApplicable": "Uygulanamaz",
         "test.banner": "TEST ortamı — burada girilen veriler bağlayıcı değildir",
-        "test.badge": "Test"
+        "test.badge": "Test",
+        "app.monitorSuffix": "tedarikçi yönetimi"
     },
     "components/monitor/HistoryPanel#LABELS": {
         "title": "Gelişim",
