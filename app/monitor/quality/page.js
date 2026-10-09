@@ -44,6 +44,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { StartNcDialog } from '@/components/monitor/StartNcDialog';
 import { AppShell, PageHeader } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -68,6 +69,7 @@ import { defineLabels, pickLabels } from '@/lib/i18n';
 const LABELS = defineLabels('app/monitor/quality/page#LABELS', {
     fr: {
         title: 'Non-conformités',
+        startNc: 'Démarrer une non-conformité',
         subtitle:
             'NC fournisseur, délai de traitement et avancement des actions correctives. Sélectionnez des NC pour relancer, escalader ou suspendre les fournisseurs concernés.',
         stats: {
@@ -120,6 +122,7 @@ const LABELS = defineLabels('app/monitor/quality/page#LABELS', {
     },
     en: {
         title: 'Non-conformities',
+        startNc: 'Start a non-conformity',
         subtitle:
             'Supplier NCs, processing delay and corrective-action progress. Select NCs to remind, escalate or suspend the suppliers concerned.',
         stats: {
@@ -186,6 +189,7 @@ export default function MonitorQualityPage() {
     const [pageSize, setPageSize] = useState(25);
     const [rowSelection, setRowSelection] = useState({});
     const [focus, setFocus] = useState('');
+    const [startingNc, setStartingNc] = useState(false);
 
     const params = useMemo(
         () => ({
@@ -312,13 +316,21 @@ export default function MonitorQualityPage() {
                         <span>{labels.inexact}</span>
                     </span>
                 ) : labels.subtitle}
-                actions={pagination.truncated ? (
-                    <WindowNotice
-                        label={fill(labels.truncatedShort, { scanned: pagination.scanned || 0 })}
-                        detail={fill(labels.truncated, { scanned: pagination.scanned || 0 })}
-                    />
-                ) : null}
+                actions={(
+                    <div className="flex items-center gap-2">
+                        {pagination.truncated ? (
+                            <WindowNotice
+                                label={fill(labels.truncatedShort, { scanned: pagination.scanned || 0 })}
+                                detail={fill(labels.truncated, { scanned: pagination.scanned || 0 })}
+                            />
+                        ) : null}
+                        <Button size="sm" icon="report_problem" onClick={() => setStartingNc(true)}>
+                            {labels.startNc}
+                        </Button>
+                    </div>
+                )}
             />
+            <StartNcDialog open={startingNc} onClose={() => setStartingNc(false)} onStarted={quality.refresh} />
 
             {/* ------------------------------------------------------ KPI row */}
             <StatGrid columns={4} className="mb-4">

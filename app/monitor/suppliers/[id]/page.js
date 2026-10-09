@@ -28,6 +28,7 @@ import { useListExport } from '@/components/ui/useListExport';
 import { CampaignList } from '@/components/monitor/CampaignList';
 import { NonConformityList } from '@/components/monitor/NonConformityList';
 import { StartCampaignDialog } from '@/components/monitor/StartCampaignDialog';
+import { StartNcDialog } from '@/components/monitor/StartNcDialog';
 import { CockpitTabs } from '@/components/monitor/cockpit/CockpitTabs';
 import { SourcePill } from '@/components/monitor/cockpit/parts';
 import { SupplierBand } from '@/components/monitor/supplier/SupplierBand';
@@ -108,6 +109,7 @@ const LABELS = defineLabels('app/monitor/suppliers/[id]/page#LABELS', {
         scorecard: 'Notation',
         scorecardHelp: 'Moyenne pondérée des critères notés sur les derniers projets du fournisseur.',
         allNc: 'Toutes ses NC',
+        startNc: 'Démarrer une NC',
         exchanges: 'Échanges',
         ncFile: 'nc-fournisseur',
         projectsFile: 'projets-fournisseur',
@@ -180,6 +182,7 @@ const LABELS = defineLabels('app/monitor/suppliers/[id]/page#LABELS', {
         scorecard: 'Scorecard',
         scorecardHelp: 'Weighted mean of the criteria scored on the supplier’s latest projects.',
         allNc: 'All its NCs',
+        startNc: 'Start an NC',
         exchanges: 'Exchanges',
         ncFile: 'supplier-ncs',
         projectsFile: 'supplier-projects',
@@ -393,7 +396,7 @@ function Overview({ sheet, history, local, lang, onOpen }) {
     );
 }
 
-function SheetTabs({ sheet, history, local, lang, active, onOpen, onRefresh }) {
+function SheetTabs({ sheet, history, local, lang, active, onOpen, onRefresh, onStartNc }) {
     const ncExport = useListExport({ rows: sheet.nonConformities, filename: local.ncFile });
     const projectExport = useListExport({ rows: sheet.projects, filename: local.projectsFile });
     const activityBlock = sheet.blocks.activity?.available === false || sheet.blocks.comments?.available === false
@@ -413,9 +416,12 @@ function SheetTabs({ sheet, history, local, lang, active, onOpen, onRefresh }) {
                     onExport={ncExport.onExport}
                     exporting={ncExport.exporting}
                     actions={(
-                        <Button variant="outline" size="sm" icon="open_in_new" href={`/monitor/quality?q=${encodeURIComponent(sheet.supplier.name)}&includeClosed=true`}>
-                            {local.allNc}
-                        </Button>
+                        <>
+                            <Button variant="outline" size="sm" icon="open_in_new" href={`/monitor/quality?q=${encodeURIComponent(sheet.supplier.name)}&includeClosed=true`}>
+                                {local.allNc}
+                            </Button>
+                            <Button size="sm" icon="report_problem" onClick={onStartNc}>{local.startNc}</Button>
+                        </>
                     )}
                 />
             ),
@@ -480,6 +486,7 @@ export default function MonitorSupplierSheetPage() {
     const history = useApi(id ? 'monitor/history' : null, { params: { series: 'taskTrend', supplier: id } });
     const [tab, setTab] = useState('overview');
     const [startingProject, setStartingProject] = useState(false);
+    const [startingNc, setStartingNc] = useState(false);
     const data = sheet.data;
 
     const back = (
@@ -519,8 +526,14 @@ export default function MonitorSupplierSheetPage() {
                     <SupplierBand sheet={data} onStartProject={() => setStartingProject(true)} onDone={sheet.refresh} />
                     <Tiles sheet={data} history={history} local={local} lang={lang} onOpen={openTab} />
                     <div id="supplier-sheet-tabs" className="scroll-mt-4">
-                        <SheetTabs sheet={data} history={history} local={local} lang={lang} active={tab} onOpen={setTab} onRefresh={sheet.refresh} />
+                        <SheetTabs sheet={data} history={history} local={local} lang={lang} active={tab} onOpen={setTab} onRefresh={sheet.refresh} onStartNc={() => setStartingNc(true)} />
                     </div>
+                    <StartNcDialog
+                        open={startingNc}
+                        onClose={() => setStartingNc(false)}
+                        supplier={{ nodeRef: data.supplier.nodeRef, name: data.supplier.name }}
+                        onStarted={sheet.refresh}
+                    />
                     <StartCampaignDialog
                         open={startingProject}
                         onClose={() => setStartingProject(false)}

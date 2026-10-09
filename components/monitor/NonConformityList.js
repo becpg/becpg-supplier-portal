@@ -124,25 +124,7 @@ const LABELS = defineLabels('components/monitor/NonConformityList#LABELS', {
         others: '+{count}',
         noSupplier: 'Aucun fournisseur rattaché',
         empty: 'Aucune non-conformité sur ce périmètre',
-        // Consultation: until now the NC opened nowhere, the screen listed its
-        // code and its verdict without ever giving its text.
         open: 'Consulter cette non-conformité',
-        detail: {
-            description: 'Description',
-            comment: 'Commentaire qualité',
-            noText: 'Cette non-conformité ne porte ni description ni commentaire dans beCPG.',
-            facts: 'Faits',
-            actions: 'Actions correctives',
-            noActions: 'Aucune action corrective ouverte.',
-            suppliers: 'Fournisseurs concernés',
-            discussion: 'Discussion',
-            created: 'Créée le',
-            modified: 'Dernière modification',
-            cost: 'Coût',
-            priority: 'Priorité',
-            state: 'État',
-            type: 'Type',
-        },
     },
     en: {
         columns: {
@@ -192,22 +174,6 @@ const LABELS = defineLabels('components/monitor/NonConformityList#LABELS', {
         empty: 'No non-conformity in this perimeter',
         /* See the note on the French keys. */
         open: 'Open this non-conformity',
-        detail: {
-            description: 'Description',
-            comment: 'Quality comment',
-            noText: 'This non-conformity carries neither a description nor a comment in beCPG.',
-            facts: 'Facts',
-            actions: 'Corrective actions',
-            noActions: 'No open corrective action.',
-            suppliers: 'Suppliers concerned',
-            discussion: 'Discussion',
-            created: 'Created on',
-            modified: 'Last modified',
-            cost: 'Cost',
-            priority: 'Priority',
-            state: 'State',
-            type: 'Type',
-        },
     },
 });
 
