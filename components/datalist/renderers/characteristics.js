@@ -37,9 +37,19 @@
  *    on its own it would push every leaf right for no reason.
  */
 
+import { Icon } from '@/components/ui/Button';
 import { ListIcon } from '@/components/ui/ListIcon';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { hasListIcon } from '@/lib/listIcons';
 import { EmptyCell, Indent, TotalCell } from '@/components/datalist/renderers/cells';
+import {
+    claimDescription,
+    formulationSignal,
+    rendererLabels,
+} from '@/components/datalist/renderers/signals';
+
+/** The target class whose rows carry a claim description. */
+const LABEL_CLAIM_CLASS = 'bcpg:labelClaim';
 
 /**
  * The icon key of a characteristic cell — Share's `data.metadata`.
@@ -85,18 +95,61 @@ export function characteristicIconKey(value) {
  * has no rule. The total row's key is `"total"`, and there is no `total` glyph,
  * so it keeps its bare bold label.
  *
+ * A formulation signal takes the glyph's place, as Share's `*-formulated` and
+ * `*-formulated-error` classes replace the type's background image.
+ *
  * @param {Object} props
  * @param {string|null} props.iconKey
+ * @param {Object|null} [props.signal] {@link formulationSignal}
+ * @param {string} [props.description] the label claim's description
+ * @param {string} props.lang
  * @param {React.ReactNode} props.children
  */
-function CharacteristicLabel({ iconKey, children }) {
-    if (!iconKey || !hasListIcon(iconKey)) {
+function CharacteristicLabel({ iconKey, signal = null, description = '', lang, children }) {
+    const glyph = signal
+        ? <SignalGlyph signal={signal} lang={lang} />
+        : iconKey && hasListIcon(iconKey) ? <ListIcon type={iconKey} size={16} /> : null;
+    if (!glyph && !description) {
         return children;
     }
     return (
         <span className="flex items-start gap-1">
-            <ListIcon type={iconKey} size={16} />
+            {glyph}
             <span className="min-w-0">{children}</span>
+            {description ? (
+                <Tooltip content={description} variant="info" label={rendererLabels(lang).claimDescription} />
+            ) : null}
+        </span>
+    );
+}
+
+/**
+ * The warning triangle of a broken requirement, or the mark of a formulated
+ * value. Never colour alone: the triangle is a button named after what it means
+ * and opens the requirement's own words; the formulated mark carries its label.
+ *
+ * @param {Object} props
+ * @param {{kind: string, message?: string}} props.signal
+ * @param {string} props.lang
+ */
+function SignalGlyph({ signal, lang }) {
+    const labels = rendererLabels(lang);
+    if (signal.kind === 'error') {
+        return (
+            <Tooltip
+                content={<span className="whitespace-pre-line">{signal.message}</span>}
+                maxWidth={320}
+                className="shrink-0"
+            >
+                <Icon name="warning" size={16} className="text-[var(--status-warn)]" />
+                <span className="sr-only-text">{labels.requirementBroken}</span>
+            </Tooltip>
+        );
+    }
+    return (
+        <span className="inline-flex shrink-0" title={labels.formulated}>
+            <Icon name="functions" size={16} className="text-[var(--becpg-blue-light)]" />
+            <span className="sr-only-text">{labels.formulated}</span>
         </span>
     );
 }
@@ -124,7 +177,7 @@ function depthOf(row) {
  * @returns {Function} a renderer
  */
 function indentingRenderer(step) {
-    return function indented({ value, displayValue, row, layout }) {
+    return function indented({ value, displayValue, row, column, lang, layout }) {
         const text = displayValue === null || displayValue === undefined ? '' : String(displayValue);
         if (!text) {
             return <EmptyCell />;
@@ -134,7 +187,14 @@ function indentingRenderer(step) {
         const iconed = Boolean(iconKey) && hasListIcon(iconKey);
         const depth = depthOf(row);
         const isIndented = depth !== null && depth > 1;
-        if (!iconed && !isIndented) {
+        const targetClass = column?.endpointType ?? null;
+        const signal = formulationSignal(row, targetClass);
+        // Share's rule: the description only accompanies a claim whose
+        // formulation raised nothing.
+        const description = signal?.kind === 'formulated' && targetClass === LABEL_CLAIM_CLASS
+            ? claimDescription(row)
+            : '';
+        if (!iconed && !isIndented && !signal) {
             // Nothing to add over the default rendering: decline, so the grid
             // keeps its own (identical) markup and its own title.
             return isTotal ? <TotalCell>{text}</TotalCell> : null;
@@ -143,12 +203,14 @@ function indentingRenderer(step) {
          * The icon goes **inside** the indent, as it does in Share, where one
          * span carries both the type class and `style="margin-left:25px"`. The
          * `title` stays on the indent so a name truncated by a narrow column is
-         * still readable on hover — the default cell provides one, and a
-         * renderer that takes the cell over has to keep it.
+         * still readable on hover, unless a tooltip of its own already speaks
+         * there: two bubbles over one cell say nothing twice as loud.
          */
         const body = (
-            <Indent depth={depth ?? 1} step={step} layout={layout} title={text}>
-                <CharacteristicLabel iconKey={iconKey}>{text}</CharacteristicLabel>
+            <Indent depth={depth ?? 1} step={step} layout={layout} title={signal || description ? undefined : text}>
+                <CharacteristicLabel iconKey={iconKey} signal={signal} description={description} lang={lang}>
+                    {text}
+                </CharacteristicLabel>
             </Indent>
         );
         return isTotal ? <TotalCell>{body}</TotalCell> : body;

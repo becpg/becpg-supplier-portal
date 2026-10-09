@@ -1667,6 +1667,27 @@ body {
   pointer-events: none;
 }
 
+/*
+ * An ingredient left out of the declaration (`bcpg:ingListDeclType = Omit`).
+ *
+ * The declaration-type cell says it in words and with an icon
+ * (`components/datalist/renderers/annotations.js`); the row takes the neutral
+ * status surface so the line reads as set aside, as Share greys it out. Wrapped
+ * in `:where()` so the row stays below hover, the authored colour and the
+ * row's own draft or error state, which all say something more urgent.
+ */
+.becpg-grid tbody tr:where(:has(.becpg-decl-omit)) td {
+  background-color: var(--status-neutral-bg);
+}
+
+.becpg-grid tbody tr:where(:has(.becpg-decl-omit)) {
+  --becpg-grid-row-tint: var(--status-neutral-bg);
+}
+
+section[data-row-key]:where(:has(.becpg-decl-omit)) {
+  background-color: var(--status-neutral-bg);
+}
+
 /* ---------------------------------------------------------------------- */
 /* `d:mltext` (components/form/controls/MlTextControl.js)                  */
 /*                                                                        */

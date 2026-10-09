@@ -44,6 +44,17 @@
  */
 
 /**
+ * The requirements a row breaks, as a nested list: only the columns
+ * `signals.js::requirementMessage` reads. The repository's
+ * `ReqCtrlListItemExtractor` narrows the list to the row's own characteristic,
+ * so each row carries its own requirements and nobody else's.
+ */
+const REQUIREMENTS = 'bcpg:reqCtrlList|bcpg:rclDataType|bcpg:rclReqMessage|bcpg:rclSourcesV2';
+
+/** The claim a label-claim row points at, for its description only. */
+const CLAIM_DESCRIPTION = 'bcpg:lclLabelClaim|cm:description';
+
+/**
  * Companion properties, keyed by the **shown** column's prefixed name.
  *
  * Values are prefixed property names (`bcpg:nutListUnit`), the same spelling as
@@ -81,7 +92,21 @@ export const COMPANION_FIELDS = Object.freeze({
     // a cap belongs to the bottle above it.
     'pack:pclComponent': ['bcpg:depthLevel'],
     'pack:splComponent': ['bcpg:depthLevel'],
+    'bcpg:mblMicrobio': ['bcpg:depthLevel'],
+    'bcpg:organoListOrgano': ['bcpg:depthLevel'],
+    'bcpg:toxListTox': ['bcpg:depthLevel'],
+    'bcpg:svhcListIng': ['bcpg:depthLevel'],
+
+    // --- the warning triangle or the formulated mark of a characteristic -----
+    // Share swaps the characteristic's glyph for one of the two by reading the
+    // row's formulated flag and the requirements it breaks, both hidden.
+    'bcpg:nutListNut': ['bcpg:depthLevel', 'bcpg:nutListIsFormulated', REQUIREMENTS],
+    'bcpg:pclPhysicoChem': ['bcpg:depthLevel', 'bcpg:physicoChemIsFormulated', REQUIREMENTS],
+    'bcpg:lclLabelClaim': ['bcpg:depthLevel', 'bcpg:lclIsFormulated', REQUIREMENTS, CLAIM_DESCRIPTION],
 });
+
+/** How the datalist webscript writes a nested list and the columns it wants of it. */
+const NESTED_SEPARATOR = '|';
 
 /**
  * Turns a prefixed property name into the spelling the datalist data webscript
@@ -109,9 +134,14 @@ function toRequestField(name) {
  */
 export function companionFields(columns) {
     const shown = new Set();
+    const shownNested = new Set();
     for (const column of columns || []) {
         if (column?.name) {
-            shown.add(toRequestField(column.name));
+            const field = toRequestField(column.name);
+            shown.add(field);
+            if (column.columns?.length > 0) {
+                shownNested.add(field);
+            }
         }
     }
     const extra = [];
@@ -119,11 +149,33 @@ export function companionFields(columns) {
     for (const column of columns || []) {
         for (const name of COMPANION_FIELDS[column?.name] || []) {
             const field = toRequestField(name);
-            if (!shown.has(field) && !seen.has(field)) {
+            if (!isAlreadyRequested(field, shown, shownNested) && !seen.has(field)) {
                 seen.add(field);
                 extra.push(field);
             }
         }
     }
     return extra;
+}
+
+/**
+ * Whether a visible column already brings this companion back.
+ *
+ * A nested companion (`bcpg_reqCtrlList|…`) is answered under the same
+ * `dt_bcpg_reqCtrlList` key as a visible nested column of that list, and the
+ * second one would overwrite the first with fewer cells; so it gives way to the
+ * column. A plain association of the same name is answered under `assoc_…` and
+ * does not collide.
+ *
+ * @param {string} field underscored companion
+ * @param {Set<string>} shown every visible column
+ * @param {Set<string>} shownNested the visible nested columns
+ * @returns {boolean}
+ */
+function isAlreadyRequested(field, shown, shownNested) {
+    const separator = field.indexOf(NESTED_SEPARATOR);
+    if (separator < 0) {
+        return shown.has(field);
+    }
+    return shownNested.has(field.slice(0, separator));
 }

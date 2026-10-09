@@ -73,9 +73,12 @@
  *
  *  - everything grid-structural — the `mtl-*` row classes, the expand/collapse
  *    toggle, `elCell.style` painting, `columnRenamed`, `showAfterRender`,
- *    `dirtyDataTable` listeners, the `SimpleDialog` detail popups, the
- *    `ProductNotifications` component instantiation. These are YUI DataTable
- *    machinery, not formatting;
+ *    `dirtyDataTable` listeners, the `SimpleDialog` detail popups that fetch
+ *    a page of their own, the `ProductNotifications` component instantiation.
+ *    These are YUI DataTable machinery, not formatting. Two pieces of it carry
+ *    information and are kept in another form: the per-regulation panel of a
+ *    labelled nutrient is a tooltip (`nutrition.js`), and the row tint of an
+ *    omitted ingredient is a marker the stylesheet reads (`annotations.js`);
  *  - everything a supplier has no business seeing — costs, LCA, profitability,
  *    eco-score, Decernis regulatory results, change orders (`ecm:*`), quality
  *    control plans (`qa:*` beyond the state labels), publication channels
@@ -105,6 +108,13 @@ import {
 } from '@/components/datalist/renderers/states';
 import { characteristic, questionLabel } from '@/components/datalist/renderers/characteristics';
 import { EmptyCell } from '@/components/datalist/renderers/cells';
+import {
+    declarationType,
+    ingredientFlags,
+    missingLabelClaims,
+    packagingLevel,
+    sourceList,
+} from '@/components/datalist/renderers/annotations';
 
 /**
  * The registry, keyed exactly as Share keys it.
@@ -150,6 +160,9 @@ export const RENDERERS = Object.freeze({
     'boolean_bcpg:allergenListOnLine': flaggedBoolean,
     'boolean_bcpg:packagingListIsMaster': flaggedBoolean,
     'boolean_bcpg:allergenListIsCleaned': reassuringBoolean,
+    'cm:cmobject_bcpg:allergenListVolSources': sourceList,
+    'cm:cmobject_bcpg:allergenListInVolSources': sourceList,
+    'cm:cmobject_bcpg:lclMissingLabelClaims': missingLabelClaims,
 
     /* --- level 2: the property itself ------------------------------------ */
     // nutrients
@@ -187,6 +200,14 @@ export const RENDERERS = Object.freeze({
     'qa:slSampleState': complianceState,
     'bcpg:lclClaimValue': labelClaimValue,
     'bcpg:entityDataListState': dataListState,
+    // ingredient and packaging lines
+    'bcpg:ingListFlags': ingredientFlags,
+    'bcpg:ingListDeclType': declarationType,
+    'bcpg:packagingListPkgLevel': packagingLevel,
+    // The question of a supplier questionnaire: Share registers none, but the
+    // list is a tree (`bcpg:depthLevel` is requested for it) and reads as one
+    // only when indented like the questionnaire definition.
+    'survey:slQuestion': questionLabel,
     // multi-level characteristics
     'bcpg:allergenListAllergen': characteristic,
     'bcpg:toxListTox': characteristic,

@@ -8,7 +8,15 @@
  * (renderers at lines 796, 856 and 2310).
  */
 
+import { Icon } from '@/components/ui/Button';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { EmptyCell, Exponent, Tone } from '@/components/datalist/renderers/cells';
+import {
+    fillLabel,
+    nutrientDetails,
+    regulationFlagUrl,
+    rendererLabels,
+} from '@/components/datalist/renderers/signals';
 import {
     countryValue,
     expParts,
@@ -67,155 +75,224 @@ function bound(envelope, mapName, key) {
 }
 
 /**
- * `bcpg:nutListRoundedValue` / `bcpg:nutListRoundedValuePrepared` — the labelled
- * nutrient value.
+ * Number format of a labelled value: one decimal between 1 and 10 under the EU
+ * rule, five at most, grouping on — Share's options, per regulation.
  *
- * **This is the bug the supplier reported.** The property does not hold a number,
- * it holds the JSON envelope above, and the portal printed it verbatim: a
- * supplier looking at « Valeur étiquetée » saw
- * `{"tu":{"JP":816},"min":{},…,"v":{"BR":1020,"EU":1020,…},…}` where Share shows
- * `1 020`.
- *
- * What Share does, and what is reproduced here:
- *
- *  1. pick the regulatory country from the locale — `EU` for a French portal;
- *  2. bail out entirely when `v[country]` is absent (an unformulated row, or a
- *     product formulated only for other markets);
- *  3. print `tu` before the value and `tl` after it, each separated by a `<`, so
- *     the cell reads as the tolerance interval `4 < 5 < 6`;
- *  4. force **one decimal** when the country is `EU` and the value is in
- *     `[1, 10)` — the EU labelling rule — with at most five, and grouping on;
- *  5. on `US`, print the *per-serving* number (`vps`) instead of `v`.
- *
- * Three deliberate differences from Share:
- *
- *  - Share colours the value itself green. Here only the **bounds** are tinted,
- *    with `--status-danger`, because the value is the cell's subject and tinting
- *    it says nothing; the bounds are tinted *and* introduced by a `<`, so the
- *    meaning survives without the colour (AGENTS.md).
- *  - Share appends a hidden `.nut-details` panel plus a link that a YUI dialog
- *    opens, listing every country. That is grid machinery the portal does not
- *    have — the same information is put in the cell's `title` instead.
- *  - **Nothing can make this renderer print JSON.** A malformed envelope, a
- *    truncated one, a `v` that is not an object: all of them end on the em dash.
- *
- * @param {Object} cell
- * @returns {React.ReactNode|null}
+ * @param {string} country regulatory key
+ * @param {number} value
+ * @returns {Object} `Intl.NumberFormat` options
  */
-export function nutListRoundedValue({ value, lang }) {
-    if (value === null || value === undefined || value === '') {
-        return <EmptyCell />;
-    }
-    const text = String(value).trim();
-    if (!text) {
-        return <EmptyCell />;
-    }
+function labelledOptions(country, value) {
+    const minimumFractionDigits = country === 'EU' && value >= 1 && value < 10 ? 1 : 0;
+    return { minimumFractionDigits, maximumFractionDigits: 5, useGrouping: true };
+}
 
+/**
+ * Parses the envelope, or says why it cannot.
+ *
+ * @param {*} value
+ * @returns {{envelope: Object}|{decline: true}|{empty: true}}
+ */
+function parseEnvelope(value) {
+    const text = value === null || value === undefined ? '' : String(value).trim();
+    if (!text) {
+        return { empty: true };
+    }
     let envelope;
     try {
         envelope = JSON.parse(text);
     }
     catch {
-        // Not JSON at all. If it looks like a truncated envelope, hide it; if it
-        // is ordinary text, showing it is the honest answer, so decline and let
-        // the default rendering print it.
-        return text.startsWith('{') || text.startsWith('[') ? <EmptyCell /> : null;
+        // Not JSON at all. A truncated envelope is hidden; ordinary text is the
+        // honest answer, so the default rendering prints it.
+        return text.startsWith('{') || text.startsWith('[') ? { empty: true } : { decline: true };
     }
     if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)
         || !envelope.v || typeof envelope.v !== 'object') {
+        return { empty: true };
+    }
+    return { envelope };
+}
+
+/**
+ * `bcpg:nutListRoundedValue` / `bcpg:nutListRoundedValuePrepared` — the labelled
+ * nutrient value.
+ *
+ * The property holds the JSON envelope above, never a number. What Share does,
+ * and what is reproduced here:
+ *
+ *  1. pick the regulatory country from the locale — `EU` for a French portal;
+ *  2. bail out entirely when `v[country]` is absent (an unformulated row, or a
+ *     product formulated only for other markets);
+ *  3. print `tu` before the value and `tl` after it, each separated by a `<`, so
+ *     the cell reads as the tolerance interval `4 < 5 < 6`, the bounds in the
+ *     danger tone and the value in the ok tone — the `<` carries the meaning,
+ *     the colours only repeat it;
+ *  4. force one decimal under the EU rule (see {@link labelledOptions});
+ *  5. on `US`, print the per-serving number (`vps`) instead of `v`;
+ *  6. end with the regulation's flag, which opens the per-regulation details.
+ *     Share opens a draggable YUI panel; here it is the portal's tooltip, a real
+ *     button that a tap, a hover or the keyboard opens.
+ *
+ * Nothing can make this renderer print JSON: a malformed envelope, a truncated
+ * one, a `v` that is not an object all end on the em dash.
+ *
+ * @param {Object} cell
+ * @returns {React.ReactNode|null}
+ */
+export function nutListRoundedValue({ value, row, lang }) {
+    const parsed = parseEnvelope(value);
+    if (parsed.decline) {
+        return null;
+    }
+    if (parsed.empty) {
         return <EmptyCell />;
     }
-
+    const { envelope } = parsed;
     const key = regulatoryCountryKey(lang);
     const main = countryValue(envelope, 'v', key);
     if (main === null) {
         return <EmptyCell />;
     }
 
-    // The EU labelling rule: one decimal between 1 and 10, five at most.
-    const minimumFractionDigits = key === 'EU' && main >= 1 && main < 10 ? 1 : 0;
-    const options = { minimumFractionDigits, maximumFractionDigits: 5, useGrouping: true };
-
+    const options = labelledOptions(key, main);
     const lower = bound(envelope, 'tu', key);
     const upper = bound(envelope, 'tl', key);
     // On US the labelled number is the per-serving one; when it is absent Share
     // prints the bounds alone, and so does this.
-    const perServing = key === 'US' ? bound(envelope, 'vps', key) : null;
-    const shown = key === 'US' ? perServing : main;
+    const shown = key === 'US' ? bound(envelope, 'vps', key) : main;
 
     const lowerText = lower === null ? '' : shareNumber(lower, lang, options);
     const upperText = upper === null ? '' : shareNumber(upper, lang, options);
-    const shownText = shown === null
-        ? ''
-        : shareNumber(shown, lang, key === 'US' ? {} : options);
+    const shownText = shown === null ? '' : shareNumber(shown, lang, key === 'US' ? {} : options);
 
     if (!lowerText && !upperText && !shownText) {
         return <EmptyCell />;
     }
 
     const plain = [lowerText, shownText, upperText].filter(Boolean).join(' < ');
-    const title = [plain, roundedDetails(envelope, lang)].filter(Boolean).join('\n');
-
     return (
-        <span title={title}>
-            {lowerText ? (
-                <>
-                    <Tone tone="danger">{lowerText}</Tone>
-                    {'<'}
-                </>
-            ) : null}
-            {shownText}
-            {upperText ? (
-                <>
-                    {'<'}
-                    <Tone tone="danger">{upperText}</Tone>
-                </>
-            ) : null}
+        <span className="inline-flex items-center gap-1">
+            <span title={plain}>
+                {lowerText ? (
+                    <>
+                        <Tone tone="danger">{lowerText}</Tone>
+                        {'<'}
+                    </>
+                ) : null}
+                {shownText ? <Tone tone="ok">{shownText}</Tone> : null}
+                {upperText ? (
+                    <>
+                        {'<'}
+                        <Tone tone="danger">{upperText}</Tone>
+                    </>
+                ) : null}
+            </span>
+            <NutrientDetailsTrigger envelope={envelope} regulation={key} row={row} lang={lang} />
         </span>
     );
 }
 nutListRoundedValue.emptyOnError = true;
 
+/** Rendered size of a flag, the proportions of the vendored PNGs. */
+const FLAG_WIDTH = 16;
+const FLAG_HEIGHT = 11;
+
 /**
- * The per-country breakdown Share shows in its `.nut-details` dialog, flattened
- * into the lines of a `title` attribute.
+ * A regulation's flag, decorative: the regulation key is always written next
+ * to it or in the accessible name of its button.
  *
- * Each line is written as the same interval the cell shows — `EU — 4 < 5 < 6` —
- * so the tooltip needs no words at all. That is not laziness: the portal has no
- * i18n layer (AGENTS.md rule 4), business labels arrive translated from beCPG,
- * and a renderer is the wrong place to invent French captions that would then be
- * French for an English supplier too. Country codes and the `<` need no
- * translation.
- *
- * @param {Object} envelope the parsed `bcpg:nutListRoundedValue`
- * @param {string} lang
- * @returns {string} one line per country, or `''` when there is only one
+ * @param {Object} props
+ * @param {string} props.regulation
  */
-function roundedDetails(envelope, lang) {
-    // Share's own loop skips a country whose value is falsy — `if (k && value)`
-    // — so a market the product is not formulated for does not get a line.
-    const countries = Object.keys(envelope.v || {})
-        .filter((country) => {
-            const value = countryValue(envelope, 'v', country);
-            return value !== null && value !== 0;
-        });
-    if (countries.length < 2) {
-        return '';
+function RegulationFlag({ regulation }) {
+    const src = regulationFlagUrl(regulation);
+    if (!src) {
+        return <Icon name="info_outline" size={16} className="text-[var(--becpg-blue-light)]" />;
     }
-    return countries.map((country) => {
-        const value = countryValue(envelope, 'v', country);
-        // The same EU one-decimal rule the cell applies, so the tooltip cannot
-        // contradict the number printed above it.
-        const options = {
-            minimumFractionDigits: country === 'EU' && value >= 1 && value < 10 ? 1 : 0,
-            maximumFractionDigits: 5,
-            useGrouping: true,
-        };
-        const parts = [bound(envelope, 'tu', country), value, bound(envelope, 'tl', country)]
-            .filter((number) => number !== null)
-            .map((number) => shareNumber(number, lang, options));
-        return `${country} — ${parts.join(' < ')}`;
-    }).join('\n');
+    return (
+        // A 16x11 static asset; `next/image` would cost more than the file.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+            src={src}
+            alt=""
+            aria-hidden="true"
+            width={FLAG_WIDTH}
+            height={FLAG_HEIGHT}
+            loading="lazy"
+            decoding="async"
+            className="shrink-0"
+            onError={(event) => {
+                // A regulation with no flag in the set: the key stays readable
+                // in the button's name, a broken image does not.
+                event.currentTarget.style.visibility = 'hidden';
+            }}
+        />
+    );
+}
+
+/**
+ * The flag button and the per-regulation details it opens.
+ *
+ * @param {Object} props
+ * @param {Object} props.envelope
+ * @param {string} props.regulation the reader's regulation key
+ * @param {Object} props.row
+ * @param {string} props.lang
+ */
+function NutrientDetailsTrigger({ envelope, regulation, row, lang }) {
+    const labels = rendererLabels(lang);
+    const name = fillLabel(labels.nutrientDetails, { country: regulation });
+    const nutrient = row?.displayValues?.assoc_bcpg_nutListNut;
+    return (
+        <Tooltip
+            content={<NutrientDetails envelope={envelope} title={nutrient} lang={lang} />}
+            maxWidth={320}
+        >
+            <RegulationFlag regulation={regulation} />
+            <span className="sr-only-text">{name}</span>
+        </Tooltip>
+    );
+}
+
+/**
+ * Share's `.nut-details` panel: one block per regulation with its flag, the
+ * labelled value, the tolerances, the minimum and maximum, the GDA share and
+ * the per-serving value — each line only when the envelope carries it.
+ *
+ * @param {Object} props
+ * @param {Object} props.envelope
+ * @param {string} [props.title] the nutrient's name
+ * @param {string} props.lang
+ */
+function NutrientDetails({ envelope, title, lang }) {
+    const labels = rendererLabels(lang);
+    return (
+        <div className="flex flex-col gap-2">
+            {title ? <p className="font-semibold">{title}</p> : null}
+            {nutrientDetails(envelope).map((detail) => {
+                const options = labelledOptions(detail.country, detail.value);
+                const line = (template, number, format = options) => (number === null ? null : (
+                    <p>{fillLabel(template, { value: shareNumber(number, lang, format) })}</p>
+                ));
+                return (
+                    <section key={detail.country}>
+                        <p className="flex items-center gap-1 font-medium">
+                            {fillLabel(labels.roundedFor, { country: detail.country })}
+                            <RegulationFlag regulation={detail.country} />
+                        </p>
+                        {line(labels.valueLine, detail.value)}
+                        {line(labels.toleranceMin, detail.toleranceMin)}
+                        {line(labels.toleranceMax, detail.toleranceMax)}
+                        {line(labels.minimum, detail.min)}
+                        {line(labels.maximum, detail.max)}
+                        {line(labels.gda, detail.gda, {})}
+                        {line(labels.perServing, detail.perServing, {})}
+                    </section>
+                );
+            })}
+        </div>
+    );
 }
 
 /* -------------------------------------------------------------------------- */
