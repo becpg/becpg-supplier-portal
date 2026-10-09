@@ -679,6 +679,9 @@ const LOCALE = {
     },
     "app/monitor/documents/page#LABELS": {
         "title": "Asiakirjojen vaatimustenmukaisuus",
+        "views": "Vaatimustenmukaisuuden näkymät",
+        "matrixView": "Matriisi",
+        "sceneView": "3D-näkymä",
         "subtitle": "Toimittaja × asiakirjatyyppi -matriisi. Valitse soluja tai rivejä lähettääksesi joukkomuistutuksen.",
         "search": "Hae toimittajaa",
         "allTypes": "Kaikki asiakirjatyypit",
@@ -791,6 +794,7 @@ const LOCALE = {
     },
     "app/monitor/quality/page#LABELS": {
         "title": "Poikkeamat",
+        "startNc": "Käynnistä poikkeama",
         "subtitle": "Toimittajien NC:t, käsittelyaika ja korjaavien toimenpiteiden eteneminen. Valitse NC:t muistuttaaksesi, eskaloidaksesi tai keskeyttääksesi kyseiset toimittajat.",
         "stats": {
             "open": "Avoimet NC:t",
@@ -813,6 +817,7 @@ const LOCALE = {
         "allTypes": "Kaikki tyypit",
         "includeClosed": "Sisällytä suljetut NC:t",
         "searchSupplier": "Suodata toimittajan mukaan",
+        "truncatedShort": "Ikkuna: {scanned} poikkeamaa luettu",
         "truncated": "NC:itä on enemmän kuin hakuikkunaan mahtuu (läpikäyty {scanned}): rajaa suodattimia saadaksesi kattavan näkymän.",
         "inexact": "Likimääräiset laskurit: hakukone palautti rajatun kokonaismäärän vähintään yhdelle kyselylle.",
         "scopeEmpty": "Yksikään toimittaja ei vastaa tätä rajausta. Kyselyä ei suoritettu: yllä olevat laskurit ovat nollia rakenteellisesti, eivät mittaustuloksia.",
@@ -823,8 +828,7 @@ const LOCALE = {
         "rows": "Rivejä",
         "reminder": "Teitä koskee avoin poikkeama. Pyydämme teitä käsittelemään siihen liittyvät korjaavat toimenpiteet portaalissa mahdollisimman pian.",
         "hintTargets": "Valittujen NC:iden toimittajat",
-        "note": "Käsittelyaika: NC:n luomisesta lähtien; suljetulle NC:lle sen luomisen ja viimeisimmän muokkauksen välinen aika — beCPG ei tallenna sulkemispäivää.",
-        "truncatedShort": "Ikkuna: {scanned} poikkeamaa luettu"
+        "note": "Käsittelyaika: NC:n luomisesta lähtien; suljetulle NC:lle sen luomisen ja viimeisimmän muokkauksen välinen aika — beCPG ei tallenna sulkemispäivää."
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "back": "Toimittajat",
@@ -893,6 +897,7 @@ const LOCALE = {
         "scorecard": "Arviointi",
         "scorecardHelp": "Toimittajan viimeisimmissä projekteissa arvioitujen kriteerien painotettu keskiarvo.",
         "allNc": "Kaikki sen NC:t",
+        "startNc": "Käynnistä NC",
         "exchanges": "Viestintä",
         "ncFile": "toimittaja-nc",
         "projectsFile": "toimittaja-projektit",
@@ -1185,6 +1190,29 @@ const LOCALE = {
         "save": "Tallenna",
         "cancel": "Peruuta",
         "refused": "Riviä ei tallennettu. Tarkistakaa pakolliset kentät ja yrittäkää uudelleen."
+    },
+    "components/datalist/renderers/signals#RENDERER_LABELS": {
+        "formulated": "Formuloitu arvo",
+        "requirementBroken": "Vaatimus ei täyty",
+        "claimDescription": "Väitteen kuvaus",
+        "nutrientDetails": "Ravintoaineen tiedot ({country})",
+        "roundedFor": "Säädösten mukaan pyöristetty arvo: {country}",
+        "valueLine": "Arvo: {value}",
+        "toleranceMin": "Vähimmäistoleranssi: {value}",
+        "toleranceMax": "Enimmäistoleranssi: {value}",
+        "minimum": "Vähimmäisarvo: {value}",
+        "maximum": "Enimmäisarvo: {value}",
+        "gda": "% RI: {value}",
+        "perServing": "Arvo annosta kohden: {value}",
+        "missingSources": "{count} lähdettä ilman tätä väitettä",
+        "missingSourcesList": "Lähteet ilman tätä väitettä:",
+        "omitted": "Ainesosa jätetty pois ilmoituksesta",
+        "packagingLevel": {
+            "Primary": "Ensisijainen",
+            "Inner": "Välipakkaus",
+            "Secondary": "Toissijainen",
+            "Tertiary": "Kolmas taso"
+        }
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
         "rows": "Rivejä: {count}",
@@ -1582,6 +1610,33 @@ const LOCALE = {
         "toggle": "Näytä asiakirjat",
         "summary": "Puuttuvia: {missing} · vanhentuneita: {expired} · uusittavia: {expiring}"
     },
+    "components/monitor/DocumentScene#LABELS": {
+        "relief": "Kohokuva",
+        "constellation": "Tähdistö",
+        "mode": "Näyttötila",
+        "filters": "Näytettävät tilat",
+        "statuses": {
+            "expired": "Vanhentunut",
+            "missing": "Puuttuu",
+            "refused": "Hylätty",
+            "expiring": "Vanhenemassa pian",
+            "toValidate": "Odottaa hyväksyntää",
+            "valid": "Voimassa"
+        },
+        "aria": "Toimittajat ja odotetut asiakirjat kolmiulotteisesti",
+        "rotate": "Kierrä vetämällä",
+        "zoom": "Zoomaa vierittämällä",
+        "pick": "Napsauta toimittajaa toimiaksesi",
+        "pickTitle": "Napsauta toimittajaa näkymässä",
+        "waiting": "{count} asiakirjaa odottaa",
+        "waitingAxis": "Odottaa",
+        "family": "Perhe",
+        "severity": "Vakavuus",
+        "noFamily": "Ei perhettä",
+        "openSheet": "Avaa kortti",
+        "view": "Näytä",
+        "empty": "Tässä rajauksessa ei odoteta asiakirjoja"
+    },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Hyväksytty",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simulointi",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "Odottaa hyväksyntää",
@@ -1663,23 +1718,7 @@ const LOCALE = {
         "others": "+{count}",
         "noSupplier": "Ei linkitettyä toimittajaa",
         "empty": "Tällä rajauksella ei ole poikkeamia",
-        "open": "Avaa tämä poikkeama",
-        "detail": {
-            "description": "Kuvaus",
-            "comment": "Laadun kommentti",
-            "noText": "Tällä poikkeamalla ei ole beCPG:ssä kuvausta eikä kommenttia.",
-            "facts": "Tiedot",
-            "actions": "Korjaavat toimenpiteet",
-            "noActions": "Ei avoimia korjaavia toimenpiteitä.",
-            "suppliers": "Asianomaiset toimittajat",
-            "discussion": "Keskustelu",
-            "created": "Luotu",
-            "modified": "Viimeksi muokattu",
-            "cost": "Kustannus",
-            "priority": "Prioriteetti",
-            "state": "Tila",
-            "type": "Tyyppi"
-        }
+        "open": "Avaa tämä poikkeama"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "Laatu",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "Asiakirjojen vaatimustenmukaisuus, poikkeamat, sertifioinnit, auditoinnit",
@@ -1777,6 +1816,25 @@ const LOCALE = {
         "atLeast": "vähintään {count}",
         "loadFailed": "Luetteloa ei voitu ladata.",
         "retry": "Yritä uudelleen"
+    },
+    "components/monitor/StartNcDialog#LABELS": {
+        "title": "Käynnistä poikkeama",
+        "supplier": "Toimittaja",
+        "supplierPlaceholder": "Valitse toimittaja…",
+        "product": "Tuote",
+        "productNone": "Ei tiettyä tuotetta",
+        "batch": "Erä",
+        "priority": "Prioriteetti",
+        "priorities": {
+            "1": "Korkea (estävä)",
+            "2": "Keskitaso",
+            "3": "Matala"
+        },
+        "dueDate": "Määräpäivä",
+        "description": "Kuvaus",
+        "cancel": "Peruuta",
+        "start": "Käynnistä",
+        "started": "Poikkeama käynnistetty: beCPG kirjaa sen ja avaa sen analyysin."
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "Tuloskortti",

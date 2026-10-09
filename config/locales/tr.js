@@ -679,6 +679,9 @@ const LOCALE = {
     },
     "app/monitor/documents/page#LABELS": {
         "title": "Belge uygunluğu",
+        "views": "Uygunluk görünümleri",
+        "matrixView": "Matris",
+        "sceneView": "3B görünüm",
         "subtitle": "Tedarikçi × belge türü matrisi. Toplu hatırlatma göndermek için hücreleri veya satırları seçin.",
         "search": "Tedarikçi ara",
         "allTypes": "Tüm belge türleri",
@@ -791,6 +794,7 @@ const LOCALE = {
     },
     "app/monitor/quality/page#LABELS": {
         "title": "Uygunsuzluklar",
+        "startNc": "Uygunsuzluk başlat",
         "subtitle": "Tedarikçi NC'leri, işlem süresi ve düzeltici faaliyet ilerlemesi. İlgili tedarikçilere hatırlatma göndermek, üst kademeye iletmek veya askıya almak için NC'leri seçin.",
         "stats": {
             "open": "Açık NC'ler",
@@ -813,6 +817,7 @@ const LOCALE = {
         "allTypes": "Tüm türler",
         "includeClosed": "Kapatılmış NC'leri dahil et",
         "searchSupplier": "Tedarikçiye göre filtrele",
+        "truncatedShort": "Pencere: {scanned} uygunsuzluk okundu",
         "truncated": "Tarama penceresinden fazla NC var ({scanned} tarandı): eksiksiz bir görünüm için filtreleri daraltın.",
         "inexact": "Yaklaşık sayaçlar: motor en az bir sorgu için sınırlandırılmış bir toplam döndürdü.",
         "scopeEmpty": "Bu kapsama uyan tedarikçi yok. Hiçbir sorgu çalıştırılmadı: yukarıdaki sayaçlar ölçüm değil, tanım gereği sıfırdır.",
@@ -823,8 +828,7 @@ const LOCALE = {
         "rows": "Satır",
         "reminder": "Sizi ilgilendiren açık bir uygunsuzluk var. Lütfen ilgili düzeltici faaliyetleri portalda en kısa sürede ele alın.",
         "hintTargets": "Seçilen NC'lerin tedarikçileri",
-        "note": "İşlem süresi: NC oluşturulduğundan beri; kapatılmış bir NC için oluşturulması ile son değiştirilmesi arasında — beCPG kapanış tarihi saklamaz.",
-        "truncatedShort": "Pencere: {scanned} uygunsuzluk okundu"
+        "note": "İşlem süresi: NC oluşturulduğundan beri; kapatılmış bir NC için oluşturulması ile son değiştirilmesi arasında — beCPG kapanış tarihi saklamaz."
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "back": "Tedarikçiler",
@@ -893,6 +897,7 @@ const LOCALE = {
         "scorecard": "Değerlendirme",
         "scorecardHelp": "Tedarikçinin son projelerinde puanlanan kriterlerin ağırlıklı ortalaması.",
         "allNc": "Tüm NC'leri",
+        "startNc": "NC başlat",
         "exchanges": "Yazışmalar",
         "ncFile": "tedarikci-nc",
         "projectsFile": "tedarikci-projeler",
@@ -1185,6 +1190,29 @@ const LOCALE = {
         "save": "Kaydet",
         "cancel": "İptal",
         "refused": "Satır kaydedilmedi. Zorunlu alanları kontrol edip yeniden deneyin."
+    },
+    "components/datalist/renderers/signals#RENDERER_LABELS": {
+        "formulated": "Formüle edilmiş değer",
+        "requirementBroken": "Gereklilik karşılanmadı",
+        "claimDescription": "Beyanın açıklaması",
+        "nutrientDetails": "Besin öğesi ayrıntıları ({country})",
+        "roundedFor": "Mevzuata göre yuvarlanmış değer: {country}",
+        "valueLine": "Değer: {value}",
+        "toleranceMin": "Asgari tolerans: {value}",
+        "toleranceMax": "Azami tolerans: {value}",
+        "minimum": "Asgari değer: {value}",
+        "maximum": "Azami değer: {value}",
+        "gda": "% RA: {value}",
+        "perServing": "Porsiyon başına değer: {value}",
+        "missingSources": "Bu beyanı içermeyen {count} kaynak",
+        "missingSourcesList": "Bu beyanı içermeyen kaynaklar:",
+        "omitted": "Beyandan çıkarılan bileşen",
+        "packagingLevel": {
+            "Primary": "Birincil",
+            "Inner": "İç ambalaj",
+            "Secondary": "İkincil",
+            "Tertiary": "Üçüncül"
+        }
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
         "rows": "{count} satır",
@@ -1582,6 +1610,33 @@ const LOCALE = {
         "toggle": "Belgeleri göster",
         "summary": "{missing} eksik · {expired} süresi dolmuş · {expiring} yenilenecek"
     },
+    "components/monitor/DocumentScene#LABELS": {
+        "relief": "Kabartma",
+        "constellation": "Takımyıldız",
+        "mode": "Görüntüleme modu",
+        "filters": "Gösterilen durumlar",
+        "statuses": {
+            "expired": "Süresi doldu",
+            "missing": "Eksik",
+            "refused": "Reddedildi",
+            "expiring": "Süresi yakında doluyor",
+            "toValidate": "Doğrulanacak",
+            "valid": "Geçerli"
+        },
+        "aria": "Tedarikçiler ve beklenen belgeler, üç boyutlu",
+        "rotate": "Döndürmek için sürükleyin",
+        "zoom": "Yakınlaştırmak için kaydırın",
+        "pick": "İşlem yapmak için bir tedarikçiye tıklayın",
+        "pickTitle": "Sahnede bir tedarikçiye tıklayın",
+        "waiting": "{count} belge bekliyor",
+        "waitingAxis": "Bekleyen",
+        "family": "Aile",
+        "severity": "Önem derecesi",
+        "noFamily": "Ailesiz",
+        "openSheet": "Kartı aç",
+        "view": "Görüntüle",
+        "empty": "Bu kapsamda beklenen belge yok"
+    },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Geçerli",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simülasyon",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "Doğrulanacak",
@@ -1663,23 +1718,7 @@ const LOCALE = {
         "others": "+{count}",
         "noSupplier": "Bağlı tedarikçi yok",
         "empty": "Bu kapsamda uygunsuzluk yok",
-        "open": "Bu uygunsuzluğu aç",
-        "detail": {
-            "description": "Açıklama",
-            "comment": "Kalite yorumu",
-            "noText": "Bu uygunsuzluk beCPG'de ne bir açıklama ne de bir yorum içeriyor.",
-            "facts": "Bilgiler",
-            "actions": "Düzeltici faaliyetler",
-            "noActions": "Açık düzeltici faaliyet yok.",
-            "suppliers": "İlgili tedarikçiler",
-            "discussion": "Tartışma",
-            "created": "Oluşturulma tarihi",
-            "modified": "Son değişiklik",
-            "cost": "Maliyet",
-            "priority": "Öncelik",
-            "state": "Durum",
-            "type": "Tür"
-        }
+        "open": "Bu uygunsuzluğu aç"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "Kalite",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "Belge uygunluğu, uygunsuzluklar, sertifikalar, denetimler",
@@ -1777,6 +1816,25 @@ const LOCALE = {
         "atLeast": "en az {count}",
         "loadFailed": "Liste yüklenemedi.",
         "retry": "Yeniden dene"
+    },
+    "components/monitor/StartNcDialog#LABELS": {
+        "title": "Uygunsuzluk başlat",
+        "supplier": "Tedarikçi",
+        "supplierPlaceholder": "Bir tedarikçi seçin…",
+        "product": "Ürün",
+        "productNone": "Belirli bir ürün yok",
+        "batch": "Parti",
+        "priority": "Öncelik",
+        "priorities": {
+            "1": "Yüksek (engelleyici)",
+            "2": "Orta",
+            "3": "Düşük"
+        },
+        "dueDate": "Son tarih",
+        "description": "Açıklama",
+        "cancel": "İptal",
+        "start": "Başlat",
+        "started": "Uygunsuzluk başlatıldı: beCPG kaydeder ve analizini açar."
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "Puan kartı",

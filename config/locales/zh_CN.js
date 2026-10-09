@@ -679,6 +679,9 @@ const LOCALE = {
     },
     "app/monitor/documents/page#LABELS": {
         "title": "文件合规性",
+        "views": "合规视图",
+        "matrixView": "矩阵",
+        "sceneView": "3D 视图",
         "subtitle": "供应商 × 文件类型矩阵。选择单元格或行以发送批量提醒。",
         "search": "搜索供应商",
         "allTypes": "所有文件类型",
@@ -791,6 +794,7 @@ const LOCALE = {
     },
     "app/monitor/quality/page#LABELS": {
         "title": "不合格项",
+        "startNc": "发起不合格项",
         "subtitle": "供应商 NC、处理时长和纠正措施进度。选择 NC 以提醒、升级或暂停相关供应商。",
         "stats": {
             "open": "未关闭 NC",
@@ -813,6 +817,7 @@ const LOCALE = {
         "allTypes": "所有类型",
         "includeClosed": "包含已关闭 NC",
         "searchSupplier": "按供应商筛选",
+        "truncatedShort": "窗口：已读取 {scanned} 条不合格",
         "truncated": "NC 数量超出扫描窗口（已扫描 {scanned} 个）：请缩小筛选条件以获得完整视图。",
         "inexact": "计数器为近似值：至少有一次查询返回了封顶的总数。",
         "scopeEmpty": "没有供应商符合此范围。未执行任何查询：上方计数器为零是结构所致，并非测量结果。",
@@ -823,8 +828,7 @@ const LOCALE = {
         "rows": "行数",
         "reminder": "有一项涉及您的不合格项尚未关闭。请尽快在门户上处理相关纠正措施。",
         "hintTargets": "所选 NC 的供应商",
-        "note": "处理时长：自 NC 创建起计算；对于已关闭的 NC，为创建至最后修改之间的时长 — beCPG 不保存关闭日期。",
-        "truncatedShort": "窗口：已读取 {scanned} 条不合格"
+        "note": "处理时长：自 NC 创建起计算；对于已关闭的 NC，为创建至最后修改之间的时长 — beCPG 不保存关闭日期。"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "back": "供应商",
@@ -893,6 +897,7 @@ const LOCALE = {
         "scorecard": "评分",
         "scorecardHelp": "供应商最近项目中各评分标准的加权平均值。",
         "allNc": "全部 NC",
+        "startNc": "发起 NC",
         "exchanges": "往来记录",
         "ncFile": "supplier-ncs",
         "projectsFile": "supplier-projects",
@@ -1185,6 +1190,29 @@ const LOCALE = {
         "save": "保存",
         "cancel": "取消",
         "refused": "该行未保存。请检查必填字段后重试。"
+    },
+    "components/datalist/renderers/signals#RENDERER_LABELS": {
+        "formulated": "配方计算值",
+        "requirementBroken": "未满足要求",
+        "claimDescription": "声称说明",
+        "nutrientDetails": "营养素详情（{country}）",
+        "roundedFor": "按法规修约的值：{country}",
+        "valueLine": "值: {value}",
+        "toleranceMin": "最小公差：{value}",
+        "toleranceMax": "最大公差：{value}",
+        "minimum": "最小值：{value}",
+        "maximum": "最大值：{value}",
+        "gda": "% NRV：{value}",
+        "perServing": "每份值：{value}",
+        "missingSources": "{count} 个来源无此声称",
+        "missingSourcesList": "无此声称的来源：",
+        "omitted": "声明中省略的配料",
+        "packagingLevel": {
+            "Primary": "初级包装",
+            "Inner": "内包装",
+            "Secondary": "二级包装",
+            "Tertiary": "三级包装"
+        }
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
         "rows": "{count} 行",
@@ -1582,6 +1610,33 @@ const LOCALE = {
         "toggle": "显示文件",
         "summary": "{missing} 份缺失 · {expired} 份已过期 · {expiring} 份待更新"
     },
+    "components/monitor/DocumentScene#LABELS": {
+        "relief": "浮雕",
+        "constellation": "星座",
+        "mode": "显示模式",
+        "filters": "显示的状态",
+        "statuses": {
+            "expired": "已过期",
+            "missing": "缺失",
+            "refused": "已拒绝",
+            "expiring": "即将过期",
+            "toValidate": "待验证",
+            "valid": "有效"
+        },
+        "aria": "供应商及预期文件的三维视图",
+        "rotate": "拖动以旋转",
+        "zoom": "滚动以缩放",
+        "pick": "点击供应商以执行操作",
+        "pickTitle": "请点击场景中的供应商",
+        "waiting": "{count} 份文件待处理",
+        "waitingAxis": "待处理",
+        "family": "系列",
+        "severity": "严重程度",
+        "noFamily": "无系列",
+        "openSheet": "打开资料表",
+        "view": "查看",
+        "empty": "此范围内无预期文件"
+    },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "有效",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "模拟",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "待确认",
@@ -1663,23 +1718,7 @@ const LOCALE = {
         "others": "+{count}",
         "noSupplier": "未关联供应商",
         "empty": "此范围内无不合格项",
-        "open": "打开此不合格项",
-        "detail": {
-            "description": "描述",
-            "comment": "质量备注",
-            "noText": "此不合格项在 beCPG 中既无描述也无备注。",
-            "facts": "事实",
-            "actions": "纠正措施",
-            "noActions": "无进行中的纠正措施。",
-            "suppliers": "相关供应商",
-            "discussion": "讨论",
-            "created": "创建日期",
-            "modified": "最后修改",
-            "cost": "成本",
-            "priority": "优先级",
-            "state": "状态",
-            "type": "类型"
-        }
+        "open": "打开此不合格项"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "质量",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "文件合规性、不合格项、认证、审核",
@@ -1777,6 +1816,25 @@ const LOCALE = {
         "atLeast": "至少 {count} 个",
         "loadFailed": "无法加载列表。",
         "retry": "重试"
+    },
+    "components/monitor/StartNcDialog#LABELS": {
+        "title": "发起不合格项",
+        "supplier": "供应商",
+        "supplierPlaceholder": "选择供应商…",
+        "product": "产品",
+        "productNone": "无特定产品",
+        "batch": "批次",
+        "priority": "优先级",
+        "priorities": {
+            "1": "高（阻断性）",
+            "2": "中",
+            "3": "低"
+        },
+        "dueDate": "截止日期",
+        "description": "描述",
+        "cancel": "取消",
+        "start": "发起",
+        "started": "不合格项已发起：beCPG 将其登记并开启分析。"
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "评分卡",

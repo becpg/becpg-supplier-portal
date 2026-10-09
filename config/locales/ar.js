@@ -679,6 +679,9 @@ const LOCALE = {
     },
     "app/monitor/documents/page#LABELS": {
         "title": "مطابقة المستندات",
+        "views": "طرق عرض المطابقة",
+        "matrixView": "المصفوفة",
+        "sceneView": "عرض ثلاثي الأبعاد",
         "subtitle": "مصفوفة المورّد × نوع المستند. اختاروا خلايا أو صفوفًا لإرسال تذكير جماعي.",
         "search": "البحث عن مورّد",
         "allTypes": "جميع أنواع المستندات",
@@ -791,6 +794,7 @@ const LOCALE = {
     },
     "app/monitor/quality/page#LABELS": {
         "title": "حالات عدم المطابقة",
+        "startNc": "بدء حالة عدم مطابقة",
         "subtitle": "حالات NC لدى الموردين، ومدة المعالجة، وتقدم الإجراءات التصحيحية. اختاروا حالات NC لتذكير الموردين المعنيين أو التصعيد إليهم أو تعليقهم.",
         "stats": {
             "open": "حالات NC المفتوحة",
@@ -813,6 +817,7 @@ const LOCALE = {
         "allTypes": "جميع الأنواع",
         "includeClosed": "تضمين حالات NC المغلقة",
         "searchSupplier": "التصفية حسب المورّد",
+        "truncatedShort": "النافذة: تمت قراءة {scanned} حالة عدم مطابقة",
         "truncated": "حالات NC أكثر من نافذة الفحص ({scanned} تم فحصها): ضيّقوا الفلاتر للحصول على عرض كامل.",
         "inexact": "عدادات تقريبية: أعاد المحرك إجماليًا محدودًا بسقف لاستعلام واحد على الأقل.",
         "scopeEmpty": "لا يوجد مورّد يطابق هذا النطاق. لم يُنفَّذ أي استعلام: العدادات أعلاه أصفار بحكم البناء، لا قياسات.",
@@ -823,8 +828,7 @@ const LOCALE = {
         "rows": "الصفوف",
         "reminder": "توجد حالة عدم مطابقة مفتوحة تخصكم. يُرجى معالجة الإجراءات التصحيحية المرتبطة بها على البوابة في أقرب وقت ممكن.",
         "hintTargets": "موردو حالات NC المحددة",
-        "note": "مدة المعالجة: منذ إنشاء حالة NC؛ وبالنسبة لحالة NC مغلقة، بين إنشائها وآخر تعديل لها — لا يخزّن beCPG تاريخ الإغلاق.",
-        "truncatedShort": "النافذة: تمت قراءة {scanned} حالة عدم مطابقة"
+        "note": "مدة المعالجة: منذ إنشاء حالة NC؛ وبالنسبة لحالة NC مغلقة، بين إنشائها وآخر تعديل لها — لا يخزّن beCPG تاريخ الإغلاق."
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "back": "الموردون",
@@ -893,6 +897,7 @@ const LOCALE = {
         "scorecard": "التقييم",
         "scorecardHelp": "المتوسط المرجّح للمعايير المقيَّمة في أحدث مشاريع المورد.",
         "allNc": "جميع حالات NC",
+        "startNc": "بدء حالة NC",
         "exchanges": "المراسلات",
         "ncFile": "supplier-ncs",
         "projectsFile": "supplier-projects",
@@ -1185,6 +1190,29 @@ const LOCALE = {
         "save": "حفظ",
         "cancel": "إلغاء",
         "refused": "لم يُحفظ الصف. تحقّقوا من الحقول الإلزامية ثم أعيدوا المحاولة."
+    },
+    "components/datalist/renderers/signals#RENDERER_LABELS": {
+        "formulated": "القيمة المُصاغة",
+        "requirementBroken": "متطلب غير مستوفى",
+        "claimDescription": "وصف الادعاء",
+        "nutrientDetails": "تفاصيل العنصر الغذائي ({country})",
+        "roundedFor": "قيمة مقرّبة وفقًا للوائح: {country}",
+        "valueLine": "القيمة: {value}",
+        "toleranceMin": "الحد الأدنى للتفاوت: {value}",
+        "toleranceMax": "الحد الأقصى للتفاوت: {value}",
+        "minimum": "القيمة الدنيا: {value}",
+        "maximum": "القيمة القصوى: {value}",
+        "gda": "% المدخول المرجعي: {value}",
+        "perServing": "القيمة لكل حصة: {value}",
+        "missingSources": "{count} مصدر(مصادر) دون هذا الادعاء",
+        "missingSourcesList": "المصادر التي لا تتضمن هذا الادعاء:",
+        "omitted": "مكوّن محذوف من الإعلان",
+        "packagingLevel": {
+            "Primary": "أولي",
+            "Inner": "عبوة داخلية",
+            "Secondary": "ثانوي",
+            "Tertiary": "ثالثي"
+        }
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
         "rows": "{count} صف(صفوف)",
@@ -1582,6 +1610,33 @@ const LOCALE = {
         "toggle": "عرض المستندات",
         "summary": "{missing} ناقصة · {expired} منتهية · {expiring} للتجديد"
     },
+    "components/monitor/DocumentScene#LABELS": {
+        "relief": "تضاريس",
+        "constellation": "كوكبة",
+        "mode": "وضع العرض",
+        "filters": "الحالات المعروضة",
+        "statuses": {
+            "expired": "منتهي الصلاحية",
+            "missing": "ناقص",
+            "refused": "مرفوض",
+            "expiring": "تنتهي قريبًا",
+            "toValidate": "بانتظار التحقق",
+            "valid": "صالح"
+        },
+        "aria": "الموردون والمستندات المطلوبة، بثلاثة أبعاد",
+        "rotate": "اسحبوا للتدوير",
+        "zoom": "مرّروا للتكبير",
+        "pick": "انقروا على مورّد لاتخاذ إجراء",
+        "pickTitle": "انقروا على مورّد في المشهد",
+        "waiting": "{count} مستند(مستندات) قيد الانتظار",
+        "waitingAxis": "قيد الانتظار",
+        "family": "الفئة",
+        "severity": "الخطورة",
+        "noFamily": "بلا فئة",
+        "openSheet": "فتح البطاقة",
+        "view": "عرض",
+        "empty": "لا توجد مستندات مطلوبة في هذا النطاق"
+    },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "صالح",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "محاكاة",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "للاعتماد",
@@ -1663,23 +1718,7 @@ const LOCALE = {
         "others": "+{count}",
         "noSupplier": "لا يوجد مورّد مرتبط",
         "empty": "لا توجد حالة عدم مطابقة في هذا النطاق",
-        "open": "فتح حالة عدم المطابقة هذه",
-        "detail": {
-            "description": "الوصف",
-            "comment": "تعليق الجودة",
-            "noText": "لا تحمل حالة عدم المطابقة هذه وصفًا ولا تعليقًا في beCPG.",
-            "facts": "الوقائع",
-            "actions": "الإجراءات التصحيحية",
-            "noActions": "لا يوجد إجراء تصحيحي مفتوح.",
-            "suppliers": "الموردون المعنيون",
-            "discussion": "المناقشة",
-            "created": "تاريخ الإنشاء",
-            "modified": "آخر تعديل",
-            "cost": "التكلفة",
-            "priority": "الأولوية",
-            "state": "الحالة",
-            "type": "النوع"
-        }
+        "open": "فتح حالة عدم المطابقة هذه"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "الجودة",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "مطابقة المستندات، حالات عدم المطابقة، الشهادات، عمليات التدقيق",
@@ -1777,6 +1816,25 @@ const LOCALE = {
         "atLeast": "{count} على الأقل",
         "loadFailed": "تعذّر تحميل القائمة.",
         "retry": "إعادة المحاولة"
+    },
+    "components/monitor/StartNcDialog#LABELS": {
+        "title": "بدء حالة عدم مطابقة",
+        "supplier": "المورّد",
+        "supplierPlaceholder": "اختيار مورّد…",
+        "product": "المنتج",
+        "productNone": "لا منتج بعينه",
+        "batch": "الدفعة",
+        "priority": "الأولوية",
+        "priorities": {
+            "1": "عالية (معيقة)",
+            "2": "متوسطة",
+            "3": "منخفضة"
+        },
+        "dueDate": "تاريخ الاستحقاق",
+        "description": "الوصف",
+        "cancel": "إلغاء",
+        "start": "بدء",
+        "started": "تم بدء حالة عدم المطابقة: يسجّلها beCPG ويفتح تحليلها."
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "بطاقة الأداء",

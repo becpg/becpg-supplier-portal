@@ -679,6 +679,9 @@ const LOCALE = {
     },
     "app/monitor/documents/page#LABELS": {
         "title": "文書の適合性",
+        "views": "適合性ビュー",
+        "matrixView": "マトリクス",
+        "sceneView": "3D ビュー",
         "subtitle": "サプライヤー × 文書種類のマトリクス。セルまたは行を選択して一括リマインドを送信します。",
         "search": "サプライヤーを検索",
         "allTypes": "すべての文書種類",
@@ -791,6 +794,7 @@ const LOCALE = {
     },
     "app/monitor/quality/page#LABELS": {
         "title": "不適合",
+        "startNc": "不適合を開始",
         "subtitle": "サプライヤーの NC、処理日数、是正処置の進捗。NC を選択して、該当サプライヤーへのリマインド、エスカレーション、停止を行います。",
         "stats": {
             "open": "未解決の NC",
@@ -813,6 +817,7 @@ const LOCALE = {
         "allTypes": "すべての種類",
         "includeClosed": "完了した NC を含める",
         "searchSupplier": "サプライヤーで絞り込み",
+        "truncatedShort": "範囲：{scanned} 件の不適合を読み込み",
         "truncated": "NC の件数が走査範囲を超えています（{scanned} 件を走査）。完全な表示を得るにはフィルターを絞り込んでください。",
         "inexact": "カウンターは概算です：少なくとも 1 つの照会で、エンジンが上限付きの合計を返しました。",
         "scopeEmpty": "この範囲に該当するサプライヤーはいません。照会は実行されていないため、上記のカウンターは測定値ではなく、構造上ゼロになっています。",
@@ -823,8 +828,7 @@ const LOCALE = {
         "rows": "行数",
         "reminder": "貴社に関する未解決の不適合があります。関連する是正処置をポータル上でできるだけ早く対応してください。",
         "hintTargets": "選択した NC のサプライヤー",
-        "note": "処理日数：NC の作成日からの日数です。完了した NC については、作成日から最終更新日までの日数です — beCPG は完了日を保存しません。",
-        "truncatedShort": "範囲：{scanned} 件の不適合を読み込み"
+        "note": "処理日数：NC の作成日からの日数です。完了した NC については、作成日から最終更新日までの日数です — beCPG は完了日を保存しません。"
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "back": "サプライヤー",
@@ -893,6 +897,7 @@ const LOCALE = {
         "scorecard": "評価",
         "scorecardHelp": "サプライヤーの直近のプロジェクトで評価された基準の加重平均。",
         "allNc": "すべての NC",
+        "startNc": "NC を開始",
         "exchanges": "やり取り",
         "ncFile": "supplier-ncs",
         "projectsFile": "supplier-projects",
@@ -1185,6 +1190,29 @@ const LOCALE = {
         "save": "保存",
         "cancel": "キャンセル",
         "refused": "行は保存されませんでした。必須項目を確認してから、再試行してください。"
+    },
+    "components/datalist/renderers/signals#RENDERER_LABELS": {
+        "formulated": "配合値",
+        "requirementBroken": "要件を満たしていません",
+        "claimDescription": "訴求の説明",
+        "nutrientDetails": "栄養素の詳細（{country}）",
+        "roundedFor": "規制に従って丸めた値：{country}",
+        "valueLine": "値: {value}",
+        "toleranceMin": "最小許容差：{value}",
+        "toleranceMax": "最大許容差：{value}",
+        "minimum": "最小値：{value}",
+        "maximum": "最大値：{value}",
+        "gda": "% 参考摂取量：{value}",
+        "perServing": "1 食分あたりの値：{value}",
+        "missingSources": "この訴求のないソース {count} 件",
+        "missingSourcesList": "この訴求のないソース：",
+        "omitted": "表示から省略された原材料",
+        "packagingLevel": {
+            "Primary": "一次包装",
+            "Inner": "中間包装",
+            "Secondary": "二次包装",
+            "Tertiary": "三次包装"
+        }
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
         "rows": "{count} 行",
@@ -1582,6 +1610,33 @@ const LOCALE = {
         "toggle": "文書を表示",
         "summary": "未提出 {missing} · 期限切れ {expired} · 要更新 {expiring}"
     },
+    "components/monitor/DocumentScene#LABELS": {
+        "relief": "レリーフ",
+        "constellation": "コンステレーション",
+        "mode": "表示モード",
+        "filters": "表示するステータス",
+        "statuses": {
+            "expired": "期限切れ",
+            "missing": "未提出",
+            "refused": "却下",
+            "expiring": "まもなく期限切れ",
+            "toValidate": "承認待ち",
+            "valid": "有効"
+        },
+        "aria": "サプライヤーと要求文書の 3 次元表示",
+        "rotate": "ドラッグで回転",
+        "zoom": "ホイールでズーム",
+        "pick": "サプライヤーをクリックして操作",
+        "pickTitle": "シーン内のサプライヤーをクリックしてください",
+        "waiting": "保留中の文書 {count} 件",
+        "waitingAxis": "保留中",
+        "family": "ファミリー",
+        "severity": "重大度",
+        "noFamily": "ファミリーなし",
+        "openSheet": "シートを開く",
+        "view": "表示",
+        "empty": "この範囲で要求される文書はありません"
+    },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "有効",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "シミュレーション",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "承認待ち",
@@ -1663,23 +1718,7 @@ const LOCALE = {
         "others": "+{count}",
         "noSupplier": "紐付けられたサプライヤーなし",
         "empty": "この範囲に不適合はありません",
-        "open": "この不適合を開く",
-        "detail": {
-            "description": "説明",
-            "comment": "品質コメント",
-            "noText": "この不適合には、beCPG に説明もコメントもありません。",
-            "facts": "事実",
-            "actions": "是正処置",
-            "noActions": "進行中の是正処置はありません。",
-            "suppliers": "対象のサプライヤー",
-            "discussion": "ディスカッション",
-            "created": "作成日",
-            "modified": "最終更新日",
-            "cost": "コスト",
-            "priority": "優先度",
-            "state": "状態",
-            "type": "種類"
-        }
+        "open": "この不適合を開く"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "品質",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "文書の適合性、不適合、認証、監査",
@@ -1777,6 +1816,25 @@ const LOCALE = {
         "atLeast": "{count} 件以上",
         "loadFailed": "一覧を読み込めませんでした。",
         "retry": "再試行"
+    },
+    "components/monitor/StartNcDialog#LABELS": {
+        "title": "不適合を開始",
+        "supplier": "サプライヤー",
+        "supplierPlaceholder": "サプライヤーを選択…",
+        "product": "製品",
+        "productNone": "特定の製品なし",
+        "batch": "ロット",
+        "priority": "優先度",
+        "priorities": {
+            "1": "高（ブロッキング）",
+            "2": "中",
+            "3": "低"
+        },
+        "dueDate": "期限",
+        "description": "説明",
+        "cancel": "キャンセル",
+        "start": "開始",
+        "started": "不適合を開始しました。beCPG が登録し、分析を開始します。"
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "スコアカード",

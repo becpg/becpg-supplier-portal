@@ -679,6 +679,9 @@ const LOCALE = {
     },
     "app/monitor/documents/page#LABELS": {
         "title": "Dokumentenkonformität",
+        "views": "Konformitätsansichten",
+        "matrixView": "Matrix",
+        "sceneView": "3D-Ansicht",
         "subtitle": "Matrix Lieferant × Dokumenttyp. Wählen Sie Zellen oder Zeilen aus, um eine Sammelerinnerung zu senden.",
         "search": "Lieferanten suchen",
         "allTypes": "Alle Dokumenttypen",
@@ -791,6 +794,7 @@ const LOCALE = {
     },
     "app/monitor/quality/page#LABELS": {
         "title": "Abweichungen",
+        "startNc": "Abweichung starten",
         "subtitle": "Lieferanten-NCs, Bearbeitungsdauer und Fortschritt der Korrekturmaßnahmen. Wählen Sie NCs aus, um die betroffenen Lieferanten zu erinnern, zu eskalieren oder zu sperren.",
         "stats": {
             "open": "Offene NCs",
@@ -813,6 +817,7 @@ const LOCALE = {
         "allTypes": "Alle Typen",
         "includeClosed": "Geschlossene NCs einbeziehen",
         "searchSupplier": "Nach Lieferant filtern",
+        "truncatedShort": "Fenster: {scanned} Abweichungen gelesen",
         "truncated": "Mehr NCs als das Suchfenster ({scanned} durchsucht): Schränken Sie die Filter ein, um eine vollständige Ansicht zu erhalten.",
         "inexact": "Ungefähre Zähler: Die Suchmaschine hat für mindestens eine Abfrage eine begrenzte Summe zurückgegeben.",
         "scopeEmpty": "Kein Lieferant entspricht diesem Bereich. Es wurde keine Abfrage ausgeführt: Die Zähler oben sind konstruktionsbedingt null, keine Messwerte.",
@@ -823,8 +828,7 @@ const LOCALE = {
         "rows": "Zeilen",
         "reminder": "Eine offene Abweichung betrifft Sie. Bitte bearbeiten Sie die zugehörigen Korrekturmaßnahmen so bald wie möglich im Portal.",
         "hintTargets": "Lieferanten der ausgewählten NCs",
-        "note": "Bearbeitungsdauer: seit Anlage der NC; bei einer geschlossenen NC zwischen ihrer Anlage und ihrer letzten Änderung — beCPG speichert kein Abschlussdatum.",
-        "truncatedShort": "Fenster: {scanned} Abweichungen gelesen"
+        "note": "Bearbeitungsdauer: seit Anlage der NC; bei einer geschlossenen NC zwischen ihrer Anlage und ihrer letzten Änderung — beCPG speichert kein Abschlussdatum."
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "back": "Lieferanten",
@@ -893,6 +897,7 @@ const LOCALE = {
         "scorecard": "Bewertung",
         "scorecardHelp": "Gewichteter Mittelwert der bewerteten Kriterien aus den letzten Projekten des Lieferanten.",
         "allNc": "Alle NCs",
+        "startNc": "NC starten",
         "exchanges": "Austausch",
         "ncFile": "lieferanten-ncs",
         "projectsFile": "lieferanten-projekte",
@@ -1185,6 +1190,29 @@ const LOCALE = {
         "save": "Speichern",
         "cancel": "Abbrechen",
         "refused": "Die Zeile wurde nicht gespeichert. Prüfen Sie die Pflichtfelder und versuchen Sie es erneut."
+    },
+    "components/datalist/renderers/signals#RENDERER_LABELS": {
+        "formulated": "Formulierter Wert",
+        "requirementBroken": "Anforderung nicht erfüllt",
+        "claimDescription": "Beschreibung der Auslobung",
+        "nutrientDetails": "Nährstoffdetails ({country})",
+        "roundedFor": "Gemäß Vorschriften gerundeter Wert: {country}",
+        "valueLine": "Wert: {value}",
+        "toleranceMin": "Minimale Toleranz: {value}",
+        "toleranceMax": "Maximale Toleranz: {value}",
+        "minimum": "Mindestwert: {value}",
+        "maximum": "Höchstwert: {value}",
+        "gda": "% RI: {value}",
+        "perServing": "Wert pro Portion: {value}",
+        "missingSources": "{count} Quelle(n) ohne diese Auslobung",
+        "missingSourcesList": "Quellen ohne diese Auslobung:",
+        "omitted": "Zutat in der Deklaration ausgelassen",
+        "packagingLevel": {
+            "Primary": "Primär",
+            "Inner": "Zwischenverpackung",
+            "Secondary": "Sekundär",
+            "Tertiary": "Tertiär"
+        }
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
         "rows": "{count} Zeile(n)",
@@ -1582,6 +1610,33 @@ const LOCALE = {
         "toggle": "Dokumente anzeigen",
         "summary": "{missing} fehlend · {expired} abgelaufen · {expiring} zu erneuern"
     },
+    "components/monitor/DocumentScene#LABELS": {
+        "relief": "Relief",
+        "constellation": "Konstellation",
+        "mode": "Anzeigemodus",
+        "filters": "Angezeigte Status",
+        "statuses": {
+            "expired": "Abgelaufen",
+            "missing": "Fehlend",
+            "refused": "Abgelehnt",
+            "expiring": "Läuft bald ab",
+            "toValidate": "Zu validieren",
+            "valid": "Gültig"
+        },
+        "aria": "Lieferanten und erwartete Dokumente, dreidimensional",
+        "rotate": "Ziehen zum Drehen",
+        "zoom": "Mausrad zum Zoomen",
+        "pick": "Lieferanten anklicken, um zu handeln",
+        "pickTitle": "Klicken Sie in der Szene auf einen Lieferanten",
+        "waiting": "{count} Dokument(e) ausstehend",
+        "waitingAxis": "Ausstehend",
+        "family": "Familie",
+        "severity": "Schweregrad",
+        "noFamily": "Ohne Familie",
+        "openSheet": "Datenblatt öffnen",
+        "view": "Ansehen",
+        "empty": "Kein Dokument in diesem Bereich erwartet"
+    },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Gültig",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simulation",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "Zu validieren",
@@ -1663,23 +1718,7 @@ const LOCALE = {
         "others": "+{count}",
         "noSupplier": "Kein Lieferant verknüpft",
         "empty": "Keine Abweichung in diesem Bereich",
-        "open": "Diese Abweichung öffnen",
-        "detail": {
-            "description": "Beschreibung",
-            "comment": "Qualitätskommentar",
-            "noText": "Diese Abweichung hat in beCPG weder eine Beschreibung noch einen Kommentar.",
-            "facts": "Fakten",
-            "actions": "Korrekturmaßnahmen",
-            "noActions": "Keine offene Korrekturmaßnahme.",
-            "suppliers": "Betroffene Lieferanten",
-            "discussion": "Diskussion",
-            "created": "Angelegt am",
-            "modified": "Zuletzt geändert",
-            "cost": "Kosten",
-            "priority": "Priorität",
-            "state": "Status",
-            "type": "Typ"
-        }
+        "open": "Diese Abweichung öffnen"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "Qualität",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "Dokumentenkonformität, Abweichungen, Zertifizierungen, Audits",
@@ -1777,6 +1816,25 @@ const LOCALE = {
         "atLeast": "mindestens {count}",
         "loadFailed": "Die Liste konnte nicht geladen werden.",
         "retry": "Erneut versuchen"
+    },
+    "components/monitor/StartNcDialog#LABELS": {
+        "title": "Abweichung starten",
+        "supplier": "Lieferant",
+        "supplierPlaceholder": "Lieferanten auswählen…",
+        "product": "Produkt",
+        "productNone": "Kein bestimmtes Produkt",
+        "batch": "Charge",
+        "priority": "Priorität",
+        "priorities": {
+            "1": "Hoch (blockierend)",
+            "2": "Mittel",
+            "3": "Niedrig"
+        },
+        "dueDate": "Fälligkeitsdatum",
+        "description": "Beschreibung",
+        "cancel": "Abbrechen",
+        "start": "Starten",
+        "started": "Abweichung gestartet: beCPG erfasst sie und eröffnet ihre Analyse."
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "Scorecard",

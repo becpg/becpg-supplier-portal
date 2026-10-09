@@ -679,6 +679,9 @@ const LOCALE = {
     },
     "app/monitor/documents/page#LABELS": {
         "title": "Conformità documentale",
+        "views": "Viste della conformità",
+        "matrixView": "Matrice",
+        "sceneView": "Vista 3D",
         "subtitle": "Matrice fornitore × tipo di documento. Selezionate celle o righe per inviare un sollecito multiplo.",
         "search": "Cerca un fornitore",
         "allTypes": "Tutti i tipi di documento",
@@ -791,6 +794,7 @@ const LOCALE = {
     },
     "app/monitor/quality/page#LABELS": {
         "title": "Non conformità",
+        "startNc": "Avvia una non conformità",
         "subtitle": "NC fornitori, tempi di trattamento e avanzamento delle azioni correttive. Selezionate delle NC per sollecitare, fare escalation o sospendere i fornitori interessati.",
         "stats": {
             "open": "NC aperte",
@@ -813,6 +817,7 @@ const LOCALE = {
         "allTypes": "Tutti i tipi",
         "includeClosed": "Includi NC chiuse",
         "searchSupplier": "Filtra per fornitore",
+        "truncatedShort": "Finestra: {scanned} NC lette",
         "truncated": "Più NC della finestra di analisi ({scanned} analizzate): restringete i filtri per una vista completa.",
         "inexact": "Contatori approssimativi: il motore ha restituito un totale limitato per almeno un'interrogazione.",
         "scopeEmpty": "Nessun fornitore corrisponde a questo perimetro. Non è stata eseguita alcuna interrogazione: i contatori qui sopra sono zero per costruzione, non misurazioni.",
@@ -823,8 +828,7 @@ const LOCALE = {
         "rows": "Righe",
         "reminder": "Una non conformità aperta vi riguarda. Vi preghiamo di gestire al più presto sul portale le relative azioni correttive.",
         "hintTargets": "Fornitori delle NC selezionate",
-        "note": "Tempo di trattamento: dalla creazione della NC; per una NC chiusa, tra la creazione e l'ultima modifica — beCPG non memorizza alcuna data di chiusura.",
-        "truncatedShort": "Finestra: {scanned} NC lette"
+        "note": "Tempo di trattamento: dalla creazione della NC; per una NC chiusa, tra la creazione e l'ultima modifica — beCPG non memorizza alcuna data di chiusura."
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "back": "Fornitori",
@@ -893,6 +897,7 @@ const LOCALE = {
         "scorecard": "Valutazione",
         "scorecardHelp": "Media ponderata dei criteri valutati sugli ultimi progetti del fornitore.",
         "allNc": "Tutte le sue NC",
+        "startNc": "Avvia una NC",
         "exchanges": "Scambi",
         "ncFile": "nc-fornitore",
         "projectsFile": "progetti-fornitore",
@@ -1185,6 +1190,29 @@ const LOCALE = {
         "save": "Salva",
         "cancel": "Annulla",
         "refused": "La riga non è stata salvata. Verificate i campi obbligatori, poi riprovate."
+    },
+    "components/datalist/renderers/signals#RENDERER_LABELS": {
+        "formulated": "Valore formulato",
+        "requirementBroken": "Requisito non rispettato",
+        "claimDescription": "Descrizione del claim",
+        "nutrientDetails": "Dettaglio del nutriente ({country})",
+        "roundedFor": "Valore arrotondato secondo la normativa: {country}",
+        "valueLine": "Valore: {value}",
+        "toleranceMin": "Tolleranza minima: {value}",
+        "toleranceMax": "Tolleranza massima: {value}",
+        "minimum": "Valore minimo: {value}",
+        "maximum": "Valore massimo: {value}",
+        "gda": "% AR: {value}",
+        "perServing": "Valore per porzione: {value}",
+        "missingSources": "{count} fonte/i senza questo claim",
+        "missingSourcesList": "Fonti senza questo claim:",
+        "omitted": "Ingrediente omesso dalla dichiarazione",
+        "packagingLevel": {
+            "Primary": "Primario",
+            "Inner": "Confezione interna",
+            "Secondary": "Secondario",
+            "Tertiary": "Terziario"
+        }
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
         "rows": "{count} riga/righe",
@@ -1582,6 +1610,33 @@ const LOCALE = {
         "toggle": "Mostra i documenti",
         "summary": "{missing} mancanti · {expired} scaduti · {expiring} da rinnovare"
     },
+    "components/monitor/DocumentScene#LABELS": {
+        "relief": "Rilievo",
+        "constellation": "Costellazione",
+        "mode": "Modalità di visualizzazione",
+        "filters": "Stati visualizzati",
+        "statuses": {
+            "expired": "Scaduto",
+            "missing": "Mancante",
+            "refused": "Rifiutato",
+            "expiring": "In scadenza",
+            "toValidate": "Da convalidare",
+            "valid": "Valido"
+        },
+        "aria": "Fornitori e documenti previsti, in tre dimensioni",
+        "rotate": "Trascinare per ruotare",
+        "zoom": "Rotella per ingrandire",
+        "pick": "Fare clic su un fornitore per agire",
+        "pickTitle": "Fate clic su un fornitore nella scena",
+        "waiting": "{count} documento/i in attesa",
+        "waitingAxis": "In attesa",
+        "family": "Famiglia",
+        "severity": "Gravità",
+        "noFamily": "Senza famiglia",
+        "openSheet": "Apri la scheda",
+        "view": "Visualizza",
+        "empty": "Nessun documento previsto in questo perimetro"
+    },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Valido",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simulazione",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "Da convalidare",
@@ -1663,23 +1718,7 @@ const LOCALE = {
         "others": "+{count}",
         "noSupplier": "Nessun fornitore collegato",
         "empty": "Nessuna non conformità in questo perimetro",
-        "open": "Apri questa non conformità",
-        "detail": {
-            "description": "Descrizione",
-            "comment": "Commento qualità",
-            "noText": "Questa non conformità non riporta né una descrizione né un commento in beCPG.",
-            "facts": "Fatti",
-            "actions": "Azioni correttive",
-            "noActions": "Nessuna azione correttiva aperta.",
-            "suppliers": "Fornitori interessati",
-            "discussion": "Discussione",
-            "created": "Creata il",
-            "modified": "Ultima modifica",
-            "cost": "Costo",
-            "priority": "Priorità",
-            "state": "Stato",
-            "type": "Tipo"
-        }
+        "open": "Apri questa non conformità"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "Qualità",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "Conformità documentale, non conformità, certificazioni, audit",
@@ -1777,6 +1816,25 @@ const LOCALE = {
         "atLeast": "almeno {count}",
         "loadFailed": "Impossibile caricare l'elenco.",
         "retry": "Riprova"
+    },
+    "components/monitor/StartNcDialog#LABELS": {
+        "title": "Avvia una non conformità",
+        "supplier": "Fornitore",
+        "supplierPlaceholder": "Scegliete un fornitore…",
+        "product": "Prodotto",
+        "productNone": "Nessun prodotto in particolare",
+        "batch": "Lotto",
+        "priority": "Priorità",
+        "priorities": {
+            "1": "Alta (bloccante)",
+            "2": "Media",
+            "3": "Bassa"
+        },
+        "dueDate": "Scadenza",
+        "description": "Descrizione",
+        "cancel": "Annulla",
+        "start": "Avvia",
+        "started": "Non conformità avviata: beCPG la registra e ne apre l'analisi."
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "Scorecard",

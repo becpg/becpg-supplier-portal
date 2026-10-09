@@ -679,6 +679,9 @@ const LOCALE = {
     },
     "app/monitor/documents/page#LABELS": {
         "title": "Dokumentefterlevnad",
+        "views": "Efterlevnadsvyer",
+        "matrixView": "Matris",
+        "sceneView": "3D-vy",
         "subtitle": "Matris leverantör × dokumenttyp. Välj celler eller rader för att skicka en påminnelse i bulk.",
         "search": "Sök en leverantör",
         "allTypes": "Alla dokumenttyper",
@@ -791,6 +794,7 @@ const LOCALE = {
     },
     "app/monitor/quality/page#LABELS": {
         "title": "Avvikelser",
+        "startNc": "Starta en avvikelse",
         "subtitle": "Leverantörsavvikelser, handläggningstid och förlopp för korrigerande åtgärder. Välj avvikelser för att påminna, eskalera eller stänga av berörda leverantörer.",
         "stats": {
             "open": "Öppna NC",
@@ -813,6 +817,7 @@ const LOCALE = {
         "allTypes": "Alla typer",
         "includeClosed": "Inkludera stängda NC",
         "searchSupplier": "Filtrera på leverantör",
+        "truncatedShort": "Fönster: {scanned} avvikelser lästa",
         "truncated": "Fler avvikelser än genomsökningsfönstret ({scanned} genomsökta): begränsa filtren för en fullständig vy.",
         "inexact": "Ungefärliga räknare: motorn returnerade en begränsad summa för minst en fråga.",
         "scopeEmpty": "Ingen leverantör matchar det här omfånget. Ingen fråga kördes: räknarna ovan är noll per definition, inte mätvärden.",
@@ -823,8 +828,7 @@ const LOCALE = {
         "rows": "Rader",
         "reminder": "En öppen avvikelse berör dig. Hantera de tillhörande korrigerande åtgärderna i portalen så snart som möjligt.",
         "hintTargets": "Leverantörer för de valda avvikelserna",
-        "note": "Handläggningstid: sedan avvikelsen skapades; för en stängd avvikelse, mellan skapandet och den senaste ändringen — beCPG lagrar inget stängningsdatum.",
-        "truncatedShort": "Fönster: {scanned} avvikelser lästa"
+        "note": "Handläggningstid: sedan avvikelsen skapades; för en stängd avvikelse, mellan skapandet och den senaste ändringen — beCPG lagrar inget stängningsdatum."
     },
     "app/monitor/suppliers/[id]/page#LABELS": {
         "back": "Leverantörer",
@@ -893,6 +897,7 @@ const LOCALE = {
         "scorecard": "Bedömning",
         "scorecardHelp": "Viktat medelvärde av de bedömda kriterierna i leverantörens senaste projekt.",
         "allNc": "Alla dess NC",
+        "startNc": "Starta en NC",
         "exchanges": "Kommunikation",
         "ncFile": "leverantor-nc",
         "projectsFile": "leverantor-projekt",
@@ -1185,6 +1190,29 @@ const LOCALE = {
         "save": "Spara",
         "cancel": "Avbryt",
         "refused": "Raden sparades inte. Kontrollera de obligatoriska fälten och försök sedan igen."
+    },
+    "components/datalist/renderers/signals#RENDERER_LABELS": {
+        "formulated": "Formulerat värde",
+        "requirementBroken": "Krav ej uppfyllt",
+        "claimDescription": "Beskrivning av påståendet",
+        "nutrientDetails": "Näringsämnesdetaljer ({country})",
+        "roundedFor": "Värde avrundat enligt regelverket: {country}",
+        "valueLine": "Värde: {value}",
+        "toleranceMin": "Minsta tolerans: {value}",
+        "toleranceMax": "Största tolerans: {value}",
+        "minimum": "Minsta värde: {value}",
+        "maximum": "Största värde: {value}",
+        "gda": "% RI: {value}",
+        "perServing": "Värde per portion: {value}",
+        "missingSources": "{count} källa/källor utan detta påstående",
+        "missingSourcesList": "Källor utan detta påstående:",
+        "omitted": "Ingrediens utelämnad i deklarationen",
+        "packagingLevel": {
+            "Primary": "Primär",
+            "Inner": "Innerförpackning",
+            "Secondary": "Sekundär",
+            "Tertiary": "Tertiär"
+        }
     },
     "components/datalist/useDataList#DATALIST_LABELS": {
         "rows": "{count} rad(er)",
@@ -1582,6 +1610,33 @@ const LOCALE = {
         "toggle": "Visa dokument",
         "summary": "{missing} saknas · {expired} utgångna · {expiring} ska förnyas"
     },
+    "components/monitor/DocumentScene#LABELS": {
+        "relief": "Relief",
+        "constellation": "Konstellation",
+        "mode": "Visningsläge",
+        "filters": "Visade statusar",
+        "statuses": {
+            "expired": "Utgånget",
+            "missing": "Saknas",
+            "refused": "Avvisat",
+            "expiring": "Går snart ut",
+            "toValidate": "Att validera",
+            "valid": "Giltigt"
+        },
+        "aria": "Leverantörer och förväntade dokument i tre dimensioner",
+        "rotate": "Dra för att rotera",
+        "zoom": "Scrolla för att zooma",
+        "pick": "Klicka på en leverantör för att agera",
+        "pickTitle": "Klicka på en leverantör i scenen",
+        "waiting": "{count} dokument väntar",
+        "waitingAxis": "Väntar",
+        "family": "Familj",
+        "severity": "Allvarlighetsgrad",
+        "noFamily": "Ingen familj",
+        "openSheet": "Öppna bladet",
+        "view": "Visa",
+        "empty": "Inga dokument förväntas i det här omfånget"
+    },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Giltig",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simulering",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "Ska valideras",
@@ -1663,23 +1718,7 @@ const LOCALE = {
         "others": "+{count}",
         "noSupplier": "Ingen kopplad leverantör",
         "empty": "Inga avvikelser i det här omfånget",
-        "open": "Öppna avvikelsen",
-        "detail": {
-            "description": "Beskrivning",
-            "comment": "Kvalitetskommentar",
-            "noText": "Avvikelsen har varken beskrivning eller kommentar i beCPG.",
-            "facts": "Fakta",
-            "actions": "Korrigerande åtgärder",
-            "noActions": "Ingen öppen korrigerande åtgärd.",
-            "suppliers": "Berörda leverantörer",
-            "discussion": "Diskussion",
-            "created": "Skapad",
-            "modified": "Senast ändrad",
-            "cost": "Kostnad",
-            "priority": "Prioritet",
-            "state": "Status",
-            "type": "Typ"
-        }
+        "open": "Öppna avvikelsen"
     },
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.label": "Kvalitet",
     "components/monitor/ProfileSwitcher#MONITOR_PROFILES.quality.focus": "Dokumentefterlevnad, avvikelser, certifieringar, revisioner",
@@ -1777,6 +1816,25 @@ const LOCALE = {
         "atLeast": "minst {count}",
         "loadFailed": "Listan kunde inte läsas in.",
         "retry": "Försök igen"
+    },
+    "components/monitor/StartNcDialog#LABELS": {
+        "title": "Starta en avvikelse",
+        "supplier": "Leverantör",
+        "supplierPlaceholder": "Välj en leverantör…",
+        "product": "Produkt",
+        "productNone": "Ingen särskild produkt",
+        "batch": "Batch",
+        "priority": "Prioritet",
+        "priorities": {
+            "1": "Hög (blockerande)",
+            "2": "Medel",
+            "3": "Låg"
+        },
+        "dueDate": "Förfallodatum",
+        "description": "Beskrivning",
+        "cancel": "Avbryt",
+        "start": "Starta",
+        "started": "Avvikelsen har startats: beCPG registrerar den och öppnar dess analys."
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "Resultatkort",

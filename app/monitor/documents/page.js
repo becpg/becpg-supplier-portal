@@ -43,11 +43,17 @@ import {
 } from '@/components/monitor/DocumentMatrix';
 import { BulkActionBar } from '@/components/monitor/BulkActionBar';
 import { WindowNotice } from '@/components/monitor/WindowNotice';
+import { DocumentScene } from '@/components/monitor/DocumentScene';
+import { CockpitTabs } from '@/components/monitor/cockpit/CockpitTabs';
+import { SkeletonCard } from '@/components/ui/Skeleton';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 const LABELS = defineLabels('app/monitor/documents/page#LABELS', {
     fr: {
         title: 'Conformité documentaire',
+        views: 'Vues de la conformité',
+        matrixView: 'Matrice',
+        sceneView: 'Vue 3D',
         subtitle:
             'Matrice fournisseur × type de document. Sélectionnez des cellules ou des lignes pour relancer en masse.',
         search: 'Rechercher un fournisseur',
@@ -94,6 +100,9 @@ const LABELS = defineLabels('app/monitor/documents/page#LABELS', {
     },
     en: {
         title: 'Document compliance',
+        views: 'Compliance views',
+        matrixView: 'Matrix',
+        sceneView: '3D view',
         subtitle:
             'Supplier × document-type matrix. Select cells or rows to send a bulk reminder.',
         search: 'Search a supplier',
@@ -144,6 +153,9 @@ const LABELS = defineLabels('app/monitor/documents/page#LABELS', {
 const STATUSES = ['missing', 'refused', 'expired', 'expiring', 'toValidate', 'valid'];
 
 const PAGE_SIZES = [25, 50, 100];
+
+/** Where the last view opened is remembered, per viewer. */
+const VIEW_STORAGE_KEY = 'becpg_portal_documents_view';
 
 function fill(template, vars) {
     return String(template).replace(/\{(\w+)\}/g, (match, key) =>
@@ -428,17 +440,38 @@ export default function MonitorDocumentsPage() {
                 </p>
             ) : null}
 
-            {/* ------------------------------------------------------- matrix */}
-            <DocumentMatrix
-                columns={(data && data.columns) || []}
-                rows={(data && data.rows) || []}
-                loading={matrix.loading}
-                error={matrix.error}
-                onRetry={matrix.refresh}
-                statusFilter={status}
-                selection={selection}
-                onSelectionChange={setSelection}
-                height={560}
+            {/* ------------------------------------------- matrix and 3D view */}
+            <CockpitTabs
+                label={labels.views}
+                storageKey={VIEW_STORAGE_KEY}
+                tabs={[
+                    {
+                        id: 'matrix',
+                        label: labels.matrixView,
+                        icon: 'grid_on',
+                        render: () => (
+                            <DocumentMatrix
+                                columns={(data && data.columns) || []}
+                                rows={(data && data.rows) || []}
+                                loading={matrix.loading}
+                                error={matrix.error}
+                                onRetry={matrix.refresh}
+                                statusFilter={status}
+                                selection={selection}
+                                onSelectionChange={setSelection}
+                                height={560}
+                            />
+                        ),
+                    },
+                    {
+                        id: 'scene',
+                        label: labels.sceneView,
+                        icon: 'view_in_ar',
+                        render: () => (matrix.loading && !data ? <SkeletonCard lines={8} /> : (
+                            <DocumentScene columns={(data && data.columns) || []} rows={(data && data.rows) || []} onDone={matrix.refresh} />
+                        )),
+                    },
+                ]}
             />
 
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--becpg-dark-grey)]">
