@@ -675,7 +675,8 @@ const LOCALE = {
         "rows": "行数",
         "reminder": "ポータル上の進行中のプロジェクトで、貴社からの回答をお待ちしています。割り当てられたタスクをできるだけ早く完了してください。",
         "hintTargets": "選択したプロジェクトのサプライヤー",
-        "noteReminder": "beCPG はリマインドの履歴を保持しません。「最終リマインド」列には、実際に取得可能な最も近い情報として、プロジェクトの最終アクティビティが表示されます。"
+        "noteReminder": "beCPG はリマインドの履歴を保持しません。「最終リマインド」列には、実際に取得可能な最も近い情報として、プロジェクトの最終アクティビティが表示されます。",
+        "truncatedShort": "範囲：{scanned} 件のプロジェクトを読み込み"
     },
     "app/monitor/documents/page#LABELS": {
         "title": "文書の適合性",
@@ -723,13 +724,14 @@ const LOCALE = {
     },
     "app/monitor/page#LABELS": {
         "title": "サプライヤーベースのモニタリング",
-        "description": "サプライヤーベースを 1 ページで：承認、文書の適合性、期限、プロジェクト、不適合。リアルタイムで、キューブは不要です。",
+        "description": "サプライヤー全体の承認、文書適合、期限切れ、プロジェクト、不適合をリアルタイムで表示します。",
         "generatedAt": "{time} 時点のデータ",
         "openList": "一覧をすべて表示",
         "openDocuments": "文書の適合性",
         "openCampaigns": "プロジェクト",
         "openQuality": "不適合",
-        "truncated": "サプライヤーベースが走査範囲を超えています：{total} 社中 {scanned} 社を読み込みました。「≈」の付いたカウンターは上限値です。内訳と上位 10 件は走査範囲が対象です。"
+        "truncated": "サプライヤーベースが走査範囲を超えています：{total} 社中 {scanned} 社を読み込みました。「≈」の付いたカウンターは上限値です。内訳と上位 10 件は走査範囲が対象です。",
+        "truncatedShort": "範囲：{scanned} 社のサプライヤーを読み込み"
     },
     "app/monitor/products/page#LABELS": {
         "title": "サプライヤー製品",
@@ -890,14 +892,12 @@ const LOCALE = {
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "サプライヤー",
-        "description": "サプライヤーベースを列ごとに表示します。行を選択して、比較、リマインド、エスカレーション、停止を行います。",
         "statuses": {
             "suspended": "停止中",
             "toRenew": "要更新",
             "inProgress": "進行中",
             "approved": "承認済み"
         },
-        "statusHint": "クリックして絞り込み",
         "statusFiltered": "フィルター適用中",
         "export": "エクスポート（CSV）",
         "exportCutTitle": "不完全なエクスポート：{total} 行中 {scanned} 行",
@@ -923,7 +923,8 @@ const LOCALE = {
             "nc": "未解決の NC",
             "lastActivity": "最終アクティビティ",
             "buyer": "バイヤー"
-        }
+        },
+        "truncatedShort": "範囲：{scanned} 社のサプライヤーを読み込み"
     },
     "app/not-found#LABELS": {
         "title": "ページが見つかりません",
@@ -1585,7 +1586,8 @@ const LOCALE = {
         "noColumns": "この範囲で具体化された文書種類はありません",
         "noColumnsHint": "beCPG は配合計算時に求められる文書を具体化します。文書の要求事項が設定されていない場合、マトリクスは空になります。",
         "toggle": "文書を表示",
-        "summary": "未提出 {missing} · 期限切れ {expired} · 要更新 {expiring}"
+        "summary": "未提出 {missing} · 期限切れ {expired} · 要更新 {expiring}",
+        "legend": "凡例"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "有効",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "下書き",
@@ -1708,8 +1710,6 @@ const LOCALE = {
                 "scopeTruncated": "率を算出できません：サプライヤーベースのうち {dropped} 社を照会できませんでした。",
                 "emptyScope": "この範囲にサプライヤーはいないため、評価対象がありません。"
             },
-            "notParkScoped": "サプライヤーベース全体（フィルターは適用されません）",
-            "supplierLinkedOnly": "サプライヤーに紐付いたもののみ",
             "expiring": "文書 · 60 日以内 {d60}、90 日以内 {d90}",
             "campaigns": "進行中 · 回答率 {rate} %、期限超過 {late} 件",
             "campaignsNoRate": "進行中 · 算出可能な回答率なし、期限超過 {late} 件",
@@ -1720,7 +1720,6 @@ const LOCALE = {
         },
         "park": {
             "title": "サプライヤーベースの構成",
-            "subtitle": "表示のたびに登録情報そのものから再計算されます",
             "empty": "この範囲にサプライヤーはいません",
             "share": "{share} %",
             "unknown": "読み込んだサプライヤーのうち {count} 社は承認ステータスが評価されていないため、どのバーにも含まれていません。",
@@ -1728,7 +1727,6 @@ const LOCALE = {
         },
         "expiry": {
             "title": "期限の見通し",
-            "subtitle": "有効期限が終了する提出済み文書",
             "cumulative": "累積：30 日でカウントされた文書は、60 日と 90 日でもカウントされます。",
             "bucket": "{days} 日以内",
             "empty": "90 日以内に期限切れになる文書はありません",
@@ -1778,7 +1776,6 @@ const LOCALE = {
         "riskScore": "リスクスコア {score}",
         "level": "リスク：{level}",
         "buyer": "バイヤー：{name}",
-        "noBuyer": "担当バイヤーなし",
         "lastActivity": "最終アクティビティ {date}",
         "completion": "完成度 {value} %",
         "openSheet": "シートを開く",
@@ -1862,12 +1859,14 @@ const LOCALE = {
         "approvalDerived": "表示のたびに再計算",
         "history": "推移",
         "historyUnavailable": "履歴を利用できません",
-        "historyWhy": "承認とスコアの推移を追跡するには beCPG のビジネスインテリジェンス（BI）モジュールが必要ですが、このインスタンスでは有効になっていません。",
+        "historyWhy": "beCPG の意思決定モジュールから履歴を取得できませんでした。",
         "historyWhyBy": {
             "supplierAxisUnavailable": "BI モジュールは稼働していますが、まだサプライヤーを区別できません。キューブにサプライヤー軸を追加し、スキーマを再読み込みする必要があります。",
             "supplierUnresolved": "このサプライヤーはまだ BI モジュールに登録されていません。次回の再構築で表示されます。",
             "noData": "BI モジュールはこのサプライヤーを認識していますが、この期間のデータはまだありません。データが蓄積されるにつれて履歴が表示されます。",
-            "unknownQuery": "要求された系列はポータルで宣言されていません。データの欠落ではなく、設定の不備です。"
+            "unknownQuery": "要求された系列はポータルで宣言されていません。データの欠落ではなく、設定の不備です。",
+            "unreachable": "beCPG の意思決定モジュールが応答しません。このインスタンスで無効か、サーバーに接続できません。",
+            "denied": "お使いのアカウントは beCPG の意思決定モジュールにアクセスできません。"
         },
         "historyNeeds": "有効にするために BI 側で必要なもの",
         "dimensions": "ディメンション",
@@ -1878,7 +1877,6 @@ const LOCALE = {
         "trendCaption": "加重スコアの推移"
     },
     "components/monitor/SupplierTable#LABELS": {
-        "search": "読み込んだサプライヤーを絞り込み…",
         "caption": "サプライヤーベースのサプライヤー、承認ステータス、算出指標",
         "columns": {
             "name": "サプライヤー",
@@ -2530,6 +2528,19 @@ const LOCALE = {
         "status.notApplicable": "該当なし",
         "test.banner": "TEST インスタンス — ここで入力したデータは契約上の効力を持ちません",
         "test.badge": "テスト"
+    },
+    "components/monitor/HistoryPanel#LABELS": {
+        "title": "推移",
+        "help": "beCPG の意思決定モジュールから読み込み（バッチ更新）：数値は前回の更新時点のものです。",
+        "period": "期間",
+        "measures": {
+            "stepsNumber": "タスク",
+            "averageActualDurations": "平均実所要日数",
+            "refusalRate": "却下率",
+            "avgResponseDelay": "平均回答日数",
+            "averageProgress": "平均進捗",
+            "projectsNumber": "プロジェクト"
+        }
     }
 };
 

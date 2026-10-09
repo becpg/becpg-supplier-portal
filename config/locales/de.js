@@ -675,7 +675,8 @@ const LOCALE = {
         "rows": "Zeilen",
         "reminder": "Ihr offenes Projekt im Portal wartet noch auf Ihre Antwort. Bitte erledigen Sie die Ihnen zugewiesenen Aufgaben so bald wie möglich.",
         "hintTargets": "Lieferanten der ausgewählten Projekte",
-        "noteReminder": "beCPG führt kein Erinnerungsprotokoll: Die Spalte „Letzte Erinnerung“ zeigt die letzte Aktivität im Projekt, die nächstliegende tatsächlich verfügbare Information."
+        "noteReminder": "beCPG führt kein Erinnerungsprotokoll: Die Spalte „Letzte Erinnerung“ zeigt die letzte Aktivität im Projekt, die nächstliegende tatsächlich verfügbare Information.",
+        "truncatedShort": "Fenster: {scanned} Projekte gelesen"
     },
     "app/monitor/documents/page#LABELS": {
         "title": "Dokumentenkonformität",
@@ -723,13 +724,14 @@ const LOCALE = {
     },
     "app/monitor/page#LABELS": {
         "title": "Überwachung des Lieferantenbestands",
-        "description": "Der Bestand auf einer Seite: Freigabe, Dokumentenkonformität, Abläufe, Projekte und Abweichungen. In Echtzeit, ohne Cube.",
+        "description": "Freigabe, Dokumentenkonformität, Abläufe, Projekte und Abweichungen Ihres Lieferantenstamms, in Echtzeit.",
         "generatedAt": "Datenstand {time}",
         "openList": "Vollständige Liste anzeigen",
         "openDocuments": "Dokumentenkonformität",
         "openCampaigns": "Projekte",
         "openQuality": "Abweichungen",
-        "truncated": "Lieferantenbestand größer als das Suchfenster: {scanned} von {total} Lieferanten gelesen. Mit „≈“ markierte Zähler sind begrenzt; die Aufschlüsselung und die Top 10 beziehen sich auf das Fenster."
+        "truncated": "Lieferantenbestand größer als das Suchfenster: {scanned} von {total} Lieferanten gelesen. Mit „≈“ markierte Zähler sind begrenzt; die Aufschlüsselung und die Top 10 beziehen sich auf das Fenster.",
+        "truncatedShort": "Fenster: {scanned} Lieferanten gelesen"
     },
     "app/monitor/products/page#LABELS": {
         "title": "Lieferantenprodukte",
@@ -890,14 +892,12 @@ const LOCALE = {
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "Lieferanten",
-        "description": "Der Bestand, Spalte für Spalte. Wählen Sie Zeilen aus, um zu vergleichen, zu erinnern, zu eskalieren oder zu sperren.",
         "statuses": {
             "suspended": "Gesperrt",
             "toRenew": "Zu erneuern",
             "inProgress": "In Bearbeitung",
             "approved": "Freigegeben"
         },
-        "statusHint": "Zum Filtern klicken",
         "statusFiltered": "Filter aktiv",
         "export": "Export (CSV)",
         "exportCutTitle": "Unvollständiger Export: {scanned} von {total} Zeilen",
@@ -923,7 +923,8 @@ const LOCALE = {
             "nc": "offene NCs",
             "lastActivity": "letzte Aktivität",
             "buyer": "Einkäufer"
-        }
+        },
+        "truncatedShort": "Fenster: {scanned} Lieferanten gelesen"
     },
     "app/not-found#LABELS": {
         "title": "Seite nicht gefunden",
@@ -1585,7 +1586,8 @@ const LOCALE = {
         "noColumns": "In diesem Bereich ist kein Dokumenttyp materialisiert",
         "noColumnsHint": "beCPG materialisiert erwartete Dokumente bei der Formulierung: Ohne konfigurierte Dokumentenanforderung ist die Matrix leer.",
         "toggle": "Dokumente anzeigen",
-        "summary": "{missing} fehlend · {expired} abgelaufen · {expiring} zu erneuern"
+        "summary": "{missing} fehlend · {expired} abgelaufen · {expiring} zu erneuern",
+        "legend": "Legende"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Gültig",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Entwurf",
@@ -1708,8 +1710,6 @@ const LOCALE = {
                 "scopeTruncated": "Quote nicht berechenbar: {dropped} Lieferant(en) des Bestands konnten nicht abgefragt werden.",
                 "emptyScope": "Kein Lieferant in diesem Bereich: Es gibt nichts zu bewerten."
             },
-            "notParkScoped": "gesamter Lieferantenbestand (Filter nicht anwendbar)",
-            "supplierLinkedOnly": "nur die mit einem Lieferanten verknüpften",
             "expiring": "Dokumente · {d60} bei 60 T, {d90} bei 90 T",
             "campaigns": "offen · {rate} % beantwortet, {late} überfällig",
             "campaignsNoRate": "offen · keine Antwortquote berechenbar, {late} überfällig",
@@ -1720,7 +1720,6 @@ const LOCALE = {
         },
         "park": {
             "title": "Zusammensetzung des Bestands",
-            "subtitle": "Bei jeder Anzeige aus den Akten selbst neu berechnet",
             "empty": "Kein Lieferant in diesem Bereich",
             "share": "{share} %",
             "unknown": "{count} gelesene(r) Lieferant(en) ohne bewerteten Freigabestatus: Sie sind in keinem Balken enthalten.",
@@ -1728,7 +1727,6 @@ const LOCALE = {
         },
         "expiry": {
             "title": "Ablaufhorizont",
-            "subtitle": "Bereitgestellte Dokumente, deren Gültigkeit endet",
             "cumulative": "Kumulativ: Ein bei 30 T gezähltes Dokument wird auch bei 60 und 90 T gezählt.",
             "bucket": "< {days} T",
             "empty": "Kein Dokument läuft innerhalb von 90 Tagen ab",
@@ -1778,7 +1776,6 @@ const LOCALE = {
         "riskScore": "Risikoscore {score}",
         "level": "Risiko {level}",
         "buyer": "Einkäufer: {name}",
-        "noBuyer": "Kein zuständiger Einkäufer",
         "lastActivity": "Letzte Aktivität am {date}",
         "completion": "Vollständigkeit {value} %",
         "openSheet": "Datenblatt öffnen",
@@ -1862,12 +1859,14 @@ const LOCALE = {
         "approvalDerived": "Bei jeder Anzeige neu berechnet",
         "history": "Entwicklung",
         "historyUnavailable": "Verlauf nicht verfügbar",
-        "historyWhy": "Um Freigaben und Scores im Zeitverlauf zu verfolgen, wird das Business-Intelligence-Modul (BI) von beCPG benötigt, das auf dieser Instanz nicht aktiviert ist.",
+        "historyWhy": "Das beCPG-Entscheidungsmodul konnte den Verlauf nicht liefern.",
         "historyWhyBy": {
             "supplierAxisUnavailable": "Das BI-Modul ist aktiv, unterscheidet aber noch nicht zwischen Lieferanten: Die Lieferantenachse muss dem Cube hinzugefügt und das Schema neu geladen werden.",
             "supplierUnresolved": "Dieser Lieferant ist noch nicht im BI-Modul: Er erscheint beim nächsten Neuaufbau.",
             "noData": "Das BI-Modul kennt diesen Lieferanten, enthält aber noch keinen Datenpunkt für den Zeitraum: Der Verlauf füllt sich, sobald Daten einfließen.",
-            "unknownQuery": "Die angeforderte Reihe ist im Portal nicht deklariert: ein Konfigurationsfehler, keine fehlenden Daten."
+            "unknownQuery": "Die angeforderte Reihe ist im Portal nicht deklariert: ein Konfigurationsfehler, keine fehlenden Daten.",
+            "unreachable": "Das beCPG-Entscheidungsmodul antwortet nicht: Es ist auf dieser Instanz deaktiviert oder sein Server ist nicht erreichbar.",
+            "denied": "Ihr Konto hat keinen Zugriff auf das beCPG-Entscheidungsmodul."
         },
         "historyNeeds": "Was auf BI-Seite zur Aktivierung benötigt wird",
         "dimensions": "Dimensionen",
@@ -1878,7 +1877,6 @@ const LOCALE = {
         "trendCaption": "Gewichteter Score im Zeitverlauf"
     },
     "components/monitor/SupplierTable#LABELS": {
-        "search": "Geladene Lieferanten filtern…",
         "caption": "Lieferanten des Bestands, Freigabestatus und abgeleitete Indikatoren",
         "columns": {
             "name": "Lieferant",
@@ -2530,6 +2528,19 @@ const LOCALE = {
         "status.notApplicable": "Nicht zutreffend",
         "test.banner": "TEST-Instanz — hier eingegebene Daten sind nicht vertraglich verbindlich",
         "test.badge": "Test"
+    },
+    "components/monitor/HistoryPanel#LABELS": {
+        "title": "Entwicklung",
+        "help": "Aus dem beCPG-Entscheidungsmodul gelesen, per Batch geladen: Die Zahlen können vom letzten Ladevorgang stammen.",
+        "period": "Zeitraum",
+        "measures": {
+            "stepsNumber": "Aufgaben",
+            "averageActualDurations": "Ø tatsächliche Dauer (T)",
+            "refusalRate": "Ablehnungsquote",
+            "avgResponseDelay": "Ø Antwortzeit (T)",
+            "averageProgress": "Ø Fortschritt",
+            "projectsNumber": "Projekte"
+        }
     }
 };
 

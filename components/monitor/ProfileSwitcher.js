@@ -33,6 +33,7 @@
 import { useCallback, useSyncExternalStore } from 'react';
 import { Icon } from '@/components/ui/Button';
 import { useMessages } from '@/lib/messages';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 /** Where the choice is kept. Display preference only — never a permission. */
@@ -337,6 +338,24 @@ export function ProfileSwitcher({ compact = false, className = '' }) {
                         );
                     })}
                 </div>
+                {/* What each reading changes, on demand: the four buttons alone
+                    did not say how Quality differs from Purchasing. */}
+                <Tooltip
+                    className="ms-1.5 align-middle"
+                    label={local.legend}
+                    placement="bottom"
+                    maxWidth={340}
+                    content={
+                        <span className="flex flex-col gap-1.5">
+                            <span>{local.hint}</span>
+                            {profiles.map((entry) => (
+                                <span key={entry.id}>
+                                    <strong className="font-medium">{label(entry)}</strong> — {pickLabels(entry.focus, lang)}
+                                </span>
+                            ))}
+                        </span>
+                    }
+                />
                 {compact ? null : (
                     <p className="mt-1 text-xs text-[var(--becpg-dark-grey)]">
                         {pickLabels(profile.focus, lang)}

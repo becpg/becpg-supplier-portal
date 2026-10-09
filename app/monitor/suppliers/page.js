@@ -56,9 +56,9 @@ import {
     readMonitorFilters,
     useDebouncedValue,
 } from '@/components/monitor/MonitorFilters';
+import { WindowNotice } from '@/components/monitor/WindowNotice';
 import { ProfileSwitcher, useMonitorProfile } from '@/components/monitor/ProfileSwitcher';
 import { SupplierTable } from '@/components/monitor/SupplierTable';
-import { HistoryUnavailable } from '@/components/monitor/SupplierScorecard';
 import { download, useApi } from '@/lib/client';
 import { formatTotal } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
@@ -80,15 +80,12 @@ const STATUS_META = {
 const LABELS = defineLabels('app/monitor/suppliers/page#LABELS', {
     fr: {
         title: 'Fournisseurs',
-        description:
-            'Le parc, colonne par colonne. Sélectionnez des lignes pour comparer, relancer, escalader ou suspendre.',
         statuses: {
             suspended: 'Suspendus',
             toRenew: 'À renouveler',
             inProgress: 'En cours',
             approved: 'Agréés',
         },
-        statusHint: 'Cliquez pour filtrer',
         statusFiltered: 'Filtre actif',
         export: 'Exporter (CSV)',
         exportCutTitle: 'Export incomplet : {scanned} lignes sur {total}',
@@ -99,6 +96,7 @@ const LABELS = defineLabels('app/monitor/suppliers/page#LABELS', {
         windowOf: '{from}–{to} sur {total} fournisseurs',
         previous: 'Fenêtre précédente',
         next: 'Fenêtre suivante',
+        truncatedShort: 'Fenêtre : {scanned} fournisseurs lus',
         truncated:
             'Parc plus large que la fenêtre d’analyse ({scanned} lus sur {total}) : le tri et le classement portent sur cette fenêtre. Affinez les filtres pour un classement exact sur tout le parc.',
         sortScope: 'Tri sur la fenêtre lue',
@@ -121,15 +119,12 @@ const LABELS = defineLabels('app/monitor/suppliers/page#LABELS', {
     },
     en: {
         title: 'Suppliers',
-        description:
-            'The park, column by column. Select rows to compare, remind, escalate or suspend.',
         statuses: {
             suspended: 'Suspended',
             toRenew: 'To renew',
             inProgress: 'In progress',
             approved: 'Approved',
         },
-        statusHint: 'Click to filter',
         statusFiltered: 'Filter active',
         export: 'Export (CSV)',
         exportCutTitle: 'Incomplete export: {scanned} rows out of {total}',
@@ -140,6 +135,7 @@ const LABELS = defineLabels('app/monitor/suppliers/page#LABELS', {
         windowOf: '{from}–{to} of {total} suppliers',
         previous: 'Previous window',
         next: 'Next window',
+        truncatedShort: 'Window: {scanned} suppliers read',
         truncated:
             'Park larger than the scan window ({scanned} read out of {total}): sorting and ranking cover that window. Narrow the filters for an exact park-wide ranking.',
         sortScope: 'Sorted within the window read',
@@ -346,8 +342,17 @@ function MonitorSuppliersScreen() {
         >
             <PageHeader
                 title={local.title}
-                description={local.description}
-                actions={<ProfileSwitcher compact />}
+                actions={
+                    <div className="flex flex-col items-end gap-1">
+                        <ProfileSwitcher compact />
+                        {pagination.truncated ? (
+                            <WindowNotice
+                                label={fill(local.truncatedShort, { scanned: pagination.scanned })}
+                                detail={fill(local.truncated, { scanned: pagination.scanned, total: total.label })}
+                            />
+                        ) : null}
+                    </div>
+                }
             />
 
             {/* --------------------------------------------- status breakdown */}
@@ -364,7 +369,7 @@ function MonitorSuppliersScreen() {
                             tone={STATUS_META[status].tone}
                             loading={list.loading && !data}
                             onClick={() => toggleStatus(status)}
-                            hint={active ? local.statusFiltered : local.statusHint}
+                            hint={active ? local.statusFiltered : undefined}
                             badge={
                                 active ? (
                                     <span className="pill pill-info pill-sm pill-no-dot">
@@ -377,25 +382,6 @@ function MonitorSuppliersScreen() {
                 })}
             </StatGrid>
 
-            <MonitorFilters
-                className="mb-3"
-                filters={state.filters}
-                onChange={patchFilters}
-                onReset={resetFilters}
-                options={vocabulary.values}
-                applied={payloadFilters.applied || []}
-                unsupported={payloadFilters.unsupported || []}
-            />
-
-            {pagination.truncated ? (
-                <p className="mb-3 flex items-start gap-2 rounded-lg bg-[var(--status-warn-bg)] px-3 py-2 text-xs text-[var(--status-warn)]">
-                    <Icon name="info" size={16} className="mt-0.5 shrink-0" />
-                    {fill(local.truncated, {
-                        scanned: pagination.scanned,
-                        total: total.label,
-                    })}
-                </p>
-            ) : null}
 
             {list.error ? (
                 <ErrorState error={list.error} onRetry={list.refresh} />
@@ -410,6 +396,17 @@ function MonitorSuppliersScreen() {
                     onResetFilters={resetFilters}
                     onAfterAction={afterAction}
                     onRetry={list.refresh}
+                    toolbar={
+                        <MonitorFilters
+                            className="min-w-0 flex-1"
+                            filters={state.filters}
+                            onChange={patchFilters}
+                            onReset={resetFilters}
+                            options={vocabulary.values}
+                            applied={payloadFilters.applied || []}
+                            unsupported={payloadFilters.unsupported || []}
+                        />
+                    }
                 />
             )}
 
@@ -448,8 +445,6 @@ function MonitorSuppliersScreen() {
                     />
                 </div>
             </div>
-
-            <HistoryUnavailable className="mt-4" history={data && data.history} compact />
 
             <ConfirmModal
                 open={exportWarning}

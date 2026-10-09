@@ -53,6 +53,7 @@ import { SkeletonText } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { formatDate } from '@/lib/format';
 import { useMessages } from '@/lib/messages';
+import { HistoryPanel } from '@/components/monitor/HistoryPanel';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 const LABELS = defineLabels('components/monitor/SupplierScorecard#LABELS', {
@@ -80,8 +81,11 @@ const LABELS = defineLabels('components/monitor/SupplierScorecard#LABELS', {
         history: 'Évolution',
         historyUnavailable: 'Historique indisponible',
         historyWhy:
-            'Suivre les agréments et les scores dans le temps demande le module décisionnel (BI) de beCPG, qui n’est pas activé sur cette instance.',
+            'Le module décisionnel de beCPG n’a pas pu fournir l’historique.',
         historyWhyBy: {
+            unreachable:
+                'Le module décisionnel de beCPG ne répond pas : il est désactivé sur cette instance, ou son serveur est injoignable.',
+            denied: 'Votre compte n’a pas accès au module décisionnel de beCPG.',
             supplierAxisUnavailable:
                 'Le module décisionnel est actif mais ne distingue pas encore les fournisseurs : l’axe fournisseur reste à ajouter au cube, puis le schéma à recharger.',
             supplierUnresolved:
@@ -123,8 +127,11 @@ const LABELS = defineLabels('components/monitor/SupplierScorecard#LABELS', {
         history: 'Trend',
         historyUnavailable: 'History unavailable',
         historyWhy:
-            'Following approvals and scores over time needs beCPG’s business-intelligence (BI) module, which is not enabled on this instance.',
+            'The beCPG business-intelligence module could not provide the history.',
         historyWhyBy: {
+            unreachable:
+                'The beCPG business-intelligence module does not answer: it is disabled on this instance, or its server cannot be reached.',
+            denied: 'Your account has no access to the beCPG business-intelligence module.',
             supplierAxisUnavailable:
                 'The BI module is live but does not tell suppliers apart yet: the supplier axis has to be added to the cube and the schema reloaded.',
             supplierUnresolved:
@@ -422,6 +429,7 @@ function CriterionRow({ criterion, max, totalWeight, local, index }) {
  * @param {{score: number|null, catalogs: Array<Object>}} [props.completion]
  * @param {{status: string, statusLabel: ?string, reasons: string[]}} [props.approval]
  * @param {{available: boolean, points?: Array<Object>, reason?: string, required?: Object}} [props.history]
+ * @param {string} [props.supplierRef] the supplier's nodeRef, to read its history from the decision module
  * @param {boolean} [props.loading]
  */
 export function SupplierScorecard({
@@ -429,6 +437,7 @@ export function SupplierScorecard({
     completion,
     approval,
     history,
+    supplierRef,
     loading = false,
     className = '',
 }) {
@@ -599,6 +608,8 @@ export function SupplierScorecard({
                         <SkeletonText lines={2} />
                     ) : historyAvailable && points.length >= 2 ? (
                         <ScoreTrend points={points} max={scale.max} />
+                    ) : supplierRef ? (
+                        <HistoryPanel series="taskTrend" supplier={supplierRef} bare />
                     ) : (
                         <HistoryUnavailable history={history} />
                     )}

@@ -43,7 +43,7 @@
  */
 
 import { useCallback, useMemo, useState } from 'react';
-import { AppShell } from '@/components/shell/AppShell';
+import { AppShell, PageHeader } from '@/components/shell/AppShell';
 import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
@@ -274,11 +274,12 @@ export default function MonitorQualityPage() {
 
     return (
         <AppShell
+            ownHeading
             fullWidth
             space="monitor"
             title={labels.title}
         >
-            <p className="mb-4 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
+            <PageHeader title={labels.title} description={labels.subtitle} />
 
             {/* ------------------------------------------------------ KPI row */}
             <StatGrid columns={4} className="mb-4">

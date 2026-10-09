@@ -675,7 +675,8 @@ const LOCALE = {
         "rows": "Satır",
         "reminder": "Portaldaki açık projeniz hâlâ yanıtınızı bekliyor. Lütfen size atanan görevleri en kısa sürede tamamlayın.",
         "hintTargets": "Seçilen projelerin tedarikçileri",
-        "noteReminder": "beCPG hatırlatma günlüğü tutmaz: \"Son hatırlatma\" sütunu, gerçekte mevcut olan en yakın bilgi olan projedeki son etkinliği gösterir."
+        "noteReminder": "beCPG hatırlatma günlüğü tutmaz: \"Son hatırlatma\" sütunu, gerçekte mevcut olan en yakın bilgi olan projedeki son etkinliği gösterir.",
+        "truncatedShort": "Pencere: {scanned} proje okundu"
     },
     "app/monitor/documents/page#LABELS": {
         "title": "Belge uygunluğu",
@@ -723,13 +724,14 @@ const LOCALE = {
     },
     "app/monitor/page#LABELS": {
         "title": "Tedarikçi portföyü izleme",
-        "description": "Tek sayfada portföy: onay, belge uygunluğu, süre dolumları, projeler ve uygunsuzluklar. Gerçek zamanlı, küp gerekmez.",
+        "description": "Tedarikçi portföyünüzün onayı, doküman uygunluğu, süre bitişleri, projeleri ve uygunsuzlukları, gerçek zamanlı.",
         "generatedAt": "{time} itibarıyla veriler",
         "openList": "Listenin tamamını gör",
         "openDocuments": "Belge uygunluğu",
         "openCampaigns": "Projeler",
         "openQuality": "Uygunsuzluklar",
-        "truncated": "Portföy tarama penceresinden büyük: {total} tedarikçiden {scanned} tanesi okundu. “≈” ile işaretli sayaçlar sınırlandırılmıştır; dağılım ve ilk 10 bu pencereyi kapsar."
+        "truncated": "Portföy tarama penceresinden büyük: {total} tedarikçiden {scanned} tanesi okundu. “≈” ile işaretli sayaçlar sınırlandırılmıştır; dağılım ve ilk 10 bu pencereyi kapsar.",
+        "truncatedShort": "Pencere: {scanned} tedarikçi okundu"
     },
     "app/monitor/products/page#LABELS": {
         "title": "Tedarikçi ürünleri",
@@ -890,14 +892,12 @@ const LOCALE = {
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "Tedarikçiler",
-        "description": "Portföy, sütun sütun. Karşılaştırmak, hatırlatma göndermek, üst kademeye iletmek veya askıya almak için satırları seçin.",
         "statuses": {
             "suspended": "Askıya alındı",
             "toRenew": "Yenilenecek",
             "inProgress": "Devam ediyor",
             "approved": "Onaylandı"
         },
-        "statusHint": "Filtrelemek için tıklayın",
         "statusFiltered": "Filtre etkin",
         "export": "Dışa aktar (CSV)",
         "exportCutTitle": "Eksik dışa aktarma: {total} satırdan {scanned} satır",
@@ -923,7 +923,8 @@ const LOCALE = {
             "nc": "açık NC'ler",
             "lastActivity": "son etkinlik",
             "buyer": "satın almacı"
-        }
+        },
+        "truncatedShort": "Pencere: {scanned} tedarikçi okundu"
     },
     "app/not-found#LABELS": {
         "title": "Sayfa bulunamadı",
@@ -1585,7 +1586,8 @@ const LOCALE = {
         "noColumns": "Bu kapsamda somutlaştırılmış belge türü yok",
         "noColumnsHint": "beCPG beklenen belgeleri formülasyon sırasında somutlaştırır: yapılandırılmış bir belge gereksinimi yoksa matris boştur.",
         "toggle": "Belgeleri göster",
-        "summary": "{missing} eksik · {expired} süresi dolmuş · {expiring} yenilenecek"
+        "summary": "{missing} eksik · {expired} süresi dolmuş · {expiring} yenilenecek",
+        "legend": "Açıklama"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Geçerli",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Taslak",
@@ -1708,8 +1710,6 @@ const LOCALE = {
                 "scopeTruncated": "Oran hesaplanamıyor: portföydeki {dropped} tedarikçi sorgulanamadı.",
                 "emptyScope": "Bu kapsamda tedarikçi yok: değerlendirilecek bir şey yok."
             },
-            "notParkScoped": "tüm tedarikçi portföyü (filtre uygulanamaz)",
-            "supplierLinkedOnly": "yalnızca bir tedarikçiye bağlı olanlar",
             "expiring": "belge · 60 günde {d60}, 90 günde {d90}",
             "campaigns": "açık · %{rate} yanıtlandı, {late} gecikmiş",
             "campaignsNoRate": "açık · hesaplanacak yanıt oranı yok, {late} gecikmiş",
@@ -1720,7 +1720,6 @@ const LOCALE = {
         },
         "park": {
             "title": "Portföy dağılımı",
-            "subtitle": "Her görüntülemede, doğrudan dosyalardan yeniden hesaplanır",
             "empty": "Bu kapsamda tedarikçi yok",
             "share": "%{share}",
             "unknown": "{count} tedarikçi değerlendirilmiş bir onay durumu olmadan okundu: hiçbir çubukta yer almıyorlar.",
@@ -1728,7 +1727,6 @@ const LOCALE = {
         },
         "expiry": {
             "title": "Süre dolum ufku",
-            "subtitle": "Geçerliliği sona eren sağlanmış belgeler",
             "cumulative": "Kümülatif: 30 günde sayılan bir belge 60 ve 90 günde de sayılır.",
             "bucket": "< {days} g",
             "empty": "90 gün içinde süresi dolan belge yok",
@@ -1778,7 +1776,6 @@ const LOCALE = {
         "riskScore": "Risk puanı {score}",
         "level": "{level} risk",
         "buyer": "Satın almacı: {name}",
-        "noBuyer": "Sorumlu satın almacı yok",
         "lastActivity": "Son etkinlik: {date}",
         "completion": "Doluluk %{value}",
         "openSheet": "Kartı aç",
@@ -1862,12 +1859,14 @@ const LOCALE = {
         "approvalDerived": "Her görüntülemede yeniden hesaplanır",
         "history": "Eğilim",
         "historyUnavailable": "Geçmiş kullanılamıyor",
-        "historyWhy": "Onayları ve puanları zaman içinde izlemek için beCPG'nin iş zekâsı (BI) modülü gerekir; bu modül bu ortamda etkin değil.",
+        "historyWhy": "beCPG karar modülü geçmişi sağlayamadı.",
         "historyWhyBy": {
             "supplierAxisUnavailable": "BI modülü çalışıyor ancak henüz tedarikçileri ayırt etmiyor: tedarikçi ekseninin küpe eklenmesi ve şemanın yeniden yüklenmesi gerekiyor.",
             "supplierUnresolved": "Bu tedarikçi henüz BI modülünde değil: bir sonraki yeniden oluşturmada görünecek.",
             "noData": "BI modülü bu tedarikçiyi tanıyor ancak dönem için henüz veri noktası yok: geçmiş, beslendikçe dolar.",
-            "unknownQuery": "İstenen seri portalda tanımlı değil: bu eksik veri değil, bir yapılandırma hatasıdır."
+            "unknownQuery": "İstenen seri portalda tanımlı değil: bu eksik veri değil, bir yapılandırma hatasıdır.",
+            "unreachable": "beCPG karar modülü yanıt vermiyor: bu örnekte devre dışı veya sunucusuna ulaşılamıyor.",
+            "denied": "Hesabınızın beCPG karar modülüne erişimi yok."
         },
         "historyNeeds": "Etkinleştirmek için BI tarafında gerekenler",
         "dimensions": "Boyutlar",
@@ -1878,7 +1877,6 @@ const LOCALE = {
         "trendCaption": "Zaman içinde ağırlıklı puan"
     },
     "components/monitor/SupplierTable#LABELS": {
-        "search": "Yüklenen tedarikçileri filtrele…",
         "caption": "Portföydeki tedarikçiler, onay durumu ve türetilmiş göstergeler",
         "columns": {
             "name": "Tedarikçi",
@@ -2530,6 +2528,19 @@ const LOCALE = {
         "status.notApplicable": "Uygulanamaz",
         "test.banner": "TEST ortamı — burada girilen veriler bağlayıcı değildir",
         "test.badge": "Test"
+    },
+    "components/monitor/HistoryPanel#LABELS": {
+        "title": "Gelişim",
+        "help": "beCPG karar modülünden okunur, toplu yüklenir: rakamlar son yüklemeye ait olabilir.",
+        "period": "Dönem",
+        "measures": {
+            "stepsNumber": "Görevler",
+            "averageActualDurations": "Ort. gerçek süre (g)",
+            "refusalRate": "Ret oranı",
+            "avgResponseDelay": "Ort. yanıt süresi (g)",
+            "averageProgress": "Ort. ilerleme",
+            "projectsNumber": "Projeler"
+        }
     }
 };
 

@@ -675,7 +675,8 @@ const LOCALE = {
         "rows": "Righe",
         "reminder": "Il vostro progetto aperto sul portale è ancora in attesa della vostra risposta. Vi preghiamo di completare al più presto le attività che vi sono assegnate.",
         "hintTargets": "Fornitori dei progetti selezionati",
-        "noteReminder": "beCPG non conserva alcun registro dei solleciti: la colonna «Ultimo sollecito» mostra l'ultima attività sul progetto, il dato effettivamente disponibile più vicino."
+        "noteReminder": "beCPG non conserva alcun registro dei solleciti: la colonna «Ultimo sollecito» mostra l'ultima attività sul progetto, il dato effettivamente disponibile più vicino.",
+        "truncatedShort": "Finestra: {scanned} progetti letti"
     },
     "app/monitor/documents/page#LABELS": {
         "title": "Conformità documentale",
@@ -723,13 +724,14 @@ const LOCALE = {
     },
     "app/monitor/page#LABELS": {
         "title": "Monitoraggio del parco fornitori",
-        "description": "Il parco in una pagina: qualifica, conformità documentale, scadenze, progetti e non conformità. In tempo reale, senza cubo.",
+        "description": "Qualifica, conformità documentale, scadenze, progetti e non conformità del suo parco, in tempo reale.",
         "generatedAt": "Dati aggiornati alle {time}",
         "openList": "Vedi l'elenco completo",
         "openDocuments": "Conformità documentale",
         "openCampaigns": "Progetti",
         "openQuality": "Non conformità",
-        "truncated": "Parco più ampio della finestra di analisi: letti {scanned} fornitori su {total}. I contatori contrassegnati con «≈» sono limitati; la ripartizione e la top 10 coprono la finestra."
+        "truncated": "Parco più ampio della finestra di analisi: letti {scanned} fornitori su {total}. I contatori contrassegnati con «≈» sono limitati; la ripartizione e la top 10 coprono la finestra.",
+        "truncatedShort": "Finestra: {scanned} fornitori letti"
     },
     "app/monitor/products/page#LABELS": {
         "title": "Prodotti fornitore",
@@ -890,14 +892,12 @@ const LOCALE = {
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "Fornitori",
-        "description": "Il parco, colonna per colonna. Selezionate delle righe per confrontare, sollecitare, fare escalation o sospendere.",
         "statuses": {
             "suspended": "Sospeso",
             "toRenew": "Da rinnovare",
             "inProgress": "In corso",
             "approved": "Qualificato"
         },
-        "statusHint": "Fate clic per filtrare",
         "statusFiltered": "Filtro attivo",
         "export": "Esporta (CSV)",
         "exportCutTitle": "Esportazione incompleta: {scanned} righe su {total}",
@@ -923,7 +923,8 @@ const LOCALE = {
             "nc": "NC aperte",
             "lastActivity": "ultima attività",
             "buyer": "buyer"
-        }
+        },
+        "truncatedShort": "Finestra: {scanned} fornitori letti"
     },
     "app/not-found#LABELS": {
         "title": "Pagina non trovata",
@@ -1585,7 +1586,8 @@ const LOCALE = {
         "noColumns": "Nessun tipo di documento è materializzato in questo perimetro",
         "noColumnsHint": "beCPG materializza i documenti attesi durante la formulazione: senza alcun requisito documentale configurato, la matrice è vuota.",
         "toggle": "Mostra i documenti",
-        "summary": "{missing} mancanti · {expired} scaduti · {expiring} da rinnovare"
+        "summary": "{missing} mancanti · {expired} scaduti · {expiring} da rinnovare",
+        "legend": "Legenda"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Valido",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Bozza",
@@ -1708,8 +1710,6 @@ const LOCALE = {
                 "scopeTruncated": "Tasso non calcolabile: non è stato possibile interrogare {dropped} fornitore/i del parco.",
                 "emptyScope": "Nessun fornitore in questo perimetro: non c'è nulla da valutare."
             },
-            "notParkScoped": "intero parco fornitori (filtro non applicabile)",
-            "supplierLinkedOnly": "solo quelli collegati a un fornitore",
             "expiring": "documenti · {d60} a 60 g, {d90} a 90 g",
             "campaigns": "aperti · {rate} % con risposta, {late} in ritardo",
             "campaignsNoRate": "aperti · nessun tasso di risposta da calcolare, {late} in ritardo",
@@ -1720,7 +1720,6 @@ const LOCALE = {
         },
         "park": {
             "title": "Composizione del parco",
-            "subtitle": "Ricalcolata a ogni visualizzazione, a partire dai fascicoli stessi",
             "empty": "Nessun fornitore in questo perimetro",
             "share": "{share} %",
             "unknown": "{count} fornitore/i letto/i senza stato di qualifica valutato: non rientrano in nessuna delle barre.",
@@ -1728,7 +1727,6 @@ const LOCALE = {
         },
         "expiry": {
             "title": "Orizzonte di scadenza",
-            "subtitle": "Documenti forniti la cui validità termina",
             "cumulative": "Cumulativo: un documento conteggiato a 30 g è conteggiato anche a 60 e 90 g.",
             "bucket": "< {days} g",
             "empty": "Nessun documento scade entro 90 giorni",
@@ -1778,7 +1776,6 @@ const LOCALE = {
         "riskScore": "Punteggio di rischio {score}",
         "level": "Rischio {level}",
         "buyer": "Buyer: {name}",
-        "noBuyer": "Nessun buyer di riferimento",
         "lastActivity": "Ultima attività il {date}",
         "completion": "Completezza {value} %",
         "openSheet": "Apri la scheda",
@@ -1862,12 +1859,14 @@ const LOCALE = {
         "approvalDerived": "Ricalcolato a ogni visualizzazione",
         "history": "Andamento",
         "historyUnavailable": "Cronologia non disponibile",
-        "historyWhy": "Seguire qualifiche e punteggi nel tempo richiede il modulo di business intelligence (BI) di beCPG, che non è attivato su questa istanza.",
+        "historyWhy": "Il modulo decisionale di beCPG non ha potuto fornire lo storico.",
         "historyWhyBy": {
             "supplierAxisUnavailable": "Il modulo BI è attivo ma non distingue ancora i fornitori: l'asse fornitore deve essere aggiunto al cubo e lo schema ricaricato.",
             "supplierUnresolved": "Questo fornitore non è ancora presente nel modulo BI: comparirà alla prossima ricostruzione.",
             "noData": "Il modulo BI conosce questo fornitore ma non contiene ancora alcun punto per il periodo: la cronologia si riempie man mano che viene alimentata.",
-            "unknownQuery": "La serie richiesta non è dichiarata nel portale: un difetto di configurazione, non dati mancanti."
+            "unknownQuery": "La serie richiesta non è dichiarata nel portale: un difetto di configurazione, non dati mancanti.",
+            "unreachable": "Il modulo decisionale di beCPG non risponde: è disattivato su questa istanza o il suo server non è raggiungibile.",
+            "denied": "Il suo account non ha accesso al modulo decisionale di beCPG."
         },
         "historyNeeds": "Ciò che serve lato BI per attivarla",
         "dimensions": "Dimensioni",
@@ -1878,7 +1877,6 @@ const LOCALE = {
         "trendCaption": "Punteggio ponderato nel tempo"
     },
     "components/monitor/SupplierTable#LABELS": {
-        "search": "Filtra i fornitori caricati…",
         "caption": "Fornitori del parco, stato di qualifica e indicatori calcolati",
         "columns": {
             "name": "Fornitore",
@@ -2530,6 +2528,19 @@ const LOCALE = {
         "status.notApplicable": "Non applicabile",
         "test.banner": "Istanza di TEST — i dati inseriti qui non hanno valore contrattuale",
         "test.badge": "Test"
+    },
+    "components/monitor/HistoryPanel#LABELS": {
+        "title": "Evoluzione",
+        "help": "Letto nel modulo decisionale di beCPG, caricato a lotti: i dati possono risalire all’ultimo caricamento.",
+        "period": "Periodo",
+        "measures": {
+            "stepsNumber": "Attività",
+            "averageActualDurations": "Durata reale media (g)",
+            "refusalRate": "Tasso di rifiuto",
+            "avgResponseDelay": "Tempo di risposta medio (g)",
+            "averageProgress": "Avanzamento medio",
+            "projectsNumber": "Progetti"
+        }
     }
 };
 

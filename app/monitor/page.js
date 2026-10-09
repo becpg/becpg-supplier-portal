@@ -44,7 +44,8 @@ import { StatGrid } from '@/components/ui/StatCard';
 import { ParkStats } from '@/components/monitor/ParkStats';
 import { RiskList } from '@/components/monitor/RiskList';
 import { ProfileSwitcher } from '@/components/monitor/ProfileSwitcher';
-import { HistoryUnavailable } from '@/components/monitor/SupplierScorecard';
+import { HistoryPanel } from '@/components/monitor/HistoryPanel';
+import { WindowNotice } from '@/components/monitor/WindowNotice';
 import {
     EMPTY_MONITOR_FILTERS,
     MonitorFilters,
@@ -62,24 +63,26 @@ const LABELS = defineLabels('app/monitor/page#LABELS', {
     fr: {
         title: 'Pilotage du parc fournisseurs',
         description:
-            'L’état du parc en une page : agrément, conformité documentaire, expirations, projets et non-conformités. Données temps réel, aucun cube requis.',
+            'Agrément, conformité documentaire, expirations, projets et non-conformités de votre parc, en temps réel.',
         generatedAt: 'Données au {time}',
         openList: 'Voir la liste complète',
         openDocuments: 'Conformité documentaire',
         openCampaigns: 'Projets',
         openQuality: 'Non-conformités',
+        truncatedShort: 'Fenêtre : {scanned} fournisseurs lus',
         truncated:
             'Parc plus large que la fenêtre d’analyse : {scanned} fournisseurs lus sur {total}. Les compteurs marqués « ≈ » sont plafonnés ; la répartition et le top 10 portent sur la fenêtre.',
     },
     en: {
         title: 'Supplier park monitoring',
         description:
-            'The park in one page: approval, document compliance, expiries, projects and non-conformities. Real time, no cube required.',
+            'Approval, document compliance, expiries, projects and non-conformities of your park, in real time.',
         generatedAt: 'Data as of {time}',
         openList: 'See the full list',
         openDocuments: 'Document compliance',
         openCampaigns: 'Projects',
         openQuality: 'Non-conformities',
+        truncatedShort: 'Window: {scanned} suppliers read',
         truncated:
             'Park larger than the scan window: {scanned} suppliers read out of {total}. Counters marked “≈” are capped; the breakdown and the top 10 cover the window.',
     },
@@ -175,6 +178,19 @@ function MonitorOverviewScreen() {
                 actions={
                     <div className="flex flex-col items-end gap-1">
                         <ProfileSwitcher compact />
+                        {data && data.park && data.park.truncated ? (
+                            <WindowNotice
+                                label={fill(local.truncatedShort, { scanned: data.park.scanned })}
+                                detail={fill(local.truncated, {
+                                    scanned: data.park.scanned,
+                                    // A floor when the counter could not reach the end of the park.
+                                    total: formatTotal(
+                                        { total: data.park.total, exact: data.park.exact !== false },
+                                        lang,
+                                    ).label,
+                                })}
+                            />
+                        ) : null}
                         {data ? (
                             <span className="text-[11px] text-[var(--becpg-dark-grey)]">
                                 {fill(local.generatedAt, {
@@ -195,19 +211,6 @@ function MonitorOverviewScreen() {
                 unsupported={payloadFilters.unsupported || []}
             />
 
-            {data && data.park && data.park.truncated ? (
-                <p className="mb-3 flex items-start gap-2 rounded-lg bg-[var(--status-warn-bg)] px-3 py-2 text-xs text-[var(--status-warn)]">
-                    <Icon name="info" size={16} className="mt-0.5 shrink-0" />
-                    {fill(local.truncated, {
-                        scanned: data.park.scanned,
-                        // A floor when the counter could not reach the end of the park.
-                        total: formatTotal(
-                            { total: data.park.total, exact: data.park.exact !== false },
-                            lang,
-                        ).label,
-                    })}
-                </p>
-            ) : null}
 
             {overview.error ? (
                 <ErrorState error={overview.error} onRetry={overview.refresh} />
@@ -260,7 +263,7 @@ function MonitorOverviewScreen() {
                         </Button>
                     </nav>
 
-                    <HistoryUnavailable className="mt-4" history={data.history} compact />
+                    <HistoryPanel className="mt-4" series="taskTrend" />
                 </>
             )}
         </AppShell>

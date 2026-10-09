@@ -675,7 +675,8 @@ const LOCALE = {
         "rows": "Rader",
         "reminder": "Ditt öppna projekt i portalen väntar fortfarande på ditt svar. Slutför de uppgifter som tilldelats dig så snart som möjligt.",
         "hintTargets": "Leverantörer i de valda projekten",
-        "noteReminder": "beCPG för ingen påminnelselogg: kolumnen ”Senaste påminnelse” visar den senaste aktiviteten i projektet, det närmaste faktum som faktiskt finns tillgängligt."
+        "noteReminder": "beCPG för ingen påminnelselogg: kolumnen ”Senaste påminnelse” visar den senaste aktiviteten i projektet, det närmaste faktum som faktiskt finns tillgängligt.",
+        "truncatedShort": "Fönster: {scanned} projekt lästa"
     },
     "app/monitor/documents/page#LABELS": {
         "title": "Dokumentefterlevnad",
@@ -723,13 +724,14 @@ const LOCALE = {
     },
     "app/monitor/page#LABELS": {
         "title": "Uppföljning av leverantörsbasen",
-        "description": "Leverantörsbasen på en sida: godkännande, dokumentefterlevnad, utgångsdatum, projekt och avvikelser. I realtid, ingen kub krävs.",
+        "description": "Godkännande, dokumentefterlevnad, utgångar, projekt och avvikelser i din leverantörsbas, i realtid.",
         "generatedAt": "Data per {time}",
         "openList": "Visa hela listan",
         "openDocuments": "Dokumentefterlevnad",
         "openCampaigns": "Projekt",
         "openQuality": "Avvikelser",
-        "truncated": "Leverantörsbasen är större än genomsökningsfönstret: {scanned} leverantörer lästa av {total}. Räknare markerade med ”≈” är begränsade; fördelningen och topp 10 avser fönstret."
+        "truncated": "Leverantörsbasen är större än genomsökningsfönstret: {scanned} leverantörer lästa av {total}. Räknare markerade med ”≈” är begränsade; fördelningen och topp 10 avser fönstret.",
+        "truncatedShort": "Fönster: {scanned} leverantörer lästa"
     },
     "app/monitor/products/page#LABELS": {
         "title": "Leverantörsprodukter",
@@ -890,14 +892,12 @@ const LOCALE = {
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "Leverantörer",
-        "description": "Leverantörsbasen, kolumn för kolumn. Välj rader för att jämföra, påminna, eskalera eller stänga av.",
         "statuses": {
             "suspended": "Avstängd",
             "toRenew": "Ska förnyas",
             "inProgress": "Pågår",
             "approved": "Godkänd"
         },
-        "statusHint": "Klicka för att filtrera",
         "statusFiltered": "Filter aktivt",
         "export": "Exportera (CSV)",
         "exportCutTitle": "Ofullständig export: {scanned} rader av {total}",
@@ -923,7 +923,8 @@ const LOCALE = {
             "nc": "öppna NC",
             "lastActivity": "senaste aktivitet",
             "buyer": "inköpare"
-        }
+        },
+        "truncatedShort": "Fönster: {scanned} leverantörer lästa"
     },
     "app/not-found#LABELS": {
         "title": "Sidan hittades inte",
@@ -1585,7 +1586,8 @@ const LOCALE = {
         "noColumns": "Ingen dokumenttyp är materialiserad i det här omfånget",
         "noColumnsHint": "beCPG materialiserar förväntade dokument vid formuleringen: utan konfigurerade dokumentkrav är matrisen tom.",
         "toggle": "Visa dokument",
-        "summary": "{missing} saknas · {expired} utgångna · {expiring} ska förnyas"
+        "summary": "{missing} saknas · {expired} utgångna · {expiring} ska förnyas",
+        "legend": "Teckenförklaring"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Giltig",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Utkast",
@@ -1708,8 +1710,6 @@ const LOCALE = {
                 "scopeTruncated": "Andelen kan inte beräknas: {dropped} leverantör(er) i leverantörsbasen kunde inte frågas.",
                 "emptyScope": "Inga leverantörer i det här omfånget: det finns inget att utvärdera."
             },
-            "notParkScoped": "hela leverantörsbasen (filtret är inte tillämpligt)",
-            "supplierLinkedOnly": "endast de som är kopplade till en leverantör",
             "expiring": "dokument · {d60} inom 60 d, {d90} inom 90 d",
             "campaigns": "öppna · {rate} % besvarade, {late} försenade",
             "campaignsNoRate": "öppna · ingen svarsfrekvens att beräkna, {late} försenade",
@@ -1720,7 +1720,6 @@ const LOCALE = {
         },
         "park": {
             "title": "Leverantörsbasens sammansättning",
-            "subtitle": "Beräknas om vid varje visning, utifrån akterna själva",
             "empty": "Inga leverantörer i det här omfånget",
             "share": "{share} %",
             "unknown": "{count} lästa leverantör(er) utan utvärderad godkännandestatus: de ingår inte i någon av staplarna.",
@@ -1728,7 +1727,6 @@ const LOCALE = {
         },
         "expiry": {
             "title": "Utgångshorisont",
-            "subtitle": "Inlämnade dokument vars giltighet upphör",
             "cumulative": "Kumulativt: ett dokument som räknas inom 30 d räknas även inom 60 och 90 d.",
             "bucket": "< {days} d",
             "empty": "Inga dokument går ut inom 90 dagar",
@@ -1778,7 +1776,6 @@ const LOCALE = {
         "riskScore": "Riskpoäng {score}",
         "level": "Risk: {level}",
         "buyer": "Inköpare: {name}",
-        "noBuyer": "Ingen ansvarig inköpare",
         "lastActivity": "Senaste aktivitet {date}",
         "completion": "Fullständighet {value} %",
         "openSheet": "Öppna bladet",
@@ -1862,12 +1859,14 @@ const LOCALE = {
         "approvalDerived": "Beräknas om vid varje visning",
         "history": "Trend",
         "historyUnavailable": "Historik är inte tillgänglig",
-        "historyWhy": "Att följa godkännanden och poäng över tid kräver beCPG:s modul för affärsanalys (BI), som inte är aktiverad på den här instansen.",
+        "historyWhy": "beCPG:s beslutsstödsmodul kunde inte leverera historiken.",
         "historyWhyBy": {
             "supplierAxisUnavailable": "BI-modulen är i drift men skiljer ännu inte på leverantörer: leverantörsdimensionen måste läggas till i kuben och schemat läsas in på nytt.",
             "supplierUnresolved": "Leverantören finns ännu inte i BI-modulen: den visas vid nästa ombyggnad.",
             "noData": "BI-modulen känner till leverantören men har ännu inga punkter för perioden: historiken fylls på allteftersom data tillförs.",
-            "unknownQuery": "Den begärda serien är inte deklarerad i portalen: ett konfigurationsfel, inte saknade data."
+            "unknownQuery": "Den begärda serien är inte deklarerad i portalen: ett konfigurationsfel, inte saknade data.",
+            "unreachable": "beCPG:s beslutsstödsmodul svarar inte: den är avaktiverad på denna instans eller servern kan inte nås.",
+            "denied": "Ditt konto har ingen åtkomst till beCPG:s beslutsstödsmodul."
         },
         "historyNeeds": "Vad BI-sidan behöver för att aktivera den",
         "dimensions": "Dimensioner",
@@ -1878,7 +1877,6 @@ const LOCALE = {
         "trendCaption": "Viktad poäng över tid"
     },
     "components/monitor/SupplierTable#LABELS": {
-        "search": "Filtrera de inlästa leverantörerna…",
         "caption": "Leverantörer i leverantörsbasen, godkännandestatus och härledda indikatorer",
         "columns": {
             "name": "Leverantör",
@@ -2530,6 +2528,19 @@ const LOCALE = {
         "status.notApplicable": "Ej tillämplig",
         "test.banner": "TEST-instans — uppgifter som anges här är inte avtalsmässigt bindande",
         "test.badge": "Test"
+    },
+    "components/monitor/HistoryPanel#LABELS": {
+        "title": "Utveckling",
+        "help": "Läst från beCPG:s beslutsstödsmodul, laddad i batch: siffrorna kan vara från den senaste laddningen.",
+        "period": "Period",
+        "measures": {
+            "stepsNumber": "Uppgifter",
+            "averageActualDurations": "Snittlig faktisk tid (d)",
+            "refusalRate": "Avvisningsgrad",
+            "avgResponseDelay": "Snittlig svarstid (d)",
+            "averageProgress": "Snittligt framsteg",
+            "projectsNumber": "Projekt"
+        }
     }
 };
 

@@ -675,7 +675,8 @@ const LOCALE = {
         "rows": "行数",
         "reminder": "您在门户上的进行中项目仍在等待您的回复。请尽快完成分配给您的任务。",
         "hintTargets": "所选项目的供应商",
-        "noteReminder": "beCPG 不保存提醒日志：“最近提醒”列显示的是项目的最近活动，这是实际可获得的最接近的信息。"
+        "noteReminder": "beCPG 不保存提醒日志：“最近提醒”列显示的是项目的最近活动，这是实际可获得的最接近的信息。",
+        "truncatedShort": "窗口：已读取 {scanned} 个项目"
     },
     "app/monitor/documents/page#LABELS": {
         "title": "文件合规性",
@@ -723,13 +724,14 @@ const LOCALE = {
     },
     "app/monitor/page#LABELS": {
         "title": "供应商库监控",
-        "description": "供应商库一页尽览：认证、文件合规性、到期、项目和不合格项。实时数据，无需多维数据集。",
+        "description": "实时查看供应商库的准入、文件合规、到期、项目和不合格。",
         "generatedAt": "数据截至 {time}",
         "openList": "查看完整列表",
         "openDocuments": "文件合规性",
         "openCampaigns": "项目",
         "openQuality": "不合格项",
-        "truncated": "供应商库超出扫描窗口：已读取 {scanned} 个，共 {total} 个供应商。标有“≈”的计数器已封顶；分布和前 10 名仅覆盖该窗口。"
+        "truncated": "供应商库超出扫描窗口：已读取 {scanned} 个，共 {total} 个供应商。标有“≈”的计数器已封顶；分布和前 10 名仅覆盖该窗口。",
+        "truncatedShort": "窗口：已读取 {scanned} 家供应商"
     },
     "app/monitor/products/page#LABELS": {
         "title": "供应商产品",
@@ -890,14 +892,12 @@ const LOCALE = {
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "供应商",
-        "description": "逐列查看供应商库。选择行以比较、提醒、升级或暂停。",
         "statuses": {
             "suspended": "已暂停",
             "toRenew": "待更新",
             "inProgress": "进行中",
             "approved": "已认证"
         },
-        "statusHint": "点击筛选",
         "statusFiltered": "筛选已启用",
         "export": "导出（CSV）",
         "exportCutTitle": "导出不完整：{scanned} 行，共 {total} 行",
@@ -923,7 +923,8 @@ const LOCALE = {
             "nc": "未关闭 NC",
             "lastActivity": "最近活动",
             "buyer": "采购员"
-        }
+        },
+        "truncatedShort": "窗口：已读取 {scanned} 家供应商"
     },
     "app/not-found#LABELS": {
         "title": "未找到页面",
@@ -1585,7 +1586,8 @@ const LOCALE = {
         "noColumns": "此范围内未生成任何文件类型",
         "noColumnsHint": "beCPG 在配方计算时生成所需文件：如果未配置任何文件要求，矩阵将为空。",
         "toggle": "显示文件",
-        "summary": "{missing} 份缺失 · {expired} 份已过期 · {expiring} 份待更新"
+        "summary": "{missing} 份缺失 · {expired} 份已过期 · {expiring} 份待更新",
+        "legend": "图例"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "有效",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "草稿",
@@ -1708,8 +1710,6 @@ const LOCALE = {
                 "scopeTruncated": "无法计算比率：供应商库中有 {dropped} 个供应商无法查询。",
                 "emptyScope": "此范围内无供应商：没有可评估的内容。"
             },
-            "notParkScoped": "整个供应商库（筛选不适用）",
-            "supplierLinkedOnly": "仅限关联到供应商的",
             "expiring": "份文件 · 60 天内 {d60} 份，90 天内 {d90} 份",
             "campaigns": "进行中 · {rate} % 已回复，{late} 项逾期",
             "campaignsNoRate": "进行中 · 无可计算的回复率，{late} 项逾期",
@@ -1720,7 +1720,6 @@ const LOCALE = {
         },
         "park": {
             "title": "供应商库构成",
-            "subtitle": "每次显示时根据档案本身重新计算",
             "empty": "此范围内无供应商",
             "share": "{share} %",
             "unknown": "有 {count} 个已读取的供应商没有已评估的认证状态：它们不在任何柱状图中。",
@@ -1728,7 +1727,6 @@ const LOCALE = {
         },
         "expiry": {
             "title": "到期时间范围",
-            "subtitle": "有效期即将截止的已提供文件",
             "cumulative": "累计：计入 30 天的文件也计入 60 天和 90 天。",
             "bucket": "< {days} 天",
             "empty": "90 天内无文件过期",
@@ -1778,7 +1776,6 @@ const LOCALE = {
         "riskScore": "风险评分 {score}",
         "level": "{level}风险",
         "buyer": "采购员：{name}",
-        "noBuyer": "无负责采购员",
         "lastActivity": "最近活动于 {date}",
         "completion": "完整度 {value} %",
         "openSheet": "打开资料表",
@@ -1862,12 +1859,14 @@ const LOCALE = {
         "approvalDerived": "每次显示时重新计算",
         "history": "趋势",
         "historyUnavailable": "历史不可用",
-        "historyWhy": "跟踪认证和评分随时间的变化需要 beCPG 的商业智能（BI）模块，而此实例未启用该模块。",
+        "historyWhy": "beCPG 决策模块无法提供历史数据。",
         "historyWhyBy": {
             "supplierAxisUnavailable": "BI 模块已运行，但尚不能区分供应商：需要将供应商维度添加到多维数据集并重新加载架构。",
             "supplierUnresolved": "此供应商尚未纳入 BI 模块：将在下次重建时出现。",
             "noData": "BI 模块已识别此供应商，但该期间尚无数据点：历史数据将随录入逐步填充。",
-            "unknownQuery": "所请求的序列未在门户中声明：这是配置缺陷，而非数据缺失。"
+            "unknownQuery": "所请求的序列未在门户中声明：这是配置缺陷，而非数据缺失。",
+            "unreachable": "beCPG 决策模块无响应：此实例未启用该模块，或其服务器无法访问。",
+            "denied": "您的账户无权访问 beCPG 决策模块。"
         },
         "historyNeeds": "BI 端启用此功能所需的条件",
         "dimensions": "维度",
@@ -1878,7 +1877,6 @@ const LOCALE = {
         "trendCaption": "加权评分随时间变化"
     },
     "components/monitor/SupplierTable#LABELS": {
-        "search": "筛选已加载的供应商…",
         "caption": "供应商库中的供应商、认证状态及推导指标",
         "columns": {
             "name": "供应商",
@@ -2530,6 +2528,19 @@ const LOCALE = {
         "status.notApplicable": "不适用",
         "test.banner": "TEST 实例 — 在此输入的数据不具有合同效力",
         "test.badge": "测试"
+    },
+    "components/monitor/HistoryPanel#LABELS": {
+        "title": "趋势",
+        "help": "读取自 beCPG 决策模块，按批次加载：数据可能来自上次加载。",
+        "period": "期间",
+        "measures": {
+            "stepsNumber": "任务",
+            "averageActualDurations": "平均实际时长（天）",
+            "refusalRate": "拒绝率",
+            "avgResponseDelay": "平均响应时长（天）",
+            "averageProgress": "平均进度",
+            "projectsNumber": "项目"
+        }
     }
 };
 

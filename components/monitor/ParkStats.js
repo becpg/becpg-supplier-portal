@@ -114,26 +114,6 @@ const LABELS = defineLabels('components/monitor/ParkStats#LABELS', {
                 scopeTruncated: 'Taux non calculable : {dropped} fournisseur(s) du parc n’ont pas pu être interrogés.',
                 emptyScope: 'Aucun fournisseur dans ce périmètre : il n’y a rien à évaluer.',
             },
-            /*
-             * A project, a tâche and an NC are not filed under a supplier, so no
-             * park filter can reach them — measured on the reference instance: with the park
-             * scope applied these counters read 0 while 5 open NCs and 15 late
-             * tasks existed. They are supplier-scoped, never park-scoped, and the
-             * tile says so instead of letting the filter take credit for them.
-             */
-            notParkScoped: 'tout le parc fournisseur (filtre non applicable)',
-            /*
-             * WHY A COUNTER CAN READ 0 WHILE THE INSTANCE HOLDS SOME.
-             *
-             * A campaign and an NC are only counted when they are marked as
-             * concerning a supplier (`bcpg:suppliersAspect`): without that
-             * restriction the tile would count every project and every NC of the
-             * instance, R&D and production included. An NC opened on a product or
-             * on a batch, or a project created outside the supplier templates,
-             * carries no such mark and is therefore out — which is a reading of
-             * the data, not a missing number, so the tile says it.
-             */
-            supplierLinkedOnly: 'rattachées à un fournisseur uniquement',
             expiring: 'documents · {d60} à 60 j, {d90} à 90 j',
             campaigns: 'en cours · {rate} % de réponse, {late} en retard',
             campaignsNoRate: 'en cours · taux de réponse sans objet, {late} en retard',
@@ -144,7 +124,6 @@ const LABELS = defineLabels('components/monitor/ParkStats#LABELS', {
         },
         park: {
             title: 'Composition du parc',
-            subtitle: 'Recalculé à chaque affichage, à partir des dossiers',
             empty: 'Aucun fournisseur dans ce périmètre',
             share: '{share} %',
             unknown: '{count} fournisseur(s) lus sans statut d’agrément évalué : ils ne sont dans aucune barre.',
@@ -153,7 +132,6 @@ const LABELS = defineLabels('components/monitor/ParkStats#LABELS', {
         },
         expiry: {
             title: "Horizon d'expiration",
-            subtitle: 'Documents fournis dont la validité se termine',
             cumulative: 'Cumulatif : un document compté à 30 j l’est aussi à 60 et 90 j.',
             bucket: '< {days} j',
             empty: 'Aucun document n’expire dans les 90 jours',
@@ -194,10 +172,6 @@ const LABELS = defineLabels('components/monitor/ParkStats#LABELS', {
                 scopeTruncated: 'Rate not computable: {dropped} supplier(s) of the park could not be queried.',
                 emptyScope: 'No supplier in this perimeter: there is nothing to evaluate.',
             },
-            /* See the note on the French `notParkScoped`. */
-            notParkScoped: 'whole supplier park (filter not applicable)',
-            /* See the note on the French `supplierLinkedOnly`. */
-            supplierLinkedOnly: 'the ones linked to a supplier only',
             expiring: 'documents · {d60} at 60 d, {d90} at 90 d',
             campaigns: 'open · {rate} % answered, {late} late',
             campaignsNoRate: 'open · no response rate to compute, {late} late',
@@ -208,7 +182,6 @@ const LABELS = defineLabels('components/monitor/ParkStats#LABELS', {
         },
         park: {
             title: 'Park composition',
-            subtitle: 'Recomputed on every render, from the files themselves',
             empty: 'No supplier in this perimeter',
             share: '{share} %',
             unknown: '{count} supplier(s) read with no evaluated approval status: they are in none of the bars.',
@@ -217,7 +190,6 @@ const LABELS = defineLabels('components/monitor/ParkStats#LABELS', {
         },
         expiry: {
             title: 'Expiry horizon',
-            subtitle: 'Provided documents whose validity ends',
             cumulative: 'Cumulative: a document counted at 30 d is also counted at 60 and 90 d.',
             bucket: '< {days} d',
             empty: 'No document expires within 90 days',
@@ -308,23 +280,6 @@ function buildTiles(overview, local, query, lang) {
     const tasks = overview.tasks || {};
     const suffix = query ? `?${query}` : '';
     const withStatus = (status) => `/monitor/suppliers?${[`status=${status}`, query].filter(Boolean).join('&')}`;
-    /*
-     * A counter the park filter cannot reach says so in its own hint. Silence
-     * would let the filter chip above the grid take credit for a number it never
-     * touched — which is the same class of error as the 0 % rate: the figure is
-     * right, the population it is attributed to is not.
-     */
-    const withScope = (block, hint) =>
-        (block.parkScoped === false ? `${hint} · ${local.hints.notParkScoped}` : hint);
-    /*
-     * The supplier restriction the campaign and NC counters ran under, said on
-     * the tile: 0 then means "none linked to a supplier", never "none at all".
-     */
-    const supplierScope = overview.supplierScope || {};
-    const withSupplierMark = (type, hint) =>
-        (supplierScope.applied && (supplierScope.appliesTo || []).includes(type)
-            ? `${hint} · ${local.hints.supplierLinkedOnly}`
-            : hint);
 
     return [
         {
@@ -422,13 +377,13 @@ function buildTiles(overview, local, query, lang) {
             approx: campaigns.exact === false,
             // `responseRate: null` means "no campaign to answer", not 0 % and not
             // 100 %: the API refuses to score an empty set (defect L1's rule).
-            hint: withSupplierMark('pjt:project', withScope(campaigns, campaigns.responseRate === null
+            hint: (campaigns.responseRate === null
                 || campaigns.responseRate === undefined
                 ? interpolate(local.hints.campaignsNoRate, { late: campaigns.late || 0 })
                 : interpolate(local.hints.campaigns, {
                     rate: campaigns.responseRate,
                     late: campaigns.late || 0,
-                }))),
+                })),
             href: `/monitor/campaigns${suffix}`,
         },
         {
@@ -438,7 +393,7 @@ function buildTiles(overview, local, query, lang) {
             icon: 'alarm',
             tone: (tasks.late || 0) > 0 ? 'danger' : 'ok',
             approx: tasks.exact === false,
-            hint: withScope(tasks, local.hints.lateTasks),
+            hint: local.hints.lateTasks,
             href: `/monitor/campaigns${suffix}`,
         },
         {
@@ -448,7 +403,7 @@ function buildTiles(overview, local, query, lang) {
             icon: 'report_problem',
             tone: (nc.blocking || 0) > 0 ? 'danger' : (nc.open || 0) > 0 ? 'warn' : 'ok',
             approx: nc.exact === false,
-            hint: withSupplierMark('qa:nc', withScope(nc, interpolate(local.hints.nc, { blocking: nc.blocking || 0 }))),
+            hint: interpolate(local.hints.nc, { blocking: nc.blocking || 0 }),
             href: `/monitor/quality${suffix}`,
         },
     ];
@@ -682,7 +637,6 @@ export function ParkStats({ overview, query = '', className = '' }) {
         <Card
             key="park"
             title={local.park.title}
-            subtitle={local.park.subtitle}
             icon="donut_small"
             index={0}
             className={panelCard}
@@ -695,7 +649,6 @@ export function ParkStats({ overview, query = '', className = '' }) {
         <Card
             key="expiry"
             title={local.expiry.title}
-            subtitle={local.expiry.subtitle}
             icon="event_busy"
             index={1}
             className={panelCard}

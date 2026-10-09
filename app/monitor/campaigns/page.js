@@ -31,7 +31,8 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { AppShell } from '@/components/shell/AppShell';
+import { AppShell, PageHeader } from '@/components/shell/AppShell';
+import { WindowNotice } from '@/components/monitor/WindowNotice';
 import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { StatCard, StatGrid } from '@/components/ui/StatCard';
@@ -81,6 +82,7 @@ const LABELS = defineLabels('app/monitor/campaigns/page#LABELS', {
             name: 'Nom',
         },
         searchSupplier: 'Filtrer par fournisseur',
+        truncatedShort: 'Fenêtre : {scanned} projets lus',
         truncated:
             'Fenêtre d’analyse : beCPG borne une liste à 250 lignes et {scanned} projet(s) ont été lus. Le tri et les totaux de cette page portent sur cette fenêtre — affinez l’état ou le périmètre pour une vue complète.',
         scopeEmpty:
@@ -129,6 +131,7 @@ const LABELS = defineLabels('app/monitor/campaigns/page#LABELS', {
             name: 'Name',
         },
         searchSupplier: 'Filter by supplier',
+        truncatedShort: 'Window: {scanned} projects read',
         truncated:
             'Scan window: beCPG caps a listing at 250 rows and {scanned} project(s) were read. The sort and the totals on this page cover that window — narrow the state or the perimeter for a complete view.',
         scopeEmpty:
@@ -253,6 +256,7 @@ export default function MonitorCampaignsPage() {
 
     return (
         <AppShell
+            ownHeading
             fullWidth
             space="monitor"
             title={labels.title}
@@ -273,7 +277,19 @@ export default function MonitorCampaignsPage() {
                 onClose={() => setStarting(false)}
                 onStarted={campaigns.refresh}
             />
-            <p className="mb-4 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
+            {/* `scanned` is the rows beCPG returned, not the rows left after the
+                perimeter filter: the notice speaks of the engine's 250-row cap, so
+                it must quote the engine's own figure. */}
+            <PageHeader
+                title={labels.title}
+                description={labels.subtitle}
+                actions={pagination.truncated ? (
+                    <WindowNotice
+                        label={fill(labels.truncatedShort, { scanned: pagination.scanned ?? summary.scanned ?? total.value })}
+                        detail={fill(labels.truncated, { scanned: pagination.scanned ?? summary.scanned ?? total.value })}
+                    />
+                ) : null}
+            />
 
             {/* ------------------------------------------------------ KPI row */}
             <StatGrid columns={4} className="mb-4">
@@ -360,21 +376,6 @@ export default function MonitorCampaignsPage() {
                 </Card>
             ) : null}
 
-            {/* `scanned` is the rows beCPG returned, not the rows left after the
-                perimeter filter: the banner speaks of the engine's 250-row cap, so
-                it must quote the engine's own figure. */}
-            {pagination.truncated ? (
-                <Card variant="accent" padding="sm" className="mb-3">
-                    <p className="flex items-start gap-2 text-xs">
-                        <Icon name="warning" size={16} className="mt-0.5 text-[var(--becpg-orange)]" />
-                        <span>
-                            {fill(labels.truncated, {
-                                scanned: pagination.scanned ?? summary.scanned ?? total.value,
-                            })}
-                        </span>
-                    </p>
-                </Card>
-            ) : null}
 
             {/* The counters follow the perimeter — said out loud, so "248" on an
                 unfiltered screen and "10" on a filtered one are not read as the

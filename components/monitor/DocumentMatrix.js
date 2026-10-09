@@ -40,7 +40,7 @@
  * types listed and individually selectable. Same data, same selection object.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Icon } from '@/components/ui/Button';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
@@ -69,6 +69,7 @@ const LABELS = defineLabels('components/monitor/DocumentMatrix#LABELS', {
         types: '{count} type(s) de document',
         notApplicable: 'Ne s’applique pas à ce fournisseur',
         mandatory: 'Obligatoire',
+        legend: 'Légende',
         expected: '{count} attendu(s)',
         selectRow: 'Sélectionner {name}',
         selectCell: 'Sélectionner {type} pour {name}',
@@ -86,6 +87,7 @@ const LABELS = defineLabels('components/monitor/DocumentMatrix#LABELS', {
         types: '{count} document type(s)',
         notApplicable: 'Does not apply to this supplier',
         mandatory: 'Mandatory',
+        legend: 'Legend',
         expected: '{count} expected',
         selectRow: 'Select {name}',
         selectCell: 'Select {type} for {name}',
@@ -733,14 +735,28 @@ export function DocumentMatrix({
 }
 
 /**
- * The colour legend of the matrix — printed with it, so a paper copy is
+ * The colour legend of the matrix, folded behind a "Légende" button: needed the
+ * first time, in the way every time after. Printed unfolded, so a paper copy is
  * readable without the screen.
  */
 export function MatrixLegend({ statuses = ['valid', 'expiring', 'expired', 'missing', 'refused', 'toValidate'] }) {
     const { lang } = useMessages();
     const labels = pickLabels(LABELS, lang);
+    const [open, setOpen] = useState(false);
+    const panelId = useId();
     return (
-        <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--becpg-dark-grey)]">
+        <div className="text-xs text-[var(--becpg-dark-grey)]">
+            <button
+                type="button"
+                aria-expanded={open}
+                aria-controls={panelId}
+                onClick={() => setOpen((value) => !value)}
+                className="inline-flex items-center gap-1 rounded-full px-2 py-1 font-medium text-[var(--becpg-ink)] hover:bg-[var(--becpg-grey)] print:hidden"
+            >
+                <Icon name={open ? 'expand_less' : 'expand_more'} size={16} />
+                {labels.legend}
+            </button>
+            <div id={panelId} className={`${open ? 'flex' : 'hidden'} mt-1.5 flex-wrap items-center gap-2 print:flex`}>
             {statuses.map((status) => (
                 <StatusPill key={status} status={status} size="sm" />
             ))}
@@ -752,6 +768,7 @@ export function MatrixLegend({ statuses = ['valid', 'expiring', 'expired', 'miss
                 <span className="text-[var(--becpg-grey)]">·</span>
                 {labels.notApplicable}
             </span>
+            </div>
         </div>
     );
 }

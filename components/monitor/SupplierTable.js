@@ -87,7 +87,6 @@ export const COLUMN_BY_SORT_PARAM = Object.freeze(
 
 const LABELS = defineLabels('components/monitor/SupplierTable#LABELS', {
     fr: {
-        search: 'Filtrer les fournisseurs chargés…',
         caption: 'Fournisseurs du parc, statut d’agrément et indicateurs dérivés',
         columns: {
             name: 'Fournisseur',
@@ -144,7 +143,6 @@ const LABELS = defineLabels('components/monitor/SupplierTable#LABELS', {
         noReason: 'Aucun motif de risque',
     },
     en: {
-        search: 'Filter the loaded suppliers…',
         caption: 'Suppliers of the park, approval status and derived indicators',
         columns: {
             name: 'Supplier',
@@ -654,7 +652,6 @@ export function SupplierCompare({ items, open, onClose, onDone }) {
  * @param {boolean} [props.filtered] the park is filtered — changes the empty state
  * @param {Function} [props.onResetFilters]
  * @param {Function} [props.onAfterAction] called after a monitoring write
- * @param {number} [props.pageSize=25]
  */
 export function SupplierTable({
     items,
@@ -669,7 +666,6 @@ export function SupplierTable({
     filtered = false,
     onResetFilters,
     onAfterAction,
-    pageSize = 25,
     className = '',
 }) {
     const { lang } = useMessages();
@@ -730,8 +726,11 @@ export function SupplierTable({
                 storageKey={`monitor.suppliers.${(profile && profile.id) || 'default'}`}
                 initialColumnVisibility={initialColumnVisibility}
                 initialSorting={initialSorting}
-                pageSize={pageSize}
-                searchPlaceholder={local.search}
+                /* The page pages the park by windows and searches it on the
+                   server: a second search and a second pager inside the window
+                   would answer a different question with the same controls. */
+                enableFiltering={false}
+                enablePagination={false}
                 caption={local.caption}
                 toolbar={toolbar}
                 actions={

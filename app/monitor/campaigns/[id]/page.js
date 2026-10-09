@@ -181,7 +181,7 @@ export default function CampaignPage() {
         >
             <PageHeader
                 title={campaign.name}
-                description={[campaign.code, projectStateLabel(campaign.state, lang)]
+                meta={[campaign.code, projectStateLabel(campaign.state, lang)]
                     .filter(Boolean)
                     .join(' · ')}
                 actions={

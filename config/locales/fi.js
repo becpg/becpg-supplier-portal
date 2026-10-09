@@ -675,7 +675,8 @@ const LOCALE = {
         "rows": "Rivejä",
         "reminder": "Avoin projektinne portaalissa odottaa edelleen vastaustanne. Pyydämme teitä suorittamaan teille osoitetut tehtävät mahdollisimman pian.",
         "hintTargets": "Valittujen projektien toimittajat",
-        "noteReminder": "beCPG ei tallenna muistutushistoriaa: sarake ”Viimeisin muistutus” näyttää projektin viimeisimmän toiminnon, joka on lähin todellisuudessa saatavilla oleva tieto."
+        "noteReminder": "beCPG ei tallenna muistutushistoriaa: sarake ”Viimeisin muistutus” näyttää projektin viimeisimmän toiminnon, joka on lähin todellisuudessa saatavilla oleva tieto.",
+        "truncatedShort": "Ikkuna: {scanned} projektia luettu"
     },
     "app/monitor/documents/page#LABELS": {
         "title": "Asiakirjojen vaatimustenmukaisuus",
@@ -723,13 +724,14 @@ const LOCALE = {
     },
     "app/monitor/page#LABELS": {
         "title": "Toimittajajoukon seuranta",
-        "description": "Toimittajajoukko yhdellä sivulla: hyväksyntä, asiakirjojen vaatimustenmukaisuus, vanhenemiset, projektit ja poikkeamat. Reaaliaikainen, ei vaadi kuutiota.",
+        "description": "Toimittajakantasi hyväksyntä, dokumenttien vaatimustenmukaisuus, vanhenemiset, projektit ja poikkeamat reaaliajassa.",
         "generatedAt": "Tiedot ajankohdalta {time}",
         "openList": "Näytä koko luettelo",
         "openDocuments": "Asiakirjojen vaatimustenmukaisuus",
         "openCampaigns": "Projektit",
         "openQuality": "Poikkeamat",
-        "truncated": "Toimittajajoukko on hakuikkunaa suurempi: luettu {scanned}/{total} toimittajaa. ”≈”-merkityt laskurit on rajattu; jakauma ja top 10 koskevat hakuikkunaa."
+        "truncated": "Toimittajajoukko on hakuikkunaa suurempi: luettu {scanned}/{total} toimittajaa. ”≈”-merkityt laskurit on rajattu; jakauma ja top 10 koskevat hakuikkunaa.",
+        "truncatedShort": "Ikkuna: {scanned} toimittajaa luettu"
     },
     "app/monitor/products/page#LABELS": {
         "title": "Toimittajien tuotteet",
@@ -890,14 +892,12 @@ const LOCALE = {
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "Toimittajat",
-        "description": "Toimittajajoukko sarake sarakkeelta. Valitse rivejä vertaillaksesi, muistuttaaksesi, eskaloidaksesi tai keskeyttääksesi.",
         "statuses": {
             "suspended": "Keskeytetty",
             "toRenew": "Uusittava",
             "inProgress": "Käynnissä",
             "approved": "Hyväksytty"
         },
-        "statusHint": "Suodata napsauttamalla",
         "statusFiltered": "Suodatin käytössä",
         "export": "Vie (CSV)",
         "exportCutTitle": "Vienti on puutteellinen: {scanned}/{total} riviä",
@@ -923,7 +923,8 @@ const LOCALE = {
             "nc": "avoimet NC:t",
             "lastActivity": "viimeisin toiminto",
             "buyer": "ostaja"
-        }
+        },
+        "truncatedShort": "Ikkuna: {scanned} toimittajaa luettu"
     },
     "app/not-found#LABELS": {
         "title": "Sivua ei löytynyt",
@@ -1585,7 +1586,8 @@ const LOCALE = {
         "noColumns": "Tällä rajauksella ei ole muodostettuja asiakirjatyyppejä",
         "noColumnsHint": "beCPG muodostaa odotetut asiakirjat formuloinnin aikana: ilman määritettyjä asiakirjavaatimuksia matriisi on tyhjä.",
         "toggle": "Näytä asiakirjat",
-        "summary": "Puuttuvia: {missing} · vanhentuneita: {expired} · uusittavia: {expiring}"
+        "summary": "Puuttuvia: {missing} · vanhentuneita: {expired} · uusittavia: {expiring}",
+        "legend": "Selite"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Hyväksytty",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Luonnos",
@@ -1708,8 +1710,6 @@ const LOCALE = {
                 "scopeTruncated": "Osuutta ei voi laskea: toimittajakannasta jäi kyselemättä toimittajia: {dropped}.",
                 "emptyScope": "Tällä rajauksella ei ole toimittajia: arvioitavaa ei ole."
             },
-            "notParkScoped": "koko toimittajakanta (suodatin ei koske tätä)",
-            "supplierLinkedOnly": "vain toimittajaan linkitetyt",
             "expiring": "asiakirjaa · 60 pv: {d60}, 90 pv: {d90}",
             "campaigns": "avoinna · vastattu {rate} %, myöhässä: {late}",
             "campaignsNoRate": "avoinna · vastausprosenttia ei voi laskea, myöhässä: {late}",
@@ -1720,7 +1720,6 @@ const LOCALE = {
         },
         "park": {
             "title": "Toimittajakannan rakenne",
-            "subtitle": "Lasketaan uudelleen jokaisella näyttökerralla suoraan tiedoista",
             "empty": "Tällä rajauksella ei ole toimittajia",
             "share": "{share} %",
             "unknown": "Luettuja toimittajia ilman arvioitua hyväksyntätilaa: {count}. Ne eivät näy missään palkissa.",
@@ -1728,7 +1727,6 @@ const LOCALE = {
         },
         "expiry": {
             "title": "Vanhenemisnäkymä",
-            "subtitle": "Toimitetut asiakirjat, joiden voimassaolo päättyy",
             "cumulative": "Kumulatiivinen: 30 pv:n kohdalla laskettu asiakirja lasketaan myös 60 ja 90 pv:n kohdalla.",
             "bucket": "< {days} pv",
             "empty": "Mikään asiakirja ei vanhene 90 päivän kuluessa",
@@ -1778,7 +1776,6 @@ const LOCALE = {
         "riskScore": "Riskipisteet {score}",
         "level": "Riskitaso: {level}",
         "buyer": "Ostaja: {name}",
-        "noBuyer": "Ei vastuuostajaa",
         "lastActivity": "Viimeisin toiminta: {date}",
         "completion": "Valmiusaste {value} %",
         "openSheet": "Avaa kortti",
@@ -1862,12 +1859,14 @@ const LOCALE = {
         "approvalDerived": "Lasketaan uudelleen jokaisella näyttökerralla",
         "history": "Kehitys",
         "historyUnavailable": "Historia ei ole saatavilla",
-        "historyWhy": "Hyväksyntöjen ja pisteiden seuraaminen ajan mittaan edellyttää beCPG:n liiketoimintatiedon (BI) moduulia, joka ei ole käytössä tässä instanssissa.",
+        "historyWhy": "beCPG:n päätöksentukimoduuli ei voinut toimittaa historiaa.",
         "historyWhyBy": {
             "supplierAxisUnavailable": "BI-moduuli on käytössä, mutta se ei vielä erottele toimittajia: toimittaja-akseli on lisättävä kuutioon ja skeema ladattava uudelleen.",
             "supplierUnresolved": "Tämä toimittaja ei ole vielä BI-moduulissa: se tulee näkyviin seuraavassa uudelleenmuodostuksessa.",
             "noData": "BI-moduuli tuntee tämän toimittajan, mutta jaksolle ei ole vielä datapisteitä: historia täydentyy tietojen kertyessä.",
-            "unknownQuery": "Pyydettyä sarjaa ei ole määritetty portaalissa: kyseessä on määritysvirhe, ei puuttuva data."
+            "unknownQuery": "Pyydettyä sarjaa ei ole määritetty portaalissa: kyseessä on määritysvirhe, ei puuttuva data.",
+            "unreachable": "beCPG:n päätöksentukimoduuli ei vastaa: se on poistettu käytöstä tässä instanssissa tai sen palvelinta ei tavoiteta.",
+            "denied": "Tililläsi ei ole pääsyä beCPG:n päätöksentukimoduuliin."
         },
         "historyNeeds": "Mitä BI-puolella tarvitaan sen käyttöönottoon",
         "dimensions": "Dimensiot",
@@ -1878,7 +1877,6 @@ const LOCALE = {
         "trendCaption": "Painotetut pisteet ajan mittaan"
     },
     "components/monitor/SupplierTable#LABELS": {
-        "search": "Suodata ladattuja toimittajia…",
         "caption": "Toimittajakannan toimittajat, hyväksynnän tila ja johdetut indikaattorit",
         "columns": {
             "name": "Toimittaja",
@@ -2530,6 +2528,19 @@ const LOCALE = {
         "status.notApplicable": "Ei sovellettavissa",
         "test.banner": "TEST-instanssi — tänne syötetyt tiedot eivät ole sitovia",
         "test.badge": "Testi"
+    },
+    "components/monitor/HistoryPanel#LABELS": {
+        "title": "Kehitys",
+        "help": "Luettu beCPG:n päätöksentukimoduulista, ladataan erissä: luvut voivat olla edellisestä latauksesta.",
+        "period": "Jakso",
+        "measures": {
+            "stepsNumber": "Tehtävät",
+            "averageActualDurations": "Toteutunut kesto keskim. (pv)",
+            "refusalRate": "Hylkäysaste",
+            "avgResponseDelay": "Vastausaika keskim. (pv)",
+            "averageProgress": "Edistyminen keskim.",
+            "projectsNumber": "Projektit"
+        }
     }
 };
 

@@ -623,7 +623,7 @@ export default function MonitorSupplierSheetPage() {
                                 ) : null}
                             </span>
                         }
-                        description={
+                        meta={
                             <span className="flex flex-wrap items-center gap-2">
                                 {supplier.legalName && supplier.legalName !== supplier.name
                                     ? supplier.legalName
@@ -801,6 +801,7 @@ export default function MonitorSupplierSheetPage() {
                         completion={data.completion}
                         approval={approval}
                         history={data.history}
+                        supplierRef={supplier.nodeRef}
                     />
 
                     {/* ----------------------------------------------- documents */}

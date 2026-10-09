@@ -146,7 +146,6 @@ const LABELS = defineLabels('components/monitor/RiskList#LABELS', {
         riskScore: 'Score de risque {score}',
         level: 'Risque {level}',
         buyer: 'Acheteur : {name}',
-        noBuyer: 'Aucun acheteur référent',
         lastActivity: 'Dernière activité le {date}',
         completion: 'Complétude {value} %',
         openSheet: 'Ouvrir la fiche',
@@ -195,7 +194,6 @@ const LABELS = defineLabels('components/monitor/RiskList#LABELS', {
         riskScore: 'Risk score {score}',
         level: '{level} risk',
         buyer: 'Buyer: {name}',
-        noBuyer: 'No referring buyer',
         lastActivity: 'Last activity on {date}',
         completion: 'Completeness {value} %',
         openSheet: 'Open the sheet',
@@ -533,96 +531,79 @@ function RiskRow({ item, rank, local, lang, onDone }) {
     const reasons = ((item.risk && item.risk.reasons) || [])
         .map((reason) => describeReason(reason, lang))
         .filter(Boolean);
+    const details = [
+        ...reasons.map((reason) => reason.label),
+        item.buyer ? interpolate(local.buyer, { name: item.buyer }) : null,
+        typeof item.completion === 'number' ? interpolate(local.completion, { value: item.completion }) : null,
+        item.lastActivity ? interpolate(local.lastActivity, { date: formatDate(item.lastActivity, lang) }) : null,
+    ]
+        .filter(Boolean)
+        .join(' · ');
 
     return (
         <motion.li
             initial={reduceMotion ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, delay: Math.min(rank, 8) * 0.03 }}
-            className="border-b border-[var(--becpg-grey)] py-3 first:pt-1 last:border-0 last:pb-0"
+            className="border-b border-[var(--becpg-line)] py-2.5 first:pt-0 last:border-0 last:pb-0"
         >
-            <div className="flex flex-wrap items-start gap-3">
-                <span
-                    className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full leading-none bg-[var(--becpg-grey)] text-xs font-medium tabular-nums text-[var(--becpg-blue)]"
-                    aria-hidden="true"
-                >
-                    {rank + 1}
-                </span>
-
-                <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <Link
-                            href={item.href}
-                            className="truncate text-sm font-medium hover:text-[var(--becpg-orange)] focus:outline-none focus-visible:underline"
-                        >
-                            {item.name}
-                        </Link>
-                        {item.code ? (
-                            <span className="text-xs text-[var(--becpg-dark-grey)]">{item.code}</span>
-                        ) : null}
-                        <StatusPill
-                            status={item.approval ? item.approval.status : null}
-                            label={item.approval ? item.approval.statusLabel : undefined}
-                            size="sm"
-                        />
-                        <span
-                            className={`pill pill-sm pill-no-dot pill-${level.tone}`}
-                            title={interpolate(local.riskScore, {
-                                score: (item.risk && item.risk.score) || 0,
-                            })}
-                        >
-                            <Icon name={level.icon} size={13} />
-                            <span>
-                                {interpolate(local.level, { level: pickLabels(level, lang) })} ·{' '}
-                                <span className="tabular-nums">{(item.risk && item.risk.score) || 0}</span>
-                            </span>
-                        </span>
-                    </div>
-
-                    {/* the motive — never a rank without its reason */}
-                    <ul className="mt-1.5 flex flex-wrap gap-1.5">
-                        {reasons.map((reason) => (
-                            <li
-                                key={reason.label}
-                                className={`pill pill-sm pill-no-dot pill-${reason.tone}`}
+            {/* One line per supplier on a wide screen: who, how risky, why, and
+                what to do — the reasons as a sentence rather than a row of
+                pills, the full list in the line's own text when it is cut. */}
+            <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-3">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <span
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--becpg-grey)] text-[11px] font-medium leading-none tabular-nums text-[var(--becpg-ink)]"
+                        aria-hidden="true"
+                    >
+                        {rank + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                            <Link
+                                href={item.href}
+                                className="truncate text-sm font-medium text-[var(--becpg-ink)] hover:underline"
                             >
-                                <Icon name={reason.icon} size={13} />
-                                <span>{reason.label}</span>
-                            </li>
-                        ))}
-                    </ul>
-
-                    <p className="mt-1.5 text-xs text-[var(--becpg-dark-grey)]">
-                        {item.buyer
-                            ? interpolate(local.buyer, { name: item.buyer })
-                            : local.noBuyer}
-                        {typeof item.completion === 'number'
-                            ? ` · ${interpolate(local.completion, { value: item.completion })}`
-                            : ''}
-                        {/* `lastActivity` (the supplier's cm:modified) was computed by
-                            the adapter, sorted on and exported to CSV, but never rendered:
-                            the label existed with no call site. On a risk card it is the
-                            fact that says whether the file is still moving. */}
-                        {item.lastActivity
-                            ? ` · ${interpolate(local.lastActivity, {
-                                date: formatDate(item.lastActivity, lang),
-                            })}`
-                            : ''}
-                    </p>
+                                {item.name}
+                            </Link>
+                            {item.code ? (
+                                <span className="text-xs tabular-nums text-[var(--becpg-dark-grey)]">{item.code}</span>
+                            ) : null}
+                            <StatusPill
+                                status={item.approval ? item.approval.status : null}
+                                label={item.approval ? item.approval.statusLabel : undefined}
+                                size="sm"
+                            />
+                            <span
+                                className={`pill pill-sm pill-no-dot pill-${level.tone}`}
+                                title={interpolate(local.riskScore, {
+                                    score: (item.risk && item.risk.score) || 0,
+                                })}
+                            >
+                                <Icon name={level.icon} size={13} />
+                                <span>
+                                    {interpolate(local.level, { level: pickLabels(level, lang) })} ·{' '}
+                                    <span className="tabular-nums">{(item.risk && item.risk.score) || 0}</span>
+                                </span>
+                            </span>
+                        </div>
+                        {/* the motive — never a rank without its reason — then the
+                            buyer, the completion and the last activity */}
+                        <p className="mt-0.5 truncate text-xs text-[var(--becpg-dark-grey)]" title={details}>
+                            {details}
+                        </p>
+                    </div>
                 </div>
 
-                <div className="flex w-full shrink-0 flex-col items-stretch gap-2 sm:w-auto sm:items-end">
+                <div className="flex shrink-0 flex-wrap items-center gap-1.5 ps-9 lg:ps-0">
+                    <Button variant="outline" size="sm" icon="open_in_new" href={item.href}>
+                        {local.openSheet}
+                    </Button>
                     <MonitorActionButtons
                         targets={[item]}
                         allowed={(item.risk && item.risk.actions) || []}
                         onDone={onDone}
                     />
-                    <Link
-                        href={item.href}
-                        className="text-end text-xs text-[var(--becpg-blue-light)] underline underline-offset-2 hover:text-[var(--becpg-orange)]"
-                    >
-                        {local.openSheet}
-                    </Link>
                 </div>
             </div>
         </motion.li>

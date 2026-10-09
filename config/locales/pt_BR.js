@@ -675,7 +675,8 @@ const LOCALE = {
         "rows": "Linhas",
         "reminder": "Seu projeto aberto no portal ainda aguarda sua resposta. Conclua as tarefas atribuídas a você o mais breve possível.",
         "hintTargets": "Fornecedores dos projetos selecionados",
-        "noteReminder": "O beCPG não mantém registro de lembretes: a coluna “Último lembrete” mostra a última atividade do projeto, o dado mais próximo realmente disponível."
+        "noteReminder": "O beCPG não mantém registro de lembretes: a coluna “Último lembrete” mostra a última atividade do projeto, o dado mais próximo realmente disponível.",
+        "truncatedShort": "Janela: {scanned} projetos lidos"
     },
     "app/monitor/documents/page#LABELS": {
         "title": "Conformidade documental",
@@ -723,13 +724,14 @@ const LOCALE = {
     },
     "app/monitor/page#LABELS": {
         "title": "Monitoramento da base de fornecedores",
-        "description": "A base em uma página: homologação, conformidade documental, expirações, projetos e não conformidades. Em tempo real, sem necessidade de cubo.",
+        "description": "Homologação, conformidade documental, vencimentos, projetos e não conformidades da sua base, em tempo real.",
         "generatedAt": "Dados de {time}",
         "openList": "Ver a lista completa",
         "openDocuments": "Conformidade documental",
         "openCampaigns": "Projetos",
         "openQuality": "Não conformidades",
-        "truncated": "Base maior que a janela de leitura: {scanned} fornecedores lidos de {total}. Os contadores marcados com “≈” são limitados; a distribuição e o top 10 cobrem a janela."
+        "truncated": "Base maior que a janela de leitura: {scanned} fornecedores lidos de {total}. Os contadores marcados com “≈” são limitados; a distribuição e o top 10 cobrem a janela.",
+        "truncatedShort": "Janela: {scanned} fornecedores lidos"
     },
     "app/monitor/products/page#LABELS": {
         "title": "Produtos de fornecedores",
@@ -890,14 +892,12 @@ const LOCALE = {
     },
     "app/monitor/suppliers/page#LABELS": {
         "title": "Fornecedores",
-        "description": "A base, coluna por coluna. Selecione linhas para comparar, lembrar, escalar ou suspender.",
         "statuses": {
             "suspended": "Suspenso",
             "toRenew": "A renovar",
             "inProgress": "Em andamento",
             "approved": "Homologado"
         },
-        "statusHint": "Clique para filtrar",
         "statusFiltered": "Filtro ativo",
         "export": "Exportar (CSV)",
         "exportCutTitle": "Exportação incompleta: {scanned} linhas de {total}",
@@ -923,7 +923,8 @@ const LOCALE = {
             "nc": "NCs abertas",
             "lastActivity": "última atividade",
             "buyer": "comprador"
-        }
+        },
+        "truncatedShort": "Janela: {scanned} fornecedores lidos"
     },
     "app/not-found#LABELS": {
         "title": "Página não encontrada",
@@ -1585,7 +1586,8 @@ const LOCALE = {
         "noColumns": "Nenhum tipo de documento está materializado neste perímetro",
         "noColumnsHint": "O beCPG materializa os documentos esperados durante a formulação: sem exigência documental configurada, a matriz fica vazia.",
         "toggle": "Mostrar os documentos",
-        "summary": "{missing} ausente(s) · {expired} expirado(s) · {expiring} a renovar"
+        "summary": "{missing} ausente(s) · {expired} expirado(s) · {expiring} a renovar",
+        "legend": "Legenda"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Válido",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Rascunho",
@@ -1708,8 +1710,6 @@ const LOCALE = {
                 "scopeTruncated": "Taxa não calculável: {dropped} fornecedor(es) da base não puderam ser consultados.",
                 "emptyScope": "Nenhum fornecedor neste perímetro: não há nada a avaliar."
             },
-            "notParkScoped": "toda a base de fornecedores (filtro não aplicável)",
-            "supplierLinkedOnly": "somente os vinculados a um fornecedor",
             "expiring": "documentos · {d60} em 60 d, {d90} em 90 d",
             "campaigns": "abertos · {rate} % respondidos, {late} atrasado(s)",
             "campaignsNoRate": "abertos · nenhuma taxa de resposta a calcular, {late} atrasado(s)",
@@ -1720,7 +1720,6 @@ const LOCALE = {
         },
         "park": {
             "title": "Composição da base",
-            "subtitle": "Recalculada a cada exibição, a partir dos próprios cadastros",
             "empty": "Nenhum fornecedor neste perímetro",
             "share": "{share} %",
             "unknown": "{count} fornecedor(es) lido(s) sem status de homologação avaliado: não aparecem em nenhuma das barras.",
@@ -1728,7 +1727,6 @@ const LOCALE = {
         },
         "expiry": {
             "title": "Horizonte de expiração",
-            "subtitle": "Documentos fornecidos cuja validade termina",
             "cumulative": "Cumulativo: um documento contado em 30 d também é contado em 60 e 90 d.",
             "bucket": "< {days} d",
             "empty": "Nenhum documento expira nos próximos 90 dias",
@@ -1778,7 +1776,6 @@ const LOCALE = {
         "riskScore": "Pontuação de risco {score}",
         "level": "Risco {level}",
         "buyer": "Comprador: {name}",
-        "noBuyer": "Nenhum comprador responsável",
         "lastActivity": "Última atividade em {date}",
         "completion": "Completude {value} %",
         "openSheet": "Abrir a ficha",
@@ -1862,12 +1859,14 @@ const LOCALE = {
         "approvalDerived": "Recalculado a cada exibição",
         "history": "Tendência",
         "historyUnavailable": "Histórico indisponível",
-        "historyWhy": "Acompanhar homologações e pontuações ao longo do tempo requer o módulo de business intelligence (BI) do beCPG, que não está ativado nesta instância.",
+        "historyWhy": "O módulo de decisão do beCPG não pôde fornecer o histórico.",
         "historyWhyBy": {
             "supplierAxisUnavailable": "O módulo de BI está ativo, mas ainda não distingue os fornecedores: o eixo fornecedor precisa ser adicionado ao cubo e o esquema recarregado.",
             "supplierUnresolved": "Este fornecedor ainda não está no módulo de BI: ele aparecerá na próxima reconstrução.",
             "noData": "O módulo de BI conhece este fornecedor, mas ainda não tem nenhum ponto para o período: o histórico se preenche à medida que é alimentado.",
-            "unknownQuery": "A série solicitada não está declarada no portal: um defeito de configuração, não uma ausência de dados."
+            "unknownQuery": "A série solicitada não está declarada no portal: um defeito de configuração, não uma ausência de dados.",
+            "unreachable": "O módulo de decisão do beCPG não responde: está desativado nesta instância ou seu servidor está inacessível.",
+            "denied": "Sua conta não tem acesso ao módulo de decisão do beCPG."
         },
         "historyNeeds": "O que o lado BI precisa para ativá-lo",
         "dimensions": "Dimensões",
@@ -1878,7 +1877,6 @@ const LOCALE = {
         "trendCaption": "Pontuação ponderada ao longo do tempo"
     },
     "components/monitor/SupplierTable#LABELS": {
-        "search": "Filtrar os fornecedores carregados…",
         "caption": "Fornecedores da base, status de homologação e indicadores calculados",
         "columns": {
             "name": "Fornecedor",
@@ -2530,6 +2528,19 @@ const LOCALE = {
         "status.notApplicable": "Não aplicável",
         "test.banner": "Instância de TESTE — os dados digitados aqui não têm valor contratual",
         "test.badge": "Teste"
+    },
+    "components/monitor/HistoryPanel#LABELS": {
+        "title": "Evolução",
+        "help": "Lido no módulo de decisão do beCPG, carregado em lote: os números podem ser do último carregamento.",
+        "period": "Período",
+        "measures": {
+            "stepsNumber": "Tarefas",
+            "averageActualDurations": "Duração real média (d)",
+            "refusalRate": "Taxa de recusa",
+            "avgResponseDelay": "Prazo médio de resposta (d)",
+            "averageProgress": "Andamento médio",
+            "projectsNumber": "Projetos"
+        }
     }
 };
 

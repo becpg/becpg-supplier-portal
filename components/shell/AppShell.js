@@ -37,6 +37,7 @@ import { Nav } from '@/components/shell/Nav';
 import { useSession } from '@/components/providers/SessionProvider';
 import { publishBadges, readBadges, serverBadges, subscribeBadges } from '@/lib/badges';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 /** The sidebar's fold, remembered for the browser. */
 const NAV_COLLAPSED_KEY = 'becpg.portal.nav.collapsed';
@@ -325,19 +326,31 @@ export function AppShell({
  * Page header used *inside* the content column, when a screen needs a title row
  * with actions that must not live in the app header (list filters, exports).
  *
+ * What the screen is for goes in a help bubble beside the title, not in a
+ * sentence under it: read once, it is noise on every later visit.
+ *
  * @param {Object} props
  * @param {React.ReactNode} props.title
- * @param {React.ReactNode} [props.description]
+ * @param {React.ReactNode} [props.description] the help bubble's content
+ * @param {React.ReactNode} [props.meta] facts that identify the record — a code,
+ *        a state — shown under the title, unlike the description
  * @param {React.ReactNode} [props.actions]
  */
-export function PageHeader({ title, description, actions, className = '' }) {
+export function PageHeader({ title, description, meta, actions, className = '' }) {
     return (
-        <div className={`mb-4 flex flex-wrap items-start justify-between gap-3 ${className}`}>
+        <div className={`mb-4 flex flex-wrap items-center justify-between gap-3 ${className}`}>
             <div className="min-w-0">
-                <h1 className="truncate text-lg font-medium sm:text-xl">{title}</h1>
-                {description ? (
-                    <p className="mt-0.5 text-sm text-[var(--becpg-dark-grey)]">{description}</p>
-                ) : null}
+                <div className="flex min-w-0 items-center gap-2">
+                    <h1 className="truncate text-xl font-medium leading-tight text-[var(--becpg-ink)]">{title}</h1>
+                    {description ? (
+                        <Tooltip
+                            content={description}
+                            label={typeof title === 'string' ? title : undefined}
+                            placement="bottom"
+                        />
+                    ) : null}
+                </div>
+                {meta ? <div className="mt-1 text-sm text-[var(--becpg-dark-grey)]">{meta}</div> : null}
             </div>
             {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
         </div>
