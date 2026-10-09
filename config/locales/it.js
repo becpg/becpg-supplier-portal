@@ -1130,6 +1130,12 @@ const LOCALE = {
         "all": "Vedi i miei documenti",
         "toHandle": "da gestire"
     },
+    "components/dashboard/NonConformityCard#LOCAL": {
+        "title": "Non conformità aperte",
+        "hint": "Registrate dal vostro cliente, che vi contatterà per la loro gestione.",
+        "declared": "Dichiarata il {date}",
+        "priority": "Priorità {level}"
+    },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "Le mie notifiche",
         "empty": "Nessuna notifica",

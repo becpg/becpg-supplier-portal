@@ -1130,6 +1130,12 @@ const LOCALE = {
         "all": "Belgelerimi gör",
         "toHandle": "ele alınacak"
     },
+    "components/dashboard/NonConformityCard#LOCAL": {
+        "title": "Açık uygunsuzluklar",
+        "hint": "Müşteriniz tarafından kaydedildi; işlemleri için sizinle iletişime geçecektir.",
+        "declared": "Bildirim tarihi: {date}",
+        "priority": "Öncelik {level}"
+    },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "Bildirimlerim",
         "empty": "Bildirim yok",

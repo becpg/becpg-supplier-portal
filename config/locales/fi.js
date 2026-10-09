@@ -1130,6 +1130,12 @@ const LOCALE = {
         "all": "Näytä omat asiakirjat",
         "toHandle": "käsiteltävänä"
     },
+    "components/dashboard/NonConformityCard#LOCAL": {
+        "title": "Avoimet poikkeamat",
+        "hint": "Asiakkaanne kirjaamia; asiakas ottaa teihin yhteyttä niiden käsittelystä.",
+        "declared": "Ilmoitettu {date}",
+        "priority": "Prioriteetti {level}"
+    },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "Omat ilmoitukset",
         "empty": "Ei ilmoituksia",

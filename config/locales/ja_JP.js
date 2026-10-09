@@ -1130,6 +1130,12 @@ const LOCALE = {
         "all": "文書を表示",
         "toHandle": "件が要対応"
     },
+    "components/dashboard/NonConformityCard#LOCAL": {
+        "title": "未解決の不適合",
+        "hint": "お客様が登録したものです。対応についてはお客様からご連絡があります。",
+        "declared": "{date} に報告",
+        "priority": "優先度 {level}"
+    },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "通知",
         "empty": "通知はありません",

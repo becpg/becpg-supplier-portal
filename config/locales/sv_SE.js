@@ -1130,6 +1130,12 @@ const LOCALE = {
         "all": "Visa mina dokument",
         "toHandle": "att hantera"
     },
+    "components/dashboard/NonConformityCard#LOCAL": {
+        "title": "Öppna avvikelser",
+        "hint": "Registrerade av kunden, som kontaktar dig om hanteringen.",
+        "declared": "Rapporterad den {date}",
+        "priority": "Prioritet {level}"
+    },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "Mina aviseringar",
         "empty": "Inga aviseringar",

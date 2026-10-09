@@ -1130,6 +1130,12 @@ const LOCALE = {
         "all": "Meine Dokumente anzeigen",
         "toHandle": "zu bearbeiten"
     },
+    "components/dashboard/NonConformityCard#LOCAL": {
+        "title": "Offene Abweichungen",
+        "hint": "Von Ihrem Kunden erfasst, der sich wegen der Bearbeitung an Sie wenden wird.",
+        "declared": "Gemeldet am {date}",
+        "priority": "Priorität {level}"
+    },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "Meine Benachrichtigungen",
         "empty": "Keine Benachrichtigung",

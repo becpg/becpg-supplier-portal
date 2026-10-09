@@ -1130,6 +1130,12 @@ const LOCALE = {
         "all": "عرض مستنداتي",
         "toHandle": "للمعالجة"
     },
+    "components/dashboard/NonConformityCard#LOCAL": {
+        "title": "حالات عدم المطابقة المفتوحة",
+        "hint": "سجّلها عميلكم، وسيتواصل معكم بشأن معالجتها.",
+        "declared": "أُبلغ عنها في {date}",
+        "priority": "الأولوية {level}"
+    },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "إشعاراتي",
         "empty": "لا توجد إشعارات",

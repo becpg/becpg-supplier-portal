@@ -1130,6 +1130,12 @@ const LOCALE = {
         "all": "查看我的文件",
         "toHandle": "待处理"
     },
+    "components/dashboard/NonConformityCard#LOCAL": {
+        "title": "未关闭的不合格项",
+        "hint": "由您的客户登记，客户将就处理事宜与您联系。",
+        "declared": "报告于 {date}",
+        "priority": "优先级 {level}"
+    },
     "components/dashboard/NotificationList#NOTIFICATION_LABELS": {
         "title": "我的通知",
         "empty": "无通知",
