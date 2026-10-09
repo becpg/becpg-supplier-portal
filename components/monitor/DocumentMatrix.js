@@ -573,7 +573,12 @@ export function DocumentMatrix({
                                                 >
                                                     {supplier.name}
                                                 </Link>
-                                                <SupplierCompliance code={supplier.code} summary={row.summary} labels={labels} />
+                                                <SupplierCompliance
+                                                    code={supplier.code}
+                                                    // Nothing expected is not "100 % compliant": no bar.
+                                                    summary={Object.keys(row.cells || {}).length > 0 ? row.summary : null}
+                                                    labels={labels}
+                                                />
                                             </span>
                                         </span>
                                     </th>
