@@ -913,15 +913,16 @@ export function DatasourcePicker({
     const placeholder = inline && selected.length > 0 ? '' : singleLabel || labels.search;
 
     return (
-        <div className={inline ? 'relative flex flex-wrap items-center gap-1' : 'relative'} {...rest}>
+        <div className={inline ? 'relative flex items-center gap-1' : 'relative'} {...rest}>
             {many && selected.length > 0 ? (
                 <ul className={inline ? 'contents' : 'mb-1 flex flex-wrap gap-1'}>
                     {selected.map((entry) => (
                         <li
                             key={entry}
-                            className="inline-flex max-w-full items-center gap-1 rounded-lg bg-[var(--becpg-blue-lighter)] px-2 py-1 text-xs text-[var(--becpg-blue)]"
+                            title={inline ? labelOf(entry) : undefined}
+                            className={`inline-flex max-w-full items-center gap-1 rounded-lg bg-[var(--becpg-blue-lighter)] px-2 py-1 text-xs text-[var(--becpg-blue)] ${inline ? 'min-w-0 shrink' : ''}`}
                         >
-                            <span className="min-w-0 break-words">{labelOf(entry)}</span>
+                            <span className={inline ? 'min-w-0 truncate' : 'min-w-0 break-words'}>{labelOf(entry)}</span>
                             <button
                                 type="button"
                                 onClick={() => remove(entry)}
@@ -935,7 +936,7 @@ export function DatasourcePicker({
                 </ul>
             ) : null}
 
-            <div ref={anchorRef} className={inline ? 'flex min-w-[4rem] flex-1 items-center gap-1' : 'flex items-center gap-1'}>
+            <div ref={anchorRef} className={inline ? 'flex min-w-[2.5rem] flex-1 items-center gap-1' : 'flex items-center gap-1'}>
                 <Input
                     ref={inputRef}
                     id={id}

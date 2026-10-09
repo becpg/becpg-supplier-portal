@@ -527,15 +527,16 @@ export default async function DashboardPage() {
                     todoCount={openTasks.length + (dashboard?.nonConformities?.length || 0)}
                     todo={
                         /*
-                         * A multi-column flow, not a grid: the browser balances the
-                         * columns by height, so the zone ends level whatever the mix
-                         * of tasks, documents and threads. `break-inside-avoid` keeps
-                         * a card whole and the DOM order, hence the tab order, is
-                         * unchanged.
+                         * Three stacks of comparable height: the conversations and
+                         * the tasks, the products, the documents. The DOM order is
+                         * the reading order, so the tab order follows the columns.
                          */
-                        <div className="lg:columns-2 lg:gap-4 xl:columns-3 [&>*]:mb-3 [&>*]:break-inside-avoid sm:[&>*]:mb-4 lg:[&>*:last-child]:mb-0">
-                            <NonConformityCard nonConformities={dashboard ? dashboard.nonConformities : null} index={0} />
-                            <TaskList tasks={tasks} total={openTasks.length} index={0} />
+                        <div className="grid grid-cols-1 items-start gap-3 sm:gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                            <div className="flex flex-col gap-3 sm:gap-4">
+                                <NonConformityCard nonConformities={dashboard ? dashboard.nonConformities : null} index={0} />
+                                <DiscussionList threads={threads} index={0} />
+                                <TaskList tasks={tasks} total={openTasks.length} index={1} />
+                            </div>
                             {/* `totalItems` is null when beCPG could not count the products
                                 (see `formatTotal`); the floor travels with it so the card can
                                 say "100+" instead of silently showing the preview size. */}
@@ -543,10 +544,9 @@ export default async function DashboardPage() {
                                 products={products}
                                 total={entityResult.pagination.totalItems}
                                 totalAtLeast={entityResult.pagination.totalAtLeast}
-                                index={1}
+                                index={2}
                             />
-                            <DocumentList documents={documents} total={documentTotal} index={2} />
-                            <DiscussionList threads={threads} index={3} />
+                            <DocumentList documents={documents} total={documentTotal} index={3} />
                         </div>
                     }
                     followUp={
