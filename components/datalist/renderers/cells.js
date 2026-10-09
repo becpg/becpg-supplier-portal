@@ -101,7 +101,10 @@ export function Indent({ depth, step = 25, layout = 'table', title, children }) 
         return <span title={title || undefined}>{children}</span>;
     }
     return (
-        <span style={{ marginInlineStart: `${offset}px` }} title={title || undefined}>
+        // A block, not an inline span: the label inside is a flex row, and an
+        // inline margin only moves the first line box, which pushed the name onto
+        // a line of its own with no indent at all.
+        <span className="block" style={{ marginInlineStart: `${offset}px` }} title={title || undefined}>
             {children}
         </span>
     );
