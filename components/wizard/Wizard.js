@@ -224,17 +224,6 @@ function resumeKey(entityId) {
 const WIDE_KEY = 'becpg.portal.wizard.wide';
 
 /**
- * The rail folded on its own, panels kept. Same reasoning as {@link WIDE_KEY}:
- * a working habit survives the reload.
- *
- * It is a separate preference and not a degree of `wide` because the two answer
- * different questions — "I want the table wider" and "I am done with the help
- * and the discussion". Folding the rail from the rail itself must not take the
- * panels away with it.
- */
-const RAIL_KEY = 'becpg.portal.wizard.rail';
-
-/**
  * A boolean layout preference kept in `localStorage`.
  *
  * Read once in a lazy initialiser: it is an entry condition, not a value that
@@ -780,20 +769,10 @@ export function Wizard({
      * So the cap is released automatically on a grid step (that is the rule
      * `AppShell` already documents — "a screen whose content is a grid goes full
      * width" — applied per step rather than per route), and this flag is the
-     * supplier's own decision about the other two: panels out, rail reduced to
-     * its icons. Read once, in a lazy initialiser, because it is an entry
+     * supplier's own decision about the panels: out of the way. Read once, in a lazy initialiser, because it is an entry
      * condition and not a value that changes while the wizard is open.
      */
     const [wide, toggleWide] = useStoredFlag(WIDE_KEY);
-    /*
-     * The rail folded on its own — the chevron drawn on the rail's own head.
-     *
-     * `wide` forces it: that mode is defined as "panels out, rail reduced to its
-     * icons", so the rail has no say while it is on, and its chevron gives way
-     * to the "rétablir les panneaux" button underneath.
-     */
-    const [railFolded, toggleRail] = useStoredFlag(RAIL_KEY);
-    const railCollapsed = wide || railFolded;
 
     const [anchor, setAnchor] = useState(null);
     const [commentTargets, setCommentTargets] = useState([]);
@@ -1824,11 +1803,8 @@ export function Wizard({
                         ) : null}
                         {/*
                           * Only from `xl` up, and not `lg`: it is at `xl` that
-                          * the rail and the panels appear
-                          * (`xl:grid-cols-[13rem_1fr]`, `hidden xl:block`).
-                          * Between `lg` and `xl`, the button showed with nothing
-                          * to hide — it produced no visible change, which is
-                          * worse than no button at all.
+                          * the panels appear. Between `lg` and `xl`, the button
+                          * would show with nothing to hide.
                           */}
                         <Button
                             variant="outline"
@@ -1903,48 +1879,19 @@ export function Wizard({
                         }
                     }}
                 />
-            </Card>
-
-            <div className={`grid min-w-0 gap-4 ${railCollapsed ? 'xl:grid-cols-[3.25rem_1fr]' : 'xl:grid-cols-[13rem_1fr]'}`}>
+                {/* The steps, one row in the header: the form gets the width a
+                    rail used to take. The phone keeps its own selector below. */}
                 <WizardStepper
                     steps={visitedSteps}
                     currentId={currentId}
                     onSelect={goTo}
-                    /*
-                     * NO TUNNEL AT ALL — every step is reachable.
-                     *
-                     * The rule used to be "the ones already seen, plus the next
-                     * one", which is Share's `enableAllSteps` read literally. On
-                     * a twelve-step assistant that leaves nine buttons greyed
-                     * out on opening, and a supplier who has the nutritional
-                     * table in front of him cannot go and type it: he has to
-                     * walk through every tab in between. It also contradicted
-                     * the conformity step, whose « champ manquant » links aim
-                     * straight at the tab that holds the gap.
-                     *
-                     * Order is a suggestion here, never a gate: what may not be
-                     * written is decided server-side, per step (`readOnly`,
-                     * `frozen`), and what is missing is said by the rail and by
-                     * « Terminer ».
-                     */
                     isSelectable={() => true}
-                    variant="rail"
-                    collapsed={railCollapsed}
-                    onToggleCollapsed={wide ? undefined : toggleRail}
-                    footer={wide ? (
-                        <button
-                            type="button"
-                            onClick={toggleWide}
-                            title={labels.restore}
-                            aria-label={labels.restore}
-                            className="mt-1 flex w-full items-center justify-center rounded-xl py-1.5 text-[var(--becpg-dark-grey-deep)] hover:bg-[var(--becpg-grey)]/50 hover:text-[var(--becpg-blue)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
-                        >
-                            <Icon name="chevron_right" size={18} />
-                        </button>
-                    ) : null}
-                    className="hidden xl:sticky xl:top-24 xl:block xl:self-start"
+                    variant="trail"
+                    className="-mx-1 mt-3 hidden border-t border-[var(--becpg-line)] pt-3 xl:block"
                 />
+            </Card>
 
+            <div className="grid min-w-0 gap-4">
                 <div className="min-w-0">
                     <div className="mb-3 flex flex-col gap-2 xl:hidden">
                         <WizardStepper

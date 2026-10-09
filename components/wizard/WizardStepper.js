@@ -34,6 +34,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Icon } from '@/components/ui/Button';
 import { ListIcon } from '@/components/ui/ListIcon';
 import { Modal } from '@/components/ui/Modal';
+import { TabScroller } from '@/components/ui/TabScroller';
 import { useMessages } from '@/lib/messages';
 import { hasListIcon } from '@/lib/listIcons';
 import { defineLabels, pickLabels } from '@/lib/i18n';
@@ -318,9 +319,49 @@ function CollapsedStepButton({ step, index, total, active, selectable, onSelect,
 }
 
 /**
+ * One entry of the trail: the step as a chip in the header, its state drawn by
+ * its icon and its colour, and what is missing as a short count beside it.
+ */
+function TrailStepButton({ step, index, total, active, selectable, onSelect, labels, state, icon, incomplete, done, details }) {
+    const name = `${step.label} · ${fill(labels.step, { index, total })} · ${state}`;
+    return (
+        <button
+            type="button"
+            data-tab-key={step.id}
+            disabled={!selectable}
+            aria-current={active ? 'step' : undefined}
+            aria-label={name}
+            title={details.length > 0 ? `${step.label} · ${details.join(' · ')}` : step.label}
+            onClick={() => onSelect(step.id)}
+            className={[
+                'inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-colors',
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]',
+                active
+                    ? 'bg-[var(--becpg-blue)] text-white'
+                    : incomplete
+                      ? 'bg-[var(--status-warn-bg)] text-[var(--becpg-ink)] hover:bg-[var(--becpg-teal-wash)]'
+                      : 'bg-[var(--becpg-grey)]/60 text-[var(--becpg-ink)] hover:bg-[var(--becpg-teal-wash)]',
+            ].join(' ')}
+        >
+            <Icon
+                name={icon}
+                size={16}
+                className={active ? 'text-white' : incomplete ? 'text-[var(--status-warn)]' : done ? 'text-[var(--becpg-teal)]' : 'text-[var(--becpg-dark-grey)]'}
+            />
+            <span className="whitespace-nowrap">{step.label}</span>
+            {incomplete ? (
+                <span className={`rounded-full px-1.5 text-[11px] leading-[18px] tabular-nums ${active ? 'bg-white/20 text-white' : 'bg-white text-[var(--status-warn)]'}`}>
+                    {step.issues.count}
+                </span>
+            ) : null}
+        </button>
+    );
+}
+
+/**
  * One entry of the list, shared by the rail and the sheet.
  */
-function StepButton({ step, index, total, active, selectable, onSelect, labels, dense = false, collapsed = false }) {
+function StepButton({ step, index, total, active, selectable, onSelect, labels, dense = false, collapsed = false, trail = false }) {
     const reduceMotion = useReducedMotion();
     // A step the supplier opened and left with a mandatory answer still blank.
     // It must NOT read as done: a green check on a step that blocks the
@@ -425,6 +466,25 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
         : catalogGap
           ? 'text-[var(--status-danger)]'
           : 'text-[var(--becpg-dark-grey)]';
+
+    if (trail) {
+        return (
+            <TrailStepButton
+                step={step}
+                index={index}
+                total={total}
+                active={active}
+                selectable={selectable}
+                onSelect={onSelect}
+                labels={labels}
+                state={spoken}
+                icon={icon}
+                incomplete={incomplete}
+                done={done}
+                details={details}
+            />
+        );
+    }
 
     if (collapsed) {
         return (
@@ -542,7 +602,8 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
  * @param {string} props.currentId
  * @param {(stepId: string) => void} props.onSelect
  * @param {(step: Object, index: number) => boolean} [props.isSelectable] defaults to "visited or current"
- * @param {'rail'|'compact'} [props.variant='rail']
+ * @param {'rail'|'compact'|'trail'} [props.variant='rail'] `trail`: one scrolling row of
+ *   chips, for the header of the screen
  * @param {boolean} [props.collapsed=false] rail reduced to its bullets — see
  *   {@link CollapsedStepButton} for how the labels stay reachable
  * @param {Function} [props.onToggleCollapsed] folds and unfolds the rail; the
@@ -577,6 +638,26 @@ export function WizardStepper({
 
     if (total === 0) {
         return null;
+    }
+
+    if (variant === 'trail') {
+        return (
+            <TabScroller ariaLabel={labels.title} activeKey={currentId} tabs={false} surface="card" className={className} trackClassName="gap-1.5 px-1 py-1">
+                {list.map((step, index) => (
+                    <StepButton
+                        key={step.id}
+                        step={step}
+                        index={index + 1}
+                        total={total}
+                        active={step.id === currentId}
+                        selectable={selectable(step, index)}
+                        onSelect={select}
+                        labels={labels}
+                        trail
+                    />
+                ))}
+            </TabScroller>
+        );
     }
 
     if (variant === 'compact') {

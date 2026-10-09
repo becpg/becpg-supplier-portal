@@ -36,6 +36,7 @@ import { RequirementChecklist } from '@/components/documents/RequirementChecklis
 import { DepositedDocuments } from '@/components/documents/DepositedDocuments';
 import { CommentsPanel } from '@/components/wizard/panels/CommentsPanel';
 import { ListIcon } from '@/components/ui/ListIcon';
+import { TabScroller } from '@/components/ui/TabScroller';
 import { ReviewChanges, changesOfStep, useStepLabels } from '@/components/review/ReviewChanges';
 import { AiPrecheck, checksBySection, usePrecheck } from '@/components/review/AiPrecheck';
 import { api, useApi } from '@/lib/client';
@@ -60,8 +61,6 @@ const LABELS = defineLabels('components/review/ReviewWorkspace#LABELS', {
         accepted: 'acceptée',
         returned: 'correction demandée',
         toRead: 'à relire',
-        legendAccepted: 'acceptée',
-        legendReturned: 'correction demandée',
         legendChanged: 'changements depuis la référence',
         aiPoints: 'points relevés par l’IA',
         frozen: 'Liste validée',
@@ -101,8 +100,6 @@ const LABELS = defineLabels('components/review/ReviewWorkspace#LABELS', {
         accepted: 'accepted',
         returned: 'correction requested',
         toRead: 'to review',
-        legendAccepted: 'accepted',
-        legendReturned: 'correction requested',
         legendChanged: 'changes since the reference',
         aiPoints: 'points raised by the AI',
         frozen: 'Validated list',
@@ -167,40 +164,42 @@ function useReviewMarks(taskId) {
     return [marks, setMarks];
 }
 
-function RailItem({ section, current, status, changes, aiPoints, labels, onSelect }) {
+function TrailItem({ section, current, status, changes, aiPoints, labels, onSelect }) {
     const icon = status === ACCEPTED ? 'check_circle' : status === RETURNED ? 'reply' : 'radio_button_unchecked';
     const tone = status === ACCEPTED ? 'text-[var(--status-ok)]' : status === RETURNED ? 'text-[var(--becpg-orange-deep)]' : 'text-[var(--becpg-muted)]';
     const word = status === ACCEPTED ? labels.accepted : status === RETURNED ? labels.returned : labels.toRead;
     return (
         <button
             type="button"
+            data-tab-key={section.id}
             onClick={() => onSelect(section.id)}
-            aria-current={current ? 'true' : undefined}
-            className={`grid w-full grid-cols-[1.25rem_minmax(0,1fr)_auto] items-center gap-2 rounded-lg px-2.5 py-2 text-start text-sm ${
-                current ? 'bg-[var(--becpg-blue)] text-white' : 'hover:bg-[var(--becpg-teal-wash)]'
+            aria-current={current ? 'step' : undefined}
+            title={word}
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${
+                current ? 'bg-[var(--becpg-blue)] text-white' : 'bg-[var(--becpg-grey)]/60 text-[var(--becpg-ink)] hover:bg-[var(--becpg-teal-wash)]'
             }`}
         >
-            <Icon name={icon} size={18} className={current ? 'text-white' : tone} />
-            <span className="min-w-0 truncate">
-                {section.label}
-                <span className="sr-only-text">{` (${word})`}</span>
-            </span>
-            <span className="inline-flex items-center gap-1">
-                {aiPoints > 0 ? (
-                    <span
-                        title={labels.aiPoints}
-                        className={`inline-flex items-center gap-0.5 rounded-full px-1.5 text-[11px] leading-[18px] tabular-nums ${current ? 'bg-white/20 text-white' : 'bg-[var(--status-warn-bg)] text-[var(--status-warn)]'}`}
-                    >
-                        <Icon name="auto_awesome" size={11} />{aiPoints}
-                        <span className="sr-only-text">{` ${labels.aiPoints}`}</span>
-                    </span>
-                ) : null}
-                {changes > 0 ? (
-                    <span className={`rounded-full px-1.5 text-[11px] leading-[18px] tabular-nums ${current ? 'bg-white/20 text-white' : 'bg-[var(--status-info-bg)] text-[var(--status-info)]'}`}>
-                        {changes}
-                    </span>
-                ) : null}
-            </span>
+            <Icon name={icon} size={16} className={current ? 'text-white' : tone} />
+            <span className="whitespace-nowrap">{section.label}</span>
+            <span className="sr-only-text">{` (${word})`}</span>
+            {aiPoints > 0 ? (
+                <span
+                    title={labels.aiPoints}
+                    className={`inline-flex items-center gap-0.5 rounded-full px-1.5 text-[11px] leading-[18px] tabular-nums ${current ? 'bg-white/20 text-white' : 'bg-[var(--status-warn-bg)] text-[var(--status-warn)]'}`}
+                >
+                    <Icon name="auto_awesome" size={11} />{aiPoints}
+                    <span className="sr-only-text">{` ${labels.aiPoints}`}</span>
+                </span>
+            ) : null}
+            {changes > 0 ? (
+                <span
+                    title={labels.legendChanged}
+                    className={`rounded-full px-1.5 text-[11px] leading-[18px] tabular-nums ${current ? 'bg-white/20 text-white' : 'bg-[var(--status-info-bg)] text-[var(--status-info)]'}`}
+                >
+                    {changes}
+                    <span className="sr-only-text">{` ${labels.legendChanged}`}</span>
+                </span>
+            ) : null}
         </button>
     );
 }
@@ -287,7 +286,7 @@ function composeMessage(remarks, entityName, labels) {
     return `${fill(labels.messageIntro, { name: entityName || '' })}\n${lines.join('\n')}${labels.messageOutro}`;
 }
 
-function ReviewHeader({ task, diff, done, total, remarks, canValidate, labels, lang, onSendBack, onValidate }) {
+function ReviewHeader({ task, diff, done, total, remarks, canValidate, labels, lang, onSendBack, onValidate, children }) {
     const reference = diff.data?.reference;
     const comparison = diff.loading ? null : reference
         ? (reference.kind === 'branch'
@@ -330,6 +329,7 @@ function ReviewHeader({ task, diff, done, total, remarks, canValidate, labels, l
                     {task.isOpen ? <span>{labels.validateHint}</span> : <span>{labels.closed}</span>}
                 </div>
             </div>
+            {children}
         </Card>
     );
 }
@@ -464,11 +464,10 @@ export function ReviewWorkspace({ task, taskId, entityNodeRef, wizardId, onDone 
                 lang={lang}
                 onSendBack={() => { setMessage(composeMessage(marks.remarks, task.entity?.name, labels)); setConfirming('refuse'); }}
                 onValidate={() => setConfirming('complete')}
-            />
-            <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[13.5rem_minmax(0,1fr)] 2xl:grid-cols-[13.5rem_minmax(0,1fr)_22rem]">
-                <nav aria-label={labels.sections} className="rounded-2xl border border-[var(--becpg-line)] bg-white p-2 shadow-[var(--becpg-shadow-raised)] lg:sticky lg:top-4">
+            >
+                <TabScroller ariaLabel={labels.sections} activeKey={current.id} tabs={false} surface="card" className="-mx-1 mt-3 border-t border-[var(--becpg-line)] pt-3" trackClassName="gap-1.5 px-1 py-1">
                     {sections.map((section) => (
-                        <RailItem
+                        <TrailItem
                             key={section.id}
                             section={section}
                             current={section.id === current.id}
@@ -479,13 +478,9 @@ export function ReviewWorkspace({ task, taskId, entityNodeRef, wizardId, onDone 
                             onSelect={(id) => { setCurrentId(id); setCorrecting(false); }}
                         />
                     ))}
-                    <div className="mt-2 flex flex-col gap-1 border-t border-[var(--becpg-line)] px-2.5 pt-2 text-[11.5px] text-[var(--becpg-muted)]">
-                        <span className="inline-flex items-center gap-1.5"><Icon name="check_circle" size={14} className="text-[var(--status-ok)]" />{labels.legendAccepted}</span>
-                        <span className="inline-flex items-center gap-1.5"><Icon name="reply" size={14} className="text-[var(--becpg-orange-deep)]" />{labels.legendReturned}</span>
-                        <span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-[var(--status-info-bg)] px-1.5 text-[10px] text-[var(--status-info)]">n</span>{labels.legendChanged}</span>
-                    </div>
-                </nav>
-
+                </TabScroller>
+            </ReviewHeader>
+            <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] 2xl:grid-cols-[minmax(0,1fr)_22rem]">
                 <section className="min-w-0 rounded-2xl border border-[var(--becpg-line)] bg-white shadow-[var(--becpg-shadow-raised)]">
                     <div className="flex flex-wrap items-center gap-2.5 border-b border-[var(--becpg-line)] px-4 py-3">
                         <h2 className="inline-flex items-center gap-2 text-base font-medium text-[var(--becpg-ink)]">
@@ -523,7 +518,7 @@ export function ReviewWorkspace({ task, taskId, entityNodeRef, wizardId, onDone 
                     ) : null}
                 </section>
 
-                <aside className="flex min-w-0 flex-col gap-4 lg:col-span-2 2xl:col-span-1 2xl:sticky 2xl:top-4">
+                <aside className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-4">
                     <AiPrecheck
                         precheck={precheck}
                         sections={sections}
