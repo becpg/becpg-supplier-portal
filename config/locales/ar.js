@@ -87,6 +87,7 @@ const LOCALE = {
             "actions": ""
         },
         "download": "تنزيل",
+        "view": "عرض",
         "noFile": "لم يُقدَّم بعد",
         "blockingBanner": "{count} مستند(ات) إلزامية تعيق اعتمادكم. وهي في أعلى القائمة.",
         "scopeEmpty": "حسابكم غير مرتبط بأي مورّد، لذا لا يمكن حساب أي متطلبات للمستندات. العدادات أعلاه فارغة، لا مستوفاة. يُرجى التواصل مع ممثلكم لدى العميل."
@@ -1099,6 +1100,11 @@ const LOCALE = {
         "openProject": "مشروع إدراج مفتوح",
         "openNonConformity": "حالة عدم مطابقة مفتوحة"
     },
+    "components/dashboard/DashboardTabs#LOCAL": {
+        "label": "لوحة المعلومات الخاصة بي",
+        "todo": "للتنفيذ",
+        "followUp": "المتابعة"
+    },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "مناقشاتي",
         "empty": "لا توجد مناقشات",
@@ -1124,6 +1130,7 @@ const LOCALE = {
         "upload": "رفع إصدار جديد",
         "uploadFirst": "رفع المستند",
         "download": "تنزيل",
+        "view": "عرض",
         "uploading": "جارٍ الرفع…",
         "uploaded": "تم رفع المستند. وهو الآن بانتظار اعتماد عميلكم."
     },

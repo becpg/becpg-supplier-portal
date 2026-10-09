@@ -87,6 +87,7 @@ const LOCALE = {
             "actions": ""
         },
         "download": "Baixar",
+        "view": "Consultar",
         "noFile": "Ainda não fornecido",
         "blockingBanner": "{count} documento(s) obrigatório(s) estão bloqueando sua homologação. Eles aparecem no topo da lista.",
         "scopeEmpty": "Sua conta não está vinculada a nenhum fornecedor, portanto nenhuma exigência documental pode ser calculada. Os contadores acima estão vazios, não atendidos. Entre em contato com seu interlocutor no cliente."
@@ -1099,6 +1100,11 @@ const LOCALE = {
         "openProject": "Projeto de referenciamento aberto",
         "openNonConformity": "Não conformidade aberta"
     },
+    "components/dashboard/DashboardTabs#LOCAL": {
+        "label": "Meu painel",
+        "todo": "A fazer",
+        "followUp": "Acompanhamento"
+    },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "Minhas discussões",
         "empty": "Nenhuma discussão",
@@ -1124,6 +1130,7 @@ const LOCALE = {
         "upload": "Enviar uma nova versão",
         "uploadFirst": "Enviar o documento",
         "download": "Baixar",
+        "view": "Consultar",
         "uploading": "Enviando…",
         "uploaded": "Documento enviado. Ele agora aguarda a validação do seu cliente."
     },

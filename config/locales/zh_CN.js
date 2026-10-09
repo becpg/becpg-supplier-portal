@@ -87,6 +87,7 @@ const LOCALE = {
             "actions": ""
         },
         "download": "下载",
+        "view": "查看",
         "noFile": "尚未提供",
         "blockingBanner": "有 {count} 份必需文件影响您的认证。它们显示在列表顶部。",
         "scopeEmpty": "您的账户未关联任何供应商，因此无法计算文件要求。上方计数器为空，并不代表已满足。请联系您的客户代表。"
@@ -1099,6 +1100,11 @@ const LOCALE = {
         "openProject": "进行中的准入项目",
         "openNonConformity": "未关闭的不合格项"
     },
+    "components/dashboard/DashboardTabs#LOCAL": {
+        "label": "我的仪表板",
+        "todo": "待办",
+        "followUp": "跟进"
+    },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "我的讨论",
         "empty": "无讨论",
@@ -1124,6 +1130,7 @@ const LOCALE = {
         "upload": "上传新版本",
         "uploadFirst": "上传文件",
         "download": "下载",
+        "view": "查看",
         "uploading": "正在上传…",
         "uploaded": "文件已上传，正在等待客户确认。"
     },

@@ -87,6 +87,7 @@ const LOCALE = {
             "actions": ""
         },
         "download": "Ladda ned",
+        "view": "Visa",
         "noFile": "Inte inlämnat ännu",
         "blockingBanner": "{count} obligatoriska dokument hindrar ditt godkännande. De ligger överst i listan.",
         "scopeEmpty": "Ditt konto är inte kopplat till någon leverantör, så inga dokumentkrav kan beräknas. Räknarna ovan är tomma, inte uppfyllda. Kontakta din kundrepresentant."
@@ -1099,6 +1100,11 @@ const LOCALE = {
         "openProject": "Öppet listningsprojekt",
         "openNonConformity": "Öppen avvikelse"
     },
+    "components/dashboard/DashboardTabs#LOCAL": {
+        "label": "Min översikt",
+        "todo": "Att göra",
+        "followUp": "Uppföljning"
+    },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "Mina diskussioner",
         "empty": "Inga diskussioner",
@@ -1124,6 +1130,7 @@ const LOCALE = {
         "upload": "Ladda upp en ny version",
         "uploadFirst": "Ladda upp dokumentet",
         "download": "Ladda ned",
+        "view": "Visa",
         "uploading": "Laddar upp…",
         "uploaded": "Dokumentet har laddats upp. Det väntar nu på kundens validering."
     },

@@ -87,6 +87,7 @@ const LOCALE = {
             "actions": ""
         },
         "download": "Lataa",
+        "view": "Näytä",
         "noFile": "Ei vielä toimitettu",
         "blockingBanner": "Hyväksyntäänne estäviä pakollisia asiakirjoja: {count}. Ne ovat luettelon alussa.",
         "scopeEmpty": "Tiliänne ei ole liitetty mihinkään toimittajaan, joten asiakirjavaatimuksia ei voida laskea. Yllä olevat laskurit ovat tyhjiä, eivät täytettyjä. Ottakaa yhteyttä asiakkaan yhteyshenkilöön."
@@ -1099,6 +1100,11 @@ const LOCALE = {
         "openProject": "Avoin listausprojekti",
         "openNonConformity": "Avoin poikkeama"
     },
+    "components/dashboard/DashboardTabs#LOCAL": {
+        "label": "Oma koontinäyttö",
+        "todo": "Tehtävää",
+        "followUp": "Seuranta"
+    },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "Omat keskustelut",
         "empty": "Ei keskusteluja",
@@ -1124,6 +1130,7 @@ const LOCALE = {
         "upload": "Lataa uusi versio",
         "uploadFirst": "Lataa asiakirja",
         "download": "Lataa",
+        "view": "Näytä",
         "uploading": "Ladataan…",
         "uploaded": "Asiakirja ladattu. Se odottaa nyt asiakkaan hyväksyntää."
     },

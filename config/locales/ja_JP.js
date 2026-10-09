@@ -87,6 +87,7 @@ const LOCALE = {
             "actions": ""
         },
         "download": "ダウンロード",
+        "view": "表示",
         "noFile": "未提出",
         "blockingBanner": "{count} 件の必須文書により承認が保留されています。リストの先頭に表示されています。",
         "scopeEmpty": "お使いのアカウントはどのサプライヤーにも紐付けられていないため、文書の要求事項を算出できません。上記のカウンターは「充足」ではなく「空」の状態です。お客様のご担当者にお問い合わせください。"
@@ -1099,6 +1100,11 @@ const LOCALE = {
         "openProject": "進行中の取引登録プロジェクト",
         "openNonConformity": "未解決の不適合"
     },
+    "components/dashboard/DashboardTabs#LOCAL": {
+        "label": "マイダッシュボード",
+        "todo": "要対応",
+        "followUp": "フォローアップ"
+    },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "ディスカッション",
         "empty": "ディスカッションはありません",
@@ -1124,6 +1130,7 @@ const LOCALE = {
         "upload": "新しいバージョンをアップロード",
         "uploadFirst": "文書をアップロード",
         "download": "ダウンロード",
+        "view": "表示",
         "uploading": "アップロード中…",
         "uploaded": "文書をアップロードしました。現在、お客様の承認待ちです。"
     },

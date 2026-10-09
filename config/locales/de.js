@@ -87,6 +87,7 @@ const LOCALE = {
             "actions": ""
         },
         "download": "Herunterladen",
+        "view": "Ansehen",
         "noFile": "Noch nicht bereitgestellt",
         "blockingBanner": "{count} Pflichtdokument(e) halten Ihre Freigabe zurück. Sie stehen oben in der Liste.",
         "scopeEmpty": "Ihr Konto ist keinem Lieferanten zugeordnet, daher kann keine Dokumentenanforderung berechnet werden. Die Zähler oben sind leer, nicht erfüllt. Wenden Sie sich an Ihren Ansprechpartner beim Kunden."
@@ -1099,6 +1100,11 @@ const LOCALE = {
         "openProject": "Offenes Listungsprojekt",
         "openNonConformity": "Offene Abweichung"
     },
+    "components/dashboard/DashboardTabs#LOCAL": {
+        "label": "Mein Dashboard",
+        "todo": "Zu erledigen",
+        "followUp": "Nachverfolgung"
+    },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "Meine Diskussionen",
         "empty": "Keine Diskussion",
@@ -1124,6 +1130,7 @@ const LOCALE = {
         "upload": "Neue Version hochladen",
         "uploadFirst": "Dokument hochladen",
         "download": "Herunterladen",
+        "view": "Ansehen",
         "uploading": "Wird hochgeladen…",
         "uploaded": "Dokument hochgeladen. Es wartet nun auf die Validierung durch Ihren Kunden."
     },

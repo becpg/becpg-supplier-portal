@@ -87,6 +87,7 @@ const LOCALE = {
             "actions": ""
         },
         "download": "İndir",
+        "view": "Görüntüle",
         "noFile": "Henüz sağlanmadı",
         "blockingBanner": "{count} zorunlu belge onayınızı engelliyor. Bunlar listenin en üstünde yer alır.",
         "scopeEmpty": "Hesabınız hiçbir tedarikçiye bağlı olmadığından belge gereksinimi hesaplanamıyor. Yukarıdaki sayaçlar karşılanmış değil, boştur. Müşteri temsilcinizle iletişime geçin."
@@ -1099,6 +1100,11 @@ const LOCALE = {
         "openProject": "Açık listeleme projesi",
         "openNonConformity": "Açık uygunsuzluk"
     },
+    "components/dashboard/DashboardTabs#LOCAL": {
+        "label": "Panom",
+        "todo": "Yapılacaklar",
+        "followUp": "Takip"
+    },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "Tartışmalarım",
         "empty": "Tartışma yok",
@@ -1124,6 +1130,7 @@ const LOCALE = {
         "upload": "Yeni sürüm yükle",
         "uploadFirst": "Belgeyi yükle",
         "download": "İndir",
+        "view": "Görüntüle",
         "uploading": "Yükleniyor…",
         "uploaded": "Belge yüklendi. Şimdi müşterinizin doğrulamasını bekliyor."
     },

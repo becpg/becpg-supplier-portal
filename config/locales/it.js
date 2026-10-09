@@ -87,6 +87,7 @@ const LOCALE = {
             "actions": ""
         },
         "download": "Scarica",
+        "view": "Visualizza",
         "noFile": "Non ancora fornito",
         "blockingBanner": "{count} documento/i obbligatorio/i bloccano la vostra qualifica. Sono in cima all'elenco.",
         "scopeEmpty": "Il vostro account non è collegato ad alcun fornitore, quindi non è possibile calcolare alcun requisito documentale. I contatori qui sopra sono vuoti, non soddisfatti. Contattate il vostro referente presso il cliente."
@@ -1099,6 +1100,11 @@ const LOCALE = {
         "openProject": "Progetto di referenziamento aperto",
         "openNonConformity": "Non conformità aperta"
     },
+    "components/dashboard/DashboardTabs#LOCAL": {
+        "label": "Il mio cruscotto",
+        "todo": "Da fare",
+        "followUp": "Monitoraggio"
+    },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "Le mie discussioni",
         "empty": "Nessuna discussione",
@@ -1124,6 +1130,7 @@ const LOCALE = {
         "upload": "Carica una nuova versione",
         "uploadFirst": "Carica il documento",
         "download": "Scarica",
+        "view": "Visualizza",
         "uploading": "Caricamento in corso…",
         "uploaded": "Documento caricato. È ora in attesa della convalida del vostro cliente."
     },

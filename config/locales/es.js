@@ -87,6 +87,7 @@ const LOCALE = {
             "actions": ""
         },
         "download": "Descargar",
+        "view": "Consultar",
         "noFile": "Aún no aportado",
         "blockingBanner": "{count} documento(s) obligatorio(s) bloquean su homologación. Aparecen al principio de la lista.",
         "scopeEmpty": "Su cuenta no está vinculada a ningún proveedor, por lo que no se puede calcular ningún requisito documental. Los contadores anteriores están vacíos, no cumplidos. Póngase en contacto con su interlocutor en el cliente."
@@ -1099,6 +1100,11 @@ const LOCALE = {
         "openProject": "Proyecto de referenciación abierto",
         "openNonConformity": "No conformidad abierta"
     },
+    "components/dashboard/DashboardTabs#LOCAL": {
+        "label": "Mi panel",
+        "todo": "Por hacer",
+        "followUp": "Seguimiento"
+    },
     "components/dashboard/DiscussionList#LOCAL": {
         "title": "Mis conversaciones",
         "empty": "Ninguna conversación",
@@ -1124,6 +1130,7 @@ const LOCALE = {
         "upload": "Subir una nueva versión",
         "uploadFirst": "Subir el documento",
         "download": "Descargar",
+        "view": "Consultar",
         "uploading": "Subiendo…",
         "uploaded": "Documento subido. Ahora está pendiente de validación por parte de su cliente."
     },
