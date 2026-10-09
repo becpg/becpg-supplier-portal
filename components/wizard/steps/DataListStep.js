@@ -178,7 +178,8 @@ export function DataListStep({
             title={
                 <span className="inline-flex items-center gap-2">
                     <ListIcon type={step.listName || step.listId || step.type} size={18} />
-                    {step.title || step.label}
+                    {/* A review names the list; the step's title is an instruction to fill it. */}
+                    {consultation ? step.label || step.title : step.title || step.label}
                 </span>
             }
             description={consultation ? undefined : (step.title && step.label !== step.title ? step.label : undefined)}
