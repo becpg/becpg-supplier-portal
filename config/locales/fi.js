@@ -931,6 +931,10 @@ const LOCALE = {
         "notFoundHint": "Tätä tuotekorttia ei ole olemassa tai se ei kuulu rajaukseenne.",
         "back": "Omat tuotteet",
         "monitorBack": "Toimittajien tuotteet",
+        "versionTitle": "Versio {label}, {date}",
+        "versionBy": "tekijä {author}",
+        "versionBack": "Palaa nykyiseen versioon",
+        "versionFailed": "Tätä versiota ei voitu lukea.",
         "request": "Pyydä päivitystä",
         "partial": "Tämä tuotekortti näytetään puutteellisena: se viittaa vähintään yhteen tietoon, jota tilinne ei ehkä voi lukea. Kyseiset kentät puuttuvat näytöltä — mikä ei tarkoita, että ne olisivat tyhjiä. Pyydä käyttöoikeutta beCPG-yhteyshenkilöltäsi, jos tarvitset jotakin niistä."
     },
@@ -2189,7 +2193,11 @@ const LOCALE = {
         "configTitle": "Määritykset eivät ole saatavilla",
         "configHint": "Tämän osion määrityksiä ei voitu ladata. Muut välilehdet ovat edelleen käytettävissä.",
         "yes": "Kyllä",
-        "no": "Ei"
+        "no": "Ei",
+        "versionLoading": "Luetaan versiota…",
+        "versionUnavailable": "Ei tallennettu versioihin",
+        "versionUnavailableHint": "Tämä osio näkyy tuotekortin nykyisessä versiossa.",
+        "versionRows": "{count} riviä"
     },
     "components/products/ProductTaskBanner#LABELS": {
         "one": "Tällä kortilla on avoin tehtävä",
@@ -2210,6 +2218,13 @@ const LOCALE = {
         "submit": "Lähetä pyyntö",
         "sent": "Pyyntö lähetetty. Sinulle on avattu päivitystehtävä.",
         "sentFileFailed": "Pyyntö lähetetty, mutta teknistä tietolomaketta ei voitu ladata: lataa se tehtävästä."
+    },
+    "components/products/VersionPicker#LABELS": {
+        "open": "Tuotekortin versiot",
+        "current": "nykyinen",
+        "failed": "Historiaa ei voitu lukea.",
+        "none": "Ei aiempia versioita",
+        "by": "tekijä {author}"
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "Avaa valikko",

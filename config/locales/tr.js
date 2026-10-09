@@ -931,6 +931,10 @@ const LOCALE = {
         "notFoundHint": "Bu kart mevcut değil veya kapsamınızda değil.",
         "back": "Ürünlerim",
         "monitorBack": "Tedarikçi ürünleri",
+        "versionTitle": "{date} tarihli {label} sürümü",
+        "versionBy": "yazan: {author}",
+        "versionBack": "Güncel sürüme dön",
+        "versionFailed": "Bu sürüm okunamadı.",
         "request": "Güncelleme talep et",
         "partial": "Bu kart eksik gösteriliyor: hesabınızın okuyamayabileceği en az bir veriye işaret ediyor. İlgili alanlar ekranda yer almıyor — bu, boş oldukları anlamına gelmez. Bunlardan birine ihtiyacınız varsa beCPG irtibat kişinizden erişim isteyin."
     },
@@ -2189,7 +2193,11 @@ const LOCALE = {
         "configTitle": "Yapılandırma kullanılamıyor",
         "configHint": "Bu bölümün yapılandırması yüklenemedi. Diğer sekmeler kullanılabilir durumda.",
         "yes": "Evet",
-        "no": "Hayır"
+        "no": "Hayır",
+        "versionLoading": "Sürüm okunuyor…",
+        "versionUnavailable": "Sürümlerde saklanmaz",
+        "versionUnavailableHint": "Bu bölüm kartın güncel sürümünde görüntülenir.",
+        "versionRows": "{count} satır"
     },
     "components/products/ProductTaskBanner#LABELS": {
         "one": "Bu kartta açık bir görev var",
@@ -2210,6 +2218,13 @@ const LOCALE = {
         "submit": "Talebi gönder",
         "sent": "Talep gönderildi. Sizin için bir güncelleme görevi açıldı.",
         "sentFileFailed": "Talep gönderildi, ancak teknik föy yüklenemedi: görevden yükleyin."
+    },
+    "components/products/VersionPicker#LABELS": {
+        "open": "Kart sürümleri",
+        "current": "güncel",
+        "failed": "Geçmiş okunamadı.",
+        "none": "Önceki sürüm yok",
+        "by": "yazan: {author}"
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "Menüyü aç",

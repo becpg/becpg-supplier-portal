@@ -931,6 +931,10 @@ const LOCALE = {
         "notFoundHint": "このシートは存在しないか、貴社の範囲外です。",
         "back": "製品",
         "monitorBack": "サプライヤー製品",
+        "versionTitle": "{date} のバージョン {label}",
+        "versionBy": "作成者：{author}",
+        "versionBack": "現在のバージョンに戻る",
+        "versionFailed": "このバージョンを読み込めませんでした。",
         "request": "更新を依頼",
         "partial": "このシートは不完全な状態で表示されています。お使いのアカウントで閲覧できないデータを少なくとも 1 つ参照しています。該当する項目は画面に表示されていませんが、空であるという意味ではありません。必要な場合は、beCPG のご担当者にアクセス権を依頼してください。"
     },
@@ -2189,7 +2193,11 @@ const LOCALE = {
         "configTitle": "設定を利用できません",
         "configHint": "このセクションの設定を読み込めませんでした。他のタブは引き続き利用できます。",
         "yes": "はい",
-        "no": "いいえ"
+        "no": "いいえ",
+        "versionLoading": "バージョンを読み込み中…",
+        "versionUnavailable": "バージョンには保存されません",
+        "versionUnavailableHint": "このセクションはシートの現在のバージョンで確認できます。",
+        "versionRows": "{count} 行"
     },
     "components/products/ProductTaskBanner#LABELS": {
         "one": "このシートには未完了のタスクがあります",
@@ -2210,6 +2218,13 @@ const LOCALE = {
         "submit": "依頼を送信",
         "sent": "依頼を送信しました。更新タスクが作成されました。",
         "sentFileFailed": "依頼は送信されましたが、技術仕様書をアップロードできませんでした。タスクからアップロードしてください。"
+    },
+    "components/products/VersionPicker#LABELS": {
+        "open": "シートのバージョン",
+        "current": "現在",
+        "failed": "履歴を読み込めませんでした。",
+        "none": "以前のバージョンはありません",
+        "by": "作成者：{author}"
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "メニューを開く",

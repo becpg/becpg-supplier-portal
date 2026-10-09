@@ -931,6 +931,10 @@ const LOCALE = {
         "notFoundHint": "هذه البطاقة غير موجودة، أو لا تدخل ضمن نطاقكم.",
         "back": "منتجاتي",
         "monitorBack": "منتجات الموردين",
+        "versionTitle": "الإصدار {label} بتاريخ {date}",
+        "versionBy": "بواسطة {author}",
+        "versionBack": "العودة إلى الإصدار الحالي",
+        "versionFailed": "تعذّرت قراءة هذا الإصدار.",
         "request": "طلب تحديث",
         "partial": "تُعرض هذه البطاقة غير مكتملة: فهي تشير إلى معلومة واحدة على الأقل قد لا يحق لحسابكم قراءتها. الحقول المعنية غائبة عن الشاشة — وهذا لا يعني أنها فارغة. اطلبوا الوصول من جهة اتصالكم لدى beCPG إن احتجتم إلى أحدها."
     },
@@ -2189,7 +2193,11 @@ const LOCALE = {
         "configTitle": "الإعداد غير متاح",
         "configHint": "تعذّر تحميل إعداد هذا القسم. تبقى التبويبات الأخرى متاحة.",
         "yes": "نعم",
-        "no": "لا"
+        "no": "لا",
+        "versionLoading": "جارٍ قراءة الإصدار…",
+        "versionUnavailable": "غير محفوظ في الإصدارات",
+        "versionUnavailableHint": "يُطَّلع على هذا القسم في الإصدار الحالي من البطاقة.",
+        "versionRows": "{count} سطر/أسطر"
     },
     "components/products/ProductTaskBanner#LABELS": {
         "one": "توجد مهمة مفتوحة على هذه البطاقة",
@@ -2210,6 +2218,13 @@ const LOCALE = {
         "submit": "إرسال الطلب",
         "sent": "تم إرسال الطلب. فُتحت لك مهمة تحديث.",
         "sentFileFailed": "تم إرسال الطلب، لكن تعذّر رفع البطاقة الفنية: ارفعها من المهمة."
+    },
+    "components/products/VersionPicker#LABELS": {
+        "open": "إصدارات البطاقة",
+        "current": "الحالي",
+        "failed": "تعذّرت قراءة السجل.",
+        "none": "لا يوجد إصدار سابق",
+        "by": "بواسطة {author}"
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "فتح القائمة",

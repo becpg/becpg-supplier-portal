@@ -931,6 +931,10 @@ const LOCALE = {
         "notFoundHint": "Questa scheda non esiste, oppure non rientra nel vostro perimetro.",
         "back": "I miei prodotti",
         "monitorBack": "Prodotti fornitore",
+        "versionTitle": "Versione {label} del {date}",
+        "versionBy": "di {author}",
+        "versionBack": "Torna alla versione attuale",
+        "versionFailed": "Impossibile leggere questa versione.",
         "request": "Richiedere un aggiornamento",
         "partial": "Questa scheda è visualizzata in modo incompleto: fa riferimento ad almeno un dato che il vostro account potrebbe non poter leggere. I campi interessati sono assenti dalla schermata — il che non significa che siano vuoti. Chiedete l'accesso al vostro referente beCPG se vi serve uno di essi."
     },
@@ -2189,7 +2193,11 @@ const LOCALE = {
         "configTitle": "Configurazione non disponibile",
         "configHint": "Non è stato possibile caricare la configurazione di questa sezione. Le altre schede restano disponibili.",
         "yes": "Sì",
-        "no": "No"
+        "no": "No",
+        "versionLoading": "Lettura della versione…",
+        "versionUnavailable": "Non conservato nelle versioni",
+        "versionUnavailableHint": "Questa sezione si consulta sulla versione attuale della scheda.",
+        "versionRows": "{count} riga/e"
     },
     "components/products/ProductTaskBanner#LABELS": {
         "one": "Un'attività è aperta su questa scheda",
@@ -2210,6 +2218,13 @@ const LOCALE = {
         "submit": "Inviare la richiesta",
         "sent": "Richiesta inviata. È stata aperta per lei un’attività di aggiornamento.",
         "sentFileFailed": "Richiesta inviata, ma la scheda tecnica non è stata caricata: la carichi dall’attività."
+    },
+    "components/products/VersionPicker#LABELS": {
+        "open": "Versioni della scheda",
+        "current": "attuale",
+        "failed": "Impossibile leggere la cronologia.",
+        "none": "Nessuna versione precedente",
+        "by": "di {author}"
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "Apri il menu",

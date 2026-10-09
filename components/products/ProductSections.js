@@ -102,6 +102,10 @@ const LABELS = defineLabels('components/products/ProductSections#LABELS', {
             'La configuration de cette section n’a pas pu être chargée. Les autres onglets restent consultables.',
         yes: 'Oui',
         no: 'Non',
+        versionLoading: 'Lecture de la version…',
+        versionUnavailable: 'Non conservé dans les versions',
+        versionUnavailableHint: 'Cette section se consulte sur la version actuelle de la fiche.',
+        versionRows: '{count} ligne(s)',
     },
     en: {
         sheet: 'Sheet',
@@ -120,6 +124,10 @@ const LABELS = defineLabels('components/products/ProductSections#LABELS', {
             'The configuration of this section could not be loaded. The other tabs remain available.',
         yes: 'Yes',
         no: 'No',
+        versionLoading: 'Reading the version…',
+        versionUnavailable: 'Not kept in versions',
+        versionUnavailableHint: 'This section is read on the current version of the sheet.',
+        versionRows: '{count} row(s)',
     },
 });
 
@@ -515,7 +523,7 @@ function RawPropertySheet({ attributes, lang, labels }) {
  *
  * @param {Object} props
  */
-function FormPanel({ entityId, attributes, step, params, lang, labels }) {
+function FormPanel({ entityId, attributes, step, params, lang, labels, snapshotAttributes = null }) {
     const { t } = useMessages();
     const stepData = useApi(
         step ? `wizard/${encodeURIComponent(entityId)}/step/${encodeURIComponent(step.id)}` : null,
@@ -551,7 +559,18 @@ function FormPanel({ entityId, attributes, step, params, lang, labels }) {
     const hasFields = Boolean(definition && Array.isArray(definition.fields) && definition.fields.length > 0);
 
     if (hasFields) {
-        return <PropertySheet definition={definition} lang={lang} labels={labels} />;
+        // An older version: today's labels and layout, the frozen values.
+        const shown = snapshotAttributes
+            ? {
+                ...definition,
+                fields: definition.fields.map((field) => ({
+                    ...field,
+                    value: snapshotAttributes[field.name] ?? null,
+                    displayValue: null,
+                })),
+            }
+            : definition;
+        return <PropertySheet definition={shown} lang={lang} labels={labels} />;
     }
 
     // No resolvable definition (no wizard for this type, no Share session, or a
@@ -573,7 +592,7 @@ function FormPanel({ entityId, attributes, step, params, lang, labels }) {
                     ) : null}
                 </p>
             ) : null}
-            <RawPropertySheet attributes={attributes} lang={lang} labels={labels} />
+            <RawPropertySheet attributes={snapshotAttributes || attributes} lang={lang} labels={labels} />
         </>
     );
 }
@@ -702,6 +721,75 @@ function ListPanel({ entityId, step, params, labels }) {
                 </span>
             }
         />
+    );
+}
+
+/** The local name of a datalist type: `bcpg:ingList` and `ingList` both give `ingList`. */
+function listLocalName(type) {
+    return String(type || '').split(':').pop();
+}
+
+/**
+ * An `entityDataList` step of an older version: today's columns, the rows beCPG
+ * froze with that version. Read only and unpaged — a version is a snapshot, not a
+ * list to page through the repository.
+ *
+ * @param {Object} props
+ */
+function SnapshotListPanel({ entityId, step, params, labels, lang, lists }) {
+    const list = useDataList({ entityId, stepId: step.id, params, pageSize: 1, readOnly: true });
+    const name = parseListId(step.listId).name || step.listName || listLocalName(list.itemType);
+    const type = Object.keys(lists || {}).find((key) => listLocalName(key) === name);
+    const rows = type ? lists[type] : [];
+    const columns = (list.columns || []).filter((column) => !Array.isArray(column.columns));
+
+    if (list.loading && columns.length === 0) {
+        return <PanelSkeleton variant="grid" />;
+    }
+    if (rows.length === 0) {
+        return (
+            <>
+                <StepHeader step={step} />
+                <EmptyState variant="empty" icon="table_rows" title={labels.noData} message={labels.noDataHint} />
+            </>
+        );
+    }
+    return (
+        <div className="min-w-0">
+            <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+                <h2 className="inline-flex items-center gap-2 text-base font-medium text-[var(--becpg-blue)]">
+                    <ListIcon type={stepIconType(step)} size={18} />
+                    {step.label || step.title}
+                </h2>
+                <span className="text-xs text-[var(--becpg-dark-grey)]">
+                    {labels.versionRows.replace('{count}', String(rows.length))}
+                </span>
+            </div>
+            <div className="table-scroll rounded-xl border border-[var(--becpg-line)] bg-white">
+                <table className="w-full border-collapse text-sm">
+                    <thead>
+                        <tr className="border-b border-[var(--becpg-line)] text-[0.8125rem] text-[var(--becpg-muted)]">
+                            {columns.map((column) => (
+                                <th key={column.name} scope="col" className="whitespace-nowrap px-3 py-2 text-start font-medium">
+                                    {column.label || qnameLabel(column.name)}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows.map((row, index) => (
+                            <tr key={row.id || index} className="border-b border-[var(--becpg-line)] last:border-0">
+                                {columns.map((column) => (
+                                    <td key={column.name} className="px-3 py-2 align-top">
+                                        {readableValue({ value: row.attributes[column.name], displayValue: null, dataType: column.dataType }, lang) ?? '—'}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     );
 }
 
@@ -841,8 +929,12 @@ function DocumentsPanel({ nodeRef, step, labels }) {
  *
  * @param {Object} props
  */
-function SectionPanel({ tab, entity, entityId, params, lang, labels }) {
+function SectionPanel({ tab, entity, entityId, params, lang, labels, snapshot = null }) {
     const { step } = tab;
+
+    if (snapshot) {
+        return <SnapshotPanel tab={tab} entity={entity} entityId={entityId} params={params} lang={lang} labels={labels} snapshot={snapshot} />;
+    }
 
     if (tab.kind === 'form') {
         return (
@@ -879,6 +971,41 @@ function SectionPanel({ tab, entity, entityId, params, lang, labels }) {
             {step ? <StepHeader step={step} /> : null}
             <EmptyState variant="empty" icon="help_outline" title={labels.configTitle} message={labels.configHint} />
         </>
+    );
+}
+
+/**
+ * One tab of an older version. Properties and datalists are frozen with the
+ * version; questionnaires, documents, compliance and specifications are not, and
+ * say so rather than show today's data under yesterday's label.
+ *
+ * @param {Object} props
+ */
+function SnapshotPanel({ tab, entity, entityId, params, lang, labels, snapshot }) {
+    if (snapshot.error) {
+        return <ErrorState error={snapshot.error} onRetry={snapshot.refresh} />;
+    }
+    if (!snapshot.data) {
+        return <PanelSkeleton variant="form" />;
+    }
+    if (tab.kind === 'form') {
+        return (
+            <FormPanel
+                entityId={entityId}
+                attributes={entity ? entity.attributes : null}
+                step={tab.step}
+                params={params}
+                lang={lang}
+                labels={labels}
+                snapshotAttributes={snapshot.data.attributes}
+            />
+        );
+    }
+    if (tab.kind === 'entityDataList') {
+        return <SnapshotListPanel entityId={entityId} step={tab.step} params={params} labels={labels} lang={lang} lists={snapshot.data.lists} />;
+    }
+    return (
+        <EmptyState variant="empty" icon="history_toggle_off" title={labels.versionUnavailable} message={labels.versionUnavailableHint} />
     );
 }
 
@@ -926,6 +1053,8 @@ function SpecsPanel({ entityId, label }) {
  * @param {string} props.activeTab the tab key carried by `?tab=`
  * @param {Function} props.onTabChange `(key) => void` — the page writes the URL
  * @param {boolean} [props.entityLoading]
+ * @param {Object|null} [props.snapshot] the `useApi` call of an older version — the
+ *        panels then show what was frozen with it
  */
 export function ProductSections({
     entity,
@@ -936,6 +1065,7 @@ export function ProductSections({
     activeTab,
     onTabChange,
     entityLoading = false,
+    snapshot = null,
 }) {
     const { lang, t } = useMessages();
     const labels = useMemo(() => {
@@ -969,6 +1099,8 @@ export function ProductSections({
         () => (wizardId ? { wizardId } : undefined),
         [wizardId],
     );
+
+    const snapshotKey = snapshot ? snapshot.data?.version?.nodeRef || 'loading' : 'current';
 
     if (loading || entityLoading) {
         return (
@@ -1044,7 +1176,8 @@ export function ProductSections({
                 }
                 return (
                     <div
-                        key={tab.key}
+                        // A version switch remounts the panels: each reads a different snapshot.
+                        key={`${tab.key}@${snapshotKey}`}
                         id={`panel-${tab.key}`}
                         role="tabpanel"
                         data-tab-kind={tab.kind}
@@ -1059,6 +1192,7 @@ export function ProductSections({
                             params={params}
                             lang={lang}
                             labels={labels}
+                            snapshot={snapshot}
                         />
                     </div>
                 );

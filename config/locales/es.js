@@ -931,6 +931,10 @@ const LOCALE = {
         "notFoundHint": "Esta ficha no existe o no forma parte de su ámbito.",
         "back": "Mis productos",
         "monitorBack": "Productos de proveedores",
+        "versionTitle": "Versión {label} del {date}",
+        "versionBy": "por {author}",
+        "versionBack": "Volver a la versión actual",
+        "versionFailed": "No se ha podido leer esta versión.",
         "request": "Solicitar una actualización",
         "partial": "Esta ficha se muestra incompleta: hace referencia al menos a un dato que su cuenta no puede leer. Los campos afectados no aparecen en pantalla — lo que no significa que estén vacíos. Solicite acceso a su interlocutor de beCPG si necesita alguno de ellos."
     },
@@ -2189,7 +2193,11 @@ const LOCALE = {
         "configTitle": "Configuración no disponible",
         "configHint": "No se ha podido cargar la configuración de esta sección. Las demás pestañas siguen disponibles.",
         "yes": "Sí",
-        "no": "No"
+        "no": "No",
+        "versionLoading": "Leyendo la versión…",
+        "versionUnavailable": "No se conserva en las versiones",
+        "versionUnavailableHint": "Esta sección se consulta en la versión actual de la ficha.",
+        "versionRows": "{count} fila(s)"
     },
     "components/products/ProductTaskBanner#LABELS": {
         "one": "Hay una tarea abierta en esta ficha",
@@ -2210,6 +2218,13 @@ const LOCALE = {
         "submit": "Enviar la solicitud",
         "sent": "Solicitud enviada. Se ha abierto una tarea de actualización para usted.",
         "sentFileFailed": "Solicitud enviada, pero no se ha podido subir la ficha técnica: súbala desde la tarea."
+    },
+    "components/products/VersionPicker#LABELS": {
+        "open": "Versiones de la ficha",
+        "current": "actual",
+        "failed": "No se ha podido leer el historial.",
+        "none": "Ninguna versión anterior",
+        "by": "por {author}"
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "Abrir el menú",

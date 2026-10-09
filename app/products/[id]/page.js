@@ -39,6 +39,8 @@ import { ProductSections } from '@/components/products/ProductSections';
 import { ContentLocalesProvider } from '@/components/form/ContentLocalesProvider';
 import { ProductTaskBanner } from '@/components/products/ProductTaskBanner';
 import { UpdateRequestDialog } from '@/components/products/UpdateRequestDialog';
+import { VersionPicker } from '@/components/products/VersionPicker';
+import { formatDateTime } from '@/lib/format';
 import { routeParamId, useApi } from '@/lib/client';
 import { useSession } from '@/components/providers/SessionProvider';
 import { useMessages } from '@/lib/messages';
@@ -51,6 +53,10 @@ const LABELS = defineLabels('app/products/[id]/page#LABELS', {
         notFoundHint: 'Cette fiche n’existe pas ou ne fait pas partie de votre périmètre.',
         back: 'Mes produits',
         monitorBack: 'Produits fournisseurs',
+        versionTitle: 'Version {label} du {date}',
+        versionBy: 'par {author}',
+        versionBack: 'Revenir à la version actuelle',
+        versionFailed: 'Cette version n’a pas pu être lue.',
         request: 'Demander une mise à jour',
         partial:
             'Cette fiche est affichée de façon incomplète : elle renvoie vers au moins une'
@@ -64,6 +70,10 @@ const LABELS = defineLabels('app/products/[id]/page#LABELS', {
         notFoundHint: 'This sheet does not exist, or is not part of your scope.',
         back: 'My products',
         monitorBack: 'Supplier products',
+        versionTitle: 'Version {label} of {date}',
+        versionBy: 'by {author}',
+        versionBack: 'Back to the current version',
+        versionFailed: 'This version could not be read.',
         request: 'Request an update',
         partial:
             'This sheet is shown incomplete: it points at least at one piece of data your'
@@ -75,6 +85,34 @@ const LABELS = defineLabels('app/products/[id]/page#LABELS', {
 
 /** The one state a supplier may ask to reopen. */
 const VALID_STATE = 'Valid';
+
+function fill(template, vars) {
+    return String(template).replace(/\{(\w+)\}/g, (match, key) => (vars[key] ?? match));
+}
+
+/** Which version the sheet shows, and the way back to the current one. */
+function VersionBanner({ snapshot, labels, lang, onBack }) {
+    const version = snapshot.data?.version;
+    return (
+        <Card variant="accent" padding="sm" className="mb-4">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm" role="status">
+                <Icon name="history" size={18} className="text-[var(--becpg-orange-deep)]" />
+                <span className="min-w-0 flex-1">
+                    {snapshot.error ? labels.versionFailed : version ? (
+                        <>
+                            <b className="font-semibold">
+                                {fill(labels.versionTitle, { label: version.label, date: formatDateTime(version.createdAt, lang) })}
+                            </b>
+                            {version.author ? ` · ${fill(labels.versionBy, { author: version.author })}` : ''}
+                            {version.comment ? <span className="italic"> · {version.comment}</span> : null}
+                        </>
+                    ) : null}
+                </span>
+                <Button variant="outline" size="sm" icon="restore" onClick={onBack}>{labels.versionBack}</Button>
+            </div>
+        </Card>
+    );
+}
 
 /**
  * The screen itself. Split out of the default export so `useSearchParams` sits
@@ -114,6 +152,27 @@ function ProductScreen() {
     );
 
     const entity = useApi(id ? `entities/${encodeURIComponent(id)}` : null);
+
+    // An older version, consulted from the monitoring space only: the history of
+    // a validated product is not the supplier's to read.
+    const versionRef = monitor ? searchParams.get('version') : null;
+    const snapshot = useApi(
+        versionRef ? `entities/${encodeURIComponent(id)}/versions` : null,
+        { params: { version: versionRef } },
+    );
+    const selectVersion = useCallback(
+        (ref) => {
+            const next = new URLSearchParams(searchParams.toString());
+            if (ref) {
+                next.set('version', ref);
+            }
+            else {
+                next.delete('version');
+            }
+            router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+        },
+        [router, pathname, searchParams],
+    );
 
     // The wizard state is what the tabs are made of: which sections exist, in
     // which order, under which (already translated) label. It is fetched once,
@@ -162,6 +221,14 @@ function ProductScreen() {
                 loading={entity.loading}
                 backHref={back.href}
                 backLabel={back.label}
+                version={monitor && product ? (
+                    <VersionPicker
+                        entityId={id}
+                        label={snapshot.data?.version?.label || product.version}
+                        selected={versionRef}
+                        onSelect={selectVersion}
+                    />
+                ) : null}
                 className="mb-4"
                 actions={product?.state === VALID_STATE ? (
                     <Button variant="outline" size="sm" icon="published_with_changes" onClick={() => setRequesting(true)}>
@@ -174,6 +241,10 @@ function ProductScreen() {
                 onClose={() => setRequesting(false)}
                 onDone={entity.refresh}
             />
+
+            {versionRef ? (
+                <VersionBanner snapshot={snapshot} labels={labels} lang={lang} onBack={() => selectVersion(null)} />
+            ) : null}
 
             {/* The write path, on a read-only screen. Right under the identity
                 band because it is the first thing a supplier has to act on when
@@ -215,6 +286,7 @@ function ProductScreen() {
                     entityLoading={entity.loading}
                     activeTab={activeTab}
                     onTabChange={selectTab}
+                    snapshot={versionRef ? snapshot : null}
                 />
             </ContentLocalesProvider>
         </AppShell>

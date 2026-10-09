@@ -931,6 +931,10 @@ const LOCALE = {
         "notFoundHint": "此资料表不存在，或不在您的范围内。",
         "back": "我的产品",
         "monitorBack": "供应商产品",
+        "versionTitle": "{date} 的版本 {label}",
+        "versionBy": "作者：{author}",
+        "versionBack": "返回当前版本",
+        "versionFailed": "无法读取此版本。",
         "request": "申请更新",
         "partial": "此资料表显示不完整：其中至少有一项数据您的账户无权读取。相关字段未在页面上显示 — 这并不表示它们为空。如需访问其中某项，请联系您的 beCPG 联系人。"
     },
@@ -2189,7 +2193,11 @@ const LOCALE = {
         "configTitle": "配置不可用",
         "configHint": "无法加载此部分的配置。其他标签页仍可使用。",
         "yes": "是",
-        "no": "否"
+        "no": "否",
+        "versionLoading": "正在读取版本…",
+        "versionUnavailable": "未保存在版本中",
+        "versionUnavailableHint": "此部分请在资料表的当前版本中查看。",
+        "versionRows": "{count} 行"
     },
     "components/products/ProductTaskBanner#LABELS": {
         "one": "此资料表有一项未完成的任务",
@@ -2210,6 +2218,13 @@ const LOCALE = {
         "submit": "发送申请",
         "sent": "申请已发送。已为您创建一项更新任务。",
         "sentFileFailed": "申请已发送，但技术规格书未能上传：请在任务中上传。"
+    },
+    "components/products/VersionPicker#LABELS": {
+        "open": "资料表版本",
+        "current": "当前",
+        "failed": "无法读取历史记录。",
+        "none": "无早期版本",
+        "by": "作者：{author}"
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "打开菜单",

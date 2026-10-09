@@ -931,6 +931,10 @@ const LOCALE = {
         "notFoundHint": "Dieses Datenblatt existiert nicht oder gehört nicht zu Ihrem Bereich.",
         "back": "Meine Produkte",
         "monitorBack": "Lieferantenprodukte",
+        "versionTitle": "Version {label} vom {date}",
+        "versionBy": "von {author}",
+        "versionBack": "Zurück zur aktuellen Version",
+        "versionFailed": "Diese Version konnte nicht gelesen werden.",
         "request": "Aktualisierung anfordern",
         "partial": "Dieses Datenblatt wird unvollständig angezeigt: Es verweist auf mindestens eine Information, die Ihr Konto nicht lesen darf. Die betroffenen Felder fehlen auf dem Bildschirm — was nicht bedeutet, dass sie leer sind. Bitten Sie Ihren beCPG-Ansprechpartner um Zugriff, wenn Sie eines davon benötigen."
     },
@@ -2189,7 +2193,11 @@ const LOCALE = {
         "configTitle": "Konfiguration nicht verfügbar",
         "configHint": "Die Konfiguration dieses Abschnitts konnte nicht geladen werden. Die anderen Registerkarten bleiben verfügbar.",
         "yes": "Ja",
-        "no": "Nein"
+        "no": "Nein",
+        "versionLoading": "Version wird gelesen…",
+        "versionUnavailable": "Nicht in Versionen gespeichert",
+        "versionUnavailableHint": "Dieser Abschnitt ist in der aktuellen Version des Datenblatts einsehbar.",
+        "versionRows": "{count} Zeile(n)"
     },
     "components/products/ProductTaskBanner#LABELS": {
         "one": "Zu diesem Datenblatt ist eine Aufgabe offen",
@@ -2210,6 +2218,13 @@ const LOCALE = {
         "submit": "Anfrage senden",
         "sent": "Anfrage gesendet. Eine Aktualisierungsaufgabe wurde für Sie eröffnet.",
         "sentFileFailed": "Anfrage gesendet, aber das technische Datenblatt konnte nicht hochgeladen werden: Laden Sie es über die Aufgabe hoch."
+    },
+    "components/products/VersionPicker#LABELS": {
+        "open": "Versionen des Datenblatts",
+        "current": "aktuell",
+        "failed": "Der Verlauf konnte nicht gelesen werden.",
+        "none": "Keine frühere Version",
+        "by": "von {author}"
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "Menü öffnen",

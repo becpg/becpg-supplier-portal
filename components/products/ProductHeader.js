@@ -160,6 +160,7 @@ function Fact({ label, children, icon }) {
  * @param {boolean} [props.loading]
  * @param {string} [props.backHref] renders a "back to the list" link above the title
  * @param {string} [props.backLabel] the list it leads back to, when it is not "my products"
+ * @param {React.ReactNode} [props.version] replaces the version label — the version picker
  * @param {boolean} [props.showCompletion=true]
  * @param {React.ReactNode} [props.children] extra content under the facts (tabs, alerts)
  */
@@ -169,6 +170,7 @@ export function ProductHeader({
     loading = false,
     backHref,
     backLabel,
+    version,
     showCompletion = true,
     className = '',
     children,
@@ -293,7 +295,7 @@ export function ProductHeader({
                     {entity.project ? entity.project.name : null}
                 </Fact>
                 <Fact label={labels.version} icon="history">
-                    {entity.version}
+                    {version || entity.version}
                 </Fact>
                 <Fact label={labels.modified} icon="update">
                     {entity.modified ? formatDate(entity.modified, lang) : null}

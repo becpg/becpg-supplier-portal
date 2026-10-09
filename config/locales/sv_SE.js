@@ -931,6 +931,10 @@ const LOCALE = {
         "notFoundHint": "Bladet finns inte, eller ingår inte i ditt omfång.",
         "back": "Mina produkter",
         "monitorBack": "Leverantörsprodukter",
+        "versionTitle": "Version {label} från {date}",
+        "versionBy": "av {author}",
+        "versionBack": "Tillbaka till den aktuella versionen",
+        "versionFailed": "Den här versionen kunde inte läsas.",
         "request": "Begär en uppdatering",
         "partial": "Bladet visas ofullständigt: det pekar på minst en uppgift som ditt konto kanske inte får läsa. De berörda fälten saknas på skärmen — vilket inte betyder att de är tomma. Be din beCPG-kontakt om åtkomst om du behöver någon av dem."
     },
@@ -2189,7 +2193,11 @@ const LOCALE = {
         "configTitle": "Konfigurationen är inte tillgänglig",
         "configHint": "Avsnittets konfiguration kunde inte läsas in. De andra flikarna är fortfarande tillgängliga.",
         "yes": "Ja",
-        "no": "Nej"
+        "no": "Nej",
+        "versionLoading": "Läser versionen…",
+        "versionUnavailable": "Sparas inte i versioner",
+        "versionUnavailableHint": "Det här avsnittet visas i bladets aktuella version.",
+        "versionRows": "{count} rad(er)"
     },
     "components/products/ProductTaskBanner#LABELS": {
         "one": "En uppgift är öppen för det här bladet",
@@ -2210,6 +2218,13 @@ const LOCALE = {
         "submit": "Skicka begäran",
         "sent": "Begäran skickad. En uppdateringsuppgift har öppnats åt dig.",
         "sentFileFailed": "Begäran skickad, men produktbladet kunde inte laddas upp: ladda upp det från uppgiften."
+    },
+    "components/products/VersionPicker#LABELS": {
+        "open": "Bladets versioner",
+        "current": "aktuell",
+        "failed": "Historiken kunde inte läsas.",
+        "none": "Ingen tidigare version",
+        "by": "av {author}"
     },
     "components/shell/Header#LOCAL_LABELS": {
         "menu": "Öppna menyn",
