@@ -576,7 +576,7 @@ export function columnFloor(column) {
         if (column.mandatory) {
             return '18rem';
         }
-        return column.repeating ? '14rem' : '12rem';
+        return '12rem';
     }
     const control = column.control?.name || '';
     // A tri-state boolean is a select of « Oui / Non / (vide) », not a box to
