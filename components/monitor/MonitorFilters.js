@@ -76,7 +76,7 @@ export const EMPTY_MONITOR_FILTERS = Object.freeze(
  */
 export const SUPPLIER_STATES = Object.freeze([
     defineLabels('components/monitor/MonitorFilters#SUPPLIER_STATES.Valid', { value: 'Valid', fr: 'Validé', en: 'Valid' }),
-    defineLabels('components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation', { value: 'Simulation', fr: 'Brouillon', en: 'Draft' }),
+    defineLabels('components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation', { value: 'Simulation', fr: 'Simulation', en: 'Simulation' }),
     defineLabels('components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate', { value: 'ToValidate', fr: 'À valider', en: 'To validate' }),
     defineLabels('components/monitor/MonitorFilters#SUPPLIER_STATES.Refused', { value: 'Refused', fr: 'Refusé', en: 'Rejected' }),
     defineLabels('components/monitor/MonitorFilters#SUPPLIER_STATES.Archived', { value: 'Archived', fr: 'Archivé', en: 'Archived' }),

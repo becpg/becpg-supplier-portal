@@ -771,7 +771,7 @@ const LOCALE = {
         "tiles": {
             "total": "Productos",
             "valid": "Validados",
-            "draft": "En curso",
+            "draft": "Simulación",
             "noCertificate": "Sin fecha de referenciación"
         }
     },
@@ -1159,7 +1159,7 @@ const LOCALE = {
         "Valid": "Homologado",
         "ToValidate": "Pendiente de homologación",
         "Refused": "Por corregir",
-        "Simulation": "Borrador",
+        "Simulation": "Simulación",
         "Stopped": "Detenido",
         "Archived": "Archivado"
     },
@@ -1601,7 +1601,7 @@ const LOCALE = {
         "legend": "Leyenda"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Válido",
-    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Borrador",
+    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simulación",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "Por validar",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Refused": "Rechazado",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Archived": "Archivado",
@@ -2674,7 +2674,7 @@ const LOCALE = {
         "status.pending": "Pendiente",
         "status.completed": "Terminado",
         "status.late": "Con retraso",
-        "status.draft": "Borrador",
+        "status.draft": "Simulación",
         "status.notApplicable": "No aplicable",
         "test.banner": "Instancia de TEST — los datos introducidos aquí no tienen valor contractual",
         "test.badge": "Test",

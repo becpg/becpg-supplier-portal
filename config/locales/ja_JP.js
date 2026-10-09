@@ -771,7 +771,7 @@ const LOCALE = {
         "tiles": {
             "total": "製品",
             "valid": "承認済み",
-            "draft": "進行中",
+            "draft": "シミュレーション",
             "noCertificate": "登録日なし"
         }
     },
@@ -1159,7 +1159,7 @@ const LOCALE = {
         "Valid": "承認済み",
         "ToValidate": "承認待ち",
         "Refused": "要修正",
-        "Simulation": "下書き",
+        "Simulation": "シミュレーション",
         "Stopped": "停止",
         "Archived": "アーカイブ済み"
     },
@@ -1601,7 +1601,7 @@ const LOCALE = {
         "legend": "凡例"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "有効",
-    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "下書き",
+    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "シミュレーション",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "承認待ち",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Refused": "却下",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Archived": "アーカイブ済み",
@@ -2674,7 +2674,7 @@ const LOCALE = {
         "status.pending": "保留中",
         "status.completed": "完了",
         "status.late": "期限超過",
-        "status.draft": "下書き",
+        "status.draft": "シミュレーション",
         "status.notApplicable": "該当なし",
         "test.banner": "TEST インスタンス — ここで入力したデータは契約上の効力を持ちません",
         "test.badge": "テスト",

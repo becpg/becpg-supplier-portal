@@ -771,7 +771,7 @@ const LOCALE = {
         "tiles": {
             "total": "المنتجات",
             "valid": "المعتمدة",
-            "draft": "قيد التنفيذ",
+            "draft": "محاكاة",
             "noCertificate": "بدون تاريخ اعتماد"
         }
     },
@@ -1159,7 +1159,7 @@ const LOCALE = {
         "Valid": "معتمد",
         "ToValidate": "بانتظار الاعتماد",
         "Refused": "للتصحيح",
-        "Simulation": "مسودة",
+        "Simulation": "محاكاة",
         "Stopped": "متوقف",
         "Archived": "مؤرشف"
     },
@@ -1601,7 +1601,7 @@ const LOCALE = {
         "legend": "وسيلة الإيضاح"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "صالح",
-    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "مسودة",
+    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "محاكاة",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "للاعتماد",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Refused": "مرفوض",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Archived": "مؤرشف",
@@ -2674,7 +2674,7 @@ const LOCALE = {
         "status.pending": "قيد الانتظار",
         "status.completed": "مكتمل",
         "status.late": "متأخر",
-        "status.draft": "مسودة",
+        "status.draft": "محاكاة",
         "status.notApplicable": "غير منطبق",
         "test.banner": "نسخة TEST — البيانات المُدخلة هنا غير مُلزِمة تعاقديًا",
         "test.badge": "تجريبي",

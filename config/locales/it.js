@@ -771,7 +771,7 @@ const LOCALE = {
         "tiles": {
             "total": "Prodotti",
             "valid": "Validati",
-            "draft": "In corso",
+            "draft": "Simulazione",
             "noCertificate": "Senza data di referenziazione"
         }
     },
@@ -1159,7 +1159,7 @@ const LOCALE = {
         "Valid": "Approvato",
         "ToValidate": "In attesa di approvazione",
         "Refused": "Da correggere",
-        "Simulation": "Bozza",
+        "Simulation": "Simulazione",
         "Stopped": "Interrotto",
         "Archived": "Archiviato"
     },
@@ -1601,7 +1601,7 @@ const LOCALE = {
         "legend": "Legenda"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Valido",
-    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Bozza",
+    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simulazione",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "Da convalidare",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Refused": "Rifiutato",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Archived": "Archiviato",
@@ -2674,7 +2674,7 @@ const LOCALE = {
         "status.pending": "In attesa",
         "status.completed": "Completato",
         "status.late": "In ritardo",
-        "status.draft": "Bozza",
+        "status.draft": "Simulazione",
         "status.notApplicable": "Non applicabile",
         "test.banner": "Istanza di TEST — i dati inseriti qui non hanno valore contrattuale",
         "test.badge": "Test",

@@ -183,7 +183,7 @@ export const messages = {
         'status.pending': 'En attente',
         'status.completed': 'Terminé',
         'status.late': 'En retard',
-        'status.draft': 'Brouillon',
+        'status.draft': 'Simulation',
         'status.notApplicable': 'Non applicable',
 
         // --- Test instance banner ---
@@ -292,7 +292,7 @@ export const messages = {
         'status.pending': 'Pending',
         'status.completed': 'Completed',
         'status.late': 'Late',
-        'status.draft': 'Draft',
+        'status.draft': 'Simulation',
         'status.notApplicable': 'Not applicable',
 
         // --- Test instance banner ---

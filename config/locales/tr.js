@@ -771,7 +771,7 @@ const LOCALE = {
         "tiles": {
             "total": "Ürünler",
             "valid": "Onaylananlar",
-            "draft": "Devam edenler",
+            "draft": "Simülasyon",
             "noCertificate": "Listeleme tarihi olmayanlar"
         }
     },
@@ -1159,7 +1159,7 @@ const LOCALE = {
         "Valid": "Onaylandı",
         "ToValidate": "Onay bekliyor",
         "Refused": "Düzeltilecek",
-        "Simulation": "Taslak",
+        "Simulation": "Simülasyon",
         "Stopped": "Durduruldu",
         "Archived": "Arşivlendi"
     },
@@ -1601,7 +1601,7 @@ const LOCALE = {
         "legend": "Açıklama"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Geçerli",
-    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Taslak",
+    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simülasyon",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "Doğrulanacak",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Refused": "Reddedildi",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Archived": "Arşivlendi",
@@ -2674,7 +2674,7 @@ const LOCALE = {
         "status.pending": "Beklemede",
         "status.completed": "Tamamlandı",
         "status.late": "Gecikmiş",
-        "status.draft": "Taslak",
+        "status.draft": "Simülasyon",
         "status.notApplicable": "Uygulanamaz",
         "test.banner": "TEST ortamı — burada girilen veriler bağlayıcı değildir",
         "test.badge": "Test",

@@ -771,7 +771,7 @@ const LOCALE = {
         "tiles": {
             "total": "Tuotteet",
             "valid": "Hyväksytyt",
-            "draft": "Kesken",
+            "draft": "Simulointi",
             "noCertificate": "Ei listauspäivää"
         }
     },
@@ -1159,7 +1159,7 @@ const LOCALE = {
         "Valid": "Hyväksytty",
         "ToValidate": "Odottaa hyväksyntää",
         "Refused": "Korjattava",
-        "Simulation": "Luonnos",
+        "Simulation": "Simulointi",
         "Stopped": "Pysäytetty",
         "Archived": "Arkistoitu"
     },
@@ -1601,7 +1601,7 @@ const LOCALE = {
         "legend": "Selite"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Hyväksytty",
-    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Luonnos",
+    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simulointi",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "Odottaa hyväksyntää",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Refused": "Hylätty",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Archived": "Arkistoitu",
@@ -2674,7 +2674,7 @@ const LOCALE = {
         "status.pending": "Odottaa",
         "status.completed": "Valmis",
         "status.late": "Myöhässä",
-        "status.draft": "Luonnos",
+        "status.draft": "Simulointi",
         "status.notApplicable": "Ei sovellettavissa",
         "test.banner": "TEST-instanssi — tänne syötetyt tiedot eivät ole sitovia",
         "test.badge": "Testi",

@@ -771,7 +771,7 @@ const LOCALE = {
         "tiles": {
             "total": "产品",
             "valid": "已验证",
-            "draft": "进行中",
+            "draft": "模拟",
             "noCertificate": "无准入日期"
         }
     },
@@ -1159,7 +1159,7 @@ const LOCALE = {
         "Valid": "已批准",
         "ToValidate": "待批准",
         "Refused": "待修正",
-        "Simulation": "草稿",
+        "Simulation": "模拟",
         "Stopped": "已停止",
         "Archived": "已归档"
     },
@@ -1601,7 +1601,7 @@ const LOCALE = {
         "legend": "图例"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "有效",
-    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "草稿",
+    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "模拟",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "待确认",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Refused": "已拒绝",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Archived": "已归档",
@@ -2674,7 +2674,7 @@ const LOCALE = {
         "status.pending": "待处理",
         "status.completed": "已完成",
         "status.late": "逾期",
-        "status.draft": "草稿",
+        "status.draft": "模拟",
         "status.notApplicable": "不适用",
         "test.banner": "TEST 实例 — 在此输入的数据不具有合同效力",
         "test.badge": "测试",

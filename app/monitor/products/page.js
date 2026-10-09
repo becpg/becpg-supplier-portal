@@ -61,7 +61,7 @@ const LABELS = defineLabels('app/monitor/products/page#LABELS', {
         tiles: {
             total: 'Produits',
             valid: 'Validés',
-            draft: 'En cours',
+            draft: 'Simulation',
             noCertificate: 'Sans date de référencement',
         },
         columns: {
@@ -100,7 +100,7 @@ const LABELS = defineLabels('app/monitor/products/page#LABELS', {
         tiles: {
             total: 'Products',
             valid: 'Validated',
-            draft: 'In progress',
+            draft: 'Simulation',
             noCertificate: 'No referencing date',
         },
         columns: {

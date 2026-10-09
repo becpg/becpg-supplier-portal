@@ -771,7 +771,7 @@ const LOCALE = {
         "tiles": {
             "total": "Produkter",
             "valid": "Godkända",
-            "draft": "Pågående",
+            "draft": "Simulering",
             "noCertificate": "Utan listningsdatum"
         }
     },
@@ -1159,7 +1159,7 @@ const LOCALE = {
         "Valid": "Godkänd",
         "ToValidate": "Väntar på godkännande",
         "Refused": "Ska korrigeras",
-        "Simulation": "Utkast",
+        "Simulation": "Simulering",
         "Stopped": "Stoppad",
         "Archived": "Arkiverad"
     },
@@ -1601,7 +1601,7 @@ const LOCALE = {
         "legend": "Teckenförklaring"
     },
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Valid": "Giltig",
-    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Utkast",
+    "components/monitor/MonitorFilters#SUPPLIER_STATES.Simulation": "Simulering",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.ToValidate": "Ska valideras",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Refused": "Avvisad",
     "components/monitor/MonitorFilters#SUPPLIER_STATES.Archived": "Arkiverad",
@@ -2674,7 +2674,7 @@ const LOCALE = {
         "status.pending": "Väntande",
         "status.completed": "Slutförd",
         "status.late": "Försenad",
-        "status.draft": "Utkast",
+        "status.draft": "Simulering",
         "status.notApplicable": "Ej tillämplig",
         "test.banner": "TEST-instans — uppgifter som anges här är inte avtalsmässigt bindande",
         "test.badge": "Test",
