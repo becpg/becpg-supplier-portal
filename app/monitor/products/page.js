@@ -330,32 +330,6 @@ export default function MonitorProductsPage() {
         <AppShell ownHeading fullWidth space="monitor" title={labels.title}>
             <PageHeader title={labels.title} description={labels.subtitle} />
 
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-                <div className={SEARCH_SLOT_CLASS}>
-                    <SearchInput
-                        value={query}
-                        onChange={(value) => reset(() => setQuery(value))}
-                        placeholder={labels.search}
-                    />
-                </div>
-                <Select
-                    aria-label={labels.certified}
-                    value={certified}
-                    placeholder={labels.anyCertified}
-                    options={certifiedOptions}
-                    onChange={(event) => reset(() => setCertified(event.target.value))}
-                    className="w-auto"
-                />
-                <Select
-                    aria-label={labels.state}
-                    value={state}
-                    placeholder={labels.anyState}
-                    options={stateOptions}
-                    onChange={(event) => reset(() => setState(event.target.value))}
-                    className="w-auto"
-                />
-            </div>
-
             <DataTable
                 columns={columns}
                 data={items}
@@ -367,6 +341,33 @@ export default function MonitorProductsPage() {
                 enablePagination={false}
                 enableColumnVisibility
                 storageKey="monitor.products"
+                toolbar={
+                    <>
+                        <div className={SEARCH_SLOT_CLASS}>
+                            <SearchInput
+                                value={query}
+                                onChange={(value) => reset(() => setQuery(value))}
+                                placeholder={labels.search}
+                            />
+                        </div>
+                        <Select
+                            aria-label={labels.certified}
+                            value={certified}
+                            placeholder={labels.anyCertified}
+                            options={certifiedOptions}
+                            onChange={(event) => reset(() => setCertified(event.target.value))}
+                            className="w-auto"
+                        />
+                        <Select
+                            aria-label={labels.state}
+                            value={state}
+                            placeholder={labels.anyState}
+                            options={stateOptions}
+                            onChange={(event) => reset(() => setState(event.target.value))}
+                            className="w-auto"
+                        />
+                    </>
+                }
                 caption={labels.title}
                 emptyState={
                     <EmptyState
