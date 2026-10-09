@@ -2756,13 +2756,8 @@ const LOCALE = {
         "title": "Konteksti",
         "suggestions": "Tekoälyn ehdotukset",
         "specs": "Vaatimusmäärittelyt",
-        "specsEmpty": "Tähän tuotekorttiin ei ole liitetty vaatimusmäärittelyä.",
         "specsUnreadable": "Tähän tuotekorttiin on liitetty vaatimusmäärittely, mutta tililläsi ei ole oikeutta avata sitä.",
         "refusals": "Aiemmat hylkäykset",
-        "refusalsEmpty": "Tässä tuotekortissa ei ole hylkäyksiä.",
-        "refusalsHint": "Nämä vaiheet palautettiin teille: lukekaa niihin liittyvä huomautus ennen uudelleenlähetystä.",
-        "onField": "kenttä: {field}",
-        "seeStep": "Avaa",
         "more": "+{count} lisää"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2770,7 +2765,6 @@ const LOCALE = {
     },
     "components/wizard/steps/DocumentsStep#LABELS": {
         "title": "Odotetut asiakirjat",
-        "subtitle": "Mitä asiakkaanne odottaa ja mihin mennessä.",
         "otherTitle": "Muut asiakirjat",
         "otherSubtitle": "Kansion tiedostot, jotka eivät vastaa mihinkään yllä olevista vaatimuksista. Pudottakaa tähän mikä tahansa hyödyllinen asiakirja (valokuva, analyysi…).",
         "blocking": "Puuttuvat pakolliset asiakirjat: {count}",

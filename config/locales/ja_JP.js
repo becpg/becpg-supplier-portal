@@ -2756,13 +2756,8 @@ const LOCALE = {
         "title": "コンテキスト",
         "suggestions": "AI の提案",
         "specs": "仕様書",
-        "specsEmpty": "このシートに添付された仕様書はありません。",
         "specsUnreadable": "このシートには仕様書が添付されていますが、お使いのアカウントでは開けません。",
         "refusals": "過去の差し戻し",
-        "refusalsEmpty": "このシートの差し戻しはありません。",
-        "refusalsHint": "これらのステップは差し戻されました。再送信の前に、関連するコメントをご確認ください。",
-        "onField": "{field} について",
-        "seeStep": "開く",
         "more": "ほか {count} 件"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2770,7 +2765,6 @@ const LOCALE = {
     },
     "components/wizard/steps/DocumentsStep#LABELS": {
         "title": "求められている文書",
-        "subtitle": "お客様が求めている文書とその期限。",
         "otherTitle": "その他の文書",
         "otherSubtitle": "フォルダー内のファイルのうち、上記の要求事項のいずれにも該当しないもの。役立つ文書（写真、分析結果など）があればここにドロップしてください。",
         "blocking": "未提出の必須文書 {count} 件",

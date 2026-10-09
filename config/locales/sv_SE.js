@@ -2756,13 +2756,8 @@ const LOCALE = {
         "title": "Kontext",
         "suggestions": "AI-förslag",
         "specs": "Specifikationer",
-        "specsEmpty": "Ingen specifikation är kopplad till det här bladet.",
         "specsUnreadable": "En specifikation är kopplad till det här bladet, men ditt konto kan inte öppna den.",
         "refusals": "Tidigare avvisningar",
-        "refusalsEmpty": "Inga avvisningar för det här bladet.",
-        "refusalsHint": "Dessa steg har skickats tillbaka till dig: läs den tillhörande kommentaren innan du skickar igen.",
-        "onField": "för {field}",
-        "seeStep": "Öppna",
         "more": "+{count} till"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2770,7 +2765,6 @@ const LOCALE = {
     },
     "components/wizard/steps/DocumentsStep#LABELS": {
         "title": "Förväntade dokument",
-        "subtitle": "Vad kunden förväntar sig, och när.",
         "otherTitle": "Övriga dokument",
         "otherSubtitle": "Filerna i mappen som inte motsvarar något av kraven ovan. Släpp här alla användbara dokument (foto, analys…).",
         "blocking": "{count} obligatoriska dokument saknas",

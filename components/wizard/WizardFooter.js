@@ -166,41 +166,41 @@ export function WizardFooter({
                 ) : null}
             </AnimatePresence>
 
-            {/* `finishReason` est affiché **même quand le bouton reste actif**.
-                En mode brouillon la configuration autorise à rendre une fiche
-                incomplète, mais le fournisseur doit savoir qu'elle l'est : taire
-                le manque parce qu'il n'interdit rien, c'est le lui apprendre par
-                le refus de son client. Le ton suit la conséquence — barrière
-                orange quand c'est bloquant, note grise quand c'est un avis. */}
-            {finishReason && showFinish ? (
-                <div className="mb-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
-                    <span
-                        className={[
-                            'inline-flex shrink-0 items-center gap-1.5 text-xs font-medium',
-                            finishDisabled
-                                ? 'text-[var(--becpg-orange-deep)]'
-                                : 'text-[var(--becpg-dark-grey)]',
-                        ].join(' ')}
-                    >
-                        <Icon name={finishDisabled ? 'report' : 'info'} size={16} />
-                        {finishDisabled ? labels.blocked : labels.incomplete}
-                    </span>
-                    {finishReason}
-                </div>
-            ) : null}
-
             <div className="sticky-actions -mx-4 flex-wrap items-center rounded-none sm:mx-0 sm:rounded-xl">
-                <div className="order-2 min-w-0 flex-1 sm:order-1">
+                <div className="order-2 flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1.5 sm:order-1">
+                    {/* What still holds the finish back, on the bar that carries
+                        the button — shown even when the button stays active: in
+                        draft mode an incomplete sheet may be sent, but the
+                        supplier must know it is incomplete. Orange when it blocks,
+                        grey when it only informs. */}
+                    {finishReason && showFinish ? (
+                        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
+                            <span
+                                className={[
+                                    'inline-flex shrink-0 items-center gap-1.5 text-xs font-medium',
+                                    finishDisabled
+                                        ? 'text-[var(--becpg-orange-deep)]'
+                                        : 'text-[var(--becpg-dark-grey)]',
+                                ].join(' ')}
+                            >
+                                <Icon name={finishDisabled ? 'report' : 'info'} size={16} />
+                                {finishDisabled ? labels.blocked : labels.incomplete}
+                            </span>
+                            {finishReason}
+                        </div>
+                    ) : null}
                     {extra}
                     {autoSave ? (
-                        <AutoSaveIndicator
-                            status={autoSave.status}
-                            savedAt={autoSave.savedAt}
-                            error={autoSave.error}
-                            onRetry={autoSave.retry}
-                        />
+                        <div className="min-w-0">
+                            <AutoSaveIndicator
+                                status={autoSave.status}
+                                savedAt={autoSave.savedAt}
+                                error={autoSave.error}
+                                onRetry={autoSave.retry}
+                            />
+                            <AutoSaveReassurance status={autoSave.status} className="mt-0.5" />
+                        </div>
                     ) : null}
-                    {autoSave ? <AutoSaveReassurance status={autoSave.status} className="mt-0.5" /> : null}
                 </div>
 
                 <div className="order-1 flex w-full shrink-0 items-center gap-2 sm:order-2 sm:w-auto">

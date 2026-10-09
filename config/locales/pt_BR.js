@@ -2756,13 +2756,8 @@ const LOCALE = {
         "title": "Contexto",
         "suggestions": "Sugestões da IA",
         "specs": "Especificações",
-        "specsEmpty": "Nenhuma especificação vinculada a esta ficha.",
         "specsUnreadable": "Uma especificação está vinculada a esta ficha, mas sua conta não pode abri-la.",
         "refusals": "Recusas anteriores",
-        "refusalsEmpty": "Nenhuma recusa nesta ficha.",
-        "refusalsHint": "Estas etapas foram devolvidas a você: leia a observação associada antes de enviar novamente.",
-        "onField": "em {field}",
-        "seeStep": "Abrir",
         "more": "+{count} outras"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2770,7 +2765,6 @@ const LOCALE = {
     },
     "components/wizard/steps/DocumentsStep#LABELS": {
         "title": "Documentos esperados",
-        "subtitle": "O que seu cliente espera, e até quando.",
         "otherTitle": "Outros documentos",
         "otherSubtitle": "Os arquivos da pasta que não atendem a nenhuma das exigências acima. Solte aqui qualquer documento útil (foto, análise…).",
         "blocking": "{count} documento(s) obrigatório(s) ausente(s)",

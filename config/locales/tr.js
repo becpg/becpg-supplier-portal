@@ -2756,13 +2756,8 @@ const LOCALE = {
         "title": "Bağlam",
         "suggestions": "AI önerileri",
         "specs": "Spesifikasyonlar",
-        "specsEmpty": "Bu karta bağlı spesifikasyon yok.",
         "specsUnreadable": "Bu karta bir spesifikasyon bağlı ancak hesabınız onu açamıyor.",
         "refusals": "Önceki retler",
-        "refusalsEmpty": "Bu kartta ret yok.",
-        "refusalsHint": "Bu adımlar size geri gönderildi: yeniden göndermeden önce ilgili açıklamayı okuyun.",
-        "onField": "{field} üzerinde",
-        "seeStep": "Aç",
         "more": "+{count} tane daha"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2770,7 +2765,6 @@ const LOCALE = {
     },
     "components/wizard/steps/DocumentsStep#LABELS": {
         "title": "Beklenen belgeler",
-        "subtitle": "Müşterinizin beklediği belgeler ve son tarihleri.",
         "otherTitle": "Diğer belgeler",
         "otherSubtitle": "Klasördeki, yukarıdaki gereksinimlerin hiçbirini karşılamayan dosyalar. Yararlı her belgeyi (fotoğraf, analiz…) buraya bırakın.",
         "blocking": "{count} zorunlu belge eksik",

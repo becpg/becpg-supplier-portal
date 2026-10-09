@@ -2756,13 +2756,8 @@ const LOCALE = {
         "title": "背景信息",
         "suggestions": "AI 建议",
         "specs": "规格书",
-        "specsEmpty": "此资料表未关联规格书。",
         "specsUnreadable": "此资料表关联了一份规格书，但您的账户无法打开。",
         "refusals": "以往的退回记录",
-        "refusalsEmpty": "此资料表无退回记录。",
-        "refusalsHint": "这些步骤已被退回给您：重新发送前请阅读相关备注。",
-        "onField": "关于 {field}",
-        "seeStep": "打开",
         "more": "另外 +{count} 项"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2770,7 +2765,6 @@ const LOCALE = {
     },
     "components/wizard/steps/DocumentsStep#LABELS": {
         "title": "所需文件",
-        "subtitle": "客户的要求及截止日期。",
         "otherTitle": "其他文件",
         "otherSubtitle": "文件夹中不对应上述任何要求的文件。可在此上传任何有用的文件（照片、分析报告……）。",
         "blocking": "缺少 {count} 份必需文件",

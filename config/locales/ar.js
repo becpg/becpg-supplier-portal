@@ -2756,13 +2756,8 @@ const LOCALE = {
         "title": "السياق",
         "suggestions": "اقتراحات الذكاء الاصطناعي",
         "specs": "المواصفات",
-        "specsEmpty": "لا توجد مواصفة مرفقة بهذه البطاقة.",
         "specsUnreadable": "توجد مواصفة مرفقة بهذه البطاقة، لكن حسابكم لا يستطيع فتحها.",
         "refusals": "الرفوض السابقة",
-        "refusalsEmpty": "لا يوجد رفض على هذه البطاقة.",
-        "refusalsHint": "أُعيدت إليكم هذه الخطوات: اقرؤوا الملاحظة المرتبطة بها قبل الإرسال مجددًا.",
-        "onField": "على {field}",
-        "seeStep": "فتح",
         "more": "+{count} أخرى"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2770,7 +2765,6 @@ const LOCALE = {
     },
     "components/wizard/steps/DocumentsStep#LABELS": {
         "title": "المستندات المتوقعة",
-        "subtitle": "ما يتوقعه عميلكم، وفي أي موعد.",
         "otherTitle": "مستندات أخرى",
         "otherSubtitle": "الملفات الموجودة في المجلد والتي لا تستجيب لأي من المتطلبات أعلاه. أفلتوا هنا أي مستند مفيد (صورة، تحليل…).",
         "blocking": "{count} مستند(ات) إلزامية ناقصة",

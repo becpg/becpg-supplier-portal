@@ -2756,13 +2756,8 @@ const LOCALE = {
         "title": "Contesto",
         "suggestions": "Suggerimenti dell'IA",
         "specs": "Capitolati",
-        "specsEmpty": "Nessun capitolato collegato a questa scheda.",
         "specsUnreadable": "A questa scheda è collegato un capitolato, ma il vostro account non può aprirlo.",
         "refusals": "Rifiuti precedenti",
-        "refusalsEmpty": "Nessun rifiuto su questa scheda.",
-        "refusalsHint": "Queste fasi vi sono state rinviate: leggete l'osservazione associata prima di inviare di nuovo.",
-        "onField": "su {field}",
-        "seeStep": "Apri",
         "more": "+ altri {count}"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2770,7 +2765,6 @@ const LOCALE = {
     },
     "components/wizard/steps/DocumentsStep#LABELS": {
         "title": "Documenti attesi",
-        "subtitle": "Ciò che il vostro cliente si aspetta, ed entro quando.",
         "otherTitle": "Altri documenti",
         "otherSubtitle": "I file della cartella che non rispondono ad alcuno dei requisiti qui sopra. Depositate qui qualsiasi documento utile (foto, analisi…).",
         "blocking": "{count} documento/i obbligatorio/i mancante/i",

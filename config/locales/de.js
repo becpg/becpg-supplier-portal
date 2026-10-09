@@ -2756,13 +2756,8 @@ const LOCALE = {
         "title": "Kontext",
         "suggestions": "KI-Vorschläge",
         "specs": "Spezifikationen",
-        "specsEmpty": "Diesem Datenblatt ist keine Spezifikation zugeordnet.",
         "specsUnreadable": "Diesem Datenblatt ist eine Spezifikation zugeordnet, aber Ihr Konto kann sie nicht öffnen.",
         "refusals": "Frühere Ablehnungen",
-        "refusalsEmpty": "Keine Ablehnung zu diesem Datenblatt.",
-        "refusalsHint": "Diese Schritte wurden an Sie zurückgesandt: Lesen Sie die zugehörige Anmerkung, bevor Sie erneut senden.",
-        "onField": "zu {field}",
-        "seeStep": "Öffnen",
         "more": "+{count} weitere"
     },
     "components/wizard/steps/DataListStep#LABELS": {
@@ -2770,7 +2765,6 @@ const LOCALE = {
     },
     "components/wizard/steps/DocumentsStep#LABELS": {
         "title": "Erwartete Dokumente",
-        "subtitle": "Was Ihr Kunde erwartet, und bis wann.",
         "otherTitle": "Weitere Dokumente",
         "otherSubtitle": "Die Dateien im Ordner, die keiner der obigen Anforderungen entsprechen. Legen Sie hier jedes nützliche Dokument ab (Foto, Analyse…).",
         "blocking": "{count} Pflichtdokument(e) fehlen",

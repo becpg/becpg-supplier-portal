@@ -1509,8 +1509,6 @@ export function Wizard({
         <HelpPanel
             entityId={entityId}
             suggestions={suggestionsPanel}
-            discussion={commentsEnabled ? discussion : null}
-            onOpenComments={commentsEnabled ? openComments : undefined}
             task={task}
         />
     );
@@ -1745,22 +1743,6 @@ export function Wizard({
     // happened.
     const canFinish = Boolean(task) && task.isOpen !== false && !wizardState.readOnly;
 
-    /*
-     * A step whose content is a grid of fields or of rows takes the whole width;
-     * a step that is read keeps the readable cap.
-     *
-     * The form used to be capped with the prose, and the reason was sound: a form
-     * at 1664px puts a label 900px from its value. What changed is that the fields
-     * now pair up by container width, so the extra space buys a THIRD column
-     * rather than wider fields — measured, each one stays around 400px, close to
-     * the 363px it had while capped. A supplier filling a ten-field step sees it
-     * without scrolling, which is what the width was for.
-     *
-     * `compliance` and `suggestions` stay capped: those are read, not filled.
-     */
-    const gridStep = Boolean(currentStep)
-        && currentStep.kind !== 'compliance' && currentStep.kind !== 'suggestions';
-
     return (
         /* The sheet's entry languages, made available to the `d:mltext` controls
            without crossing five components — see ContentLocalesProvider. */
@@ -1768,7 +1750,9 @@ export function Wizard({
         <FieldFocusProvider value={fieldFocus}>
         <AppShell ownHeading
             title={entity.name || labels.step}
-            fullWidth={gridStep}
+            // One width for every step: a step that narrowed the page made the
+            // whole layout jump while the supplier moved through the trail.
+            fullWidth
             aside={
                 wide ? null : (
                     <div className="hidden flex-col gap-4 lg:flex">
@@ -1990,13 +1974,6 @@ export function Wizard({
                 <HelpPanel
                     entityId={entityId}
                     suggestions={suggestionsPanel}
-                    steps={visitedSteps}
-                    onSelectStep={(stepId) => {
-                        setSheet(null);
-                        goTo(stepId);
-                    }}
-                    discussion={commentsEnabled ? discussion : null}
-                    onOpenComments={commentsEnabled ? () => setSheet('comments') : undefined}
                     task={task}
                     variant="sheet"
                 />
