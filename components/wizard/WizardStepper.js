@@ -208,6 +208,20 @@ function StepsSummary({ steps, currentId, labels, variant = 'rail', onToggleColl
         );
     }
 
+    if (variant === 'trail') {
+        return (
+            <div className="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1 px-1">
+                <p className="text-[13px] font-medium text-[var(--becpg-blue)]">{headline}</p>
+                <div className="flex w-40 gap-[3px]" aria-hidden="true">
+                    {tones.map((tone, index) => (
+                        <span key={steps[index].id} className={`h-1.5 flex-1 rounded-full ${BAR_TONES[tone] || 'bg-[var(--becpg-grey)]'}`} />
+                    ))}
+                </div>
+                <p className="text-[11px] text-[var(--becpg-dark-grey)]">{hint}</p>
+            </div>
+        );
+    }
+
     return (
         <div
             className={
@@ -319,11 +333,20 @@ function CollapsedStepButton({ step, index, total, active, selectable, onSelect,
 }
 
 /**
- * One entry of the trail: the step as a chip in the header, its state drawn by
- * its icon and its colour, and what is missing as a short count beside it.
+ * One step of the trail: its number, its name, and under it what the rail used
+ * to say — the answers missing, a step the customer validated, a read-only one.
  */
-function TrailStepButton({ step, index, total, active, selectable, onSelect, labels, state, icon, incomplete, done, details }) {
+function TrailStepButton({ step, index, total, active, selectable, onSelect, labels, state, incomplete, done, details }) {
     const name = `${step.label} · ${fill(labels.step, { index, total })} · ${state}`;
+    const detail = details[0] || (done ? labels.complete : null);
+    const bullet = active
+        ? 'border-[var(--becpg-blue)] bg-[var(--becpg-blue)] text-white'
+        : incomplete
+          ? 'border-[var(--status-warn)] bg-[var(--status-warn-bg)] text-[var(--status-warn)]'
+          : done || step.frozen
+            ? 'border-[var(--becpg-teal)] bg-[var(--becpg-teal-wash)] text-[var(--becpg-teal)]'
+            : 'border-[var(--becpg-grey)] bg-white text-[var(--becpg-dark-grey)]';
+    const detailTone = incomplete ? 'text-[var(--status-warn)]' : 'text-[var(--becpg-dark-grey)]';
     return (
         <button
             type="button"
@@ -331,29 +354,25 @@ function TrailStepButton({ step, index, total, active, selectable, onSelect, lab
             disabled={!selectable}
             aria-current={active ? 'step' : undefined}
             aria-label={name}
-            title={details.length > 0 ? `${step.label} · ${details.join(' · ')}` : step.label}
             onClick={() => onSelect(step.id)}
             className={[
-                'inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-colors',
+                'group inline-flex shrink-0 items-center gap-2 rounded-xl px-2 py-1.5 text-start transition-colors',
                 'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]',
-                active
-                    ? 'bg-[var(--becpg-blue)] text-white'
-                    : incomplete
-                      ? 'bg-[var(--status-warn-bg)] text-[var(--becpg-ink)] hover:bg-[var(--becpg-teal-wash)]'
-                      : 'bg-[var(--becpg-grey)]/60 text-[var(--becpg-ink)] hover:bg-[var(--becpg-teal-wash)]',
+                active ? 'bg-[var(--becpg-blue)]/8' : 'hover:bg-[var(--becpg-grey)]/50',
             ].join(' ')}
         >
-            <Icon
-                name={icon}
-                size={16}
-                className={active ? 'text-white' : incomplete ? 'text-[var(--status-warn)]' : done ? 'text-[var(--becpg-teal)]' : 'text-[var(--becpg-dark-grey)]'}
-            />
-            <span className="whitespace-nowrap">{step.label}</span>
-            {incomplete ? (
-                <span className={`rounded-full px-1.5 text-[11px] leading-[18px] tabular-nums ${active ? 'bg-white/20 text-white' : 'bg-white text-[var(--status-warn)]'}`}>
-                    {step.issues.count}
-                </span>
-            ) : null}
+            <span aria-hidden="true" className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[12px] font-semibold ${bullet}`}>
+                {step.frozen && !active ? <Icon name="lock" size={14} /> : done && !active ? <Icon name="check" size={15} /> : index}
+            </span>
+            <span className="flex flex-col leading-tight">
+                <span className={`whitespace-nowrap text-sm ${active ? 'font-semibold text-[var(--becpg-blue)]' : 'text-[var(--becpg-ink)]'}`}>{step.label}</span>
+                {detail ? (
+                    <span className={`inline-flex items-center gap-1 whitespace-nowrap text-[11px] ${detailTone}`}>
+                        {incomplete ? <Icon name="error_outline" size={12} /> : null}
+                        {detail}
+                    </span>
+                ) : null}
+            </span>
         </button>
     );
 }
@@ -478,7 +497,6 @@ function StepButton({ step, index, total, active, selectable, onSelect, labels, 
                 onSelect={onSelect}
                 labels={labels}
                 state={spoken}
-                icon={icon}
                 incomplete={incomplete}
                 done={done}
                 details={details}
@@ -642,21 +660,27 @@ export function WizardStepper({
 
     if (variant === 'trail') {
         return (
-            <TabScroller ariaLabel={labels.title} activeKey={currentId} tabs={false} surface="card" className={className} trackClassName="gap-1.5 px-1 py-1">
-                {list.map((step, index) => (
-                    <StepButton
-                        key={step.id}
-                        step={step}
-                        index={index + 1}
-                        total={total}
-                        active={step.id === currentId}
-                        selectable={selectable(step, index)}
-                        onSelect={select}
-                        labels={labels}
-                        trail
-                    />
-                ))}
-            </TabScroller>
+            <div className={`min-w-0 ${className}`}>
+                <StepsSummary steps={list} currentId={currentId} labels={labels} variant="trail" />
+                <TabScroller ariaLabel={labels.title} activeKey={currentId} tabs={false} surface="card" trackClassName="items-center gap-1 px-1 py-1">
+                    {list.flatMap((step, index) => [
+                        index > 0 ? (
+                            <Icon key={`${step.id}-arrow`} name="chevron_right" size={18} aria-hidden="true" className="shrink-0 text-[var(--becpg-dark-grey)]/60" />
+                        ) : null,
+                        <StepButton
+                            key={step.id}
+                            step={step}
+                            index={index + 1}
+                            total={total}
+                            active={step.id === currentId}
+                            selectable={selectable(step, index)}
+                            onSelect={select}
+                            labels={labels}
+                            trail
+                        />,
+                    ]).filter(Boolean)}
+                </TabScroller>
+            </div>
         );
     }
 

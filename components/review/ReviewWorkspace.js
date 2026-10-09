@@ -63,6 +63,7 @@ const LABELS = defineLabels('components/review/ReviewWorkspace#LABELS', {
         toRead: 'à relire',
         legendChanged: 'changements depuis la référence',
         aiPoints: 'points relevés par l’IA',
+        trailChanges: '{count} changement(s)',
         frozen: 'Liste validée',
         accept: 'Accepter et passer à la suite',
         acceptLast: 'Accepter',
@@ -102,6 +103,7 @@ const LABELS = defineLabels('components/review/ReviewWorkspace#LABELS', {
         toRead: 'to review',
         legendChanged: 'changes since the reference',
         aiPoints: 'points raised by the AI',
+        trailChanges: '{count} change(s)',
         frozen: 'Validated list',
         accept: 'Accept and go on',
         acceptLast: 'Accept',
@@ -164,42 +166,42 @@ function useReviewMarks(taskId) {
     return [marks, setMarks];
 }
 
-function TrailItem({ section, current, status, changes, aiPoints, labels, onSelect }) {
-    const icon = status === ACCEPTED ? 'check_circle' : status === RETURNED ? 'reply' : 'radio_button_unchecked';
-    const tone = status === ACCEPTED ? 'text-[var(--status-ok)]' : status === RETURNED ? 'text-[var(--becpg-orange-deep)]' : 'text-[var(--becpg-muted)]';
+function TrailItem({ section, index, current, status, changes, aiPoints, labels, onSelect }) {
     const word = status === ACCEPTED ? labels.accepted : status === RETURNED ? labels.returned : labels.toRead;
+    const bullet = current
+        ? 'border-[var(--becpg-blue)] bg-[var(--becpg-blue)] text-white'
+        : status === ACCEPTED
+          ? 'border-[var(--status-ok)] bg-[var(--status-ok-bg)] text-[var(--status-ok)]'
+          : status === RETURNED
+            ? 'border-[var(--becpg-orange-deep)] bg-[var(--status-warn-bg)] text-[var(--becpg-orange-deep)]'
+            : 'border-[var(--becpg-grey)] bg-white text-[var(--becpg-dark-grey)]';
+    const detail = [
+        word,
+        changes > 0 ? fill(labels.trailChanges, { count: changes }) : null,
+    ].filter(Boolean).join(' · ');
     return (
         <button
             type="button"
             data-tab-key={section.id}
             onClick={() => onSelect(section.id)}
             aria-current={current ? 'step' : undefined}
-            title={word}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm ${
-                current ? 'bg-[var(--becpg-blue)] text-white' : 'bg-[var(--becpg-grey)]/60 text-[var(--becpg-ink)] hover:bg-[var(--becpg-teal-wash)]'
-            }`}
+            className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-2 py-1.5 text-start ${current ? 'bg-[var(--becpg-blue)]/8' : 'hover:bg-[var(--becpg-grey)]/50'}`}
         >
-            <Icon name={icon} size={16} className={current ? 'text-white' : tone} />
-            <span className="whitespace-nowrap">{section.label}</span>
-            <span className="sr-only-text">{` (${word})`}</span>
-            {aiPoints > 0 ? (
-                <span
-                    title={labels.aiPoints}
-                    className={`inline-flex items-center gap-0.5 rounded-full px-1.5 text-[11px] leading-[18px] tabular-nums ${current ? 'bg-white/20 text-white' : 'bg-[var(--status-warn-bg)] text-[var(--status-warn)]'}`}
-                >
-                    <Icon name="auto_awesome" size={11} />{aiPoints}
-                    <span className="sr-only-text">{` ${labels.aiPoints}`}</span>
+            <span aria-hidden="true" className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[12px] font-semibold ${bullet}`}>
+                {status === ACCEPTED && !current ? <Icon name="check" size={15} /> : status === RETURNED && !current ? <Icon name="reply" size={14} /> : index}
+            </span>
+            <span className="flex flex-col leading-tight">
+                <span className={`inline-flex items-center gap-1.5 whitespace-nowrap text-sm ${current ? 'font-semibold text-[var(--becpg-blue)]' : 'text-[var(--becpg-ink)]'}`}>
+                    {section.label}
+                    {aiPoints > 0 ? (
+                        <span title={labels.aiPoints} className="inline-flex items-center gap-0.5 rounded-full bg-[var(--status-warn-bg)] px-1.5 text-[11px] leading-[16px] tabular-nums text-[var(--status-warn)]">
+                            <Icon name="auto_awesome" size={11} />{aiPoints}
+                            <span className="sr-only-text">{` ${labels.aiPoints}`}</span>
+                        </span>
+                    ) : null}
                 </span>
-            ) : null}
-            {changes > 0 ? (
-                <span
-                    title={labels.legendChanged}
-                    className={`rounded-full px-1.5 text-[11px] leading-[18px] tabular-nums ${current ? 'bg-white/20 text-white' : 'bg-[var(--status-info-bg)] text-[var(--status-info)]'}`}
-                >
-                    {changes}
-                    <span className="sr-only-text">{` ${labels.legendChanged}`}</span>
-                </span>
-            ) : null}
+                <span className={`whitespace-nowrap text-[11px] ${changes > 0 ? 'text-[var(--status-info)]' : 'text-[var(--becpg-dark-grey)]'}`}>{detail}</span>
+            </span>
         </button>
     );
 }
@@ -465,10 +467,12 @@ export function ReviewWorkspace({ task, taskId, entityNodeRef, wizardId, onDone 
                 onSendBack={() => { setMessage(composeMessage(marks.remarks, task.entity?.name, labels)); setConfirming('refuse'); }}
                 onValidate={() => setConfirming('complete')}
             >
-                <TabScroller ariaLabel={labels.sections} activeKey={current.id} tabs={false} surface="card" className="-mx-1 mt-3 border-t border-[var(--becpg-line)] pt-3" trackClassName="gap-1.5 px-1 py-1">
-                    {sections.map((section) => (
+                <TabScroller ariaLabel={labels.sections} activeKey={current.id} tabs={false} surface="card" className="-mx-1 mt-3 border-t border-[var(--becpg-line)] pt-3" trackClassName="items-center gap-1 px-1 py-1">
+                    {sections.flatMap((section, index) => [
+                        index > 0 ? <Icon key={`${section.id}-arrow`} name="chevron_right" size={18} aria-hidden="true" className="shrink-0 text-[var(--becpg-dark-grey)]/60" /> : null,
                         <TrailItem
                             key={section.id}
+                            index={index + 1}
                             section={section}
                             current={section.id === current.id}
                             status={marks.status[section.id]}
@@ -476,8 +480,8 @@ export function ReviewWorkspace({ task, taskId, entityNodeRef, wizardId, onDone 
                             aiPoints={aiPoints[section.id] || 0}
                             labels={labels}
                             onSelect={(id) => { setCurrentId(id); setCorrecting(false); }}
-                        />
-                    ))}
+                        />,
+                    ]).filter(Boolean)}
                 </TabScroller>
             </ReviewHeader>
             <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] 2xl:grid-cols-[minmax(0,1fr)_22rem]">
