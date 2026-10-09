@@ -2047,6 +2047,7 @@ const LOCALE = {
         "countNone": "Ei ilmoituksia",
         "updatedAt": "Päivitetty klo {time}",
         "more": "ja {count} muuta — katso \"Omat asiakirjat\" ja \"Omat tehtävät\"",
+        "moreTasks": "ja {count} muuta — katso \"Omat tehtävät\"",
         "allTasks": "Omat tehtävät",
         "allDocuments": "Omat asiakirjat"
     },

@@ -2047,6 +2047,7 @@ const LOCALE = {
         "countNone": "لا توجد إشعارات",
         "updatedAt": "تم التحديث في {time}",
         "more": "و{count} أخرى — راجعوا «مستنداتي» و«مهامي»",
+        "moreTasks": "و{count} أخرى — راجعوا «مهامي»",
         "allTasks": "مهامي",
         "allDocuments": "مستنداتي"
     },

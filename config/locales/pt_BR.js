@@ -2047,6 +2047,7 @@ const LOCALE = {
         "countNone": "Nenhuma notificação",
         "updatedAt": "Atualizado às {time}",
         "more": "e mais {count} — veja “Meus documentos” e “Minhas tarefas”",
+        "moreTasks": "e mais {count} — veja “Minhas tarefas”",
         "allTasks": "Minhas tarefas",
         "allDocuments": "Meus documentos"
     },

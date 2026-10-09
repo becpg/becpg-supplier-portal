@@ -2047,6 +2047,7 @@ const LOCALE = {
         "countNone": "无通知",
         "updatedAt": "更新于 {time}",
         "more": "另有 {count} 条 — 请查看“我的文件”和“我的任务”",
+        "moreTasks": "另有 {count} 条 — 请查看“我的任务”",
         "allTasks": "我的任务",
         "allDocuments": "我的文件"
     },

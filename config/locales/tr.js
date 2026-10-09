@@ -2047,6 +2047,7 @@ const LOCALE = {
         "countNone": "Bildirim yok",
         "updatedAt": "{time} itibarıyla güncellendi",
         "more": "ve {count} tane daha — \"Belgelerim\" ve \"Görevlerim\" bölümlerine bakın",
+        "moreTasks": "ve {count} tane daha — \"Görevlerim\" bölümüne bakın",
         "allTasks": "Görevlerim",
         "allDocuments": "Belgelerim"
     },

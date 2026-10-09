@@ -134,6 +134,9 @@ function fetchShared() {
     return inFlight;
 }
 
+/** Space with no `/documents` page of its own: it owes no documents (`MONITOR_NAV`). */
+const MONITOR_SPACE = 'monitor';
+
 const LOCAL = defineLabels('components/shell/NotificationBell#LOCAL', {
     fr: {
         open: 'Notifications',
@@ -146,6 +149,7 @@ const LOCAL = defineLabels('components/shell/NotificationBell#LOCAL', {
         countNone: 'Aucune notification',
         updatedAt: 'Actualisé à {time}',
         more: 'et {count} autre(s) — voir « Mes documents » et « Mes tâches »',
+        moreTasks: 'et {count} autre(s) — voir « Mes tâches »',
         allTasks: 'Mes tâches',
         allDocuments: 'Mes documents',
     },
@@ -160,6 +164,7 @@ const LOCAL = defineLabels('components/shell/NotificationBell#LOCAL', {
         countNone: 'No notification',
         updatedAt: 'Updated at {time}',
         more: 'and {count} more — see "My documents" and "My tasks"',
+        moreTasks: 'and {count} more — see "My tasks"',
         allTasks: 'My tasks',
         allDocuments: 'My documents',
     },
@@ -242,6 +247,7 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
     const local = pickLabels(LOCAL, lang);
     const words = notificationLabels(lang);
     const session = useSession();
+    const offersDocuments = session.space !== MONITOR_SPACE;
     const pathname = usePathname();
     const reduceMotion = useReducedMotion();
 
@@ -679,7 +685,9 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
 
                         <div className="becpg-popover-band flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[var(--becpg-overlay-border)] px-3 py-2 text-xs text-[var(--becpg-dark-grey-deep)]">
                             {hidden > 0 ? (
-                                <span className="basis-full">{fill(local.more, { count: hidden })}</span>
+                                <span className="basis-full">
+                                    {fill(offersDocuments ? local.more : local.moreTasks, { count: hidden })}
+                                </span>
                             ) : null}
                             <Link
                                 href="/tasks"
@@ -688,13 +696,15 @@ export function NotificationBell({ initialCount = 0, className = '' }) {
                             >
                                 {local.allTasks}
                             </Link>
-                            <Link
-                                href="/documents"
-                                onClick={() => close(false)}
-                                className="rounded text-[var(--becpg-blue)] underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
-                            >
-                                {local.allDocuments}
-                            </Link>
+                            {offersDocuments ? (
+                                <Link
+                                    href="/documents"
+                                    onClick={() => close(false)}
+                                    className="rounded text-[var(--becpg-blue)] underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                                >
+                                    {local.allDocuments}
+                                </Link>
+                            ) : null}
                             {data && data.generatedAt ? (
                                 <span className="ms-auto">
                                     {fill(local.updatedAt, { time: formatTime(data.generatedAt, lang) })}

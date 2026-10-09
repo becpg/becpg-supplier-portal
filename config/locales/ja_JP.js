@@ -2047,6 +2047,7 @@ const LOCALE = {
         "countNone": "通知はありません",
         "updatedAt": "{time} に更新",
         "more": "ほか {count} 件 — 「文書」と「タスク」をご確認ください",
+        "moreTasks": "ほか {count} 件 — 「タスク」をご確認ください",
         "allTasks": "タスク",
         "allDocuments": "文書"
     },
