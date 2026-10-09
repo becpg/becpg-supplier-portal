@@ -1065,6 +1065,8 @@ const LOCALE = {
     "components/dashboard/DashboardKpis#LOCAL": {
         "approval": "Status de homologação",
         "approvalUnknown": "Indisponível",
+        "approvalSuppliers": "{count} fornecedores",
+        "approvalPickSupplier": "Escolha um fornecedor no topo da tela para ver o status dele.",
         "validUntil": "Válido até {date}",
         "noValidity": "Nenhum prazo conhecido",
         "allGood": "Nada está bloqueando",
@@ -1356,6 +1358,20 @@ const LOCALE = {
             "association": "nenhuma correspondência exata nos dados de referência"
         }
     },
+    "components/documents/AiVerdictContest#LABELS": {
+        "advisory": "Apenas um parecer da IA: não bloqueia a finalização, seu cliente decide.",
+        "contest": "Contestar a análise",
+        "contestFor": "Contestar a análise da IA de “{document}”",
+        "reasonLabel": "Por que a análise não se aplica a este documento",
+        "reasonPlaceholder": "Ex.: um certificado Halal não traz lista de ingredientes nem peso líquido.",
+        "send": "Enviar ao meu cliente",
+        "cancel": "Cancelar",
+        "sent": "Contestação enviada ao seu cliente",
+        "contested": "Contestada - aguardando seu cliente",
+        "messageIntro": "Contesto a análise automática do documento “{document}”.",
+        "messageVerdict": "Veredito da IA:",
+        "messageReason": "Minha explicação:"
+    },
     "components/documents/DepositedDocuments#LABELS": {
         "title": "Documentos depositados",
         "subtitle": "Os arquivos presentes na pasta deste produto, qualquer que seja o tipo.",
@@ -1364,7 +1380,8 @@ const LOCALE = {
         "signed": "Assinado",
         "download": "Baixar",
         "consult": "Visualizar",
-        "modified": "Modificado em {date}"
+        "modified": "Modificado em {date}",
+        "actionOn": "{action}: {document}"
     },
     "components/documents/DocumentUpload#LABELS": {
         "drop": "Solte um arquivo aqui",
@@ -1393,6 +1410,8 @@ const LOCALE = {
         "validityHint": "As datas de validade impressas no documento.",
         "validityInverted": "A data de fim é anterior à data de início.",
         "validityMissing": "Preencha o fim da validade antes de enviar o arquivo.",
+        "validityPast": "A data de fim da validade já passou: o documento continuaria vencido.",
+        "fileInput": "Escolher o arquivo a enviar",
         "validityNotApplied": "O arquivo foi enviado, mas suas datas de validade não foram salvas. Preencha-as na linha do documento."
     },
     "components/documents/DocumentValidity#LABELS": {
@@ -1464,7 +1483,8 @@ const LOCALE = {
         "noEntity": "Documentos do fornecedor",
         "aiHints": "Notas de análise",
         "deposit": "Enviar um arquivo",
-        "file": "Arquivo"
+        "file": "Arquivo",
+        "actionOn": "{action}: {document}"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "Documento assinado",
@@ -1822,7 +1842,6 @@ const LOCALE = {
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Iniciar um projeto",
         "supplier": "Fornecedor",
-        "supplierPlaceholder": "Escolha um fornecedor…",
         "scope": "Escopo",
         "scopeSupplier": "A própria ficha do fornecedor",
         "scopeAll": "Todos os produtos deste fornecedor",
@@ -1849,7 +1868,6 @@ const LOCALE = {
     "components/monitor/StartNcDialog#LABELS": {
         "title": "Iniciar uma não conformidade",
         "supplier": "Fornecedor",
-        "supplierPlaceholder": "Escolha um fornecedor…",
         "product": "Produto",
         "productNone": "Nenhum produto em particular",
         "batch": "Lote",
@@ -1864,6 +1882,13 @@ const LOCALE = {
         "cancel": "Cancelar",
         "start": "Iniciar",
         "started": "Não conformidade iniciada: o beCPG a registra e abre sua análise."
+    },
+    "components/monitor/SupplierPicker#LOCAL": {
+        "search": "Pesquisar um fornecedor (nome, código)…",
+        "none": "Nenhum fornecedor corresponde.",
+        "more": "{count} a mais: refine a pesquisa.",
+        "clear": "Trocar de fornecedor",
+        "loading": "Carregando fornecedores…"
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "Scorecard",
@@ -2659,6 +2684,7 @@ const LOCALE = {
         "title": "Ficha técnica",
         "deposited": "Enviada em {date}",
         "replace": "Substituir",
+        "replaceSheet": "Substituir a ficha técnica",
         "cancel": "Cancelar",
         "missing": "Ficha técnica ausente",
         "missingHint": "Envie sua ficha técnica para ativar as sugestões da IA.",
@@ -2848,7 +2874,18 @@ const LOCALE = {
         "readOnly": "Esta ficha está em somente leitura: as sugestões não podem ser aplicadas.",
         "source": "Fonte",
         "changes": "{count} valor(es)",
-        "error": "Falha ao aplicar a sugestão."
+        "error": "Falha ao aplicar a sugestão.",
+        "reading": "Lendo as propostas…",
+        "searchingElsewhere": "Nada para esta etapa. Procurando propostas nas outras etapas…",
+        "elsewhere": "Nada para esta etapa, mas {count} proposta(s) em outras etapas:",
+        "elsewhereStep": "{label} ({count})",
+        "runningElsewhere": "Ainda nada para esta etapa: a análise continua em outras etapas.",
+        "nothingFound": "A análise não encontrou nada a propor nos seus documentos.",
+        "runDone": "Análise concluída: {count} proposta(s) para esta etapa.",
+        "readAt": "Propostas lidas às {time}",
+        "extractedFrom": "Valores lidos em “{document}”{type}",
+        "imageFrom": "Imagem encontrada em “{document}”{type}",
+        "documentFieldsFrom": "Informações do documento “{document}”{type}"
     },
     "components/wizard/steps/SurveyStep#LABELS": {
         "discuss": "Discussão",
@@ -2950,6 +2987,7 @@ const LOCALE = {
         "error.notFound": "Esta página ou este item não existe.",
         "error.tenant": "Nenhum cliente está associado à sua conta.",
         "error.upload": "O envio do arquivo falhou.",
+        "error.projectAlreadyOpen": "Já existe um projeto de referenciamento aberto nesta ficha. Encerre-o antes de iniciar um novo.",
         "error.http": "Erro {status}: {message}",
         "status.approved": "Homologado",
         "status.inProgress": "Em andamento",

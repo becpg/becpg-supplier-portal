@@ -1065,6 +1065,8 @@ const LOCALE = {
     "components/dashboard/DashboardKpis#LOCAL": {
         "approval": "حالة الاعتماد",
         "approvalUnknown": "غير متاح",
+        "approvalSuppliers": "{count} مورّدين",
+        "approvalPickSupplier": "اختاروا مورّدًا في أعلى الشاشة لعرض حالته.",
         "validUntil": "صالح حتى {date}",
         "noValidity": "لا يوجد موعد نهائي معروف",
         "allGood": "لا شيء معيق",
@@ -1356,6 +1358,20 @@ const LOCALE = {
             "association": "لا تطابق تام في البيانات المرجعية"
         }
     },
+    "components/documents/AiVerdictContest#LABELS": {
+        "advisory": "رأي استشاري من الذكاء الاصطناعي فقط: لا يمنع الإنهاء، والقرار لعميلكم.",
+        "contest": "الاعتراض على التحليل",
+        "contestFor": "الاعتراض على تحليل الذكاء الاصطناعي لـ «{document}»",
+        "reasonLabel": "لماذا لا ينطبق التحليل على هذا المستند",
+        "reasonPlaceholder": "مثال: شهادة الحلال لا تتضمن قائمة مكوّنات ولا وزنًا صافيًا.",
+        "send": "إرسال إلى عميلي",
+        "cancel": "إلغاء",
+        "sent": "أُرسل الاعتراض إلى عميلكم",
+        "contested": "تم الاعتراض - بانتظار عميلكم",
+        "messageIntro": "أعترض على التحليل الآلي للمستند «{document}».",
+        "messageVerdict": "حكم الذكاء الاصطناعي:",
+        "messageReason": "توضيحي:"
+    },
     "components/documents/DepositedDocuments#LABELS": {
         "title": "المستندات المودَعة",
         "subtitle": "الملفات الموجودة في مجلد هذا المنتج، أيًّا كان نوعها.",
@@ -1364,7 +1380,8 @@ const LOCALE = {
         "signed": "موقّع",
         "download": "تنزيل",
         "consult": "عرض",
-        "modified": "عُدّل في {date}"
+        "modified": "عُدّل في {date}",
+        "actionOn": "{action}: {document}"
     },
     "components/documents/DocumentUpload#LABELS": {
         "drop": "أفلتوا ملفًا هنا",
@@ -1393,6 +1410,8 @@ const LOCALE = {
         "validityHint": "تواريخ الصلاحية المطبوعة على المستند.",
         "validityInverted": "تاريخ النهاية يسبق تاريخ البداية.",
         "validityMissing": "املؤوا تاريخ نهاية الصلاحية قبل رفع الملف.",
+        "validityPast": "تاريخ انتهاء الصلاحية قد مضى بالفعل: سيبقى المستند منتهي الصلاحية.",
+        "fileInput": "اختيار الملف المراد رفعه",
         "validityNotApplied": "تم رفع الملف، لكن لم تُحفظ تواريخ صلاحيته. املؤوها في سطر المستند."
     },
     "components/documents/DocumentValidity#LABELS": {
@@ -1464,7 +1483,8 @@ const LOCALE = {
         "noEntity": "مستندات المورّد",
         "aiHints": "ملاحظات التحليل",
         "deposit": "رفع ملف",
-        "file": "الملف"
+        "file": "الملف",
+        "actionOn": "{action}: {document}"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "المستند الموقّع",
@@ -1822,7 +1842,6 @@ const LOCALE = {
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "بدء مشروع",
         "supplier": "المورّد",
-        "supplierPlaceholder": "اختيار مورّد…",
         "scope": "النطاق",
         "scopeSupplier": "سجل المورّد نفسه",
         "scopeAll": "جميع منتجات هذا المورّد",
@@ -1849,7 +1868,6 @@ const LOCALE = {
     "components/monitor/StartNcDialog#LABELS": {
         "title": "بدء حالة عدم مطابقة",
         "supplier": "المورّد",
-        "supplierPlaceholder": "اختيار مورّد…",
         "product": "المنتج",
         "productNone": "لا منتج بعينه",
         "batch": "الدفعة",
@@ -1864,6 +1882,13 @@ const LOCALE = {
         "cancel": "إلغاء",
         "start": "بدء",
         "started": "تم بدء حالة عدم المطابقة: يسجّلها beCPG ويفتح تحليلها."
+    },
+    "components/monitor/SupplierPicker#LOCAL": {
+        "search": "البحث عن مورّد (الاسم، الرمز)…",
+        "none": "لا يوجد مورّد مطابق.",
+        "more": "{count} آخرون: حدّدوا البحث أكثر.",
+        "clear": "تغيير المورّد",
+        "loading": "جارٍ تحميل الموردين…"
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "بطاقة الأداء",
@@ -2659,6 +2684,7 @@ const LOCALE = {
         "title": "البطاقة الفنية",
         "deposited": "رُفعت في {date}",
         "replace": "استبدال",
+        "replaceSheet": "استبدال البطاقة الفنية",
         "cancel": "إلغاء",
         "missing": "البطاقة الفنية ناقصة",
         "missingHint": "ارفعوا بطاقتكم الفنية لتفعيل اقتراحات الذكاء الاصطناعي.",
@@ -2848,7 +2874,18 @@ const LOCALE = {
         "readOnly": "هذه البطاقة للقراءة فقط: لا يمكن تطبيق الاقتراحات.",
         "source": "المصدر",
         "changes": "{count} قيمة(قيم)",
-        "error": "فشل تطبيق الاقتراح."
+        "error": "فشل تطبيق الاقتراح.",
+        "reading": "جارٍ قراءة المقترحات…",
+        "searchingElsewhere": "لا شيء لهذه الخطوة. جارٍ البحث عن مقترحات في الخطوات الأخرى…",
+        "elsewhere": "لا شيء لهذه الخطوة، لكن هناك {count} مقترح(ات) في خطوات أخرى:",
+        "elsewhereStep": "{label} ({count})",
+        "runningElsewhere": "لا شيء لهذه الخطوة بعد: التحليل مستمر في خطوات أخرى.",
+        "nothingFound": "لم يجد التحليل ما يُقترح في مستنداتكم.",
+        "runDone": "اكتمل التحليل: {count} مقترح(ات) لهذه الخطوة.",
+        "readAt": "قُرئت المقترحات في {time}",
+        "extractedFrom": "قيم مقروءة من «{document}»{type}",
+        "imageFrom": "صورة عُثر عليها في «{document}»{type}",
+        "documentFieldsFrom": "بيانات المستند «{document}»{type}"
     },
     "components/wizard/steps/SurveyStep#LABELS": {
         "discuss": "المناقشة",
@@ -2950,6 +2987,7 @@ const LOCALE = {
         "error.notFound": "هذه الصفحة أو هذا العنصر غير موجود.",
         "error.tenant": "لا يوجد عميل مرتبط بحسابكم.",
         "error.upload": "فشل رفع الملف.",
+        "error.projectAlreadyOpen": "يوجد بالفعل مشروع إدراج مفتوح على هذا السجل. أغلقوه قبل بدء مشروع جديد.",
         "error.http": "خطأ {status}: {message}",
         "status.approved": "معتمد",
         "status.inProgress": "قيد التنفيذ",

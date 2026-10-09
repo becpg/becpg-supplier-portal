@@ -1065,6 +1065,8 @@ const LOCALE = {
     "components/dashboard/DashboardKpis#LOCAL": {
         "approval": "Stato di qualifica",
         "approvalUnknown": "Non disponibile",
+        "approvalSuppliers": "{count} fornitori",
+        "approvalPickSupplier": "Scegliete un fornitore in alto nella schermata per vederne lo stato.",
         "validUntil": "Valido fino al {date}",
         "noValidity": "Nessuna scadenza nota",
         "allGood": "Nulla è bloccante",
@@ -1356,6 +1358,20 @@ const LOCALE = {
             "association": "nessuna corrispondenza esatta nei dati di riferimento"
         }
     },
+    "components/documents/AiVerdictContest#LABELS": {
+        "advisory": "Solo un parere dell'IA: non blocca il completamento, decide il vostro cliente.",
+        "contest": "Contesta l'analisi",
+        "contestFor": "Contesta l'analisi dell'IA di «{document}»",
+        "reasonLabel": "Perché l'analisi non si applica a questo documento",
+        "reasonPlaceholder": "Es. un certificato Halal non riporta né un elenco degli ingredienti né un peso netto.",
+        "send": "Invia al mio cliente",
+        "cancel": "Annulla",
+        "sent": "Contestazione inviata al vostro cliente",
+        "contested": "Contestata - in attesa del vostro cliente",
+        "messageIntro": "Contesto l'analisi automatica del documento «{document}».",
+        "messageVerdict": "Esito dell'IA:",
+        "messageReason": "La mia spiegazione:"
+    },
     "components/documents/DepositedDocuments#LABELS": {
         "title": "Documenti depositati",
         "subtitle": "I file presenti nella cartella di questo prodotto, qualunque sia il loro tipo.",
@@ -1364,7 +1380,8 @@ const LOCALE = {
         "signed": "Firmato",
         "download": "Scarica",
         "consult": "Visualizza",
-        "modified": "Modificato il {date}"
+        "modified": "Modificato il {date}",
+        "actionOn": "{action}: {document}"
     },
     "components/documents/DocumentUpload#LABELS": {
         "drop": "Trascinate un file qui",
@@ -1393,6 +1410,8 @@ const LOCALE = {
         "validityHint": "Le date di validità riportate sul documento.",
         "validityInverted": "La data di fine precede la data di inizio.",
         "validityMissing": "Inserite la fine di validità prima di caricare il file.",
+        "validityPast": "La data di fine validità è già passata: il documento resterebbe scaduto.",
+        "fileInput": "Scegli il file da caricare",
         "validityNotApplied": "Il file è stato caricato, ma le sue date di validità non sono state salvate. Inseritele sulla riga del documento."
     },
     "components/documents/DocumentValidity#LABELS": {
@@ -1464,7 +1483,8 @@ const LOCALE = {
         "noEntity": "Documenti del fornitore",
         "aiHints": "Note di analisi",
         "deposit": "Carica un file",
-        "file": "File"
+        "file": "File",
+        "actionOn": "{action}: {document}"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "Documento firmato",
@@ -1822,7 +1842,6 @@ const LOCALE = {
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Avvia un progetto",
         "supplier": "Fornitore",
-        "supplierPlaceholder": "Scegliete un fornitore…",
         "scope": "Perimetro",
         "scopeSupplier": "La scheda fornitore stessa",
         "scopeAll": "Tutti i prodotti di questo fornitore",
@@ -1849,7 +1868,6 @@ const LOCALE = {
     "components/monitor/StartNcDialog#LABELS": {
         "title": "Avvia una non conformità",
         "supplier": "Fornitore",
-        "supplierPlaceholder": "Scegliete un fornitore…",
         "product": "Prodotto",
         "productNone": "Nessun prodotto in particolare",
         "batch": "Lotto",
@@ -1864,6 +1882,13 @@ const LOCALE = {
         "cancel": "Annulla",
         "start": "Avvia",
         "started": "Non conformità avviata: beCPG la registra e ne apre l'analisi."
+    },
+    "components/monitor/SupplierPicker#LOCAL": {
+        "search": "Cerca un fornitore (nome, codice)…",
+        "none": "Nessun fornitore corrisponde.",
+        "more": "{count} altro/i: affinate la ricerca.",
+        "clear": "Cambia fornitore",
+        "loading": "Caricamento dei fornitori…"
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "Scorecard",
@@ -2659,6 +2684,7 @@ const LOCALE = {
         "title": "Scheda tecnica",
         "deposited": "Caricata il {date}",
         "replace": "Sostituisci",
+        "replaceSheet": "Sostituisci la scheda tecnica",
         "cancel": "Annulla",
         "missing": "Scheda tecnica mancante",
         "missingHint": "Caricate la vostra scheda tecnica per attivare i suggerimenti dell'IA.",
@@ -2848,7 +2874,18 @@ const LOCALE = {
         "readOnly": "Questa scheda è in sola lettura: i suggerimenti non possono essere applicati.",
         "source": "Fonte",
         "changes": "{count} valore/i",
-        "error": "L'applicazione del suggerimento non è riuscita."
+        "error": "L'applicazione del suggerimento non è riuscita.",
+        "reading": "Lettura delle proposte…",
+        "searchingElsewhere": "Nulla per questo passaggio. Ricerca di proposte negli altri passaggi…",
+        "elsewhere": "Nulla per questo passaggio, ma {count} proposta/e in altri passaggi:",
+        "elsewhereStep": "{label} ({count})",
+        "runningElsewhere": "Ancora nulla per questo passaggio: l'analisi prosegue negli altri passaggi.",
+        "nothingFound": "L'analisi non ha trovato nulla da proporre nei vostri documenti.",
+        "runDone": "Analisi completata: {count} proposta/e per questo passaggio.",
+        "readAt": "Proposte lette alle {time}",
+        "extractedFrom": "Valori letti in «{document}»{type}",
+        "imageFrom": "Immagine trovata in «{document}»{type}",
+        "documentFieldsFrom": "Informazioni del documento «{document}»{type}"
     },
     "components/wizard/steps/SurveyStep#LABELS": {
         "discuss": "Discussione",
@@ -2950,6 +2987,7 @@ const LOCALE = {
         "error.notFound": "Questa pagina o questo elemento non esiste.",
         "error.tenant": "Nessun cliente è associato al vostro account.",
         "error.upload": "Il caricamento del file non è riuscito.",
+        "error.projectAlreadyOpen": "Su questa scheda è già aperto un progetto di referenziamento. Chiudetelo prima di avviarne uno nuovo.",
         "error.http": "Errore {status}: {message}",
         "status.approved": "Qualificato",
         "status.inProgress": "In corso",

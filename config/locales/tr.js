@@ -1065,6 +1065,8 @@ const LOCALE = {
     "components/dashboard/DashboardKpis#LOCAL": {
         "approval": "Onay durumu",
         "approvalUnknown": "Kullanılamıyor",
+        "approvalSuppliers": "{count} tedarikçi",
+        "approvalPickSupplier": "Durumunu görmek için ekranın üstünden bir tedarikçi seçin.",
         "validUntil": "{date} tarihine kadar geçerli",
         "noValidity": "Bilinen son tarih yok",
         "allGood": "Engelleyen bir şey yok",
@@ -1356,6 +1358,20 @@ const LOCALE = {
             "association": "referans verilerde tam eşleşme yok"
         }
     },
+    "components/documents/AiVerdictContest#LABELS": {
+        "advisory": "Yalnızca AI önerisi: tamamlamayı engellemez, kararı müşteriniz verir.",
+        "contest": "Analize itiraz et",
+        "contestFor": "\"{document}\" için AI analizine itiraz et",
+        "reasonLabel": "Analizin bu belgeye neden uygulanmadığı",
+        "reasonPlaceholder": "Ör. bir Helal sertifikasında ne içerik listesi ne de net ağırlık bulunur.",
+        "send": "Müşterime gönder",
+        "cancel": "İptal",
+        "sent": "İtiraz müşterinize gönderildi",
+        "contested": "İtiraz edildi - müşterinizi bekliyor",
+        "messageIntro": "\"{document}\" belgesinin otomatik analizine itiraz ediyorum.",
+        "messageVerdict": "AI kararı:",
+        "messageReason": "Açıklamam:"
+    },
     "components/documents/DepositedDocuments#LABELS": {
         "title": "Yüklenen belgeler",
         "subtitle": "Türü ne olursa olsun bu ürünün klasöründeki dosyalar.",
@@ -1364,7 +1380,8 @@ const LOCALE = {
         "signed": "İmzalı",
         "download": "İndir",
         "consult": "Görüntüle",
-        "modified": "{date} tarihinde değiştirildi"
+        "modified": "{date} tarihinde değiştirildi",
+        "actionOn": "{action}: {document}"
     },
     "components/documents/DocumentUpload#LABELS": {
         "drop": "Bir dosyayı buraya bırakın",
@@ -1393,6 +1410,8 @@ const LOCALE = {
         "validityHint": "Belgenin üzerinde yazan geçerlilik tarihleri.",
         "validityInverted": "Bitiş tarihi başlangıç tarihinden önce.",
         "validityMissing": "Dosyayı yüklemeden önce geçerlilik sonunu doldurun.",
+        "validityPast": "Geçerlilik bitiş tarihi zaten geçti: belge süresi dolmuş olarak kalır.",
+        "fileInput": "Yüklenecek dosyayı seçin",
         "validityNotApplied": "Dosya yüklendi ancak geçerlilik tarihleri kaydedilmedi. Bunları belge satırında doldurun."
     },
     "components/documents/DocumentValidity#LABELS": {
@@ -1464,7 +1483,8 @@ const LOCALE = {
         "noEntity": "Tedarikçi belgeleri",
         "aiHints": "Analiz notları",
         "deposit": "Dosya yükle",
-        "file": "Dosya"
+        "file": "Dosya",
+        "actionOn": "{action}: {document}"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "İmzalı belge",
@@ -1822,7 +1842,6 @@ const LOCALE = {
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Proje başlat",
         "supplier": "Tedarikçi",
-        "supplierPlaceholder": "Bir tedarikçi seçin…",
         "scope": "Kapsam",
         "scopeSupplier": "Tedarikçi kaydının kendisi",
         "scopeAll": "Bu tedarikçinin tüm ürünleri",
@@ -1849,7 +1868,6 @@ const LOCALE = {
     "components/monitor/StartNcDialog#LABELS": {
         "title": "Uygunsuzluk başlat",
         "supplier": "Tedarikçi",
-        "supplierPlaceholder": "Bir tedarikçi seçin…",
         "product": "Ürün",
         "productNone": "Belirli bir ürün yok",
         "batch": "Parti",
@@ -1864,6 +1882,13 @@ const LOCALE = {
         "cancel": "İptal",
         "start": "Başlat",
         "started": "Uygunsuzluk başlatıldı: beCPG kaydeder ve analizini açar."
+    },
+    "components/monitor/SupplierPicker#LOCAL": {
+        "search": "Tedarikçi ara (ad, kod)…",
+        "none": "Eşleşen tedarikçi yok.",
+        "more": "{count} tane daha: aramayı daraltın.",
+        "clear": "Tedarikçiyi değiştir",
+        "loading": "Tedarikçiler yükleniyor…"
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "Puan kartı",
@@ -2659,6 +2684,7 @@ const LOCALE = {
         "title": "Teknik föy",
         "deposited": "{date} tarihinde yüklendi",
         "replace": "Değiştir",
+        "replaceSheet": "Teknik föyü değiştir",
         "cancel": "İptal",
         "missing": "Teknik föy eksik",
         "missingHint": "AI önerilerini etkinleştirmek için teknik föyünüzü yükleyin.",
@@ -2848,7 +2874,18 @@ const LOCALE = {
         "readOnly": "Bu kart salt okunur: öneriler uygulanamaz.",
         "source": "Kaynak",
         "changes": "{count} değer",
-        "error": "Öneri uygulanamadı."
+        "error": "Öneri uygulanamadı.",
+        "reading": "Öneriler okunuyor…",
+        "searchingElsewhere": "Bu adım için bir şey yok. Diğer adımlarda öneri aranıyor…",
+        "elsewhere": "Bu adım için bir şey yok, ancak diğer adımlarda {count} öneri var:",
+        "elsewhereStep": "{label} ({count})",
+        "runningElsewhere": "Bu adım için henüz bir şey yok: analiz diğer adımlarda sürüyor.",
+        "nothingFound": "Analiz belgelerinizde önerilecek bir şey bulamadı.",
+        "runDone": "Analiz tamamlandı: bu adım için {count} öneri.",
+        "readAt": "Öneriler {time} itibarıyla okundu",
+        "extractedFrom": "\"{document}\" belgesinden okunan değerler{type}",
+        "imageFrom": "\"{document}\" belgesinde bulunan görsel{type}",
+        "documentFieldsFrom": "\"{document}\" belgesinin bilgileri{type}"
     },
     "components/wizard/steps/SurveyStep#LABELS": {
         "discuss": "Tartışma",
@@ -2950,6 +2987,7 @@ const LOCALE = {
         "error.notFound": "Bu sayfa veya öğe mevcut değil.",
         "error.tenant": "Hesabınızla ilişkilendirilmiş müşteri yok.",
         "error.upload": "Dosya yüklenemedi.",
+        "error.projectAlreadyOpen": "Bu kayıt için zaten açık bir listeleme projesi var. Yenisini başlatmadan önce kapatın.",
         "error.http": "Hata {status}: {message}",
         "status.approved": "Onaylandı",
         "status.inProgress": "Devam ediyor",

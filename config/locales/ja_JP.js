@@ -1065,6 +1065,8 @@ const LOCALE = {
     "components/dashboard/DashboardKpis#LOCAL": {
         "approval": "承認ステータス",
         "approvalUnknown": "利用不可",
+        "approvalSuppliers": "{count} 社のサプライヤー",
+        "approvalPickSupplier": "画面上部でサプライヤーを選択すると、そのステータスが表示されます。",
         "validUntil": "{date} まで有効",
         "noValidity": "期限は不明です",
         "allGood": "ブロック要因はありません",
@@ -1356,6 +1358,20 @@ const LOCALE = {
             "association": "参照データに完全に一致するものがありません"
         }
     },
+    "components/documents/AiVerdictContest#LABELS": {
+        "advisory": "AI の助言にすぎません。完了を妨げることはなく、判断するのはお客様です。",
+        "contest": "分析に異議を申し立てる",
+        "contestFor": "「{document}」の AI 分析に異議を申し立てる",
+        "reasonLabel": "この文書に分析が当てはまらない理由",
+        "reasonPlaceholder": "例：ハラール認証書には原材料リストも正味重量も記載されていません。",
+        "send": "お客様に送信",
+        "cancel": "キャンセル",
+        "sent": "異議をお客様に送信しました",
+        "contested": "異議申し立て済み - お客様の対応待ち",
+        "messageIntro": "文書「{document}」の自動分析に異議を申し立てます。",
+        "messageVerdict": "AI の判定：",
+        "messageReason": "説明："
+    },
     "components/documents/DepositedDocuments#LABELS": {
         "title": "提出済みの文書",
         "subtitle": "この製品のフォルダーにあるファイル（種類を問わず）。",
@@ -1364,7 +1380,8 @@ const LOCALE = {
         "signed": "署名済み",
         "download": "ダウンロード",
         "consult": "表示",
-        "modified": "{date} に更新"
+        "modified": "{date} に更新",
+        "actionOn": "{action}：{document}"
     },
     "components/documents/DocumentUpload#LABELS": {
         "drop": "ここにファイルをドロップ",
@@ -1393,6 +1410,8 @@ const LOCALE = {
         "validityHint": "文書に記載されている有効期限。",
         "validityInverted": "終了日が開始日より前になっています。",
         "validityMissing": "ファイルをアップロードする前に有効期限の終了日を入力してください。",
+        "validityPast": "有効期限の終了日はすでに過ぎています。文書は期限切れのままになります。",
+        "fileInput": "アップロードするファイルを選択",
         "validityNotApplied": "ファイルはアップロードされましたが、有効期限は保存されませんでした。文書の行で入力してください。"
     },
     "components/documents/DocumentValidity#LABELS": {
@@ -1464,7 +1483,8 @@ const LOCALE = {
         "noEntity": "サプライヤー文書",
         "aiHints": "解析メモ",
         "deposit": "ファイルをアップロード",
-        "file": "ファイル"
+        "file": "ファイル",
+        "actionOn": "{action}：{document}"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "署名済み文書",
@@ -1822,7 +1842,6 @@ const LOCALE = {
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "プロジェクトを開始",
         "supplier": "サプライヤー",
-        "supplierPlaceholder": "サプライヤーを選択…",
         "scope": "範囲",
         "scopeSupplier": "サプライヤーレコード自体",
         "scopeAll": "このサプライヤーのすべての製品",
@@ -1849,7 +1868,6 @@ const LOCALE = {
     "components/monitor/StartNcDialog#LABELS": {
         "title": "不適合を開始",
         "supplier": "サプライヤー",
-        "supplierPlaceholder": "サプライヤーを選択…",
         "product": "製品",
         "productNone": "特定の製品なし",
         "batch": "ロット",
@@ -1864,6 +1882,13 @@ const LOCALE = {
         "cancel": "キャンセル",
         "start": "開始",
         "started": "不適合を開始しました。beCPG が登録し、分析を開始します。"
+    },
+    "components/monitor/SupplierPicker#LOCAL": {
+        "search": "サプライヤーを検索（名前、コード）…",
+        "none": "該当するサプライヤーはありません。",
+        "more": "ほかに {count} 件：検索条件を絞り込んでください。",
+        "clear": "サプライヤーを変更",
+        "loading": "サプライヤーを読み込み中…"
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "スコアカード",
@@ -2659,6 +2684,7 @@ const LOCALE = {
         "title": "技術資料",
         "deposited": "{date} にアップロード",
         "replace": "置換",
+        "replaceSheet": "技術資料を差し替える",
         "cancel": "キャンセル",
         "missing": "技術資料が未提出です",
         "missingHint": "AI の提案を有効にするには、技術資料をアップロードしてください。",
@@ -2848,7 +2874,18 @@ const LOCALE = {
         "readOnly": "このシートは読み取り専用のため、提案を適用できません。",
         "source": "出典",
         "changes": "{count} 件の値",
-        "error": "提案を適用できませんでした。"
+        "error": "提案を適用できませんでした。",
+        "reading": "提案を読み込み中…",
+        "searchingElsewhere": "このステップには提案がありません。ほかのステップで提案を探しています…",
+        "elsewhere": "このステップには提案がありませんが、ほかのステップに {count} 件あります：",
+        "elsewhereStep": "{label}（{count}）",
+        "runningElsewhere": "このステップにはまだ提案がありません。ほかのステップで分析が続いています。",
+        "nothingFound": "分析の結果、文書から提案できるものは見つかりませんでした。",
+        "runDone": "分析完了：このステップの提案は {count} 件です。",
+        "readAt": "{time} に提案を読み込みました",
+        "extractedFrom": "「{document}」から読み取った値{type}",
+        "imageFrom": "「{document}」で見つかった画像{type}",
+        "documentFieldsFrom": "文書「{document}」の情報{type}"
     },
     "components/wizard/steps/SurveyStep#LABELS": {
         "discuss": "ディスカッション",
@@ -2950,6 +2987,7 @@ const LOCALE = {
         "error.notFound": "このページまたは項目は存在しません。",
         "error.tenant": "お使いのアカウントに関連付けられたお客様はありません。",
         "error.upload": "ファイルのアップロードに失敗しました。",
+        "error.projectAlreadyOpen": "このレコードにはすでに取引登録プロジェクトが開いています。新しいプロジェクトを開始する前に終了してください。",
         "error.http": "エラー {status}：{message}",
         "status.approved": "承認済み",
         "status.inProgress": "進行中",

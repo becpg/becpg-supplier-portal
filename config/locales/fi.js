@@ -1065,6 +1065,8 @@ const LOCALE = {
     "components/dashboard/DashboardKpis#LOCAL": {
         "approval": "Hyväksynnän tila",
         "approvalUnknown": "Ei saatavilla",
+        "approvalSuppliers": "{count} toimittajaa",
+        "approvalPickSupplier": "Valitkaa toimittaja näytön yläosasta nähdäksenne sen tilan.",
         "validUntil": "Voimassa asti: {date}",
         "noValidity": "Ei tiedossa olevaa määräaikaa",
         "allGood": "Ei estäviä tekijöitä",
@@ -1356,6 +1358,20 @@ const LOCALE = {
             "association": "viitetiedoista ei löytynyt tarkkaa vastinetta"
         }
     },
+    "components/documents/AiVerdictContest#LABELS": {
+        "advisory": "Vain tekoälyn neuvo: se ei estä valmiiksi saattamista, asiakkaanne päättää.",
+        "contest": "Kiistä analyysi",
+        "contestFor": "Kiistä tekoälyn analyysi asiakirjasta \"{document}\"",
+        "reasonLabel": "Miksi analyysi ei koske tätä asiakirjaa",
+        "reasonPlaceholder": "Esim. Halal-sertifikaatissa ei ole ainesosaluetteloa eikä nettopainoa.",
+        "send": "Lähetä asiakkaalleni",
+        "cancel": "Peruuta",
+        "sent": "Kiistäminen lähetetty asiakkaallenne",
+        "contested": "Kiistetty - odottaa asiakastanne",
+        "messageIntro": "Kiistän asiakirjan \"{document}\" automaattisen analyysin.",
+        "messageVerdict": "Tekoälyn arvio:",
+        "messageReason": "Selitykseni:"
+    },
     "components/documents/DepositedDocuments#LABELS": {
         "title": "Toimitetut asiakirjat",
         "subtitle": "Kaikki tämän tuotteen kansiossa olevat tiedostot tyypistä riippumatta.",
@@ -1364,7 +1380,8 @@ const LOCALE = {
         "signed": "Allekirjoitettu",
         "download": "Lataa",
         "consult": "Näytä",
-        "modified": "Muokattu: {date}"
+        "modified": "Muokattu: {date}",
+        "actionOn": "{action}: {document}"
     },
     "components/documents/DocumentUpload#LABELS": {
         "drop": "Pudota tiedosto tähän",
@@ -1393,6 +1410,8 @@ const LOCALE = {
         "validityHint": "Asiakirjaan merkityt voimassaolopäivät.",
         "validityInverted": "Päättymispäivä on ennen alkamispäivää.",
         "validityMissing": "Täyttäkää voimassaolon päättymispäivä ennen tiedoston lataamista.",
+        "validityPast": "Voimassaolon päättymispäivä on jo mennyt: asiakirja pysyisi vanhentuneena.",
+        "fileInput": "Valitse ladattava tiedosto",
         "validityNotApplied": "Tiedosto on ladattu, mutta sen voimassaolopäiviä ei tallennettu. Täyttäkää ne asiakirjan rivillä."
     },
     "components/documents/DocumentValidity#LABELS": {
@@ -1464,7 +1483,8 @@ const LOCALE = {
         "noEntity": "Toimittajan asiakirjat",
         "aiHints": "Analyysihuomiot",
         "deposit": "Lataa tiedosto",
-        "file": "Tiedosto"
+        "file": "Tiedosto",
+        "actionOn": "{action}: {document}"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "Allekirjoitettu asiakirja",
@@ -1822,7 +1842,6 @@ const LOCALE = {
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Käynnistä projekti",
         "supplier": "Toimittaja",
-        "supplierPlaceholder": "Valitse toimittaja…",
         "scope": "Laajuus",
         "scopeSupplier": "Itse toimittajatietue",
         "scopeAll": "Kaikki tämän toimittajan tuotteet",
@@ -1849,7 +1868,6 @@ const LOCALE = {
     "components/monitor/StartNcDialog#LABELS": {
         "title": "Käynnistä poikkeama",
         "supplier": "Toimittaja",
-        "supplierPlaceholder": "Valitse toimittaja…",
         "product": "Tuote",
         "productNone": "Ei tiettyä tuotetta",
         "batch": "Erä",
@@ -1864,6 +1882,13 @@ const LOCALE = {
         "cancel": "Peruuta",
         "start": "Käynnistä",
         "started": "Poikkeama käynnistetty: beCPG kirjaa sen ja avaa sen analyysin."
+    },
+    "components/monitor/SupplierPicker#LOCAL": {
+        "search": "Hae toimittajaa (nimi, koodi)…",
+        "none": "Yksikään toimittaja ei vastaa hakua.",
+        "more": "{count} muuta: tarkentakaa hakua.",
+        "clear": "Vaihda toimittajaa",
+        "loading": "Ladataan toimittajia…"
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "Tuloskortti",
@@ -2659,6 +2684,7 @@ const LOCALE = {
         "title": "Tekninen tuotekortti",
         "deposited": "Ladattu {date}",
         "replace": "Korvaa",
+        "replaceSheet": "Korvaa tekninen tuotekortti",
         "cancel": "Peruuta",
         "missing": "Tekninen tuotekortti puuttuu",
         "missingHint": "Ladatkaa tekninen tuotekorttinne ottaaksenne tekoälyn ehdotukset käyttöön.",
@@ -2848,7 +2874,18 @@ const LOCALE = {
         "readOnly": "Tämä tuotekortti on vain luku -tilassa: ehdotuksia ei voi ottaa käyttöön.",
         "source": "Lähde",
         "changes": "Arvoja: {count}",
-        "error": "Ehdotuksen käyttöönotto epäonnistui."
+        "error": "Ehdotuksen käyttöönotto epäonnistui.",
+        "reading": "Luetaan ehdotuksia…",
+        "searchingElsewhere": "Ei mitään tähän vaiheeseen. Haetaan ehdotuksia muista vaiheista…",
+        "elsewhere": "Ei mitään tähän vaiheeseen, mutta {count} ehdotusta muissa vaiheissa:",
+        "elsewhereStep": "{label} ({count})",
+        "runningElsewhere": "Ei vielä mitään tähän vaiheeseen: analyysi jatkuu muissa vaiheissa.",
+        "nothingFound": "Analyysi ei löytänyt asiakirjoistanne mitään ehdotettavaa.",
+        "runDone": "Analyysi valmis: {count} ehdotusta tähän vaiheeseen.",
+        "readAt": "Ehdotukset luettu klo {time}",
+        "extractedFrom": "Asiakirjasta \"{document}\" luetut arvot{type}",
+        "imageFrom": "Asiakirjasta \"{document}\" löydetty kuva{type}",
+        "documentFieldsFrom": "Asiakirjan \"{document}\" tiedot{type}"
     },
     "components/wizard/steps/SurveyStep#LABELS": {
         "discuss": "Keskustelu",
@@ -2950,6 +2987,7 @@ const LOCALE = {
         "error.notFound": "Tätä sivua tai kohdetta ei ole olemassa.",
         "error.tenant": "Tiliinne ei ole liitetty asiakasta.",
         "error.upload": "Tiedoston lataus epäonnistui.",
+        "error.projectAlreadyOpen": "Tälle tietueelle on jo avattu listausprojekti. Sulkekaa se ennen uuden käynnistämistä.",
         "error.http": "Virhe {status}: {message}",
         "status.approved": "Hyväksytty",
         "status.inProgress": "Käynnissä",

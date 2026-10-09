@@ -1065,6 +1065,8 @@ const LOCALE = {
     "components/dashboard/DashboardKpis#LOCAL": {
         "approval": "Godkännandestatus",
         "approvalUnknown": "Inte tillgänglig",
+        "approvalSuppliers": "{count} leverantörer",
+        "approvalPickSupplier": "Välj en leverantör högst upp på skärmen för att se dess status.",
         "validUntil": "Giltig till {date}",
         "noValidity": "Ingen känd tidsfrist",
         "allGood": "Inget blockerar",
@@ -1356,6 +1358,20 @@ const LOCALE = {
             "association": "ingen exakt matchning i referensdata"
         }
     },
+    "components/documents/AiVerdictContest#LABELS": {
+        "advisory": "Endast ett råd från AI: det blockerar inte slutförandet, kunden beslutar.",
+        "contest": "Bestrid analysen",
+        "contestFor": "Bestrid AI-analysen av ”{document}”",
+        "reasonLabel": "Varför analysen inte gäller det här dokumentet",
+        "reasonPlaceholder": "T.ex. innehåller ett halalcertifikat varken ingrediensförteckning eller nettovikt.",
+        "send": "Skicka till min kund",
+        "cancel": "Avbryt",
+        "sent": "Invändningen har skickats till kunden",
+        "contested": "Bestriden - väntar på kunden",
+        "messageIntro": "Jag bestrider den automatiska analysen av dokumentet ”{document}”.",
+        "messageVerdict": "AI:s bedömning:",
+        "messageReason": "Min förklaring:"
+    },
     "components/documents/DepositedDocuments#LABELS": {
         "title": "Inlämnade dokument",
         "subtitle": "Filerna i produktens mapp, oavsett typ.",
@@ -1364,7 +1380,8 @@ const LOCALE = {
         "signed": "Signerat",
         "download": "Ladda ned",
         "consult": "Visa",
-        "modified": "Ändrat {date}"
+        "modified": "Ändrat {date}",
+        "actionOn": "{action}: {document}"
     },
     "components/documents/DocumentUpload#LABELS": {
         "drop": "Släpp en fil här",
@@ -1393,6 +1410,8 @@ const LOCALE = {
         "validityHint": "Giltighetsdatumen som står i dokumentet.",
         "validityInverted": "Slutdatumet ligger före startdatumet.",
         "validityMissing": "Fyll i giltighetens slut innan du laddar upp filen.",
+        "validityPast": "Giltighetens slutdatum har redan passerats: dokumentet skulle förbli utgånget.",
+        "fileInput": "Välj filen att ladda upp",
         "validityNotApplied": "Filen har laddats upp, men giltighetsdatumen sparades inte. Fyll i dem på dokumentets rad."
     },
     "components/documents/DocumentValidity#LABELS": {
@@ -1464,7 +1483,8 @@ const LOCALE = {
         "noEntity": "Leverantörsdokument",
         "aiHints": "Analysanteckningar",
         "deposit": "Ladda upp en fil",
-        "file": "Fil"
+        "file": "Fil",
+        "actionOn": "{action}: {document}"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "Signerat dokument",
@@ -1822,7 +1842,6 @@ const LOCALE = {
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Starta ett projekt",
         "supplier": "Leverantör",
-        "supplierPlaceholder": "Välj en leverantör…",
         "scope": "Omfång",
         "scopeSupplier": "Själva leverantörsposten",
         "scopeAll": "Alla produkter från den här leverantören",
@@ -1849,7 +1868,6 @@ const LOCALE = {
     "components/monitor/StartNcDialog#LABELS": {
         "title": "Starta en avvikelse",
         "supplier": "Leverantör",
-        "supplierPlaceholder": "Välj en leverantör…",
         "product": "Produkt",
         "productNone": "Ingen särskild produkt",
         "batch": "Batch",
@@ -1864,6 +1882,13 @@ const LOCALE = {
         "cancel": "Avbryt",
         "start": "Starta",
         "started": "Avvikelsen har startats: beCPG registrerar den och öppnar dess analys."
+    },
+    "components/monitor/SupplierPicker#LOCAL": {
+        "search": "Sök en leverantör (namn, kod)…",
+        "none": "Ingen leverantör matchar.",
+        "more": "{count} till: förfina sökningen.",
+        "clear": "Byt leverantör",
+        "loading": "Läser in leverantörer…"
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "Resultatkort",
@@ -2659,6 +2684,7 @@ const LOCALE = {
         "title": "Tekniskt datablad",
         "deposited": "Uppladdat {date}",
         "replace": "Ersätt",
+        "replaceSheet": "Ersätt det tekniska databladet",
         "cancel": "Avbryt",
         "missing": "Tekniskt datablad saknas",
         "missingHint": "Ladda upp ditt tekniska datablad för att aktivera AI-förslagen.",
@@ -2848,7 +2874,18 @@ const LOCALE = {
         "readOnly": "Bladet är skrivskyddat: förslag kan inte tillämpas.",
         "source": "Källa",
         "changes": "{count} värde(n)",
-        "error": "Det gick inte att tillämpa förslaget."
+        "error": "Det gick inte att tillämpa förslaget.",
+        "reading": "Läser förslagen…",
+        "searchingElsewhere": "Inget för det här steget. Söker förslag i de andra stegen…",
+        "elsewhere": "Inget för det här steget, men {count} förslag i andra steg:",
+        "elsewhereStep": "{label} ({count})",
+        "runningElsewhere": "Inget för det här steget ännu: analysen pågår fortfarande i andra steg.",
+        "nothingFound": "Analysen hittade inget att föreslå i dina dokument.",
+        "runDone": "Analysen är klar: {count} förslag för det här steget.",
+        "readAt": "Förslag lästa kl. {time}",
+        "extractedFrom": "Värden lästa från ”{document}”{type}",
+        "imageFrom": "Bild hittad i ”{document}”{type}",
+        "documentFieldsFrom": "Uppgifter från dokumentet ”{document}”{type}"
     },
     "components/wizard/steps/SurveyStep#LABELS": {
         "discuss": "Diskussion",
@@ -2950,6 +2987,7 @@ const LOCALE = {
         "error.notFound": "Sidan eller objektet finns inte.",
         "error.tenant": "Ingen kund är kopplad till ditt konto.",
         "error.upload": "Filuppladdningen misslyckades.",
+        "error.projectAlreadyOpen": "Ett listningsprojekt är redan öppet för den här posten. Stäng det innan du startar ett nytt.",
         "error.http": "Fel {status}: {message}",
         "status.approved": "Godkänd",
         "status.inProgress": "Pågår",

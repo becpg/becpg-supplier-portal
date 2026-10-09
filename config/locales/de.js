@@ -1065,6 +1065,8 @@ const LOCALE = {
     "components/dashboard/DashboardKpis#LOCAL": {
         "approval": "Freigabestatus",
         "approvalUnknown": "Nicht verfügbar",
+        "approvalSuppliers": "{count} Lieferanten",
+        "approvalPickSupplier": "Wählen Sie oben auf dem Bildschirm einen Lieferanten, um seinen Status zu sehen.",
         "validUntil": "Gültig bis {date}",
         "noValidity": "Keine bekannte Frist",
         "allGood": "Nichts blockiert",
@@ -1356,6 +1358,20 @@ const LOCALE = {
             "association": "keine exakte Entsprechung in den Referenzdaten"
         }
     },
+    "components/documents/AiVerdictContest#LABELS": {
+        "advisory": "Nur ein Hinweis der KI: Er blockiert den Abschluss nicht, Ihr Kunde entscheidet.",
+        "contest": "Analyse anfechten",
+        "contestFor": "KI-Analyse von „{document}“ anfechten",
+        "reasonLabel": "Warum die Analyse auf dieses Dokument nicht zutrifft",
+        "reasonPlaceholder": "Z. B. enthält ein Halal-Zertifikat weder eine Zutatenliste noch ein Nettogewicht.",
+        "send": "An meinen Kunden senden",
+        "cancel": "Abbrechen",
+        "sent": "Anfechtung an Ihren Kunden gesendet",
+        "contested": "Angefochten - wartet auf Ihren Kunden",
+        "messageIntro": "Ich fechte die automatische Analyse des Dokuments „{document}“ an.",
+        "messageVerdict": "Urteil der KI:",
+        "messageReason": "Meine Erklärung:"
+    },
     "components/documents/DepositedDocuments#LABELS": {
         "title": "Hinterlegte Dokumente",
         "subtitle": "Die Dateien im Ordner dieses Produkts, unabhängig von ihrem Typ.",
@@ -1364,7 +1380,8 @@ const LOCALE = {
         "signed": "Unterzeichnet",
         "download": "Herunterladen",
         "consult": "Anzeigen",
-        "modified": "Geändert am {date}"
+        "modified": "Geändert am {date}",
+        "actionOn": "{action}: {document}"
     },
     "components/documents/DocumentUpload#LABELS": {
         "drop": "Datei hier ablegen",
@@ -1393,6 +1410,8 @@ const LOCALE = {
         "validityHint": "Die auf dem Dokument angegebenen Gültigkeitsdaten.",
         "validityInverted": "Das Enddatum liegt vor dem Anfangsdatum.",
         "validityMissing": "Geben Sie das Gültigkeitsende ein, bevor Sie die Datei hochladen.",
+        "validityPast": "Das Gültigkeitsende liegt bereits in der Vergangenheit: Das Dokument bliebe abgelaufen.",
+        "fileInput": "Hochzuladende Datei auswählen",
         "validityNotApplied": "Die Datei wurde hochgeladen, aber ihre Gültigkeitsdaten wurden nicht gespeichert. Tragen Sie sie in der Dokumentzeile ein."
     },
     "components/documents/DocumentValidity#LABELS": {
@@ -1464,7 +1483,8 @@ const LOCALE = {
         "noEntity": "Lieferantendokumente",
         "aiHints": "Analysehinweise",
         "deposit": "Datei hochladen",
-        "file": "Datei"
+        "file": "Datei",
+        "actionOn": "{action}: {document}"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "Unterzeichnetes Dokument",
@@ -1822,7 +1842,6 @@ const LOCALE = {
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "Projekt starten",
         "supplier": "Lieferant",
-        "supplierPlaceholder": "Lieferanten auswählen…",
         "scope": "Umfang",
         "scopeSupplier": "Der Lieferantendatensatz selbst",
         "scopeAll": "Alle Produkte dieses Lieferanten",
@@ -1849,7 +1868,6 @@ const LOCALE = {
     "components/monitor/StartNcDialog#LABELS": {
         "title": "Abweichung starten",
         "supplier": "Lieferant",
-        "supplierPlaceholder": "Lieferanten auswählen…",
         "product": "Produkt",
         "productNone": "Kein bestimmtes Produkt",
         "batch": "Charge",
@@ -1864,6 +1882,13 @@ const LOCALE = {
         "cancel": "Abbrechen",
         "start": "Starten",
         "started": "Abweichung gestartet: beCPG erfasst sie und eröffnet ihre Analyse."
+    },
+    "components/monitor/SupplierPicker#LOCAL": {
+        "search": "Lieferanten suchen (Name, Code)…",
+        "none": "Kein Lieferant entspricht der Suche.",
+        "more": "{count} weitere: Verfeinern Sie die Suche.",
+        "clear": "Lieferanten wechseln",
+        "loading": "Lieferanten werden geladen…"
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "Scorecard",
@@ -2659,6 +2684,7 @@ const LOCALE = {
         "title": "Technisches Datenblatt",
         "deposited": "Hochgeladen am {date}",
         "replace": "Ersetzen",
+        "replaceSheet": "Technisches Datenblatt ersetzen",
         "cancel": "Abbrechen",
         "missing": "Technisches Datenblatt fehlt",
         "missingHint": "Laden Sie Ihr technisches Datenblatt hoch, um die KI-Vorschläge zu aktivieren.",
@@ -2848,7 +2874,18 @@ const LOCALE = {
         "readOnly": "Dieses Datenblatt ist schreibgeschützt: Vorschläge können nicht übernommen werden.",
         "source": "Quelle",
         "changes": "{count} Wert(e)",
-        "error": "Die Übernahme des Vorschlags ist fehlgeschlagen."
+        "error": "Die Übernahme des Vorschlags ist fehlgeschlagen.",
+        "reading": "Vorschläge werden gelesen…",
+        "searchingElsewhere": "Nichts für diesen Schritt. Suche nach Vorschlägen in den anderen Schritten…",
+        "elsewhere": "Nichts für diesen Schritt, aber {count} Vorschlag/Vorschläge in anderen Schritten:",
+        "elsewhereStep": "{label} ({count})",
+        "runningElsewhere": "Noch nichts für diesen Schritt: Die Analyse läuft in anderen Schritten weiter.",
+        "nothingFound": "Die Analyse hat in Ihren Dokumenten nichts zum Vorschlagen gefunden.",
+        "runDone": "Analyse abgeschlossen: {count} Vorschlag/Vorschläge für diesen Schritt.",
+        "readAt": "Vorschläge gelesen um {time}",
+        "extractedFrom": "Aus „{document}“ gelesene Werte{type}",
+        "imageFrom": "In „{document}“ gefundenes Bild{type}",
+        "documentFieldsFrom": "Angaben aus dem Dokument „{document}“{type}"
     },
     "components/wizard/steps/SurveyStep#LABELS": {
         "discuss": "Diskussion",
@@ -2950,6 +2987,7 @@ const LOCALE = {
         "error.notFound": "Diese Seite oder dieses Element existiert nicht.",
         "error.tenant": "Ihrem Konto ist kein Kunde zugeordnet.",
         "error.upload": "Das Hochladen der Datei ist fehlgeschlagen.",
+        "error.projectAlreadyOpen": "Für diesen Datensatz ist bereits ein Listungsprojekt offen. Schließen Sie es, bevor Sie ein neues starten.",
         "error.http": "Fehler {status}: {message}",
         "status.approved": "Freigegeben",
         "status.inProgress": "In Bearbeitung",

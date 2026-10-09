@@ -1065,6 +1065,8 @@ const LOCALE = {
     "components/dashboard/DashboardKpis#LOCAL": {
         "approval": "认证状态",
         "approvalUnknown": "不可用",
+        "approvalSuppliers": "{count} 个供应商",
+        "approvalPickSupplier": "请在屏幕顶部选择供应商以查看其状态。",
         "validUntil": "有效期至 {date}",
         "noValidity": "无已知期限",
         "allGood": "无阻断事项",
@@ -1356,6 +1358,20 @@ const LOCALE = {
             "association": "参考数据中无精确匹配"
         }
     },
+    "components/documents/AiVerdictContest#LABELS": {
+        "advisory": "仅为 AI 建议：不会阻止完成，由您的客户决定。",
+        "contest": "对分析提出异议",
+        "contestFor": "对“{document}”的 AI 分析提出异议",
+        "reasonLabel": "为何该分析不适用于此文件",
+        "reasonPlaceholder": "例如：清真证书既不含配料表，也不含净含量。",
+        "send": "发送给我的客户",
+        "cancel": "取消",
+        "sent": "异议已发送给您的客户",
+        "contested": "已提出异议 - 等待您的客户处理",
+        "messageIntro": "我对文件“{document}”的自动分析提出异议。",
+        "messageVerdict": "AI 结论：",
+        "messageReason": "我的说明："
+    },
     "components/documents/DepositedDocuments#LABELS": {
         "title": "已上传文件",
         "subtitle": "此产品文件夹中的所有文件，不论类型。",
@@ -1364,7 +1380,8 @@ const LOCALE = {
         "signed": "已签署",
         "download": "下载",
         "consult": "查看",
-        "modified": "修改于 {date}"
+        "modified": "修改于 {date}",
+        "actionOn": "{action}：{document}"
     },
     "components/documents/DocumentUpload#LABELS": {
         "drop": "将文件拖放到此处",
@@ -1393,6 +1410,8 @@ const LOCALE = {
         "validityHint": "文件上印制的有效期。",
         "validityInverted": "结束日期早于开始日期。",
         "validityMissing": "上传文件前请填写有效期截止日期。",
+        "validityPast": "有效期截止日期已过：该文件仍将处于过期状态。",
+        "fileInput": "选择要上传的文件",
         "validityNotApplied": "文件已上传，但有效期未保存。请在文件所在行填写。"
     },
     "components/documents/DocumentValidity#LABELS": {
@@ -1464,7 +1483,8 @@ const LOCALE = {
         "noEntity": "供应商文件",
         "aiHints": "分析备注",
         "deposit": "上传文件",
-        "file": "文件"
+        "file": "文件",
+        "actionOn": "{action}：{document}"
     },
     "components/documents/SignedDocumentList#LABELS": {
         "document": "已签署文件",
@@ -1822,7 +1842,6 @@ const LOCALE = {
     "components/monitor/StartCampaignDialog#LABELS": {
         "title": "发起项目",
         "supplier": "供应商",
-        "supplierPlaceholder": "选择供应商…",
         "scope": "范围",
         "scopeSupplier": "供应商记录本身",
         "scopeAll": "该供应商的所有产品",
@@ -1849,7 +1868,6 @@ const LOCALE = {
     "components/monitor/StartNcDialog#LABELS": {
         "title": "发起不合格项",
         "supplier": "供应商",
-        "supplierPlaceholder": "选择供应商…",
         "product": "产品",
         "productNone": "无特定产品",
         "batch": "批次",
@@ -1864,6 +1882,13 @@ const LOCALE = {
         "cancel": "取消",
         "start": "发起",
         "started": "不合格项已发起：beCPG 将其登记并开启分析。"
+    },
+    "components/monitor/SupplierPicker#LOCAL": {
+        "search": "搜索供应商（名称、代码）…",
+        "none": "没有匹配的供应商。",
+        "more": "还有 {count} 个：请细化搜索。",
+        "clear": "更换供应商",
+        "loading": "正在加载供应商…"
     },
     "components/monitor/SupplierScorecard#LABELS": {
         "title": "评分卡",
@@ -2659,6 +2684,7 @@ const LOCALE = {
         "title": "技术资料表",
         "deposited": "上传于 {date}",
         "replace": "替换",
+        "replaceSheet": "替换技术资料表",
         "cancel": "取消",
         "missing": "缺少技术资料表",
         "missingHint": "上传您的技术资料表以启用 AI 建议。",
@@ -2848,7 +2874,18 @@ const LOCALE = {
         "readOnly": "此资料表为只读：无法应用建议。",
         "source": "来源",
         "changes": "{count} 个值",
-        "error": "应用建议失败。"
+        "error": "应用建议失败。",
+        "reading": "正在读取建议…",
+        "searchingElsewhere": "此步骤暂无内容。正在其他步骤中查找建议…",
+        "elsewhere": "此步骤暂无建议，但其他步骤中有 {count} 条建议：",
+        "elsewhereStep": "{label}（{count}）",
+        "runningElsewhere": "此步骤暂无内容：其他步骤的分析仍在进行。",
+        "nothingFound": "分析未在您的文件中找到可提供的建议。",
+        "runDone": "分析完成：此步骤有 {count} 条建议。",
+        "readAt": "建议读取于 {time}",
+        "extractedFrom": "读取自“{document}”的值{type}",
+        "imageFrom": "在“{document}”中找到的图片{type}",
+        "documentFieldsFrom": "文件“{document}”的信息{type}"
     },
     "components/wizard/steps/SurveyStep#LABELS": {
         "discuss": "讨论",
@@ -2950,6 +2987,7 @@ const LOCALE = {
         "error.notFound": "此页面或条目不存在。",
         "error.tenant": "您的账户未关联任何客户。",
         "error.upload": "文件上传失败。",
+        "error.projectAlreadyOpen": "此记录已有一个进行中的准入项目。请先关闭该项目，再发起新项目。",
         "error.http": "错误 {status}：{message}",
         "status.approved": "已认证",
         "status.inProgress": "进行中",
