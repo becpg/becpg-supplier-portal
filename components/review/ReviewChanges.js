@@ -7,9 +7,10 @@
  * flagged into the feedback sent to the supplier.
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button, Icon } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useApi } from '@/lib/client';
 import { parseListId } from '@/config/wizards.default';
 import { useMessages } from '@/lib/messages';
 import { defineLabels, pickLabels } from '@/lib/i18n';
@@ -104,14 +105,38 @@ function FlagButton({ onFlag, labels }) {
 }
 
 /**
+ * The labels the step itself shows for its fields or columns, by qname — the
+ * same request the section's own panel makes, so they are read once. The
+ * dictionary label of the diff stays the fallback.
+ *
+ * @param {string} entityId
+ * @param {Object|null} step
+ * @param {Object} params
+ * @returns {Object.<string, string>}
+ */
+export function useStepLabels(entityId, step, params) {
+    const data = useApi(entityId && step ? `wizard/${encodeURIComponent(entityId)}/step/${encodeURIComponent(step.id)}` : null, { params });
+    return useMemo(() => {
+        const payload = data.data || {};
+        const fields = [
+            ...((payload.definition && payload.definition.fields) || []),
+            ...(payload.columns || []),
+        ];
+        return Object.fromEntries(fields.filter((field) => field?.name && field.label).map((field) => [field.name, field.label]));
+    }, [data.data]);
+}
+
+/**
  * @param {Object} props
  * @param {Object} props.changes {@link changesOfStep}
  * @param {boolean} [props.loading]
  * @param {Function|null} [props.onFlag] `(where, text) => void` — null when the task is closed
+ * @param {Object.<string, string>} [props.fieldLabels] {@link useStepLabels}
  */
-export function ReviewChanges({ changes, loading = false, onFlag = null }) {
+export function ReviewChanges({ changes, loading = false, onFlag = null, fieldLabels = {} }) {
     const { lang } = useMessages();
     const labels = pickLabels(LABELS, lang);
+    const nameOf = (field) => fieldLabels[field.name] || field.label || field.name;
     const [open, setOpen] = useState(true);
 
     if (loading) {
@@ -132,9 +157,9 @@ export function ReviewChanges({ changes, loading = false, onFlag = null }) {
     const rows = changes.kind === 'properties'
         ? changes.properties.map((field) => ({
             key: field.name,
-            label: field.label,
+            label: nameOf(field),
             body: <Value before={field.before} after={field.after} labels={labels} />,
-            flag: () => onFlag?.(field.label, fill(labels.flagText, { before: field.before ?? labels.empty, after: field.after ?? labels.empty })),
+            flag: () => onFlag?.(nameOf(field), fill(labels.flagText, { before: field.before ?? labels.empty, after: field.after ?? labels.empty })),
         }))
         : [
             ...changes.list.changed.map((row) => ({
@@ -144,14 +169,14 @@ export function ReviewChanges({ changes, loading = false, onFlag = null }) {
                     <span className="flex flex-col gap-1">
                         {row.fields.map((field) => (
                             <span key={field.name} className="flex flex-wrap items-baseline gap-2 text-sm">
-                                <span className="text-[var(--becpg-muted)]">{field.label}</span>
+                                <span className="text-[var(--becpg-muted)]">{nameOf(field)}</span>
                                 <Value before={field.before} after={field.after} labels={labels} />
                             </span>
                         ))}
                     </span>
                 ),
                 flag: () => onFlag?.(row.label, row.fields
-                    .map((field) => `${field.label} ${fill(labels.flagText, { before: field.before ?? labels.empty, after: field.after ?? labels.empty })}`)
+                    .map((field) => `${nameOf(field)} ${fill(labels.flagText, { before: field.before ?? labels.empty, after: field.after ?? labels.empty })}`)
                     .join(' ; ')),
             })),
             ...changes.list.added.map((row) => ({

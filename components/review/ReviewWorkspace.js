@@ -36,7 +36,7 @@ import { RequirementChecklist } from '@/components/documents/RequirementChecklis
 import { DepositedDocuments } from '@/components/documents/DepositedDocuments';
 import { CommentsPanel } from '@/components/wizard/panels/CommentsPanel';
 import { ListIcon } from '@/components/ui/ListIcon';
-import { ReviewChanges, changesOfStep } from '@/components/review/ReviewChanges';
+import { ReviewChanges, changesOfStep, useStepLabels } from '@/components/review/ReviewChanges';
 import { api, useApi } from '@/lib/client';
 import { portalCatalogs } from '@/lib/catalogs';
 import { formatDate } from '@/lib/format';
@@ -354,6 +354,7 @@ export function ReviewWorkspace({ task, taskId, entityNodeRef, wizardId, onDone 
     }, [wizard.data, labels]);
     const current = sections.find((section) => section.id === currentId) || sections[0];
     const params = useMemo(() => ({ wizardId: wizard.data ? wizard.data.wizardId : wizardId }), [wizard.data, wizardId]);
+    const fieldLabels = useStepLabels(entityNodeRef, current?.step || null, params);
     const done = sections.filter((section) => marks.status[section.id]).length;
     const allAccepted = sections.length > 0 && sections.every((section) => marks.status[section.id] === ACCEPTED);
 
@@ -489,6 +490,7 @@ export function ReviewWorkspace({ task, taskId, entityNodeRef, wizardId, onDone 
                         <ReviewChanges
                             changes={sectionChanges(current)}
                             loading={diff.loading}
+                            fieldLabels={fieldLabels}
                             onFlag={task.isOpen ? (where, text) => correct(current, text, `${current.label} › ${where}`) : null}
                         />
                         <SectionBody section={current} entityNodeRef={entityNodeRef} params={params} requirements={requirements} catalogs={catalogs} />
