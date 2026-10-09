@@ -2382,8 +2382,6 @@ const LOCALE = {
         "accepted": "akzeptiert",
         "returned": "Korrektur angefordert",
         "toRead": "zu prüfen",
-        "legendAccepted": "akzeptiert",
-        "legendReturned": "Korrektur angefordert",
         "legendChanged": "Änderungen seit der Referenz",
         "aiPoints": "von der KI erkannte Punkte",
         "frozen": "Validierte Liste",

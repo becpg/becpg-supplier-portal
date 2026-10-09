@@ -2382,8 +2382,6 @@ const LOCALE = {
         "accepted": "hyväksytty",
         "returned": "korjausta pyydetty",
         "toRead": "tarkistettavana",
-        "legendAccepted": "hyväksytty",
-        "legendReturned": "korjausta pyydetty",
         "legendChanged": "muutokset viitteen jälkeen",
         "aiPoints": "tekoälyn havaitsemat kohdat",
         "frozen": "Hyväksytty luettelo",

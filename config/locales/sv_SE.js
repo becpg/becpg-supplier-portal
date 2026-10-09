@@ -2382,8 +2382,6 @@ const LOCALE = {
         "accepted": "godkänt",
         "returned": "korrigering begärd",
         "toRead": "att granska",
-        "legendAccepted": "godkänt",
-        "legendReturned": "korrigering begärd",
         "legendChanged": "ändringar sedan referensen",
         "aiPoints": "punkter som AI har hittat",
         "frozen": "Validerad lista",

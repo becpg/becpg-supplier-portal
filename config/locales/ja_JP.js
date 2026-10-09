@@ -2382,8 +2382,6 @@ const LOCALE = {
         "accepted": "承諾済み",
         "returned": "修正依頼済み",
         "toRead": "レビュー待ち",
-        "legendAccepted": "承諾済み",
-        "legendReturned": "修正依頼済み",
         "legendChanged": "基準以降の変更",
         "aiPoints": "AI が指摘した点",
         "frozen": "承認済みリスト",

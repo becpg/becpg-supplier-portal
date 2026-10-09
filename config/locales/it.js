@@ -2382,8 +2382,6 @@ const LOCALE = {
         "accepted": "accettata",
         "returned": "correzione richiesta",
         "toRead": "da rivedere",
-        "legendAccepted": "accettata",
-        "legendReturned": "correzione richiesta",
         "legendChanged": "modifiche dalla versione di riferimento",
         "aiPoints": "punti rilevati dall'IA",
         "frozen": "Elenco convalidato",

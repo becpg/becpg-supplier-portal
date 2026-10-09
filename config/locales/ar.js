@@ -2382,8 +2382,6 @@ const LOCALE = {
         "accepted": "مقبول",
         "returned": "طُلب تصحيح",
         "toRead": "بانتظار المراجعة",
-        "legendAccepted": "مقبول",
-        "legendReturned": "طُلب تصحيح",
         "legendChanged": "التغييرات منذ المرجع",
         "aiPoints": "نقاط رصدها الذكاء الاصطناعي",
         "frozen": "قائمة معتمدة",

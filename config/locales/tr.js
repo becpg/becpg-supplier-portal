@@ -2382,8 +2382,6 @@ const LOCALE = {
         "accepted": "kabul edildi",
         "returned": "düzeltme istendi",
         "toRead": "incelenecek",
-        "legendAccepted": "kabul edildi",
-        "legendReturned": "düzeltme istendi",
         "legendChanged": "referanstan bu yana değişiklikler",
         "aiPoints": "AI tarafından tespit edilen noktalar",
         "frozen": "Doğrulanmış liste",

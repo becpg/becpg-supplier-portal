@@ -2382,8 +2382,6 @@ const LOCALE = {
         "accepted": "已接受",
         "returned": "已要求更正",
         "toRead": "待审阅",
-        "legendAccepted": "已接受",
-        "legendReturned": "已要求更正",
         "legendChanged": "自基准以来的变更",
         "aiPoints": "AI 指出的要点",
         "frozen": "已确认列表",
