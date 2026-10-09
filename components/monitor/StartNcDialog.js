@@ -52,6 +52,9 @@ const LABELS = defineLabels('components/monitor/StartNcDialog#LABELS', {
     },
 });
 
+/** What is filed under a supplier and is not a product: it cannot be the NC's product. */
+const NOT_PRODUCTS = new Set(['qa:nc', 'bcpg:supplier']);
+
 /** Pages of a listing read for a picker. */
 const PAGE_SIZE = 100;
 const DEFAULT_PRIORITY = '2';
@@ -171,7 +174,7 @@ export function StartNcDialog({ open, onClose, supplier = null, onStarted }) {
                         disabled={!form.supplier}
                         options={[
                             { value: '', label: labels.productNone },
-                            ...products.items.map((row) => ({ value: row.nodeRef, label: [row.code, row.name].filter(Boolean).join(' · ') })),
+                            ...products.items.filter((row) => !NOT_PRODUCTS.has(row.type)).map((row) => ({ value: row.nodeRef, label: [row.code, row.name].filter(Boolean).join(' · ') })),
                         ]}
                     />
                 </Field>
