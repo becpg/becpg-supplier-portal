@@ -139,7 +139,7 @@ function reliefOption({ palette, columns, suppliers, shown, local }) {
             axisLine: { lineStyle: { color: palette.line } },
             splitLine: { lineStyle: { color: palette.line, opacity: 0.6 } },
             axisPointer: { show: false },
-            viewControl: { alpha: 30, beta: 38, distance: 165, minDistance: 80, maxDistance: 320 },
+            viewControl: { alpha: 30, beta: 38, distance: 205, minDistance: 80, maxDistance: 320 },
             light: { main: { intensity: 1.15, shadow: true, alpha: 40, beta: 30 }, ambient: { intensity: 0.45 } },
         },
         series: [{ type: 'bar3D', data, shading: 'lambert', bevelSize: 0.25, bevelSmoothness: 2, barSize: [8, 5], emphasis: { label: { show: false }, itemStyle: { color: palette.orange } } }],
