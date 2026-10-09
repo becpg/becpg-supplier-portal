@@ -283,7 +283,7 @@
    */
   --becpg-grid-font-size: 13px;
   --becpg-grid-line-height: 16px;
-  --becpg-grid-cell-padding: 9px 12px;
+  --becpg-grid-cell-padding: 9px 10px;
   --becpg-grid-control-height: 26px;
   --becpg-grid-row-border: var(--becpg-line);
   --becpg-grid-header-border: var(--becpg-line);
@@ -1932,6 +1932,15 @@ section[data-row-key]:where(:has(.becpg-decl-omit)) {
    *    on the very first one — so a keyboard user sees the eight values, and the
    *    supplier who is only reading sees a 34px row.
    */
+  /* In a form, a long list scrolls inside its box rather than stretching the
+     form: twenty sorting schemes made one field a screen tall. */
+  .becpg-checkgroup {
+    max-height: 14rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+
   .becpg-grid .becpg-checkgroup {
     max-height: var(--becpg-grid-control-height);
     overflow-y: auto;

@@ -210,8 +210,10 @@ function RequirementRow({
                     </span>
 
                     <div className="min-w-0 flex-1">
-                        <p className="break-words text-sm font-medium leading-snug">{label}</p>
-                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                        {/* The name and its state on one line: the pills are what the
+                            name is read with, and a second line only spread them out. */}
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <p className="break-words text-sm font-medium leading-snug">{label}</p>
                             <ExpiryPill
                                 status={requirement.status}
                                 validTo={requirement.validTo}

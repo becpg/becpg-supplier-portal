@@ -152,7 +152,7 @@ export function SelectControl({
                 role="group"
                 aria-label={field.label}
                 className={[
-                    'becpg-checkgroup flex flex-col gap-1 rounded-lg border bg-white p-2',
+                    'becpg-checkgroup flex flex-col gap-0.5 rounded-lg border bg-white p-2',
                     Boolean(error) || invalid ? 'border-[var(--status-danger)]' : 'border-[var(--becpg-grey)]',
                 ].join(' ')}
                 {...rest}
@@ -161,7 +161,7 @@ export function SelectControl({
                     <label
                         key={option.value}
                         data-checked={selected.includes(option.value) ? 'true' : undefined}
-                        className="becpg-checkgroup-option flex min-h-[36px] cursor-pointer items-center gap-2 rounded px-1 text-sm hover:bg-[var(--becpg-blue-lighter)]/40"
+                        className="becpg-checkgroup-option flex min-h-[32px] shrink-0 cursor-pointer items-center gap-2 rounded px-1 text-sm hover:bg-[var(--becpg-blue-lighter)]/40"
                     >
                         <input
                             type="checkbox"

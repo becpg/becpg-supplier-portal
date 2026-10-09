@@ -36,7 +36,6 @@ import { defineLabels, pickLabels } from '@/lib/i18n';
 const LABELS = defineLabels('components/wizard/steps/DocumentsStep#LABELS', {
     fr: {
         title: 'Documents attendus',
-        subtitle: 'Ce que votre client attend, et pour quand.',
         otherTitle: 'Autres documents',
         otherSubtitle:
             'Les fichiers du dossier qui ne répondent à aucune exigence ci-dessus. Déposez ici tout document utile (photo, analyse…).',
@@ -46,7 +45,6 @@ const LABELS = defineLabels('components/wizard/steps/DocumentsStep#LABELS', {
     },
     en: {
         title: 'Expected documents',
-        subtitle: 'What your customer expects, and by when.',
         otherTitle: 'Other documents',
         otherSubtitle:
             'The files in the folder that answer none of the requirements above. Drop here any useful document (photo, analysis…).',
@@ -162,7 +160,6 @@ export function DocumentsStep({
                     )
                 ) : null}
             </div>
-            <p className="mb-3 text-sm text-[var(--becpg-dark-grey)]">{labels.subtitle}</p>
 
             <RequirementChecklist
                 groups={requirements.groups}
