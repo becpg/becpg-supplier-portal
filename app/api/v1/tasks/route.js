@@ -47,6 +47,7 @@ import { AuthError, toApiResponse } from '@/lib/errors';
 import { createBecpgClient } from '@/lib/adapters/session';
 import { listMyTasks, TASK_TYPES, toNodeRef } from '@/lib/adapters/tasks';
 import { buildEntityIndex } from '@/lib/adapters/entities';
+import { hasMonitorAccess } from '@/lib/adapters/monitor';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -93,6 +94,7 @@ export async function GET(request) {
             entityNodeRef: entity ? toNodeRef(entity) : undefined,
             q: searchParams.get('q') || undefined,
             sort: rawSort && SORTS.includes(rawSort) ? rawSort : 'due',
+            includeWorkflowTasks: await hasMonitorAccess(session),
         };
 
         let result = await listMyTasks(client, options);

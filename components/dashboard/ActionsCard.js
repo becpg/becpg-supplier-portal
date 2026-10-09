@@ -47,6 +47,7 @@ export const TASK_TYPE_META = {
     signature: defineLabels('components/dashboard/ActionsCard#TASK_TYPE_META.signature', { icon: 'draw', fr: 'Signature', en: 'Signature' }),
     document: defineLabels('components/dashboard/ActionsCard#TASK_TYPE_META.document', { icon: 'upload_file', fr: 'Document', en: 'Document' }),
     review: defineLabels('components/dashboard/ActionsCard#TASK_TYPE_META.review', { icon: 'visibility', fr: 'Revue', en: 'Review' }),
+    workflow: defineLabels('components/dashboard/ActionsCard#TASK_TYPE_META.workflow', { icon: 'account_tree', fr: 'Workflow', en: 'Workflow' }),
 };
 
 /**

@@ -1,7 +1,9 @@
 /**
  * `GET /api/v1/tasks/{id}` — one task, with everything needed to route on it.
  *
- * `{id}` is the `pjt:taskList` nodeRef (or just its uuid). The response is the
+ * `{id}` is the `pjt:taskList` nodeRef (or just its uuid), or a workflow task id
+ * (`activiti$1234`) for a step no project task stands behind — then the payload
+ * is the `WorkflowTaskSheet` of `lib/adapters/workflowTasks.js`. The response is the
  * documented `Task` shape of `lib/adapters/tasks.js`, always with its full
  * `deliverables[]`, so `/tasks/[id]` can dispatch to the wizard, the signature
  * viewer, the document deposit or the read-only review with no extra call.
@@ -34,6 +36,7 @@ import { createBecpgClient } from '@/lib/adapters/session';
 import { getTask, peekTaskEntity } from '@/lib/adapters/tasks';
 import { buildEntityIndex } from '@/lib/adapters/entities';
 import { getWizardState, withoutStepDefinitions } from '@/lib/adapters/wizard';
+import { getWorkflowTask, isWorkflowTaskId } from '@/lib/adapters/workflowTasks';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -49,6 +52,13 @@ export async function GET(request, context) {
         const session = await getLiveSession();
         if (!session) {
             throw new AuthError('No portal session');
+        }
+
+        if (isWorkflowTaskId(id)) {
+            // A workflow step with no project task behind it: its own sheet.
+            const response = NextResponse.json(await getWorkflowTask(session, id), { status: 200 });
+            response.headers.set('Cache-Control', 'private, no-store');
+            return response;
         }
 
         const client = createBecpgClient(session);

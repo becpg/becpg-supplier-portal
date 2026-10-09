@@ -54,6 +54,7 @@ import { DocumentsStep } from '@/components/wizard/steps/DocumentsStep';
 import { useDocumentRequirements } from '@/components/wizard/TechnicalSheetBanner';
 import { SignatureFlow } from '@/components/signature/SignatureFlow';
 import { DocumentViewer } from '@/components/documents/DocumentViewer';
+import { WorkflowTaskScreen } from '@/components/tasks/WorkflowTaskScreen';
 import { ReviewWorkspace } from '@/components/review/ReviewWorkspace';
 import { useSession } from '@/components/providers/SessionProvider';
 import { Button } from '@/components/ui/Button';
@@ -214,6 +215,12 @@ function TaskRouter() {
     }
 
     const entityNodeRef = data.entityNodeRef || (data.entity && data.entity.nodeRef) || null;
+
+    /* ------------------------------------------------------- workflow step */
+
+    if (data.type === 'workflow') {
+        return <WorkflowTaskScreen task={data} onChanged={task.refresh} />;
+    }
 
     /* ----------------------------------------------------------- signature */
 
