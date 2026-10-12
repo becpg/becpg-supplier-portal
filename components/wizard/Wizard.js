@@ -115,6 +115,9 @@ import { defineLabels, pickLabels } from '@/lib/i18n';
  */
 const AI_TIMEOUT_MS = 180_000;
 
+/** Step kinds with nothing to fill in, so nothing for the AI to propose. */
+const STEPS_WITHOUT_SUGGESTIONS = new Set(['compliance']);
+
 /**
  * How long the suggestions panel waits after an application before re-reading.
  *
@@ -669,7 +672,10 @@ export function Wizard({
      * `isDocumentGrounded`, not by picking here which lists are worth naming.
      */
     const suggestionScope = suggestionScopeForStep(currentStep);
-    const suggestionsCall = useApi(entityId ? `suggestions/${encodeURIComponent(entityId)}` : null, {
+    // The compliance step only sums up the others: nothing there is filled in,
+    // and an unscoped request would run every plugin for the whole sheet.
+    const suggestionsWanted = Boolean(entityId) && !STEPS_WITHOUT_SUGGESTIONS.has(currentStep?.kind);
+    const suggestionsCall = useApi(suggestionsWanted ? `suggestions/${encodeURIComponent(entityId)}` : null, {
         params: suggestionScope ? { listId: suggestionScope } : undefined,
         // The same ceiling as the route: 45 s on the browser side cut short an
         // analysis the server let run up to 180 s.
@@ -1722,7 +1728,7 @@ export function Wizard({
     const helpPanel = (
         <HelpPanel
             entityId={entityId}
-            suggestions={suggestionsPanel}
+            suggestions={suggestionsWanted ? suggestionsPanel : null}
             suggestionActions={suggestionActions}
             task={task}
         />
@@ -2188,7 +2194,7 @@ export function Wizard({
             >
                 <HelpPanel
                     entityId={entityId}
-                    suggestions={suggestionsPanel}
+                    suggestions={suggestionsWanted ? suggestionsPanel : null}
                     suggestionActions={suggestionActions}
                     task={task}
                     variant="sheet"
