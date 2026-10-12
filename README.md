@@ -108,8 +108,15 @@ never sees a portal-specific password, and the portal never stores one.
   PLM.
 * **Monitoring space** – supplier park overview, supplier × document-type matrix, supplier projects and
   quality indicators, closed to supplier accounts.
-* **AI-assisted capture** – optional: extracted values are shown with a confidence level, and a
-  missing confidence is never rendered as a low one.
+* **AI-assisted capture** – optional, new in release 26.1. Values read from the technical sheet
+  the supplier uploads are shown with a confidence level, and a missing confidence is never
+  rendered as a low one. Nothing is saved without the supplier's confirmation. It covers:
+  * suggestions on every step of the sheet, including values found for a step other than the
+    one on screen;
+  * allergen suggestions, cross-contamination included, served by beCPG's AI service;
+  * document control: the type, the content and the validity dates of a certificate are
+    checked, and the verdict can be contested;
+  * comparison with the validated version, so a reviewer reads what changed, not the whole sheet.
 * **Thirteen interface languages** – French, English (UK and US), German, Spanish, Italian,
   Brazilian Portuguese, Swedish, Finnish, Turkish, Japanese, Simplified Chinese and Arabic
   (right to left), picked from the supplier's beCPG profile; dates and numbers follow the language.
@@ -141,6 +148,20 @@ of those points.
 **And it is not a silo.** The portal is one Next.js application in front of the beCPG PLM you
 already run: same repository, same permissions, same audit trail. What a supplier submits *is*
 the PLM record — there is nothing to import afterwards.
+
+---
+
+## 🧩 Editions
+
+| | **Community edition** | **Commercial edition** |
+|---|---|---|
+| **What it is** | This repository, released under LGPL-3.0-or-later | The same portal, run and supported by beCPG |
+| **Hosting** | Yours: one Docker image, on your own infrastructure | Hosted by beCPG |
+| **Support** | Community, through GitHub issues | Under your beCPG support agreement |
+| **Cost** | No licence fee | See [becpg.net](https://www.becpg.net/contact-us/) |
+
+The portal needs a beCPG PLM behind it in both cases. This README documents **release 26.1**;
+the version of a running portal is reported by `/api/health`.
 
 ---
 
