@@ -2771,7 +2771,7 @@ const LOCALE = {
         "toCompleteCount": "{count} täydennettävää",
         "messagesCount": "{count} viestiä",
         "start": "Aloita vaiheesta {step}",
-        "messages": "Mitä asiakkaanne huomauttaa",
+        "messages": "Katalogin viestit",
         "rule": "Sääntö",
         "duplicate": "Kaksoiskappale",
         "usedBy": "jo käytössä: {names}",

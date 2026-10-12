@@ -2771,7 +2771,7 @@ const LOCALE = {
         "toCompleteCount": "{count} por completar",
         "messagesCount": "{count} mensaje(s)",
         "start": "Empezar por {step}",
-        "messages": "Lo que su cliente le señala",
+        "messages": "Mensajes del catálogo",
         "rule": "Regla",
         "duplicate": "Duplicado",
         "usedBy": "ya utilizado por {names}",

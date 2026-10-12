@@ -2,8 +2,8 @@
 
 /**
  * The compliance step, in the cockpit's grammar: a verdict, the catalogue
- * messages, where the work is (by step and by catalogue), then the fields and
- * documents still expected. Every figure comes from {@link buildComplianceModel}.
+ * messages, the fields and documents still expected, then where the work is
+ * (by step and by catalogue). Every figure comes from {@link buildComplianceModel}.
  */
 
 import { useCallback, useMemo, useState } from 'react';
@@ -28,7 +28,7 @@ const LABELS = defineLabels('components/wizard/compliance/ComplianceOverview#LAB
         toCompleteCount: '{count} à compléter',
         messagesCount: '{count} message(s)',
         start: 'Commencer par {step}',
-        messages: 'Ce que votre client vous signale',
+        messages: 'Messages du catalogue',
         rule: 'Règle',
         duplicate: 'Doublon',
         usedBy: 'déjà utilisé par {names}',
@@ -59,7 +59,7 @@ const LABELS = defineLabels('components/wizard/compliance/ComplianceOverview#LAB
         toCompleteCount: '{count} to complete',
         messagesCount: '{count} message(s)',
         start: 'Start with {step}',
-        messages: 'What your customer points out',
+        messages: 'Catalogue messages',
         rule: 'Rule',
         duplicate: 'Duplicate',
         usedBy: 'already used by {names}',
@@ -374,13 +374,13 @@ export function ComplianceOverview({ model, score, onGoToStep, onFieldClick, onO
         <div className="flex min-w-0 flex-col gap-3 sm:gap-4">
             <Verdict model={model} score={score} labels={labels} onGoToStep={onGoToStep} />
             <Messages model={model} stepLabels={stepLabels} labels={labels} onGoToStep={onGoToStep} onFieldClick={onFieldClick} />
+            <Expected model={model} steps={steps} labels={labels} lang={lang} onFieldClick={onFieldClick} onOpenDocuments={onOpenDocuments} />
             {steps.length > 0 || model.catalogs.length > 0 ? (
                 <div className="grid grid-cols-1 items-start gap-3 sm:gap-4 xl:grid-cols-5">
                     {steps.length > 0 ? <div className="min-w-0 xl:col-span-3"><StepsChart model={model} labels={labels} onGoToStep={onGoToStep} /></div> : null}
                     <div className="min-w-0 xl:col-span-2"><CatalogChart model={model} labels={labels} /></div>
                 </div>
             ) : null}
-            <Expected model={model} steps={steps} labels={labels} lang={lang} onFieldClick={onFieldClick} onOpenDocuments={onOpenDocuments} />
         </div>
     );
 }

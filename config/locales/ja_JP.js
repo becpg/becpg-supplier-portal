@@ -2771,7 +2771,7 @@ const LOCALE = {
         "toCompleteCount": "要入力 {count} 件",
         "messagesCount": "メッセージ {count} 件",
         "start": "{step} から始める",
-        "messages": "お客様からの指摘事項",
+        "messages": "カタログのメッセージ",
         "rule": "ルール",
         "duplicate": "重複",
         "usedBy": "{names} ですでに使用されています",

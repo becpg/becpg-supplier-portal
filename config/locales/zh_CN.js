@@ -2771,7 +2771,7 @@ const LOCALE = {
         "toCompleteCount": "{count} 个待完善",
         "messagesCount": "{count} 条消息",
         "start": "从 {step} 开始",
-        "messages": "客户向您指出的问题",
+        "messages": "目录消息",
         "rule": "规则",
         "duplicate": "重复",
         "usedBy": "已被 {names} 使用",

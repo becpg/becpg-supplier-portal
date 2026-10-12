@@ -2771,7 +2771,7 @@ const LOCALE = {
         "toCompleteCount": "{count} att komplettera",
         "messagesCount": "{count} meddelande(n)",
         "start": "Börja med {step}",
-        "messages": "Vad kunden påpekar",
+        "messages": "Katalogmeddelanden",
         "rule": "Regel",
         "duplicate": "Dubblett",
         "usedBy": "används redan av {names}",

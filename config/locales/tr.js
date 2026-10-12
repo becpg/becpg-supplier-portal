@@ -2771,7 +2771,7 @@ const LOCALE = {
         "toCompleteCount": "{count} tamamlanacak",
         "messagesCount": "{count} mesaj",
         "start": "{step} ile başla",
-        "messages": "Müşterinizin belirttikleri",
+        "messages": "Katalog mesajları",
         "rule": "Kural",
         "duplicate": "Yinelenen",
         "usedBy": "zaten kullanan: {names}",
