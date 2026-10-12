@@ -28,7 +28,7 @@ elsewhere that assumes no `.git`, it is stale.
 
 1. **JavaScript only.** No TypeScript. No `.ts` / `.tsx` file anywhere, ever — including
    config files and scripts.
-2. **Stack is fixed**: Next.js 16 (App Router), React 18, Tailwind CSS 4, framer-motion,
+2. **Stack is fixed**: Next.js 16 (App Router), React 19, Tailwind CSS 4, framer-motion,
    `output: 'standalone'`. Do not introduce another router, another CSS framework or another
    state library.
 3. **No shadcn/ui, no Radix**, no headless UI kit. Tailwind + the portal's own components only,

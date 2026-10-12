@@ -6,7 +6,7 @@ repository's — where they belong. The webscripts it consumes are documented in
 
 ## Architecture in ten lines
 
-1. One Next.js 16 application (App Router), React 18, Tailwind CSS 4, framer-motion,
+1. One Next.js 16 application (App Router), React 19, Tailwind CSS 4, framer-motion,
    `output: 'standalone'` — **JavaScript only, no TypeScript**.
 2. Authentication is **server side only**: OIDC authorization-code flow inside route handlers,
    never `keycloak-js`.
