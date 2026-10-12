@@ -1530,10 +1530,10 @@ export function Wizard({
             const localGap = steps.find((step) => (verdicts[step.id]?.count || 0) > 0);
             if (localGap) {
                 const issues = verdicts[localGap.id];
-                toast.error(new Error(fill(labels.finishMissingStep, {
+                toast.warning(fill(labels.finishMissingStep, {
                     step: localGap.label,
                     count: issues.count,
-                })));
+                }));
                 goTo(localGap.id);
                 return;
             }
@@ -1568,7 +1568,7 @@ export function Wizard({
                 if (stillBlocking.length > 0) {
                     setComplianceSeen(true);
                     catalogs.refresh();
-                    toast.error(new Error(labels.finishBlocked));
+                    toast.warning(labels.finishBlocked);
                     goTo(SYNTHETIC.COMPLIANCE);
                     return;
                 }

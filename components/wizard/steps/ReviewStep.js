@@ -327,7 +327,7 @@ function ReviewSection({ step, open, onToggle, reviewed, onReviewed, children, l
                             onChange={() => onReviewed(step.id)}
                             className="h-4 w-4 accent-[var(--becpg-blue)]"
                         />
-                        <span className="hidden sm:inline">{labels.reviewed}</span>
+                        <span className="sr-only sm:not-sr-only">{labels.reviewed}</span>
                     </label>
                 ) : null}
             </div>

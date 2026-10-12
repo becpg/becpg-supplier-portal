@@ -406,7 +406,7 @@ export default function DocumentsPage() {
                     onClick={() => setDepositOpen(true)}
                     disabled={entities.length === 0}
                 >
-                    <span className="hidden sm:inline">{labels.deposit}</span>
+                    <span className="sr-only sm:not-sr-only">{labels.deposit}</span>
                 </Button>
             }
         >

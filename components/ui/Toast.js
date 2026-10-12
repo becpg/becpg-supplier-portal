@@ -5,9 +5,10 @@
  * `components/providers/ToastProvider.js` — this file only knows how a
  * notification looks and how it is announced.
  *
- * Placement is deliberately different per breakpoint: **top** on a phone (the
- * bottom of the screen is the nav bar and the thumb zone) and **bottom-right**
- * on a desktop. `role="status"` + `aria-live="polite"` for information,
+ * Placement is deliberately different per breakpoint: **top** on a phone and a
+ * tablet (the bottom of a phone is the nav bar and the thumb zone, and on a tablet a
+ * bottom-right toast covers the primary action of a dialog) and **bottom-right**
+ * from the desktop breakpoint up. `role="status"` + `aria-live="polite"` for information,
  * `role="alert"` + `assertive` for an error — an error must interrupt.
  */
 
@@ -109,7 +110,7 @@ export function ToastViewport({ toasts, onDismiss }) {
     const reduceMotion = useReducedMotion();
     return (
         <div
-            className="pointer-events-none fixed inset-x-0 top-0 z-[100] flex flex-col items-center gap-2 p-3 sm:inset-x-auto sm:bottom-0 sm:end-0 sm:top-auto sm:items-end sm:p-4"
+            className="pointer-events-none fixed inset-x-0 top-0 z-[100] flex flex-col items-center gap-2 p-3 sm:inset-x-auto sm:end-0 sm:items-end sm:p-4 lg:bottom-0 lg:top-auto"
             style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top, 0px))' }}
         >
             <AnimatePresence initial={false}>

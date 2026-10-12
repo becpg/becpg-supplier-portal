@@ -227,9 +227,12 @@ export function StatCard({
  */
 export function StatGrid({ columns = 4, className = '', children }) {
     const map = {
-        2: 'grid-cols-1 sm:grid-cols-2',
-        3: 'grid-cols-1 sm:grid-cols-3',
-        4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+        // Two tiles per row on a phone: stacked one per line, three or four tiles
+        // pushed the list they summarise below the first screen. An odd last tile
+        // takes the full row so it never sits alone beside a hole.
+        2: 'grid-cols-2',
+        3: 'grid-cols-2 sm:grid-cols-3 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1',
+        4: 'grid-cols-2 lg:grid-cols-4',
     };
     return <div className={`grid gap-3 sm:gap-4 ${map[columns] || map[4]} ${className}`}>{children}</div>;
 }

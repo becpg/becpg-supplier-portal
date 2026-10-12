@@ -279,7 +279,7 @@ function RequirementRow({
                                 label={nameFor(actionLabel)}
                                 onClick={() => setOpen(true)}
                             >
-                                <span className="hidden sm:inline">{actionLabel}</span>
+                                <span className="sr-only sm:not-sr-only">{actionLabel}</span>
                             </Button>
                         ) : null}
                         {/*

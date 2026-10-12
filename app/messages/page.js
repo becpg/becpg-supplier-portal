@@ -215,6 +215,7 @@ function MessagesScreen() {
     const { lang } = useMessages();
     const labels = pickLabels(LABELS, lang);
     const session = useSession();
+    const { scopedSupplier } = session;
     const toast = useToast();
     const searchParams = useSearchParams();
 
@@ -272,29 +273,38 @@ function MessagesScreen() {
 
     // A new term restarts the pagination, adjusted during render rather than in an
     // effect — the pattern this screen already uses for the deep link above.
-    const [searchKey, setSearchKey] = useState(search);
-    if (searchKey !== search) {
-        setSearchKey(search);
+    // The pages already received belong to one search AND one supplier perimeter.
+    const loadKey = `${scopedSupplier ? scopedSupplier.nodeRef : ''}|${search}`;
+    const [searchKey, setSearchKey] = useState(loadKey);
+    if (searchKey !== loadKey) {
+        setSearchKey(loadKey);
         setPage(1);
     }
 
     const products = useApi('entities', {
-        params: { pageSize: SUBJECT_PAGE_SIZE, page, q: search || undefined },
+        params: {
+            pageSize: SUBJECT_PAGE_SIZE,
+            page,
+            q: search || undefined,
+            // The subjects are the chosen supplier's products, like `/products` and `/tasks`:
+            // without the perimeter the list held every record of the account.
+            supplier: scopedSupplier ? scopedSupplier.nodeRef : undefined,
+        },
         onSuccess: (data) => {
             const pagination = (data && data.pagination) || {};
             setLoaded((previous) => {
                 // Pages of another search are dropped, not merged.
-                const base = previous.q === search ? previous.pages.slice(0, page - 1) : [];
+                const base = previous.q === loadKey ? previous.pages.slice(0, page - 1) : [];
                 const pages = [...base];
                 pages[page - 1] = (data && data.items) || [];
-                return { q: search, pages, hasMore: pagination.hasMoreItems === true };
+                return { q: loadKey, pages, hasMore: pagination.hasMoreItems === true };
             });
         },
     });
 
     /** Subjects: the supplier record first, then every product page received so far. */
     const subjects = useMemo(() => {
-        const items = loaded.q === search ? loaded.pages.flat().filter(Boolean) : [];
+        const items = loaded.q === loadKey ? loaded.pages.flat().filter(Boolean) : [];
         const list = items.map((item) => ({
             nodeRef: item.nodeRef,
             name: item.name,
@@ -339,7 +349,7 @@ function MessagesScreen() {
             ...rest.filter((entry) => entry.count > 0),
             ...rest.filter((entry) => !(entry.count > 0)),
         ];
-    }, [loaded, search, session.supplier, labels.myRecord]);
+    }, [loaded, loadKey, search, session.supplier, labels.myRecord]);
 
     /*
      * What the supplier has already opened — the same store as the dashboard
@@ -354,14 +364,14 @@ function MessagesScreen() {
     );
 
     /** More pages upstream for the term currently displayed. */
-    const hasMoreSubjects = loaded.q === search && loaded.hasMore;
+    const hasMoreSubjects = loaded.q === loadKey && loaded.hasMore;
     // Skeleton while no page of the CURRENT term has arrived — the first load and a
     // new search — but never while page 2 travels, which must not blank page 1. The
     // test is on the received pages and not on `subjects.length`, which is already 1
     // before any call: the supplier's own record comes from the session.
     // The count is a floor while pages remain: `formatTotal` renders "25+", never an
     // invented total (beCPG cannot count this result set — see lib/format.js).
-    const subjectsLoading = products.loading && !(loaded.q === search && loaded.pages.length > 0);
+    const subjectsLoading = products.loading && !(loaded.q === loadKey && loaded.pages.length > 0);
     const subjectCount = formatTotal(
         {
             totalItems: hasMoreSubjects ? null : subjects.length,

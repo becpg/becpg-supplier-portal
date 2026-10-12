@@ -222,7 +222,6 @@ export function AppShell({
                 actions={actions}
                 status={headerStatus}
                 notificationCount={notificationCount}
-                onMenuClick={hideNav ? undefined : () => setDrawerOpen(true)}
             />
 
             {/*

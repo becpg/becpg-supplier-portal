@@ -508,7 +508,7 @@ export function MonitorFilters({
                 {children}
                 {count > 0 ? (
                     <Button variant="ghost" size="md" icon="restart_alt" onClick={reset}>
-                        <span className="hidden sm:inline">{local.reset}</span>
+                        <span className="sr-only sm:not-sr-only">{local.reset}</span>
                     </Button>
                 ) : null}
             </div>

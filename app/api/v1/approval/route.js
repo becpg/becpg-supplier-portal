@@ -31,7 +31,10 @@
  */
 
 import { NextResponse } from 'next/server';
-import { computeApproval, computeApprovalForPark } from '@/lib/adapters/approval';
+import { approvalConfig, computeApproval, computeApprovalForPark, withSupplierView } from '@/lib/adapters/approval';
+import {
+    buildDashboard, createBecpgClient, getMyGroups, isSupplierAccount,
+} from '@/lib/adapters/session';
 import { AuthError, toApiResponse } from '@/lib/errors';
 import { getLiveSession } from '@/lib/session';
 
@@ -63,6 +66,25 @@ function configFromQuery(params) {
 }
 
 /**
+ * A supplier account cannot read the project and non-conformity nodes the park
+ * queries count, so for its own record the answer is the dashboard's derivation
+ * (its tasks, mandatory documents and non-conformities). Anyone else keeps the
+ * park evaluation.
+ *
+ * @param {Object} params `{ session, supplierRef, approval, config }`
+ * @returns {Promise<Object>} the approval entry to publish
+ */
+async function asSeenBySupplier({ session, supplierRef, approval, config }) {
+    const client = createBecpgClient(session);
+    const { groups, capabilities } = await getMyGroups(client);
+    if (!isSupplierAccount(groups, capabilities)) {
+        return approval;
+    }
+    const dashboard = await buildDashboard(client, { supplierNodeRef: supplierRef });
+    return withSupplierView(approval, dashboard, approvalConfig(config));
+}
+
+/**
  * @param {Request} request
  * @returns {Promise<Response>}
  */
@@ -83,7 +105,10 @@ export async function GET(request) {
         // a status can never depend on which screen asked for it.
         if (suppliers.length === 1) {
             const approval = await computeApproval(suppliers[0], { session, config, refresh });
-            return NextResponse.json(approval, { status: 200, headers: NO_STORE });
+            return NextResponse.json(
+                await asSeenBySupplier({ session, supplierRef: suppliers[0], approval, config }),
+                { status: 200, headers: NO_STORE },
+            );
         }
 
         const payload = await computeApprovalForPark({

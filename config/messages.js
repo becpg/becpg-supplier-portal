@@ -165,6 +165,7 @@ export const messages = {
         'error.notFound': "Cette page ou cet élément n'existe pas.",
         'error.tenant': "Aucun client n'est associé à votre compte.",
         'error.upload': "Le dépôt du fichier a échoué.",
+        'error.projectAlreadyOpen': "Un projet de référencement est déjà ouvert sur cette fiche. Clôturez-le avant d'en démarrer un nouveau.",
         'error.http': 'Erreur {status} : {message}',
 
         // --- Approval status (§5.4.3) ---
@@ -274,6 +275,7 @@ export const messages = {
         'error.notFound': 'This page or item does not exist.',
         'error.tenant': 'No customer is associated with your account.',
         'error.upload': 'The file upload failed.',
+        'error.projectAlreadyOpen': 'A referencing project is already open on this record. Close it before starting a new one.',
         'error.http': 'Error {status}: {message}',
 
         // --- Approval status (§5.4.3) ---

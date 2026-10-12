@@ -80,6 +80,10 @@ function initials(name) {
 export function Header({ onMenuClick, title, actions, notificationCount = 0, status, space, className = '' }) {
     const { t, lang, setLang, langs } = useMessages();
     const session = useSession();
+    // The switcher shows the selected supplier's name from the md breakpoint up; on a
+    // phone it is only an icon, so the name rides on the title row instead.
+    const scopeName = session.suppliers && session.suppliers.length > 1 && !session.scopeAll
+        && session.supplier ? session.supplier.name : '';
     const [open, setOpen] = useState(false);
     const menuRef = useRef(null);
     const buttonRef = useRef(null);
@@ -351,7 +355,12 @@ export function Header({ onMenuClick, title, actions, notificationCount = 0, sta
                     white strip — one block of chrome, not two. */}
                 {title ? (
                     <div className="border-t border-[var(--becpg-toolbar-divider)] px-3 py-2 lg:hidden">
-                        <p className="truncate text-sm font-medium">{title}</p>
+                        <p className="truncate text-sm font-medium">
+                            {title}
+                            {scopeName ? (
+                                <span className="font-normal opacity-80 md:hidden"> · {scopeName}</span>
+                            ) : null}
+                        </p>
                     </div>
                 ) : null}
             </div>

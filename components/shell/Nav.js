@@ -445,9 +445,10 @@ export function Nav({
                                     className={[
                                         // `min-w-0` on both the item and the label:
                                         // without it "Mes documents" pushes "Plus"
-                                        // past the right edge on a 360px screen
-                                        // instead of ellipsing.
-                                        'relative flex h-full min-h-[56px] min-w-0 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[11px]',
+                                        // past the right edge on a 360px screen.
+                                        // A long label wraps to two lines rather
+                                        // than being cut to "Mes docum…".
+                                        'relative flex h-full min-h-[64px] min-w-0 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[11px]',
                                         active
                                             ? 'font-medium text-[var(--becpg-blue)]'
                                             : 'text-[var(--becpg-dark-grey)]',
@@ -461,7 +462,7 @@ export function Nav({
                                             </span>
                                         ) : null}
                                     </span>
-                                    <span className="w-full truncate text-center">{t(item.labelKey)}</span>
+                                    <span className="line-clamp-2 w-full break-words text-center leading-tight">{t(item.labelKey)}</span>
                                     {/* The active marker: a 3px orange rail on the
                                         top edge. Decoration only — the state is
                                         already carried by `aria-current`, by the
@@ -483,10 +484,10 @@ export function Nav({
                             <button
                                 type="button"
                                 onClick={onOpenMore}
-                                className="flex h-full min-h-[56px] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[11px] text-[var(--becpg-dark-grey)]"
+                                className="flex h-full min-h-[64px] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[11px] text-[var(--becpg-dark-grey)]"
                             >
                                 <Icon name="more_horiz" size={22} />
-                                <span className="w-full truncate text-center">{local.more}</span>
+                                <span className="line-clamp-2 w-full break-words text-center leading-tight">{local.more}</span>
                             </button>
                         </li>
                     ) : null}

@@ -121,7 +121,7 @@ export function DataListToolbar({
                     />
                     {onAdd && list.canCreate ? (
                         <Button variant="primary" size="sm" icon="add" onClick={onAdd}>
-                            <span className="hidden sm:inline">{label('addRow')}</span>
+                            <span className="sr-only sm:not-sr-only">{label('addRow')}</span>
                         </Button>
                     ) : null}
                 </div>

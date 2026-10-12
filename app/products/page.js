@@ -219,7 +219,7 @@ export default function ProductsPage() {
                                 }
                             >
                                 <Icon name="call_split" size={12} />
-                                <span className="hidden sm:inline">{labels.branch}</span>
+                                <span className="sr-only sm:not-sr-only">{labels.branch}</span>
                             </span>
                         ) : null}
                     </span>

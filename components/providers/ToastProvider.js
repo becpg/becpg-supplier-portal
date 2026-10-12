@@ -88,8 +88,14 @@ export function ToastProvider({ children }) {
             const duration =
                 config.duration === undefined ? DEFAULT_DURATION[variant] : config.duration;
 
+            // The same sentence shown again replaces the one on screen: a retried action
+            // that fails the same way must not stack three identical errors.
             setToasts((current) => {
-                const next = [...current.filter((toast) => toast.id !== id), { ...config, id, variant }];
+                const same = (toast) => toast.id === id
+                    || (toast.variant === variant
+                        && toast.title === config.title
+                        && toast.message === config.message);
+                const next = [...current.filter((toast) => !same(toast)), { ...config, id, variant }];
                 return next.slice(-MAX_TOASTS);
             });
 

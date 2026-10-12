@@ -89,6 +89,7 @@ export default function SpecsPage() {
                     value={specifications.length}
                     icon="menu_book"
                     tone={specifications.length ? 'info' : 'neutral'}
+                    loading={call.loading}
                     index={0}
                 />
                 <StatCard
@@ -96,6 +97,7 @@ export default function SpecsPage() {
                     value={coveredProducts}
                     icon="inventory_2"
                     tone="neutral"
+                    loading={call.loading}
                     index={1}
                 />
             </StatGrid>

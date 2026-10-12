@@ -435,7 +435,7 @@ export function DataTable({
                                 loading={exporting}
                                 onClick={() => onExport(exportColumnsOf(table), table.getSortedRowModel().rows.map((row) => row.original))}
                             >
-                                <span className="hidden sm:inline">{local.export}</span>
+                                <span className="sr-only sm:not-sr-only">{local.export}</span>
                             </Button>
                         ) : null}
                         {enableColumnVisibility ? (

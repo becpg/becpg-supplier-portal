@@ -458,7 +458,7 @@ export default function MonitorDocumentsPage() {
                 <div className="flex items-center gap-2 lg:ms-auto">
                     <MatrixLegend />
                     <Button variant="outline" icon="download" label={labels.export} onClick={exportCsv}>
-                        <span className="hidden sm:inline">{labels.export}</span>
+                        <span className="sr-only sm:not-sr-only">{labels.export}</span>
                     </Button>
                 </div>
             </div>
