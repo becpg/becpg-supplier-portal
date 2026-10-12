@@ -110,7 +110,7 @@ const LABELS = defineLabels('app/monitor/quality/page#LABELS', {
             'Aucun fournisseur ne correspond à ce périmètre. Aucune requête n’a été exécutée : les compteurs ci-dessus sont des zéros de construction, pas des mesures.',
         unsupported:
             'Filtre(s) non pris en charge par le modèle beCPG standard : {names}. À paramétrer côté client.',
-        pageOf: '{from}–{to} sur {total} NC',
+        pageOf: '{from}-{to} sur {total} NC',
         previous: 'Précédent',
         next: 'Suivant',
         rows: 'Lignes',
@@ -155,7 +155,7 @@ const LABELS = defineLabels('app/monitor/quality/page#LABELS', {
             'No supplier matches this perimeter. No query was run: the counters above are zeros by construction, not measurements.',
         unsupported:
             'Filter(s) unsupported by the standard beCPG model: {names}. Configure them client side.',
-        pageOf: '{from}–{to} of {total} NCs',
+        pageOf: '{from}-{to} of {total} NCs',
         previous: 'Previous',
         next: 'Next',
         rows: 'Rows',

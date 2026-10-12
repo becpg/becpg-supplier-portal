@@ -21,6 +21,7 @@ const eslintConfig = [
             "legacy/**",
             // Local clone made by enterprise/create-public-repo.sh.
             "target/**",
+            "enterprise/**",
             /*
              * Playwright's generated artefacts. `e2e/report/` is an HTML report
              * containing Playwright's own **minified vendor bundles**; linting

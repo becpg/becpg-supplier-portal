@@ -80,7 +80,7 @@ const LABELS = defineLabels('app/monitor/products/page#LABELS', {
         empty: 'Aucun produit dans ce périmètre',
         emptyHint:
             'Aucune entité produit ne porte l’aspect fournisseur avec ces filtres. Les produits apparaissent ici dès qu’un fournisseur leur est rattaché.',
-        pageOf: '{from} – {to} sur {total}',
+        pageOf: '{from} - {to} sur {total}',
         previous: 'Page précédente',
         next: 'Page suivante',
         rows: 'Lignes par page',
@@ -119,7 +119,7 @@ const LABELS = defineLabels('app/monitor/products/page#LABELS', {
         empty: 'No product in this perimeter',
         emptyHint:
             'No product entity carries the supplier aspect with these filters. Products appear here as soon as a supplier is attached to them.',
-        pageOf: '{from} – {to} of {total}',
+        pageOf: '{from} - {to} of {total}',
         previous: 'Previous page',
         next: 'Next page',
         rows: 'Rows per page',

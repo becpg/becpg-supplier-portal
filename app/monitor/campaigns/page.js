@@ -92,7 +92,7 @@ const LABELS = defineLabels('app/monitor/campaigns/page#LABELS', {
         noRate: 'Aucun projet à évaluer',
         unsupported:
             'Filtre(s) non pris en charge par le modèle beCPG standard : {names}. À paramétrer côté client.',
-        pageOf: '{from}–{to} sur {total} projets',
+        pageOf: '{from}-{to} sur {total} projets',
         previous: 'Précédent',
         next: 'Suivant',
         rows: 'Lignes',
@@ -141,7 +141,7 @@ const LABELS = defineLabels('app/monitor/campaigns/page#LABELS', {
         noRate: 'No project to score',
         unsupported:
             'Filter(s) unsupported by the standard beCPG model: {names}. Configure them client side.',
-        pageOf: '{from}–{to} of {total} projects',
+        pageOf: '{from}-{to} of {total} projects',
         previous: 'Previous',
         next: 'Next',
         rows: 'Rows',

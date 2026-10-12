@@ -90,7 +90,7 @@ const LABELS = defineLabels('app/monitor/documents/page#LABELS', {
             'Filtre d’affichage « {status} » : {kept} ligne(s) retenue(s) sur les {shown} affichées de cette page. Les compteurs ci-dessus portent sur les {total} fournisseurs du parc, pas sur cette page.',
         unsupported:
             'Filtre(s) non pris en charge par le modèle beCPG standard : {names}. À paramétrer côté client.',
-        pageOf: '{from}–{to} sur {total} fournisseurs',
+        pageOf: '{from}-{to} sur {total} fournisseurs',
         previous: 'Précédent',
         next: 'Suivant',
         rows: 'Lignes',
@@ -139,7 +139,7 @@ const LABELS = defineLabels('app/monitor/documents/page#LABELS', {
             'Display filter “{status}”: {kept} row(s) kept out of the {shown} shown on this page. The counters above cover the {total} suppliers of the park, not this page.',
         unsupported:
             'Filter(s) unsupported by the standard beCPG model: {names}. Configure them client side.',
-        pageOf: '{from}–{to} of {total} suppliers',
+        pageOf: '{from}-{to} of {total} suppliers',
         previous: 'Previous',
         next: 'Next',
         rows: 'Rows',
