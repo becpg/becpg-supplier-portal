@@ -1,7 +1,7 @@
 /**
  * `GET /api/v1/monitor/overview` — the supplier park at a glance (spec §4.6.1).
  *
- * **This is the screen Tracklab and Specright sell first** (spec §2.2, §2.3).
+ * The customer's first screen on its supplier park.
  * beCPG holds every number below and restitutes none of them today: a quality
  * officer has to open project after project in Share to know where the park
  * stands. Nothing here is new data — it is the same repository, read once.

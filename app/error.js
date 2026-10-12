@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * The route-level error boundary (spec §4.1 "aucune page blanche").
+ * The route-level error boundary: never a bare white page (AGENTS.md).
  *
  * Without this file an uncaught render error in any page under `app/` falls
  * through to Next.js' built-in boundary: in development that is a stack-trace

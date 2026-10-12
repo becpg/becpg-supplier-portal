@@ -2,7 +2,7 @@
  * `GET /api/v1/entities/{id}/specs` — applicable product specifications
  * (cahiers des charges), read-only.
  *
- * Closes gap F9 of spec §1.6: the specifications exist in beCPG
+ * The specifications exist in beCPG
  * (`bcpg:productSpecification` + the `bcpg:productSpecifications` association)
  * but are never shown to the supplier, who therefore discovers the requirements
  * when validation fails. They are exposed here in read-only, with a download

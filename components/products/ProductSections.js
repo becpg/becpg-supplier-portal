@@ -137,7 +137,7 @@ const LABELS = defineLabels('components/products/ProductSections#LABELS', {
  * The list name is used rather than the step id, so a bookmark keeps pointing at
  * "the ingredients" even if the configuration renumbers its steps. `parseListId`
  * splits the `@N` suffix beCPG uses for several instances of the same list
- * (Aryzta's questionnaires, spec §2ter.1): `surveyList@1` → `surveyList-1`.
+ * (several questionnaires on one entity): `surveyList@1` → `surveyList-1`.
  *
  * @param {Object} step a step of `GET /api/v1/wizard/{entityId}`
  * @returns {string}

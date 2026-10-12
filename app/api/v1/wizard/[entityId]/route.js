@@ -1,7 +1,7 @@
 /**
  * `GET /api/v1/wizard/{entityId}` — the wizard's complete state, in one call.
  *
- * This route is the answer to bug #25928 (spec §2ter.3): the read-only and
+ * This route is the answer to bug #25928: the read-only and
  * frozen state of **every** step is computed server-side, from a single
  * `becpg/security/entitylists/check` call, and returned whole. The UI renders
  * that state and never re-derives step validity — not from loading order, not

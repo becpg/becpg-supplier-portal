@@ -446,7 +446,7 @@ body {
 /*
  * Keyboard focus baseline — the safety net, not the house style.
  *
- * Every interactive element must show where the keyboard is (spec §9.1). Most of
+ * Every interactive element must show where the keyboard is. Most of
  * the portal gets that from `Button` / `IconButton`, which carry
  * `focus:outline-none focus-visible:ring-2 focus-visible:ring-[--becpg-orange]`.
  * But a handful of surfaces use a raw `<button>` — the sort headers of the

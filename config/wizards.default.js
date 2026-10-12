@@ -229,7 +229,7 @@ export function wizardIdForType(entityType) {
 
 /**
  * A listId can carry an @N suffix (e.g. "surveyList@1"): several instances of the same
- * list on one entity — the mechanism behind multiple questionnaires (spec §2ter.1).
+ * list on one entity — the mechanism behind multiple questionnaires.
  */
 export function parseListId(listId) {
     if (!listId) {
