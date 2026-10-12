@@ -67,6 +67,15 @@ publishing a number it cannot justify.
 
 ![Supplier park monitoring](doc/images/monitoring.png)
 
+Document compliance reads as a matrix of status tiles, supplier by supplier and document type
+by document type, and as a 3D view of the whole park. A supplier's own sheet gathers its
+approval, documents, products, projects and non-conformities, with the risk score and what
+makes it.
+
+![Document compliance, 3D view](doc/images/document-compliance-3d.png)
+
+![A supplier's sheet as the quality team sees it](doc/images/supplier-sheet.png)
+
 ### Also designed to work on a phone
 
 <img src="doc/images/mobile-dashboard.png" alt="The portal on a 390 px screen" width="320" align="right">
