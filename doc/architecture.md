@@ -23,8 +23,9 @@ repository's — where they belong. The webscripts it consumes are documented in
    changes are additive and **ship disabled by default**.
 9. Rendering is driven by server-supplied definitions — columns and fields come from the PLM
    cascade, never from a hard-coded list.
-10. No i18n library: business labels come from beCPG in the user's locale, and only the
-    portal's own chrome strings live in `config/messages.js`.
+10. No i18n library: business labels come from beCPG in the user's locale. Only the portal's
+    own chrome strings live in the portal: French and English beside each component
+    (`defineLabels`) and in `config/messages.js`, the other languages in `config/locales/<lang>.js`.
 
 ## Security model in three rules
 

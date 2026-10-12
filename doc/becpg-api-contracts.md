@@ -2,15 +2,20 @@
 
 > Established by reading the code of `../becpg` (2026-07-29). All URLs are relative to
 > `<becpgUrl>/alfresco/s/`. The portal reaches them through its proxy `/api/v1/becpg/**`.
-> **None of these webscripts is modified by the project** (spec §7.2).
+> **No existing webscript is modified by the project** (spec §7.2). The portal-specific
+> additions on the beCPG side (`becpg/supplier/update-request` in §7, `becpg/portal/wizard`
+> and `becpg/portal/session` in §8) are new, additive files.
 
 ## Conventions
 
-- `format=json` in the query string on every call.
+- `format=json` in the query string on every call, except the binary content paths
+  (`content`, `thumbnails`, `preview`, `download`), on which it is not forced
+  (`lib/becpg.js`, `CONTENT_PATH_PATTERN`).
 - nodeRefs `workspace://SpacesStore/<uuid>` are written `workspace/SpacesStore/<uuid>`
   in URL paths (helper `nodeRefToPath`).
-- Authentication: `alf_ticket=<ticket>` in the query string, ticket obtained by exchanging the
-  OIDC token.
+- Authentication: the Alfresco ticket, obtained by exchanging the OIDC token, travels as an
+  `Authorization` header, never in the query string. The proxy refuses an `alf_ticket` (or
+  `ticket`, `access_token`…) sent by the browser.
 
 ---
 
@@ -117,7 +122,11 @@ Response (`JSONDataListOutputWriter`):
 
 - Each value is an object `{ value, displayValue }` (or a plain value depending on the type) —
   `displayValue` is **already localised**, and it is the one we display.
-- Writing: `POST becpg/entity/datalists/item/node/...` (row creation / update).
+- Writing does **not** go through a datalist webscript: a row is created with
+  `POST api/type/{itemType}/formprocessor` (`alf_destination` = the list) and updated with
+  `POST api/node/{store}/{id}/formprocessor` (`saveForm`, `lib/adapters/forms.js`).
+  `POST becpg/entity/datalists/item/node/...` only **reads** one row's current cells, and
+  answers `itemData: {}` without `fields`.
 
 ## 3. Autocomplete — `becpg/autocomplete/{sourcetype}/...`
 
@@ -230,7 +239,10 @@ Feeds the wizard's compliance panel and the dashboard's completeness gauge.
   > compliant. On the portal side, `searchAllNodes()` (`lib/adapters/documents.js`) now reads
   > until exhaustion.
 - `becpg/remote/formulate?nodeRef=&format=json` — reformulation between steps
-- `becpg/remote/dictionary?type=` — dictionary (types, properties, labels)
+- `becpg/remote/dictionary?type=`: read only for the content locales it announces
+  (`$supportedLocales`, `$locale`; `lib/adapters/contentLocales.js`). The labels of the
+  properties and associations of a class come from the Alfresco core `api/classes/{class}`
+  (`lib/adapters/dictionary.js`, server-side, outside the allow-list)
 
 ## 7. Projects and tasks
 
@@ -260,14 +272,16 @@ Feeds the wizard's compliance panel and the dashboard's completeness gauge.
   on 2026-07-31 on the local 26.1.0 instance (`HTTP 500`). **`POST /api/v1/process/start` no
   longer calls it**: it composes `becpg/workflow/start-process` (below), like Share.
 - `becpg/supplier/update-request` (POST) — a supplier asks for the update of one of its
-  validated sheets, or of its supplier record (`SupplierUpdateRequestWebScript`, branch `feature/#37152`, not released yet).
+  validated sheets, or of its supplier record (`SupplierUpdateRequestWebScript`, #37152, merged into master).
   Body `{ "nodeRef": "<sheet>", "template": "<project template>", "reason": "…" }`, answer
   `{ "project": "<project>", "entity": "<working copy>" }`. It runs as system, after checking
   that the caller is one of the sheet's `bcpg:supplierAccountRef` accounts (403 otherwise),
   that the template is a supplier template (`bcpg:suppliersAspect`) on which
   `GROUP_ExternalUser` holds a read permission (403 otherwise), and that no supplier project
   is open on the sheet (409). The portal calls it server-side from
-  `app/api/v1/entities/[id]/update-request/route.js`; it is not in the browser allow-list.
+  `app/api/v1/entities/[id]/update-request/route.js` (`lib/adapters/updateRequest.js`). The
+  `becpg/supplier/` prefix **is** in `ALLOWED_BECPG_PATH_PREFIXES`; what keeps this POST out of
+  the browser's reach is that the generic proxy relays only GET and HEAD.
 - `becpg/workflow/start-process?script=create-supplier-project.js&nodeRefs=…` (POST) —
   **the entry point that works**, and the one actually used by Share's
   « Envoyer au fournisseur » dialog (`beCPG/script/workflow/process.json`,
@@ -291,7 +305,8 @@ Feeds the wizard's compliance panel and the dashboard's completeness gauge.
   > The portal's generic proxy (`/api/v1/becpg/**`) exposes only **GET and HEAD**
   > (`app/api/v1/becpg/[...path]/route.js`), and `becpg/workflow/` is deliberately not
   > in `ALLOWED_BECPG_PATH_PREFIXES`: the call is made server-side with
-  > `skipAllowList: true` from `app/api/v1/process/start/route.js`, so the surface
+  > `skipAllowList: true` by `lib/adapters/supplierProcess.js` (called from
+  > `app/api/v1/process/start/route.js`), so the surface
   > reachable from the browser stays unchanged.
 
 - `becpg/workflow/start-process?defs=true&nodeRefs=…` (GET) — **the definitions of
@@ -320,7 +335,23 @@ Feeds the wizard's compliance panel and the dashboard's completeness gauge.
   translates each aspect into a `withAspect()`, hence a **mandatory** clause: the query is
   a conjunction. Measured on the local 26.1.0 instance: 62 active `pjt:project` templates,
   **only 1** retained (« Projet de référencement fournisseur »).
-  Consumed by `lib/adapters/processTemplates.js`.
+
+  > ⚠ **The portal does not call this datasource; it states the rule, not the query.**
+  > Called standalone, it answers `200` with **zero** items for every combination of
+  > parameters: `TargetAssocAutoCompletePlugin` resolves the association from the form field
+  > Share passes, which a standalone caller cannot. `lib/adapters/processTemplates.js`
+  > (`searchSupplierTemplates`) expresses the same conjunction as a search on
+  > `becpg/remote/entity/list`:
+  >
+  > ```
+  > TYPE:"pjt:project" AND ASPECT:"bcpg:entityTplAspect" AND ASPECT:"bcpg:suppliersAspect"
+  >   AND NOT =bcpg:entityTplEnabled:"false"
+  > ```
+  >
+  > with `excludeSystems=false` (the templates live under `cm:System`, which `entity/list`
+  > drops by default) and `lists=none`. The `entityTplEnabled` clause is in the query because
+  > `entity/list` does not serialise that property, so filtering the rows afterwards kept
+  > everything.
 - `api/task-instances` — workflow tasks (the source of the `my-tasks` dashlet)
 - `api/people/{username}?groups=true` — the user's groups, to resolve
   `GROUP_EXTERNAL_SUPPLIER_<code>`
@@ -425,11 +456,14 @@ a new file, no modification of anything existing.
   > same wizard (allergens, physico-chemical, claims, microbiology, organoleptic)
   > carry no total and answer `rows: []` — hence a behaviour that differs from one
   > step to the next without the configuration explaining it.
-- **Wizard structure**: fall back on `config/wizards.default.js` (a transcription of the
-  standard shipped config). It does not contain the client overrides — an acknowledged
-  development crutch, replaced as soon as the webscript above exists.
-- The `lib/adapters/wizardConfig.js` adapter exposes the same interface in both cases, with
-  a simple configuration flag to switch.
+- **Wizard structure**: the webscript above now exists (next section), but stays opt-in.
+  `config/wizards.default.js` (a transcription of the standard shipped config, without the
+  client overrides) is used when `BECPG_SHARE_WIZARD_ENDPOINT` is unset or off, and as the
+  fallback when the Share endpoint answers 404/405 or returns steps without a single field
+  definition.
+- The `lib/adapters/wizardConfig.js` adapter exposes the same interface in both cases;
+  `BECPG_SHARE_WIZARD_ENDPOINT` (`true`, or a Share path) switches to the Share endpoint
+  (`shareWizardEndpoint()`, `activeWizardSource()`).
 
 ### Actual state of the endpoint (tested on a 26.1.0 instance, 2026-07-30)
 
@@ -558,8 +592,11 @@ showed no verdict at all, because the browser only knows the steps it has mounte
 
 The point was open; it is settled and tested.
 
-The `becpg/portal/wizard` endpoint has **no user dependency** (no column preferences, no
-`AlfrescoUtil`) and is therefore callable without a Share session.
+The `becpg/portal/wizard` endpoint has **no user preference dependency** (no column
+preferences, no `AlfrescoUtil`): the wizard structure and the datalist steps resolve without a
+Share session. The `form` steps still need one, because the `node-type` evaluator resolves the
+node through `/api/metadata` over the session connector (Cause 2 above). `lib/shareSession.js`
+obtains that session whichever wizard source is active.
 
 For the call to the repository, Share's `alfresco` connector authenticates with the ticket of
 the **Share session** (`authenticator-id: alfresco-ticket`) and refuses outright, with a 401,
@@ -630,14 +667,19 @@ The value must change **on every configuration reload**: at startup
 `reloadConfig()` is enough; exposing it on the Share side additionally allows Surf's
 `config.scoped` to be mixed in.
 
-On the portal side, **no beCPG addition is expected**: the configuration cache lives 5 minutes
-per tenant and per user (`WIZARD_CACHE_TTL`), and `POST /api/v1/config/refresh` empties it
-on demand (`{"scope":"tenant"}` for the whole tenant). The lag is bounded and can be
-caught up without a redeployment.
+Until beCPG publishes such a version, the portal has no version to read and relies on two
+mechanisms: the configuration cache lives 5 minutes per tenant and per user
+(`WIZARD_CACHE_TTL`, `0` disables it), and `POST /api/v1/config/refresh` empties it on demand
+(the caller's entries by default; `{"scope":"tenant"}` for the whole tenant, reserved to
+accounts with monitoring access). The lag is bounded and can be caught up without a
+redeployment.
 
-In the meantime, `POST /api/v1/config/refresh` empties the caller's cache — but **only on
-the replica that answers**, which is not an operating procedure. That is the main argument
-for the addition above.
+But `POST /api/v1/config/refresh` empties the cache **only on the replica that answers**, which
+is not an operating procedure. That is the main argument for the addition above.
+
+> The header of `app/api/v1/config/refresh/route.js` names a `BECPG_CONFIG_VERSION_ENDPOINT`
+> client "already written and gated". No such variable exists, neither in the code nor in
+> `env.example`: there is no version client today.
 
 ## 9. Documents and documentary requirements
 
@@ -668,6 +710,21 @@ Three operations, served by `AiSuggestionsProxyWebScript` (becpg-core):
 | `POST becpg/ai/suggestions/apply` | ⟶ | `POST /api/suggestions/apply` |
 | `POST becpg/ai/suggestions/apply-plan` | ⟶ | `POST /api/suggestions/apply-plan` |
 
+The monitoring space adds four more operations, called by `lib/adapters/ai.js` and exposed
+to the browser as `POST /api/v1/ai/{feature}` (`app/api/v1/ai/[feature]/route.js`, monitoring
+accounts only):
+
+| Portal feature | beCPG |
+|---|---|
+| `review-precheck` | `POST becpg/ai/review/precheck` |
+| `rewrite` | `POST becpg/ai/messages/rewrite` |
+| `nc-assist` | `POST becpg/ai/nc/assist` |
+| `drafts` | `POST becpg/ai/messages/drafts` |
+
+Their backend is tracked outside this repository. Until a webscript is deployed (or while
+`beCPG.ai.serverUrl` is empty), beCPG answers 404, 501 or 503 and the portal returns
+`{ available: false, reason }`: the screens show nothing of the feature.
+
 **This is the OLAP assembly, for the same reasons.** The repository already holds the
 companion service's address (`beCPG.ai.serverUrl`, like `becpg.olap.url.internal`) and already
 knows how to authenticate the current user against it. A client calling becpg-ai directly
@@ -683,14 +740,15 @@ elsewhere, therefore bound to break silently. `BECPG_AI_URL`, `BECPG_AI_API_KEY`
 Two properties not to lose:
 
 - **`becpg/ai/` is absent from `ALLOWED_BECPG_PATH_PREFIXES`**, exactly like `becpg/olap/`.
-  The proxy exposed to the browser answers **403**; only `lib/adapters/suggestions.js`, which
-  runs server-side with `createBecpgClient` (`skipAllowList`), reaches it. Without that
+  The proxy exposed to the browser answers **403**; only `lib/adapters/suggestions.js` and
+  `lib/adapters/ai.js`, which run server-side with `skipAllowList`, reach it. Without that
   absence, routing the AI through beCPG would have brought nothing: the browser would have
-  tunnelled to it through `/api/v1/becpg/**`. Verified: `403` from the browser, `404` on the
-  old route `/api/v1/ai/**`, which is deleted;
+  tunnelled to it through `/api/v1/becpg/**`. Verified: `403` from the browser. The old
+  generic route to becpg-ai is gone; `/api/v1/ai/{feature}` is a different thing, a closed
+  set of four portal routes onto the beCPG webscripts above;
 - **the operations are closed.** No `path` parameter: a proxy that relays an arbitrary path
   is a generic tunnel to becpg-ai whose destination the caller chooses.
-  A fourth operation = one more descriptor, which is the point.
+  One more operation = one more descriptor, which is the point.
 
 ### 10.1.1 What the proxy answers, and how to read it
 
@@ -910,7 +968,7 @@ product for that account. The only readable link is the **hierarchy**:
 `SignatureProjectHelper.findDocumentsToSign()` only looks in there.
 
 `lib/adapters/tasks.js` therefore walks up from the document to the entity, with
-`becpg/remote/entity?nodeRef=…&fields=…&lists=none` (546–720 bytes per node, measured), stopping
+`becpg/remote/entity?nodeRef=…&fields=…&lists=none` (546-720 bytes per node, measured), stopping
 at the first ancestor that is neither `cm:`/`sys:`/`st:`/`app:` nor `pjt:` — two hops in this
 journey. The starting node is **the original** (`contents[0]`), not the working copy: after
 signing, `sign-document.js` deletes the latter, and the record of a closed task must keep
@@ -920,3 +978,31 @@ naming its product (verified after signing).
 **0 results** for a freshly created node, where `ID:"<nodeRef>"` finds it — the opposite
 of what the "real-time db-afts" path leads one to hope. The walk above reads the node
 directly and therefore depends on no index.
+
+## 12. Other webscripts the portal calls
+
+Calls found in the code and not described above. Paths relative to `<becpgUrl>/alfresco/s/`;
+the ones outside `ALLOWED_BECPG_PATH_PREFIXES` are made server-side with `skipAllowList`.
+
+| Webscript | Purpose | Caller |
+|---|---|---|
+| `GET` / `POST becpg/survey?entityNodeRef=&dataListName=` | read the questionnaire decision tree, write the answers | `lib/adapters/survey.js` |
+| `DELETE slingshot/datalists/action/items` | delete datalist rows | `lib/adapters/datalists.js` |
+| `POST becpg/entity/datalists/sort/node/{store}/{id}` | move datalist rows up or down | `lib/adapters/datalists.js` |
+| `POST becpg/bulkedit/type/{type}/bulksave` | bulk save of datalist rows | `lib/adapters/datalists.js` |
+| `POST becpg/form/multilingual/field/{field}?nodeRef=` | save the translations of an mltext field | `lib/adapters/forms.js` |
+| `POST api/node/{store}/{id}/formprocessor`, `POST api/type/{type}/formprocessor` | save a form or a datalist row, or create a node or a row | `lib/adapters/forms.js` |
+| `GET api/classes/{class}` | property and association labels | `lib/adapters/dictionary.js` |
+| `GET slingshot/doclib2/doclist/documents/node/{store}/{id}` | documents of the `documents` wizard step | `lib/adapters/wizard.js` |
+| `GET api/node/content/{store}/{id}/{name}` | document content | `lib/adapters/documents.js` |
+| `POST api/upload` | document upload, new version | `lib/adapters/documents.js` |
+| `GET` / `POST api/node/{store}/{id}/comments` | discussions and messages | `lib/adapters/tasks.js`, `lib/adapters/monitor.js`, `app/api/v1/messages/route.js`, `app/(home)/page.js` |
+| `POST api/formdefinitions` | fields of a workflow task type | `lib/adapters/workflowTasks.js`, `lib/adapters/tasks.js` |
+| `GET` / `PUT api/task-instances/{id}` | read a workflow task, claim or release it | `lib/adapters/workflowTasks.js` |
+| `POST api/task/{id}/formprocessor` | save or complete a workflow task | `lib/adapters/workflowTasks.js`, `lib/adapters/tasks.js` |
+| `POST api/workflow/{definition}/formprocessor` | start a non-conformity workflow | `lib/adapters/nonConformities.js` |
+| `GET api/node/{store}/{id}/workflow-instances`, `GET api/workflow-instances/{id}` | active workflows of an entity and their tasks | `lib/adapters/workflows.js` |
+| `GET api/metadata?nodeRef=` | node metadata (signature state, task documents) | `lib/adapters/signature.js`, `lib/adapters/workflowTasks.js` |
+| `POST becpg/entitylist/node/{store}/{id}?state=` | change the state of a datalist (review) | `lib/adapters/reviewDiff.js` |
+| `GET becpg/api/entity-version` | version history of an entity | `lib/adapters/versions.js` |
+| `GET becpg/olap/chart` | monitoring charts | `lib/adapters/olap.js` |

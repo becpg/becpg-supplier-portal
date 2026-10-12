@@ -95,9 +95,9 @@ These are audited; regressions get caught.
   an outline and not a `box-shadow` ring precisely so the two never stack.
 - **The TEST banner cannot be dismissed.** `TestBanner` has no close button and no state, on
   purpose. Do not add one.
-- **An absent AI confidence is never rendered as a low confidence.** `confidenceBucket()`
-  (server) and `confidenceLevelOf()` (client) must stay in agreement and both return `null`
-  for `null`, `undefined`, `''`, a blank string, a non-numeric value and `NaN`. A plugin that
+- **An absent AI confidence is never rendered as a low confidence.** `confidenceOf()`
+  (`lib/adapters/ai.js`) returns `null` for `null`, `undefined`, `''`, a blank string, a
+  non-numeric value and `NaN`, and the client renders `null` as "no score", never as low. A plugin that
   returns no score must not make every extracted field look untrustworthy.
 - **Rendering is driven by server-supplied definitions, never by a hard-coded field or column
   list.** Columns and fields come from Share's cascade (`formId + entityType + siteId + list`),
@@ -105,7 +105,8 @@ These are audited; regressions get caught.
   `ProductHeader.entityTypeLabel` — is a *display-label fallback* that beCPG's `typeLabel`
   always overrides, and it branches nothing.
 - **`/monitor` is closed to supplier accounts.** `requireMonitorAccess()` is the single gate,
-  called by every exported function of `lib/adapters/monitor.js` (so no route can forget it)
+  called by every exported function of `lib/adapters/monitor.js` that reads the repository, and
+  by the other adapters that serve internal accounts only (so no route can forget it)
   and by `app/monitor/layout.js` (so no page paints a wall of red errors). An `ExternalUser`
   is refused **first and unconditionally**, before the group test. Never re-implement the
   check — call it.
@@ -119,20 +120,20 @@ app/                      App Router
   global-error.js         root-layout error — its own <html>, inline styles
   not-found.js            404
   globals.css             Tailwind 4 (@import + @theme inline), utilities, focus baseline
-  page.js                 supplier dashboard
+  (home)/page.js          supplier dashboard (route group with its own layout and loading)
   login/ company/ documents/ messages/ products/[id]/ specs/ tasks/[id]/ help/
   monitor/                monitoring space — layout.js holds THE access gate
     page.js suppliers/[id]/ documents/ campaigns/ quality/
   share/page/wizard/      entry point from Share
-  api/                    THE proxy — 46 route handlers
+  api/                    THE proxy — route handlers
     health/route.js       { status, version } — Docker HEALTHCHECK and k8s probes
     auth/                 login, callback, logout, session
     v1/                   internal API, incl. monitor/*
-components/               107 components — ui/ shell/ form/ datalist/ wizard/ monitor/
-                          documents/ dashboard/ signature/ products/ specs/ providers/
-lib/                      21 modules; adapters/ holds the 12 domain adapters
+components/               ui/ shell/ form/ datalist/ wizard/ monitor/ documents/ dashboard/
+                          signature/ products/ specs/ providers/ review/ survey/ tasks/
+lib/                      shared modules; adapters/ holds one adapter per business domain
 config/                   chrome messages, default wizards
-doc/                      becpg-api-contracts.md
+doc/                      architecture.md, becpg-api-contracts.md, developer-guide.md, images/
 e2e/                      Playwright — fixtures/, tests/; internal only, stripped from the mirror
 legacy/                   archived V1 portal — read only
 proxy.js                  nothing is reachable without a session; resolves the tenant
@@ -176,11 +177,11 @@ repository, and it applies to every file type here:
 - **Comments and JSDoc**, every line
 - **Log messages** and error messages
 - **Commit messages** (see the Git section below)
-- The **key** side of `config/messages.js` — its values are the translations
+- The **key** side of the chrome label tables (`defineLabels`, `config/messages.js`, `config/locales/`) — the values are the translations
 - **Documentation**: `README.md`, `AGENTS.md`, `doc/*.md`, `env.example`, the shell scripts
 
-French belongs to the *interface*, never to the source. Chrome wording lives in
-`config/messages.js`, business labels come from beCPG in the user's locale; a French sentence
+French belongs to the *interface*, never to the source. Chrome wording lives in the
+`defineLabels` tables, `config/messages.js` and `config/locales/`, business labels come from beCPG in the user's locale; a French sentence
 anywhere else is either a defect or a quote. When it genuinely is a quote — a field label, an
 error message the system really emits — keep the quote as it is and write the sentence around
 it in English.
@@ -224,8 +225,8 @@ across `app/`, `lib/`, `components/` and `e2e/`.
   `SESSION_COOKIE_NAME = 'becpg_portal_session'`, env `SESSION_COOKIE_SECRET`, env `TENANT_MAP`,
   CSS classes `.pill-{ok,warn,danger,neutral,info}`, `.test-banner`, `.skeleton`.
 - **Every environment variable must be documented in `env.example`.** No exception; three had
-  drifted and were added back. No secret in `NEXT_PUBLIC_*` — there is no `NEXT_PUBLIC_*`
-  variable at all, by design.
+  drifted and were added back. No secret in `NEXT_PUBLIC_*`: the only one is
+  `NEXT_PUBLIC_PORTAL_BASE_PATH`, derived from `PORTAL_BASE_PATH` in `next.config.mjs`.
 - Write complete, working code. No `TODO` stub for something you were asked to implement.
 - When the repository cannot answer a question honestly, **degrade explicitly** rather than
   fabricate: `history: { available: false }`, `filters.unsupported`, `pagination.truncated`,
@@ -313,9 +314,9 @@ nothing in the logs.
 Which instances we actually use, and with which accounts: `enterprise/README.md`.
 
 ```bash
-npm run build      # standalone output — green, 57 routes
+npm run build      # standalone output
 npm start
-npm run lint       # eslint .
+npm run lint       # eslint
 npx playwright test --config e2e/playwright.config.js    # needs local instance + portal up
 ```
 

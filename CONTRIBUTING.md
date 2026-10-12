@@ -21,7 +21,8 @@ the guidelines below to contribute effectively.
 * **The stack is fixed**: Next.js (App Router), React, Tailwind CSS, framer-motion. No second
   router, no other CSS framework, no state library, no UI kit (no shadcn/ui, no Radix).
 * **No i18n library.** Business labels come from beCPG in the user's locale; only the portal's
-  own chrome strings live in `config/messages.js`.
+  own chrome strings live in the portal: French and English beside each component
+  (`defineLabels`) and in `config/messages.js`, the other languages in `config/locales/<lang>.js`.
 * **Authentication stays server side.** No OIDC configuration in the browser, no token in
   `localStorage`, and a client component never imports the beCPG or session modules.
 * **Everything in the source is English** — identifiers, comments, log messages, commit
