@@ -529,9 +529,8 @@ export function MlTextControl({
      * exactly what it always did: the current language, then the button, then
      * the other languages once they are opened. Inside a datalist cell
      * `app/globals.css` turns that one wrapper into a row and folds the button
-     * down to the grid's 26px icon size — which is the whole of the fix for the
-     * 65px row pitch a multilingual column used to impose (see §4.1 of
-     * `enterprise/implementation-status.md`). The rule lives under `min-width: 768px`
+     * down to the grid's 26px icon size, so a multilingual column keeps the
+     * grid's row pitch. The rule lives under `min-width: 768px`
      * and under `.becpg-grid`, so the phone layout — where a row is a card and
      * every target is 40px — is untouched by construction.
      */

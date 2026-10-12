@@ -2,8 +2,8 @@
 
 Instructions for any AI agent working in this repository. Read this before touching a file.
 `enterprise/spec_fr.md` is the authoritative specification; this file is only the short form of the rules.
-Current state, known defects and remaining gaps: `enterprise/implementation-status.md`
-(private, like the rest of that folder).
+What remains open: `enterprise/TODO_fr.md`; how to deploy, run against dev and the traps worth
+knowing: `enterprise/README.md` (private, like the rest of that folder).
 
 `CLAUDE.md` and `GEMINI.md` are symlinks to this file — one document, whichever agent reads it.
 Edit `AGENTS.md`; the same layout is used in the `becpg` repository.
@@ -77,7 +77,7 @@ elsewhere that assumes no `.git`, it is stale.
 
 ## Non-negotiable UX rules
 
-These are audited; regressions get caught. Details in `enterprise/implementation-status.md`.
+These are audited; regressions get caught.
 
 - **Responsive down to 360 px.** One-handed use on a phone: primary navigation is a bottom
   bar inside the safe area, never a top-left hamburger.
@@ -152,7 +152,7 @@ The portal is open source under the **LGPL-3.0-or-later** (`LICENSE`, `NOTICE`),
 force-pushed: never commit into it, cherry-pick a contribution back here instead.
 
 What the mirror strips, from the tree **and** from the history: `enterprise/` — which holds
-`spec_fr.md`, `TODO_fr.md`, `implementation-status.md` and the operations notes — `legacy/`,
+`spec_fr.md`, `TODO_fr.md` and the operations notes — `legacy/`,
 `e2e/` (written against internal instances and accounts), and the delivery files
 (`cloudbuild.delivery.yaml`, `deployment.yml`, `deploy-fast.sh`, `release.sh`). Two
 consequences when you write:
