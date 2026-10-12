@@ -15,6 +15,11 @@ yarn-error.log*
 # Archived V1 portal: read only, never imported, never shipped
 legacy
 
+# Internal material that never ships: specification and notes, end-to-end suite, local mirror clone
+enterprise
+e2e
+target
+
 # Git
 .git
 .gitignore
