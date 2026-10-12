@@ -1501,7 +1501,9 @@ const LOCALE = {
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "Ei täytettäviä kenttiä",
-        "emptyHint": "Tämän lomakkeen määritys ei palauta yhtään kenttää."
+        "emptyHint": "Tämän lomakkeen määritys ei palauta yhtään kenttää.",
+        "showEmpty": "{count} tyhjää kenttää piilotettu - näytä",
+        "hideEmpty": "Piilota tyhjät kentät"
     },
     "components/form/controls/AutocompleteControl#LABELS": {
         "search": "Hae…",
@@ -2758,6 +2760,37 @@ const LOCALE = {
         "collapse": "Pienennä vaiheet",
         "expand": "Laajenna vaiheet"
     },
+    "components/wizard/compliance/ComplianceOverview#LABELS": {
+        "blockingTitle": "{count} estävää kohtaa ennen lähettämistä",
+        "toCompleteTitle": "{count} täydennettävää kohtaa",
+        "readyTitle": "Valmis lähetettäväksi",
+        "blocking": "Estävä",
+        "toComplete": "Täydennettävä",
+        "document": "Asiakirja",
+        "blockingCount": "{count} estävää",
+        "toCompleteCount": "{count} täydennettävää",
+        "messagesCount": "{count} viestiä",
+        "start": "Aloita vaiheesta {step}",
+        "messages": "Mitä asiakkaanne huomauttaa",
+        "rule": "Sääntö",
+        "duplicate": "Kaksoiskappale",
+        "usedBy": "jo käytössä: {names}",
+        "usedByOthers": "{count} muuta tietuetta",
+        "byStep": "Vaiheittain",
+        "byStepAria": "Käsiteltävät kohdat vaiheittain",
+        "byCatalog": "Katalogeittain",
+        "byCatalogAria": "Täydellisyyspisteet katalogeittain",
+        "expected": "Odotetut kentät ja asiakirjat",
+        "all": "Kaikki ({count})",
+        "blockingOnly": "Estävät ({count})",
+        "other": "Muut",
+        "goToStep": "Siirry vaiheeseen",
+        "goToField": "Siirry kenttään",
+        "renew": "Uusi",
+        "missing": "Puuttuu",
+        "expired": "Vanhentunut {date}",
+        "refused": "Hylätty"
+    },
     "components/wizard/panels/CommentsPanel#LABELS": {
         "title": "Keskustelu",
         "subtitle": "Viestinvaihtonne asiakkaan kanssa tästä kortista",
@@ -2822,16 +2855,6 @@ const LOCALE = {
         "readOnlyText": "Tätä vaihetta ei voi muokata."
     },
     "components/wizard/steps/ReviewStep#LABELS": {
-        "title": "Vaatimustenmukaisuus",
-        "subtitle": "Mitä vielä puuttuu, ennen kuin asiakkaanne voi hyväksyä tuotekortin.",
-        "subtitleInternal": "Mitä toimittajan tuotekortista vielä puuttuu.",
-        "blocking": "Estävät luettelot: {names}",
-        "blockingHint": "Täyttäkää alla olevat puuttuvat kentät, jotta voitte viimeistellä.",
-        "ready": "Kaikki estävät luettelot täyttyvät",
-        "incomplete": "Täydennettävät luettelot: {names}",
-        "documents": "Pakolliset asiakirjat",
-        "documentsMissing": "Puuttuvat pakolliset asiakirjat: {count}",
-        "documentsOk": "Kaikki pakolliset asiakirjat on toimitettu",
         "reviewTitle": "Vain luku -tuotekortti",
         "reviewSubtitle": "Tarkastelette tätä tuotekorttia: muutokset eivät ole mahdollisia.",
         "expand": "Näytä",

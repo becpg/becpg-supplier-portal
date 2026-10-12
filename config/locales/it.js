@@ -1501,7 +1501,9 @@ const LOCALE = {
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "Nessun campo da compilare",
-        "emptyHint": "La configurazione di questo modulo non restituisce alcun campo."
+        "emptyHint": "La configurazione di questo modulo non restituisce alcun campo.",
+        "showEmpty": "{count} campo/i vuoto/i nascosto/i - mostra",
+        "hideEmpty": "Nascondi i campi vuoti"
     },
     "components/form/controls/AutocompleteControl#LABELS": {
         "search": "Cerca…",
@@ -2758,6 +2760,37 @@ const LOCALE = {
         "collapse": "Comprimi le fasi",
         "expand": "Espandi le fasi"
     },
+    "components/wizard/compliance/ComplianceOverview#LABELS": {
+        "blockingTitle": "{count} punto/i bloccante/i prima dell'invio",
+        "toCompleteTitle": "{count} punto/i da completare",
+        "readyTitle": "Pronto per l'invio",
+        "blocking": "Bloccante",
+        "toComplete": "Da completare",
+        "document": "Documento",
+        "blockingCount": "{count} bloccante/i",
+        "toCompleteCount": "{count} da completare",
+        "messagesCount": "{count} messaggio/i",
+        "start": "Inizia da {step}",
+        "messages": "Ciò che il vostro cliente vi segnala",
+        "rule": "Regola",
+        "duplicate": "Duplicato",
+        "usedBy": "già utilizzato da {names}",
+        "usedByOthers": "{count} altra/e scheda/e",
+        "byStep": "Per passaggio",
+        "byStepAria": "Punti da gestire, per passaggio",
+        "byCatalog": "Per catalogo",
+        "byCatalogAria": "Punteggio di completezza per catalogo",
+        "expected": "Campi e documenti previsti",
+        "all": "Tutto ({count})",
+        "blockingOnly": "Bloccanti ({count})",
+        "other": "Altri",
+        "goToStep": "Vai al passaggio",
+        "goToField": "Vai al campo",
+        "renew": "Rinnova",
+        "missing": "Mancante",
+        "expired": "Scaduto il {date}",
+        "refused": "Rifiutato"
+    },
     "components/wizard/panels/CommentsPanel#LABELS": {
         "title": "Discussione",
         "subtitle": "I vostri scambi con il cliente su questa scheda",
@@ -2822,16 +2855,6 @@ const LOCALE = {
         "readOnlyText": "Questa fase non può essere modificata."
     },
     "components/wizard/steps/ReviewStep#LABELS": {
-        "title": "Conformità",
-        "subtitle": "Ciò che manca ancora prima che il vostro cliente possa convalidare la scheda.",
-        "subtitleInternal": "Ciò che manca ancora nella scheda del fornitore.",
-        "blocking": "Catalogo/i bloccante/i: {names}",
-        "blockingHint": "Compilate i campi mancanti qui sotto per poter terminare.",
-        "ready": "Tutti i cataloghi bloccanti sono soddisfatti",
-        "incomplete": "Catalogo/i da completare: {names}",
-        "documents": "Documenti obbligatori",
-        "documentsMissing": "{count} documento/i obbligatorio/i mancante/i",
-        "documentsOk": "Tutti i documenti obbligatori sono stati forniti",
         "reviewTitle": "Scheda in sola lettura",
         "reviewSubtitle": "State consultando questa scheda: non è possibile alcuna modifica.",
         "expand": "Mostra",

@@ -1501,7 +1501,9 @@ const LOCALE = {
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "无需填写的字段",
-        "emptyHint": "此表单的配置未返回任何字段。"
+        "emptyHint": "此表单的配置未返回任何字段。",
+        "showEmpty": "已隐藏 {count} 个空字段 - 显示",
+        "hideEmpty": "隐藏空字段"
     },
     "components/form/controls/AutocompleteControl#LABELS": {
         "search": "搜索…",
@@ -2758,6 +2760,37 @@ const LOCALE = {
         "collapse": "折叠步骤",
         "expand": "展开步骤"
     },
+    "components/wizard/compliance/ComplianceOverview#LABELS": {
+        "blockingTitle": "发送前有 {count} 个阻断性要点",
+        "toCompleteTitle": "{count} 个待完善要点",
+        "readyTitle": "可以发送",
+        "blocking": "阻断性",
+        "toComplete": "待完善",
+        "document": "文件",
+        "blockingCount": "{count} 个阻断",
+        "toCompleteCount": "{count} 个待完善",
+        "messagesCount": "{count} 条消息",
+        "start": "从 {step} 开始",
+        "messages": "客户向您指出的问题",
+        "rule": "规则",
+        "duplicate": "重复",
+        "usedBy": "已被 {names} 使用",
+        "usedByOthers": "{count} 条其他记录",
+        "byStep": "按步骤",
+        "byStepAria": "按步骤列出的待处理要点",
+        "byCatalog": "按目录",
+        "byCatalogAria": "按目录的完整度评分",
+        "expected": "预期的字段和文件",
+        "all": "全部（{count}）",
+        "blockingOnly": "阻断性（{count}）",
+        "other": "其他",
+        "goToStep": "前往该步骤",
+        "goToField": "前往该字段",
+        "renew": "续期",
+        "missing": "缺失",
+        "expired": "已于 {date} 过期",
+        "refused": "已拒绝"
+    },
     "components/wizard/panels/CommentsPanel#LABELS": {
         "title": "讨论",
         "subtitle": "您与客户关于此资料表的交流",
@@ -2822,16 +2855,6 @@ const LOCALE = {
         "readOnlyText": "此步骤无法修改。"
     },
     "components/wizard/steps/ReviewStep#LABELS": {
-        "title": "合规性",
-        "subtitle": "在客户确认资料表之前仍缺少的内容。",
-        "subtitleInternal": "供应商资料表中仍缺少的内容。",
-        "blocking": "阻断性目录：{names}",
-        "blockingHint": "请填写以下缺失字段以完成。",
-        "ready": "所有阻断性目录均已满足",
-        "incomplete": "待完成的目录：{names}",
-        "documents": "必需文件",
-        "documentsMissing": "缺少 {count} 份必需文件",
-        "documentsOk": "所有必需文件均已提供",
         "reviewTitle": "只读资料表",
         "reviewSubtitle": "您正在查看此资料表：无法进行任何修改。",
         "expand": "显示",

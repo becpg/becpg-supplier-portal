@@ -1501,7 +1501,9 @@ const LOCALE = {
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "لا يوجد حقل للتعبئة",
-        "emptyHint": "لا يُرجع إعداد هذا النموذج أي حقل."
+        "emptyHint": "لا يُرجع إعداد هذا النموذج أي حقل.",
+        "showEmpty": "{count} حقل (حقول) فارغة مخفية - عرض",
+        "hideEmpty": "إخفاء الحقول الفارغة"
     },
     "components/form/controls/AutocompleteControl#LABELS": {
         "search": "بحث…",
@@ -2758,6 +2760,37 @@ const LOCALE = {
         "collapse": "طيّ الخطوات",
         "expand": "توسيع الخطوات"
     },
+    "components/wizard/compliance/ComplianceOverview#LABELS": {
+        "blockingTitle": "{count} نقطة (نقاط) معيقة قبل الإرسال",
+        "toCompleteTitle": "{count} نقطة (نقاط) للإكمال",
+        "readyTitle": "جاهز للإرسال",
+        "blocking": "معيق",
+        "toComplete": "للإكمال",
+        "document": "مستند",
+        "blockingCount": "{count} معيقة",
+        "toCompleteCount": "{count} للإكمال",
+        "messagesCount": "{count} رسالة (رسائل)",
+        "start": "البدء بـ {step}",
+        "messages": "ما يشير إليه عميلكم",
+        "rule": "قاعدة",
+        "duplicate": "مكرر",
+        "usedBy": "مستخدم بالفعل من قِبل {names}",
+        "usedByOthers": "{count} سجل (سجلات) أخرى",
+        "byStep": "حسب الخطوة",
+        "byStepAria": "النقاط المطلوب معالجتها حسب الخطوة",
+        "byCatalog": "حسب الكتالوج",
+        "byCatalogAria": "درجة الاكتمال حسب الكتالوج",
+        "expected": "الحقول والمستندات المطلوبة",
+        "all": "الكل ({count})",
+        "blockingOnly": "المعيقة ({count})",
+        "other": "أخرى",
+        "goToStep": "الانتقال إلى الخطوة",
+        "goToField": "الانتقال إلى الحقل",
+        "renew": "تجديد",
+        "missing": "ناقص",
+        "expired": "انتهت صلاحيته في {date}",
+        "refused": "مرفوض"
+    },
     "components/wizard/panels/CommentsPanel#LABELS": {
         "title": "المناقشة",
         "subtitle": "مراسلاتكم مع عميلكم بشأن هذه البطاقة",
@@ -2822,16 +2855,6 @@ const LOCALE = {
         "readOnlyText": "لا يمكن تعديل هذه الخطوة."
     },
     "components/wizard/steps/ReviewStep#LABELS": {
-        "title": "المطابقة",
-        "subtitle": "ما لا يزال ناقصًا قبل أن يتمكن عميلكم من اعتماد البطاقة.",
-        "subtitleInternal": "ما لا يزال ناقصًا في بطاقة المورّد.",
-        "blocking": "كتالوج(ات) معيقة: {names}",
-        "blockingHint": "املؤوا الحقول الناقصة أدناه لتتمكنوا من الإنهاء.",
-        "ready": "جميع الكتالوجات المعيقة مستوفاة",
-        "incomplete": "كتالوج(ات) للاستكمال: {names}",
-        "documents": "المستندات الإلزامية",
-        "documentsMissing": "{count} مستند(ات) إلزامية ناقصة",
-        "documentsOk": "جميع المستندات الإلزامية مقدَّمة",
         "reviewTitle": "بطاقة للقراءة فقط",
         "reviewSubtitle": "أنتم تطّلعون على هذه البطاقة: لا يمكن إجراء أي تعديل.",
         "expand": "عرض",

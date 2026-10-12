@@ -1501,7 +1501,9 @@ const LOCALE = {
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "Inga fält att fylla i",
-        "emptyHint": "Formulärets konfiguration returnerar inga fält."
+        "emptyHint": "Formulärets konfiguration returnerar inga fält.",
+        "showEmpty": "{count} tomma fält dolda - visa",
+        "hideEmpty": "Dölj tomma fält"
     },
     "components/form/controls/AutocompleteControl#LABELS": {
         "search": "Sök…",
@@ -2758,6 +2760,37 @@ const LOCALE = {
         "collapse": "Fäll ihop stegen",
         "expand": "Fäll ut stegen"
     },
+    "components/wizard/compliance/ComplianceOverview#LABELS": {
+        "blockingTitle": "{count} blockerande punkt(er) före sändning",
+        "toCompleteTitle": "{count} punkt(er) att komplettera",
+        "readyTitle": "Klart att skicka",
+        "blocking": "Blockerande",
+        "toComplete": "Att komplettera",
+        "document": "Dokument",
+        "blockingCount": "{count} blockerande",
+        "toCompleteCount": "{count} att komplettera",
+        "messagesCount": "{count} meddelande(n)",
+        "start": "Börja med {step}",
+        "messages": "Vad kunden påpekar",
+        "rule": "Regel",
+        "duplicate": "Dubblett",
+        "usedBy": "används redan av {names}",
+        "usedByOthers": "{count} annan/andra post(er)",
+        "byStep": "Per steg",
+        "byStepAria": "Punkter att hantera, per steg",
+        "byCatalog": "Per katalog",
+        "byCatalogAria": "Fullständighetspoäng per katalog",
+        "expected": "Förväntade fält och dokument",
+        "all": "Alla ({count})",
+        "blockingOnly": "Blockerande ({count})",
+        "other": "Övriga",
+        "goToStep": "Gå till steget",
+        "goToField": "Gå till fältet",
+        "renew": "Förnya",
+        "missing": "Saknas",
+        "expired": "Gick ut {date}",
+        "refused": "Avvisat"
+    },
     "components/wizard/panels/CommentsPanel#LABELS": {
         "title": "Diskussion",
         "subtitle": "Dina utbyten med kunden om det här bladet",
@@ -2822,16 +2855,6 @@ const LOCALE = {
         "readOnlyText": "Det här steget kan inte ändras."
     },
     "components/wizard/steps/ReviewStep#LABELS": {
-        "title": "Efterlevnad",
-        "subtitle": "Vad som fortfarande saknas innan kunden kan validera bladet.",
-        "subtitleInternal": "Vad som fortfarande saknas i leverantörens blad.",
-        "blocking": "Blockerande katalog(er): {names}",
-        "blockingHint": "Fyll i de saknade fälten nedan för att kunna slutföra.",
-        "ready": "Alla blockerande kataloger är uppfyllda",
-        "incomplete": "Katalog(er) att komplettera: {names}",
-        "documents": "Obligatoriska dokument",
-        "documentsMissing": "{count} obligatoriska dokument saknas",
-        "documentsOk": "Alla obligatoriska dokument har lämnats in",
         "reviewTitle": "Skrivskyddat blad",
         "reviewSubtitle": "Du visar det här bladet: inga ändringar är möjliga.",
         "expand": "Visa",

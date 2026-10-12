@@ -1501,7 +1501,9 @@ const LOCALE = {
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "入力する項目はありません",
-        "emptyHint": "このフォームの設定では項目が返されません。"
+        "emptyHint": "このフォームの設定では項目が返されません。",
+        "showEmpty": "空のフィールド {count} 件を非表示 - 表示する",
+        "hideEmpty": "空のフィールドを非表示"
     },
     "components/form/controls/AutocompleteControl#LABELS": {
         "search": "検索…",
@@ -2758,6 +2760,37 @@ const LOCALE = {
         "collapse": "ステップを折りたたむ",
         "expand": "ステップを展開"
     },
+    "components/wizard/compliance/ComplianceOverview#LABELS": {
+        "blockingTitle": "送信前のブロッキング項目 {count} 件",
+        "toCompleteTitle": "入力が必要な項目 {count} 件",
+        "readyTitle": "送信準備完了",
+        "blocking": "ブロッキング",
+        "toComplete": "要入力",
+        "document": "文書",
+        "blockingCount": "ブロッキング {count} 件",
+        "toCompleteCount": "要入力 {count} 件",
+        "messagesCount": "メッセージ {count} 件",
+        "start": "{step} から始める",
+        "messages": "お客様からの指摘事項",
+        "rule": "ルール",
+        "duplicate": "重複",
+        "usedBy": "{names} ですでに使用されています",
+        "usedByOthers": "ほかのレコード {count} 件",
+        "byStep": "ステップ別",
+        "byStepAria": "ステップ別の対応項目",
+        "byCatalog": "カタログ別",
+        "byCatalogAria": "カタログ別の完成度スコア",
+        "expected": "求められる項目と文書",
+        "all": "すべて（{count}）",
+        "blockingOnly": "ブロッキング（{count}）",
+        "other": "その他",
+        "goToStep": "ステップへ移動",
+        "goToField": "フィールドへ移動",
+        "renew": "更新",
+        "missing": "未提出",
+        "expired": "{date} に期限切れ",
+        "refused": "却下"
+    },
     "components/wizard/panels/CommentsPanel#LABELS": {
         "title": "ディスカッション",
         "subtitle": "このシートに関するお客様とのやり取り",
@@ -2822,16 +2855,6 @@ const LOCALE = {
         "readOnlyText": "このステップは変更できません。"
     },
     "components/wizard/steps/ReviewStep#LABELS": {
-        "title": "適合性",
-        "subtitle": "お客様がシートを承認する前に、まだ不足しているもの。",
-        "subtitleInternal": "サプライヤーのシートでまだ不足しているもの。",
-        "blocking": "ブロッキングのカタログ：{names}",
-        "blockingHint": "完了するには、以下の未入力の項目を入力してください。",
-        "ready": "すべてのブロッキングのカタログ要件が満たされています",
-        "incomplete": "完了が必要なカタログ：{names}",
-        "documents": "必須文書",
-        "documentsMissing": "未提出の必須文書 {count} 件",
-        "documentsOk": "すべての必須文書が提出済みです",
         "reviewTitle": "読み取り専用のシート",
         "reviewSubtitle": "このシートを閲覧しています。変更はできません。",
         "expand": "表示",

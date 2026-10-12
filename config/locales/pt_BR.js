@@ -1501,7 +1501,9 @@ const LOCALE = {
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "Nenhum campo a preencher",
-        "emptyHint": "A configuração deste formulário não retorna nenhum campo."
+        "emptyHint": "A configuração deste formulário não retorna nenhum campo.",
+        "showEmpty": "{count} campo(s) vazio(s) oculto(s) - mostrar",
+        "hideEmpty": "Ocultar os campos vazios"
     },
     "components/form/controls/AutocompleteControl#LABELS": {
         "search": "Pesquisar…",
@@ -2758,6 +2760,37 @@ const LOCALE = {
         "collapse": "Recolher as etapas",
         "expand": "Expandir as etapas"
     },
+    "components/wizard/compliance/ComplianceOverview#LABELS": {
+        "blockingTitle": "{count} ponto(s) bloqueante(s) antes do envio",
+        "toCompleteTitle": "{count} ponto(s) a completar",
+        "readyTitle": "Pronto para enviar",
+        "blocking": "Bloqueante",
+        "toComplete": "A completar",
+        "document": "Documento",
+        "blockingCount": "{count} bloqueante(s)",
+        "toCompleteCount": "{count} a completar",
+        "messagesCount": "{count} mensagem(ns)",
+        "start": "Começar por {step}",
+        "messages": "O que seu cliente aponta",
+        "rule": "Regra",
+        "duplicate": "Duplicado",
+        "usedBy": "já utilizado por {names}",
+        "usedByOthers": "{count} outra(s) ficha(s)",
+        "byStep": "Por etapa",
+        "byStepAria": "Pontos a tratar, por etapa",
+        "byCatalog": "Por catálogo",
+        "byCatalogAria": "Pontuação de completude por catálogo",
+        "expected": "Campos e documentos esperados",
+        "all": "Tudo ({count})",
+        "blockingOnly": "Bloqueantes ({count})",
+        "other": "Outros",
+        "goToStep": "Ver a etapa",
+        "goToField": "Ir para o campo",
+        "renew": "Renovar",
+        "missing": "Ausente",
+        "expired": "Vencido em {date}",
+        "refused": "Recusado"
+    },
     "components/wizard/panels/CommentsPanel#LABELS": {
         "title": "Discussão",
         "subtitle": "Suas trocas com seu cliente sobre esta ficha",
@@ -2822,16 +2855,6 @@ const LOCALE = {
         "readOnlyText": "Esta etapa não pode ser modificada."
     },
     "components/wizard/steps/ReviewStep#LABELS": {
-        "title": "Conformidade",
-        "subtitle": "O que ainda falta para que seu cliente possa validar a ficha.",
-        "subtitleInternal": "O que ainda falta na ficha do fornecedor.",
-        "blocking": "Catálogo(s) bloqueante(s): {names}",
-        "blockingHint": "Preencha os campos ausentes abaixo para poder concluir.",
-        "ready": "Todos os catálogos bloqueantes foram atendidos",
-        "incomplete": "Catálogo(s) a completar: {names}",
-        "documents": "Documentos obrigatórios",
-        "documentsMissing": "{count} documento(s) obrigatório(s) ausente(s)",
-        "documentsOk": "Todos os documentos obrigatórios foram fornecidos",
         "reviewTitle": "Ficha em somente leitura",
         "reviewSubtitle": "Você está consultando esta ficha: nenhuma modificação é possível.",
         "expand": "Mostrar",

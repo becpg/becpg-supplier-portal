@@ -1501,7 +1501,9 @@ const LOCALE = {
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "Kein Feld auszufüllen",
-        "emptyHint": "Die Konfiguration dieses Formulars liefert kein Feld."
+        "emptyHint": "Die Konfiguration dieses Formulars liefert kein Feld.",
+        "showEmpty": "{count} leere(s) Feld(er) ausgeblendet - anzeigen",
+        "hideEmpty": "Leere Felder ausblenden"
     },
     "components/form/controls/AutocompleteControl#LABELS": {
         "search": "Suchen…",
@@ -2758,6 +2760,37 @@ const LOCALE = {
         "collapse": "Schritte einklappen",
         "expand": "Schritte ausklappen"
     },
+    "components/wizard/compliance/ComplianceOverview#LABELS": {
+        "blockingTitle": "{count} blockierende(r) Punkt(e) vor dem Senden",
+        "toCompleteTitle": "{count} zu vervollständigende(r) Punkt(e)",
+        "readyTitle": "Bereit zum Senden",
+        "blocking": "Blockierend",
+        "toComplete": "Zu vervollständigen",
+        "document": "Dokument",
+        "blockingCount": "{count} blockierend",
+        "toCompleteCount": "{count} zu vervollständigen",
+        "messagesCount": "{count} Nachricht(en)",
+        "start": "Mit {step} beginnen",
+        "messages": "Worauf Ihr Kunde Sie hinweist",
+        "rule": "Regel",
+        "duplicate": "Duplikat",
+        "usedBy": "bereits verwendet von {names}",
+        "usedByOthers": "{count} weitere(r) Datensatz/Datensätze",
+        "byStep": "Nach Schritt",
+        "byStepAria": "Zu bearbeitende Punkte nach Schritt",
+        "byCatalog": "Nach Katalog",
+        "byCatalogAria": "Vollständigkeitsscore nach Katalog",
+        "expected": "Erwartete Felder und Dokumente",
+        "all": "Alle ({count})",
+        "blockingOnly": "Blockierend ({count})",
+        "other": "Sonstige",
+        "goToStep": "Zum Schritt",
+        "goToField": "Zum Feld",
+        "renew": "Erneuern",
+        "missing": "Fehlend",
+        "expired": "Abgelaufen am {date}",
+        "refused": "Abgelehnt"
+    },
     "components/wizard/panels/CommentsPanel#LABELS": {
         "title": "Diskussion",
         "subtitle": "Ihr Austausch mit Ihrem Kunden zu diesem Datenblatt",
@@ -2822,16 +2855,6 @@ const LOCALE = {
         "readOnlyText": "Dieser Schritt kann nicht geändert werden."
     },
     "components/wizard/steps/ReviewStep#LABELS": {
-        "title": "Konformität",
-        "subtitle": "Was noch fehlt, bevor Ihr Kunde das Datenblatt validieren kann.",
-        "subtitleInternal": "Was im Datenblatt des Lieferanten noch fehlt.",
-        "blocking": "Blockierende(r) Katalog(e): {names}",
-        "blockingHint": "Füllen Sie die fehlenden Felder unten aus, um abschließen zu können.",
-        "ready": "Alle blockierenden Kataloge sind erfüllt",
-        "incomplete": "Zu vervollständigende(r) Katalog(e): {names}",
-        "documents": "Pflichtdokumente",
-        "documentsMissing": "{count} Pflichtdokument(e) fehlen",
-        "documentsOk": "Alle Pflichtdokumente sind bereitgestellt",
         "reviewTitle": "Schreibgeschütztes Datenblatt",
         "reviewSubtitle": "Sie sehen dieses Datenblatt ein: Keine Änderung ist möglich.",
         "expand": "Anzeigen",

@@ -1501,7 +1501,9 @@ const LOCALE = {
     },
     "components/form/FormRenderer#LABELS": {
         "empty": "Doldurulacak alan yok",
-        "emptyHint": "Bu formun yapılandırması hiçbir alan döndürmüyor."
+        "emptyHint": "Bu formun yapılandırması hiçbir alan döndürmüyor.",
+        "showEmpty": "{count} boş alan gizlendi - göster",
+        "hideEmpty": "Boş alanları gizle"
     },
     "components/form/controls/AutocompleteControl#LABELS": {
         "search": "Ara…",
@@ -2758,6 +2760,37 @@ const LOCALE = {
         "collapse": "Adımları daralt",
         "expand": "Adımları genişlet"
     },
+    "components/wizard/compliance/ComplianceOverview#LABELS": {
+        "blockingTitle": "Göndermeden önce {count} engelleyici nokta",
+        "toCompleteTitle": "Tamamlanacak {count} nokta",
+        "readyTitle": "Göndermeye hazır",
+        "blocking": "Engelleyici",
+        "toComplete": "Tamamlanacak",
+        "document": "Belge",
+        "blockingCount": "{count} engelleyici",
+        "toCompleteCount": "{count} tamamlanacak",
+        "messagesCount": "{count} mesaj",
+        "start": "{step} ile başla",
+        "messages": "Müşterinizin belirttikleri",
+        "rule": "Kural",
+        "duplicate": "Yinelenen",
+        "usedBy": "zaten kullanan: {names}",
+        "usedByOthers": "{count} diğer kayıt",
+        "byStep": "Adıma göre",
+        "byStepAria": "Adıma göre ele alınacak noktalar",
+        "byCatalog": "Kataloğa göre",
+        "byCatalogAria": "Kataloğa göre doluluk puanı",
+        "expected": "Beklenen alanlar ve belgeler",
+        "all": "Tümü ({count})",
+        "blockingOnly": "Engelleyiciler ({count})",
+        "other": "Diğer",
+        "goToStep": "Adıma git",
+        "goToField": "Alana git",
+        "renew": "Yenile",
+        "missing": "Eksik",
+        "expired": "{date} tarihinde süresi doldu",
+        "refused": "Reddedildi"
+    },
     "components/wizard/panels/CommentsPanel#LABELS": {
         "title": "Tartışma",
         "subtitle": "Bu kartla ilgili müşterinizle yazışmalarınız",
@@ -2822,16 +2855,6 @@ const LOCALE = {
         "readOnlyText": "Bu adım değiştirilemez."
     },
     "components/wizard/steps/ReviewStep#LABELS": {
-        "title": "Uygunluk",
-        "subtitle": "Müşterinizin kartı doğrulayabilmesi için hâlâ eksik olanlar.",
-        "subtitleInternal": "Tedarikçinin kartında hâlâ eksik olanlar.",
-        "blocking": "Engelleyici katalog(lar): {names}",
-        "blockingHint": "Bitirebilmek için aşağıdaki eksik alanları doldurun.",
-        "ready": "Tüm engelleyici kataloglar karşılandı",
-        "incomplete": "Tamamlanacak katalog(lar): {names}",
-        "documents": "Zorunlu belgeler",
-        "documentsMissing": "{count} zorunlu belge eksik",
-        "documentsOk": "Tüm zorunlu belgeler sağlandı",
         "reviewTitle": "Salt okunur kart",
         "reviewSubtitle": "Bu kartı görüntülüyorsunuz: hiçbir değişiklik yapılamaz.",
         "expand": "Göster",
