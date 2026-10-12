@@ -32,8 +32,8 @@ import { Button, Icon } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState, ErrorState } from '@/components/ui/EmptyState';
 import { SkeletonCard } from '@/components/ui/Skeleton';
-import { StatusPill } from '@/components/ui/StatusPill';
-import { CatalogPanel } from '@/components/products/CatalogPanel';
+import { ComplianceOverview } from '@/components/wizard/compliance/ComplianceOverview';
+import { buildComplianceModel } from '@/lib/compliance';
 import { RequirementChecklist } from '@/components/documents/RequirementChecklist';
 import { DepositedDocuments } from '@/components/documents/DepositedDocuments';
 import { FormStep } from '@/components/wizard/steps/FormStep';
@@ -43,23 +43,9 @@ import { useApi } from '@/lib/client';
 import { useMessages } from '@/lib/messages';
 import { portalCatalogs } from '@/lib/catalogs';
 import { defineLabels, pickLabels } from '@/lib/i18n';
-import { useSession } from '@/components/providers/SessionProvider';
 
 const LABELS = defineLabels('components/wizard/steps/ReviewStep#LABELS', {
     fr: {
-        title: 'Conformité',
-        subtitle: 'Ce qui manque encore pour que votre client puisse valider la fiche.',
-        subtitleInternal: 'Ce qui manque encore sur la fiche du fournisseur.',
-        blocking: 'Catalogue(s) bloquant(s) : {names}',
-        blockingHint: 'Complétez les champs manquants ci-dessous pour pouvoir terminer.',
-        ready: 'Tous les catalogues bloquants sont satisfaits',
-        // An incomplete catalogue nobody declared blocking: to be filled in, but
-        // it does not forbid submitting. Word it differently from « bloquant »,
-        // otherwise the two end up meaning the same thing.
-        incomplete: 'Catalogue(s) à compléter : {names}',
-        documents: 'Documents obligatoires',
-        documentsMissing: '{count} document(s) obligatoire(s) manquant(s)',
-        documentsOk: 'Tous les documents obligatoires sont fournis',
         reviewTitle: 'Fiche en lecture seule',
         reviewSubtitle: 'Vous consultez cette fiche : aucune modification n’est possible.',
         expand: 'Afficher',
@@ -71,17 +57,6 @@ const LABELS = defineLabels('components/wizard/steps/ReviewStep#LABELS', {
         empty: 'Rien à afficher',
     },
     en: {
-        title: 'Compliance',
-        subtitle: 'What is still missing before your customer can validate the sheet.',
-        subtitleInternal: 'What is still missing on the supplier’s sheet.',
-        blocking: 'Blocking catalog(s): {names}',
-        blockingHint: 'Fill in the missing fields below to be able to finish.',
-        ready: 'Every blocking catalog is satisfied',
-        /* See the note on the French key. */
-        incomplete: 'Catalog(s) to complete: {names}',
-        documents: 'Mandatory documents',
-        documentsMissing: '{count} mandatory document(s) missing',
-        documentsOk: 'Every mandatory document is provided',
         reviewTitle: 'Read-only sheet',
         reviewSubtitle: 'You are viewing this sheet: no modification is possible.',
         expand: 'Show',
@@ -170,7 +145,11 @@ export function blockingCatalogs(catalogs, blockingIds = null, { translations = 
 }
 
 /**
- * **Étape n+1 · Conformité.**
+ * Step n+1, compliance: what still holds the sheet back, read from the
+ * catalogues and the document requirements (see `lib/compliance.js`).
+ *
+ * The same screen serves the read-only review: without navigation handlers it
+ * simply shows no buttons.
  *
  * @param {Object} props
  * @param {Array<Object>} props.catalogs
@@ -178,10 +157,13 @@ export function blockingCatalogs(catalogs, blockingIds = null, { translations = 
  * @param {boolean} [props.loading]
  * @param {Error} [props.error]
  * @param {Function} [props.onRetry]
- * @param {Function} [props.onFieldClick] `(field, catalog) => void` — jumps to the field
+ * @param {Function} [props.onFieldClick] `(field) => void` jumps to the field
+ * @param {Function} [props.onGoToStep] `(stepId) => void`
  * @param {string[]} [props.blockingIds]
  * @param {boolean} [props.blockingTranslations] a missing translation gates the completion
- * @param {Object} [props.documentSummary] the `summary` of `/documents/requirements`
+ * @param {Object[]} [props.steps] the wizard steps, to attribute each point to one
+ * @param {{fieldSteps: Object, listSteps: Object}} [props.index] field and list to step
+ * @param {Object[]} [props.requirements] the document requirements
  * @param {Function} [props.onOpenDocuments]
  * @param {string} [props.className]
  */
@@ -192,93 +174,42 @@ export function ComplianceStep({
     error = null,
     onRetry,
     onFieldClick,
+    onGoToStep,
     blockingIds = null,
     blockingTranslations = false,
-    documentSummary = null,
+    steps = [],
+    index = {},
+    requirements = [],
     onOpenDocuments,
     className = '',
 }) {
-    const { lang } = useMessages();
-    const labels = pickLabels(LABELS, lang);
-    const internal = useSession().space === 'monitor';
+    const model = useMemo(() => buildComplianceModel({
+        catalogs,
+        blocking: blockingCatalogs(catalogs, blockingIds, { translations: blockingTranslations }),
+        index,
+        steps: steps.filter((step) => step.kind !== 'compliance'),
+        requirements,
+    }), [catalogs, blockingIds, blockingTranslations, index, steps, requirements]);
 
-    const blocking = useMemo(
-        () => blockingCatalogs(catalogs, blockingIds, { translations: blockingTranslations }),
-        [catalogs, blockingIds, blockingTranslations],
-    );
-    // Shown even when nothing blocks: this is the information the supplier comes
-    // here for. What changes is the wording and the tone — « à compléter » and
-    // not « bloquant » — because the consequence is not the same.
-    const unsatisfied = useMemo(() => unsatisfiedCatalogs(catalogs), [catalogs]);
-    const missingDocuments = documentSummary ? Number(documentSummary.blocking) || 0 : 0;
-
+    if (error) {
+        return <ErrorState error={error} onRetry={onRetry} className={className} />;
+    }
+    if (loading) {
+        return (
+            <div className={`flex flex-col gap-3 ${className}`}>
+                <SkeletonCard lines={2} />
+                <SkeletonCard lines={4} />
+            </div>
+        );
+    }
     return (
         <div className={`min-w-0 ${className}`}>
-            <div className="mb-3">
-                <h2 className="text-base font-medium text-[var(--becpg-blue)]">{labels.title}</h2>
-                <p className="text-sm text-[var(--becpg-dark-grey)]">{internal ? labels.subtitleInternal : labels.subtitle}</p>
-            </div>
-
-            {!loading && !error ? (
-                <div className="mb-3 flex flex-wrap items-center gap-2">
-                    {blocking.length > 0 ? (
-                        <StatusPill
-                            status="missing"
-                            tone="warn"
-                            icon="report"
-                            size="sm"
-                            label={fill(labels.blocking, {
-                                names: [...new Set(blocking.map((catalog) => catalog.label))].join(', '),
-                            })}
-                        />
-                    ) : unsatisfied.length > 0 ? (
-                        <StatusPill
-                            status="inProgress"
-                            tone="info"
-                            icon="edit_note"
-                            size="sm"
-                            label={fill(labels.incomplete, {
-                                names: [...new Set(unsatisfied.map((catalog) => catalog.label))].join(', '),
-                            })}
-                        />
-                    ) : (
-                        <StatusPill status="valid" tone="ok" icon="verified" size="sm" label={labels.ready} />
-                    )}
-                    {documentSummary ? (
-                        missingDocuments > 0 ? (
-                            <button type="button" onClick={onOpenDocuments}>
-                                <StatusPill
-                                    status="missing"
-                                    tone="danger"
-                                    icon="folder_off"
-                                    size="sm"
-                                    label={fill(labels.documentsMissing, { count: missingDocuments })}
-                                />
-                            </button>
-                        ) : (
-                            <StatusPill
-                                status="valid"
-                                tone="ok"
-                                icon="folder"
-                                size="sm"
-                                label={labels.documentsOk}
-                            />
-                        )
-                    ) : null}
-                </div>
-            ) : null}
-
-            {blocking.length > 0 ? (
-                <p className="mb-3 text-sm text-[var(--becpg-dark-grey)]">{labels.blockingHint}</p>
-            ) : null}
-
-            <CatalogPanel
-                catalogs={catalogs || []}
-                score={score === null ? undefined : score}
-                loading={loading}
-                error={error}
-                onRetry={onRetry}
+            <ComplianceOverview
+                model={model}
+                score={score}
+                onGoToStep={onGoToStep}
                 onFieldClick={onFieldClick}
+                onOpenDocuments={onOpenDocuments}
             />
         </div>
     );
@@ -506,7 +437,7 @@ export function ReviewStep({ entityId, state = null, wizardId, withCompliance = 
                         loading={catalogs.loading}
                         error={catalogs.error}
                         onRetry={catalogs.refresh}
-                        documentSummary={requirements.data ? requirements.data.summary : null}
+                        requirements={requirements.data?.requirements || []}
                     />
                 </Card>
             ) : null}

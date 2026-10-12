@@ -1864,9 +1864,12 @@ export function Wizard({
             // `field.locale` is set when a catalogue reports the field missing in
             // one language only — the box to land on, not just the field.
             onFieldClick={(field) => goToField(field.field || field.name, field.locale || null)}
+            onGoToStep={goTo}
             blockingIds={gatingCatalogIds}
             blockingTranslations={blockingTranslations}
-            documentSummary={documents.summary}
+            steps={steps}
+            index={catalogIndex}
+            requirements={documents.requirements}
             onOpenDocuments={() => {
                 const target = steps.find((step) => step.kind === 'documents');
                 if (target) {

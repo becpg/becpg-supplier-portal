@@ -215,7 +215,7 @@ function SectionBody({ section, entityNodeRef, params, requirements, catalogs })
                 loading={catalogs.loading}
                 error={catalogs.error}
                 onRetry={catalogs.refresh}
-                documentSummary={requirements.data ? requirements.data.summary : null}
+                requirements={requirements.data?.requirements || []}
             />
         );
     }
