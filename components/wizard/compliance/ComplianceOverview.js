@@ -84,6 +84,7 @@ const LABELS = defineLabels('components/wizard/compliance/ComplianceOverview#LAB
 const SEVERITY_TONE = { [SEVERITY.BLOCKING]: 'danger', [SEVERITY.TO_COMPLETE]: 'warn' };
 const CHART_TONES = { blocking: 'danger', toComplete: 'orange', documents: 'blueLight' };
 const STEP_ROW_HEIGHT = 30;
+const MIN_STEP_SCALE = 4;
 const CATALOG_RING_HEIGHT = 240;
 
 function SeverityPill({ severity, labels }) {
@@ -196,9 +197,17 @@ function Messages({ model, stepLabels, labels, onGoToStep, onFieldClick }) {
 function StepsChart({ model, labels, onGoToStep }) {
     const steps = model.bySteps.steps;
     const build = useCallback((palette) => ({
-        tooltip: tooltipStyle(palette, { trigger: 'axis', axisPointer: { type: 'shadow' } }),
+        tooltip: tooltipStyle(palette, {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            formatter: (items) => {
+                const lines = items.filter((item) => item.value).map((item) => `${item.marker}${escapeHtml(item.seriesName)} : ${item.value}`);
+                return `<b>${escapeHtml(items[0]?.axisValue)}</b>${lines.length > 0 ? `<br/>${lines.join('<br/>')}` : ''}`;
+            },
+        }),
         grid: { left: 8, right: 16, top: 6, bottom: 6, containLabel: true },
-        xAxis: axisStyle(palette, { type: 'value', minInterval: 1 }),
+        // A floor on the scale, so a single point does not run across the card.
+        xAxis: axisStyle(palette, { type: 'value', minInterval: 1, max: (extent) => Math.max(extent.max, MIN_STEP_SCALE) }),
         yAxis: axisStyle(palette, {
             type: 'category', inverse: true, data: steps.map((step) => step.label),
             axisTick: { show: false }, axisLabel: { color: palette.ink, width: 140, overflow: 'truncate' },
