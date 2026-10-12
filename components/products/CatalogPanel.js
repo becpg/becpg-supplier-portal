@@ -114,6 +114,21 @@ function rowKey(catalog) {
 }
 
 /**
+ * A missing field of a per-language catalogue row carries no language of its
+ * own: the row does. Without it the link of « Libellé légal » cannot open the
+ * box of the language that is actually empty. Only the link takes it: the label
+ * stays as beCPG wrote it, since the row title already names the language and
+ * most missing fields (ingredients, nutrients) are not translatable.
+ *
+ * @param {Object} field `{ field, label, locale }`
+ * @param {Object} catalog the catalogue row holding the field
+ * @returns {Object} the field, with the row's language when it has none
+ */
+function withCatalogLocale(field, catalog) {
+    return !field.locale && catalog.locale ? { ...field, locale: catalog.locale } : field;
+}
+
+/**
  * The label a missing field is shown with. beCPG sends the dictionary label; the
  * qname is the fallback so a field is never rendered as an empty chip.
  *
@@ -197,7 +212,7 @@ function MissingField({ field, onFieldClick, catalog, label }) {
             type="button"
             className={classes}
             title={label}
-            onClick={() => onFieldClick(field, catalog)}
+            onClick={() => onFieldClick(withCatalogLocale(field, catalog), catalog)}
         >
             {content}
         </button>
