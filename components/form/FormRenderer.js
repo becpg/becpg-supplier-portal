@@ -49,12 +49,22 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { TabScroller } from '@/components/ui/TabScroller';
 import { FieldRenderer } from '@/components/form/FieldRenderer';
-import { readValue } from '@/components/form/validation';
+import { isEmptyValue, readValue } from '@/components/form/validation';
 import { defineLabels, pickLabels } from '@/lib/i18n';
 
 const LABELS = defineLabels('components/form/FormRenderer#LABELS', {
-    fr: { empty: 'Aucun champ à saisir', emptyHint: 'La configuration de ce formulaire ne renvoie aucun champ.' },
-    en: { empty: 'No field to fill in', emptyHint: 'The configuration of this form returns no field.' },
+    fr: {
+        empty: 'Aucun champ à saisir',
+        emptyHint: 'La configuration de ce formulaire ne renvoie aucun champ.',
+        showEmpty: '{count} champ(s) vide(s) masqué(s) - afficher',
+        hideEmpty: 'Masquer les champs vides',
+    },
+    en: {
+        empty: 'No field to fill in',
+        emptyHint: 'The configuration of this form returns no field.',
+        showEmpty: '{count} empty field(s) hidden - show',
+        hideEmpty: 'Hide empty fields',
+    },
 });
 
 /** Set appearances that draw a container of their own. */
@@ -104,7 +114,7 @@ export function buildSetTree(sets) {
  *
  * @param {Object} props
  */
-function SetRenderer({ set, index, depth, fieldsById, renderField, lang }) {
+function SetRenderer({ set, index, depth, fieldsById, renderField, isShown, lang }) {
     const shape = APPEARANCES[set.appearance] || 'plain';
     if (shape === 'hidden') {
         return null;
@@ -112,7 +122,8 @@ function SetRenderer({ set, index, depth, fieldsById, renderField, lang }) {
 
     const fields = (set.fields || [])
         .map((fieldId) => fieldsById.get(fieldId))
-        .filter(Boolean);
+        .filter(Boolean)
+        .filter(isShown);
 
     const body = (
         <>
@@ -159,6 +170,7 @@ function SetRenderer({ set, index, depth, fieldsById, renderField, lang }) {
                             depth={depth + 1}
                             fieldsById={fieldsById}
                             renderField={renderField}
+                            isShown={isShown}
                             lang={lang}
                         />
                     ))}
@@ -233,6 +245,8 @@ function SetRenderer({ set, index, depth, fieldsById, renderField, lang }) {
  * @param {string} [props.lang='fr']
  * @param {(field: Object) => React.ReactNode} [props.badgeFor] extra badge after a label (AI confidence…)
  * @param {(field: Object) => React.ReactNode} [props.actionFor] extra action at the right of a label (comments…)
+ * @param {boolean} [props.hideEmpty=false] fold the fields without a value behind a toggle — a read-only
+ *   review of a long sheet is mostly « — » otherwise
  * @param {React.ReactNode} [props.footer] rendered after the sets — the wizard's buttons
  *
  * @example
@@ -260,10 +274,12 @@ export function FormRenderer({
     lang = 'fr',
     badgeFor,
     actionFor,
+    hideEmpty = false,
     footer,
     className = '',
 }) {
     const labels = pickLabels(LABELS, lang);
+    const [showEmpty, setShowEmpty] = useState(false);
     const tabs = useMemo(
         () => (Array.isArray(definition?.tabs) ? definition.tabs : []),
         [definition],
@@ -302,6 +318,20 @@ export function FormRenderer({
     }, [errors, definition]);
 
     const formReadOnly = readOnly || mode === 'view';
+
+    const isBlankField = (field) => {
+        const fromValues = readValue(values, field);
+        const value = fromValues.found ? fromValues.value : field.value;
+        const displayValue = fromValues.found && fromValues.displayValue !== null
+            ? fromValues.displayValue
+            : field.displayValue;
+        return isEmptyValue(value) && isEmptyValue(displayValue);
+    };
+    const folding = hideEmpty && formReadOnly;
+    const isShown = (field) => !folding || showEmpty || !isBlankField(field);
+    const hiddenCount = folding && !showEmpty
+        ? (definition?.fields || []).filter((field) => (!field.tab || field.tab === currentTab) && isBlankField(field)).length
+        : 0;
 
     const renderField = (field) => {
         const fromValues = readValue(values, field);
@@ -405,10 +435,21 @@ export function FormRenderer({
                             depth={0}
                             fieldsById={fieldsById}
                             renderField={renderField}
+                            isShown={isShown}
                             lang={lang}
                         />
                     ))}
                 </div>
+                {folding && (hiddenCount > 0 || showEmpty) ? (
+                    <button
+                        type="button"
+                        onClick={() => setShowEmpty((open) => !open)}
+                        aria-pressed={showEmpty}
+                        className="mt-4 text-sm font-medium text-[var(--becpg-blue)] underline-offset-2 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--becpg-orange)]"
+                    >
+                        {showEmpty ? labels.hideEmpty : labels.showEmpty.replace('{count}', String(hiddenCount))}
+                    </button>
+                ) : null}
             </>
         );
 

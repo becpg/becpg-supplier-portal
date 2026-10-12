@@ -427,6 +427,7 @@ export function FormStep({
                 mode={readOnly ? 'view' : 'edit'}
                 readOnly={readOnly}
                 onChange={form.setValue}
+                hideEmpty={consultation}
                 entityNodeRef={entityId}
                 formId={step.formId || undefined}
                 itemType={step.itemId || undefined}
