@@ -86,6 +86,7 @@
 
 import { NextResponse } from 'next/server';
 import { classLabels } from '@/lib/adapters/dictionary';
+import { mapWithConcurrency } from '@/lib/adapters/tasks';
 import { BadRequestError, toApiResponse } from '@/lib/errors';
 import {
     becpgJson,
@@ -121,6 +122,9 @@ const FIELD_PREFIX = 'field:';
  * supplier saw when writing travels with the message.
  */
 const ROW_PREFIX = 'row:';
+
+/** Reads in flight at once on the sheet-level view: beCPG's rate limiter answers 429 past a burst. */
+const AGGREGATE_CONCURRENCY = 5;
 
 /** Commented nodes read by `scope=entity` before the answer declares itself truncated. */
 const AGGREGATE_MAX_NODES = 20;
@@ -265,7 +269,7 @@ async function commentedNodes(entityNodeRef, session) {
         .filter((node) => node && node.id)
         .map((node) => (node.id.includes('://') ? node.id : `workspace://SpacesStore/${node.id}`));
 
-    const parents = await Promise.all(forums.slice(0, AGGREGATE_MAX_NODES).map(async (forum) => {
+    const parents = await mapWithConcurrency(forums.slice(0, AGGREGATE_MAX_NODES), AGGREGATE_CONCURRENCY, async (forum) => {
         try {
             const ancestry = await getNodeAncestry(forum, { session });
             return ancestry.nodeRef ? ancestry : null;
@@ -278,7 +282,7 @@ async function commentedNodes(entityNodeRef, session) {
             });
             return null;
         }
-    }));
+    });
 
     const byNodeRef = new Map();
     for (const ancestry of parents.filter(Boolean)) {
@@ -464,8 +468,10 @@ export async function GET(request) {
         if (url.searchParams.get('scope') === 'entity') {
             const { nodes, truncated } = await commentedNodes(nodeRef, session);
             const described = await describeSources(nodeRef, nodes, session);
-            messages = (await Promise.all(
-                described.map((node) => readNodeThread(node, { session, pageSize })),
+            messages = (await mapWithConcurrency(
+                described,
+                AGGREGATE_CONCURRENCY,
+                (node) => readNodeThread(node, { session, pageSize }),
             ))
                 .flat()
                 .sort((a, b) => Date.parse(b.createdOn || 0) - Date.parse(a.createdOn || 0));
