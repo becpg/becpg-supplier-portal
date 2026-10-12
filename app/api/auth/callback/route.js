@@ -97,7 +97,7 @@ export async function GET(request) {
         let idClaims = {};
         if (tokens.id_token) {
             idClaims = decodeIdToken(tokens.id_token, { issuer });
-            if (flow.nonce && idClaims.nonce && idClaims.nonce !== flow.nonce) {
+            if (flow.nonce && idClaims.nonce !== flow.nonce) {
                 console.warn('[auth] nonce mismatch on the ID token');
                 return loginRedirect(request, 'nonce_mismatch');
             }

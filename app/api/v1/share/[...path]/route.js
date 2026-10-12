@@ -18,6 +18,9 @@
  *     expected, and it is why the wizard does not go through this route. Do not
  *     work around it here — add the missing view to beCPG instead (rule R1).
  *
+ * Read only: the resources above are pages and renderers, and forwarding no credential,
+ * a write verb could only ever reach what Share exposes to anyone.
+ *
  * Whenever a Share-rendered resource gains a beCPG equivalent, delete its usage
  * here. The day this route has no caller left, delete the route.
  */
@@ -49,20 +52,5 @@ async function handle(request, context) {
 
 /** @type {(request: Request, context: Object) => Promise<Response>} */
 export async function GET(request, context) {
-    return handle(request, context);
-}
-
-/** @type {(request: Request, context: Object) => Promise<Response>} */
-export async function POST(request, context) {
-    return handle(request, context);
-}
-
-/** @type {(request: Request, context: Object) => Promise<Response>} */
-export async function PUT(request, context) {
-    return handle(request, context);
-}
-
-/** @type {(request: Request, context: Object) => Promise<Response>} */
-export async function DELETE(request, context) {
     return handle(request, context);
 }

@@ -25,6 +25,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { isCrossOrigin, isCrossOriginWrite } from '@/lib/csrf';
 import { readSession } from '@/lib/session';
 import { resolveTenant, stripTenantPrefix, withTenantPrefix } from '@/lib/tenant';
 
@@ -87,6 +88,16 @@ function forward(request, prefix, appPath, headers) {
 export async function proxy(request) {
     const { pathname, search } = request.nextUrl;
     const { pathname: appPath, prefix } = stripTenantPrefix(pathname);
+
+    // A write sent by a page of another origin, and a logout link planted in one,
+    // never get as far as the session.
+    if (appPath.startsWith('/api/') && (isCrossOriginWrite(request)
+        || (appPath === '/api/auth/logout' && isCrossOrigin(request)))) {
+        return NextResponse.json(
+            { error: { code: 'forbidden', message: 'Cross-origin request refused', messageKey: 'error.forbidden' } },
+            { status: 403 },
+        );
+    }
 
     if (isPublicPath(appPath) || isPublicFile(appPath)) {
         return forward(request, prefix, appPath);
