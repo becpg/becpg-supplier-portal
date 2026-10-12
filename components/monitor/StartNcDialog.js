@@ -36,6 +36,7 @@ const LABELS = defineLabels('components/monitor/StartNcDialog#LABELS', {
         cancel: 'Annuler',
         start: 'Démarrer',
         started: 'Non-conformité démarrée : beCPG l’enregistre et ouvre son analyse.',
+        listFailed: 'La liste n’a pas pu être chargée. Fermez la fenêtre et réessayez.',
     },
     en: {
         title: 'Start a non-conformity',
@@ -50,6 +51,7 @@ const LABELS = defineLabels('components/monitor/StartNcDialog#LABELS', {
         cancel: 'Cancel',
         start: 'Start',
         started: 'Non-conformity started: beCPG files it and opens its analysis.',
+        listFailed: 'The list could not be loaded. Close the window and try again.',
     },
 });
 
@@ -63,7 +65,7 @@ const NO_PARAMS = Object.freeze({});
 
 /** Every row a listing route serves, while `path` is set. */
 function useListing(path, params) {
-    const [state, setState] = useState({ key: null, items: [] });
+    const [state, setState] = useState({ key: null, items: [], failed: false });
     const key = path ? JSON.stringify([path, params]) : null;
     useEffect(() => {
         if (!key) {
@@ -73,11 +75,15 @@ function useListing(path, params) {
         collectPages((page) => api.get(path, { params: { ...params, page, pageSize: PAGE_SIZE } }))
             .then((result) => {
                 if (!cancelled) {
-                    setState({ key, items: result.items });
+                    setState({ key, items: result.items, failed: false });
                 }
             })
             .catch((error) => {
                 console.error('Start NC dialog: listing failed', { path, status: error?.status });
+                // Settled, not pending: the picker stops spinning and says so.
+                if (!cancelled) {
+                    setState({ key, items: [], failed: true });
+                }
             });
         return () => {
             cancelled = true;
@@ -85,7 +91,8 @@ function useListing(path, params) {
         // `key` carries path and params by value.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [key]);
-    return { items: state.key === key ? state.items : [], loading: Boolean(key) && state.key !== key };
+    const settled = state.key === key;
+    return { items: settled ? state.items : [], loading: Boolean(key) && !settled, failed: settled && state.failed };
 }
 
 /**
@@ -163,7 +170,7 @@ export function StartNcDialog({ open, onClose, supplier = null, onStarted }) {
         >
             <div className="flex flex-col gap-3">
                 {supplier ? null : (
-                    <Field label={labels.supplier} required id="nc-supplier">
+                    <Field label={labels.supplier} required id="nc-supplier" error={suppliers.failed ? labels.listFailed : undefined}>
                         <SupplierPicker
                             id="nc-supplier"
                             suppliers={suppliers.items}
@@ -173,7 +180,7 @@ export function StartNcDialog({ open, onClose, supplier = null, onStarted }) {
                         />
                     </Field>
                 )}
-                <Field label={labels.product} id="nc-product">
+                <Field label={labels.product} id="nc-product" error={products.failed ? labels.listFailed : undefined}>
                     <Select
                         id="nc-product"
                         value={form.product}

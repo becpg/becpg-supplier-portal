@@ -185,6 +185,11 @@ export const messages = {
         'status.completed': 'Terminé',
         'status.late': 'En retard',
         'status.draft': 'Simulation',
+        'status.cancelled': 'Annulé',
+        'status.stopped': 'Arrêté',
+        'status.archived': 'Archivé',
+        'status.onHold': 'En pause',
+        'status.planned': 'Planifié',
         'status.notApplicable': 'Non applicable',
 
         // --- Test instance banner ---
@@ -295,6 +300,11 @@ export const messages = {
         'status.completed': 'Completed',
         'status.late': 'Late',
         'status.draft': 'Simulation',
+        'status.cancelled': 'Cancelled',
+        'status.stopped': 'Stopped',
+        'status.archived': 'Archived',
+        'status.onHold': 'On hold',
+        'status.planned': 'Planned',
         'status.notApplicable': 'Not applicable',
 
         // --- Test instance banner ---

@@ -7,7 +7,7 @@
 
 import { NextResponse } from 'next/server';
 import { getLiveSession } from '@/lib/session';
-import { AuthError, toApiResponse } from '@/lib/errors';
+import { AuthError, BadRequestError, toApiResponse } from '@/lib/errors';
 import { claimWorkflowTask } from '@/lib/adapters/workflowTasks';
 
 export const runtime = 'nodejs';
@@ -25,7 +25,18 @@ export async function POST(request, context) {
         if (!session) {
             throw new AuthError('No portal session');
         }
-        const body = await request.json().catch(() => ({}));
+        // No body at all means "claim"; a body that is not JSON is refused, not read as
+        // an empty one: that would turn a release request into a claim.
+        const raw = await request.text();
+        let body = {};
+        if (raw.trim()) {
+            try {
+                body = JSON.parse(raw);
+            }
+            catch {
+                throw new BadRequestError('The request body is not valid JSON');
+            }
+        }
         return NextResponse.json(await claimWorkflowTask(session, id, { release: body?.release === true }), { status: 200 });
     }
     catch (error) {

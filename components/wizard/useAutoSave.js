@@ -151,13 +151,24 @@ export function useAutoSave({
         handlers.current = { onSaved, onError };
     });
 
+    // The drain, reachable from the unmount below (it is defined further down).
+    const drainLatestRef = useRef(null);
+
     useEffect(() => {
         aliveRef.current = true;
+        const tasks = tasksRef.current;
         return () => {
             aliveRef.current = false;
             if (timerRef.current) {
                 clearTimeout(timerRef.current);
                 timerRef.current = null;
+            }
+            // Leaving the page within the debounce window must not drop what was typed:
+            // the tasks read their values through refs, so they can still be sent.
+            if (tasks.size > 0 && drainLatestRef.current) {
+                drainLatestRef.current().catch((error) => {
+                    console.warn('[autosave] the save queued at unmount failed', error?.message);
+                });
             }
         };
     }, []);
@@ -255,6 +266,10 @@ export function useAutoSave({
             }
         }
     }, []);
+
+    useEffect(() => {
+        drainLatestRef.current = drain;
+    }, [drain]);
 
     /** Puts the hook in its definitive error state. */
     const showError = useCallback((error) => {

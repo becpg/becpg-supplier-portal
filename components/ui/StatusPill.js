@@ -58,10 +58,10 @@ export const STATUS_VOCABULARY = Object.freeze({
     suspended: { tone: 'danger', icon: 'block', messageKey: 'status.suspended' },
 
     // --- Task / project state (pjt:tlState) --------------------------------
-    planned: { tone: 'neutral', icon: 'event', messageKey: 'status.pending' },
-    onHold: { tone: 'warn', icon: 'pause_circle_outline', messageKey: 'status.pending' },
+    planned: { tone: 'neutral', icon: 'event', messageKey: 'status.planned' },
+    onHold: { tone: 'warn', icon: 'pause_circle_outline', messageKey: 'status.onHold' },
     completed: { tone: 'ok', icon: 'task_alt', messageKey: 'status.completed' },
-    cancelled: { tone: 'neutral', icon: 'do_not_disturb_on', messageKey: 'status.rejected' },
+    cancelled: { tone: 'neutral', icon: 'do_not_disturb_on', messageKey: 'status.cancelled' },
     late: { tone: 'danger', icon: 'alarm', messageKey: 'status.late' },
 
     // --- AI extraction (a row of a becpg-ai extraction) --------------------
@@ -73,8 +73,8 @@ export const STATUS_VOCABULARY = Object.freeze({
 
     // --- Entity state (bcpg:systemState) -----------------------------------
     simulation: { tone: 'neutral', icon: 'edit_note', messageKey: 'status.draft' },
-    stopped: { tone: 'neutral', icon: 'stop_circle', messageKey: 'status.rejected' },
-    archived: { tone: 'neutral', icon: 'inventory', messageKey: 'status.completed' },
+    stopped: { tone: 'neutral', icon: 'stop_circle', messageKey: 'status.stopped' },
+    archived: { tone: 'neutral', icon: 'inventory', messageKey: 'status.archived' },
 });
 
 /**
