@@ -33,7 +33,7 @@
     "i18n:extract": "node scripts/i18n-extract.mjs"
   },
   "dependencies": {
-    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-table": "^9.2.8",
     "echarts": "^6.1.0",
     "echarts-gl": "^2.1.0",
     "framer-motion": "^14.1.0",
